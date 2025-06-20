@@ -1,0 +1,27 @@
+# Built application files / Gradle
+*.apk
+*.aar
+*.ap_
+*.aab
+*.iml
+.gradle/
+build/
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Local config
+local.properties
+/local.properties
+
+# IDE
+/.idea
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+
+# Logs
+*.log

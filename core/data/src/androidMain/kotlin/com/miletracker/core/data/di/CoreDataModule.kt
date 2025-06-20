@@ -1,0 +1,17 @@
+package com.miletracker.core.data.di
+
+import com.miletracker.core.data.database.MileTrackerDatabase
+import com.miletracker.core.data.database.buildMileTrackerDatabase
+import com.miletracker.core.data.session.CurrentTrackDataStore
+import org.koin.android.ext.koin.androidContext
+import org.koin.dsl.module
+
+val coreDataModule = module {
+    single<MileTrackerDatabase> { buildMileTrackerDatabase(androidContext()) }
+    single { get<MileTrackerDatabase>().locationDao() }
+    single { get<MileTrackerDatabase>().savedTrackDao() }
+    single { get<MileTrackerDatabase>().hardwareEventDao() }
+    single { get<MileTrackerDatabase>().logMilesDraftDao() }
+    single { get<MileTrackerDatabase>().logMilesFrequentRouteDao() }
+    single { CurrentTrackDataStore(androidContext()) }
+}

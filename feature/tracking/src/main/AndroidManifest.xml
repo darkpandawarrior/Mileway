@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="com.miletracker.feature.tracking.TrackMilesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MileTracker" />
+
+        <service
+            android:name="com.miletracker.feature.tracking.service.LocationTrackingService"
+            android:foregroundServiceType="location"
+            android:exported="false"
+            android:stopWithTask="false" />
+
+        <service
+            android:name="com.miletracker.feature.tracking.service.FloatingBubbleService"
+            android:exported="false" />
+
+        <receiver
+            android:name="com.miletracker.feature.tracking.service.LocationTrackingBootReceiver"
+            android:directBootAware="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name="com.miletracker.feature.tracking.service.TrackingContextReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.os.action.POWER_SAVE_MODE_CHANGED" />
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+                <action android:name="android.intent.action.BATTERY_LOW" />
+                <action android:name="android.intent.action.AIRPLANE_MODE" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

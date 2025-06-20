@@ -1,0 +1,54 @@
+package com.miletracker.stub
+
+import com.miletracker.core.data.model.network.UserConfigResponseV2
+import com.miletracker.core.data.model.state.LogMilesPluginConfig
+import com.miletracker.core.data.model.state.ProfileConfig
+import com.miletracker.core.data.model.state.TrackMilesPluginConfig
+import com.miletracker.core.data.result.NetworkResult
+import com.miletracker.core.network.config.ConfigProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+class DemoConfigManager : ConfigProvider {
+
+    val configState: StateFlow<NetworkResult<UserConfigResponseV2>> =
+        MutableStateFlow(NetworkResult.Success(DemoMockData.userConfig()))
+
+    fun getConfig(): UserConfigResponseV2 = DemoMockData.userConfig()
+
+    private val demoProfile = ProfileConfig(
+        code = "EMP001", name = "Demo User",
+        email = "demo@miletracker.app", tenant = "DEMO", currency = "INR"
+    )
+
+    override fun getTrackMilesConfig(): TrackMilesPluginConfig = TrackMilesPluginConfig(
+        isTrackMilesEnabled = true, trackMilesV2 = true, draftTrackMiles = true,
+        allowPauseTrackMiles = true, allowExpenseCreation = true,
+        isOdometerMandatory = false, odometerOcrEnabled = false,
+        geoCheckInEnabled = false, calculateDistanceOnBackend = false,
+        autoDiscardTrackMileage = false, skipOdometer = true,
+        showTrackingOverlay = true, saveTrackMilesEnabled = true,
+        isDiscardJourneyEnabled = true, allowManualCheckIn = true,
+        enableNetworkSyncing = true, minTrackingIntervalSeconds = 10L,
+        tenantCode = "DEMO", currency = "INR", profile = demoProfile
+    )
+
+    override fun getLogMilesConfig(): LogMilesPluginConfig = LogMilesPluginConfig(
+        logMilesEnabled = true, isMilesEditable = true, draftLogMiles = true,
+        multiServiceLogMiles = false, service = "Own Car",
+        currency = "INR", tenantCode = "DEMO", profile = demoProfile
+    )
+
+    override fun isMilesEnabled(): Boolean = true
+    override fun isLogMilesEnabled(): Boolean = true
+    override fun getCurrency(): String = "INR"
+
+    fun isTrackMilesV2Enabled(): Boolean = true
+    fun isDraftTrackMilesEnabled(): Boolean = true
+    fun isGeoCheckInEnabled(): Boolean = false
+    fun isOdometerMandatory(): Boolean = false
+    fun isAutoDiscardEnabled(): Boolean = false
+    fun isCalculateDistanceOnBackend(): Boolean = false
+    fun isMultiServiceLogMiles(): Boolean = false
+    fun getMileageTimeThreshold(): Int = 10
+}

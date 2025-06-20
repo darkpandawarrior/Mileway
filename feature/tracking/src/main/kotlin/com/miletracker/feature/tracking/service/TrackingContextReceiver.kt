@@ -1,0 +1,71 @@
+package com.miletracker.feature.tracking.service
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.os.BatteryManager
+import android.os.PowerManager
+import android.util.Log
+import com.miletracker.core.data.model.db.EventAudience
+import com.miletracker.core.data.model.db.HardwareEvent
+
+class TrackingContextReceiver : BroadcastReceiver() {
+
+    companion object {
+        private const val TAG = "TrackingContextReceiver"
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
+            PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> {
+                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                val enabled = pm.isPowerSaveMode
+                Log.i(TAG, "Power saver: $enabled")
+                broadcastHardwareEvent(context, if (enabled) "Power Saver Mode Enabled" else "Power Saver Mode Disabled")
+            }
+
+            ConnectivityManager.CONNECTIVITY_ACTION -> {
+                Log.d(TAG, "Network connectivity changed")
+            }
+
+            LocationManager.PROVIDERS_CHANGED_ACTION -> {
+                val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                val gpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                val event = if (gpsEnabled) "GPS Available" else "GPS Lost"
+                Log.i(TAG, event)
+                broadcastHardwareEvent(context, event)
+            }
+
+            Intent.ACTION_BATTERY_LOW -> {
+                Log.w(TAG, "Battery low")
+                broadcastHardwareEvent(context, "Battery Low")
+            }
+
+            Intent.ACTION_BATTERY_CHANGED -> {
+                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
+                if (level >= 0) {
+                    val pct = (level * 100f / scale).toInt()
+                    if (pct % 10 == 0) Log.d(TAG, "Battery: $pct%")
+                }
+            }
+
+            Intent.ACTION_AIRPLANE_MODE_CHANGED -> {
+                val enabled = intent.getBooleanExtra("state", false)
+                Log.i(TAG, "Airplane mode: $enabled")
+                if (enabled) broadcastHardwareEvent(context, "Airplane Mode Enabled")
+            }
+        }
+    }
+
+    private fun broadcastHardwareEvent(context: Context, eventText: String) {
+        val broadcastIntent = Intent(LocationTrackingConstants.ACTION_TRACKING_STARTED).apply {
+            setPackage(context.packageName)
+            putExtra("hw_event_text", eventText)
+            putExtra("hw_event_time", System.currentTimeMillis())
+        }
+        context.sendBroadcast(broadcastIntent)
+    }
+}

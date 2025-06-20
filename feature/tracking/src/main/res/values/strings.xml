@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="map_screen_cta_grant_permissions">Grant Permissions</string>
+    <string name="map_screen_settings_tracking_title">Tracking Settings</string>
+    <string name="map_screen_settings_auto_center_title">Auto-Center Map</string>
+    <string name="map_screen_settings_auto_center_desc">Automatically center map on current location while tracking</string>
+    <string name="map_screen_settings_gyroscope_title">Gyroscope Visualization</string>
+    <string name="map_screen_settings_gyroscope_desc">Show real-time gyroscope data and device tilt</string>
+    <string name="map_screen_settings_bearing_confidence_title">Bearing Confidence</string>
+    <string name="map_screen_settings_bearing_confidence_desc">Display GPS bearing accuracy indicator</string>
+    <string name="map_screen_settings_device_orientation_title">Device Orientation</string>
+    <string name="map_screen_settings_device_orientation_desc">Show if device is mounted or handheld</string>
+    <string name="map_screen_settings_info_title">Information</string>
+    <string name="map_screen_info_gps_bearing_title">GPS &amp; Bearing</string>
+    <string name="map_screen_info_gps_bearing_desc">Direction marker uses GPS bearing and compass data for accurate heading with sub-degree precision when available.</string>
+    <string name="map_screen_info_gyroscope_title">Gyroscope Data</string>
+    <string name="map_screen_info_gyroscope_desc">Gyroscope sensors detect device tilt and orientation, helping identify if your phone is mounted or handheld.</string>
+</resources>

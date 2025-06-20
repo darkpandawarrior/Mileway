@@ -1,0 +1,13 @@
+package com.miletracker.feature.logging.di
+
+import com.miletracker.feature.logging.repository.LogMilesDraftRepository
+import com.miletracker.feature.logging.repository.LogMilesServiceRepository
+import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
+import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.module
+
+val loggingModule = module {
+    single { LogMilesServiceRepository(get()) }
+    single { LogMilesDraftRepository(get()) }
+    viewModelOf(::LogMilesViewModel)
+}
