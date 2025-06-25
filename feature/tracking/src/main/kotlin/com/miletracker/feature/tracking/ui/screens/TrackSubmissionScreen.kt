@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -26,16 +29,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.components.StatCard
@@ -94,13 +104,19 @@ fun TrackSubmissionScreen(
         ) {
             when (val s = state) {
                 is SubmissionUiState.Idle -> {
-                    JourneySummaryCard(
-                        distanceKm = distanceKm,
-                        vehicleKey = vehicleKey,
-                        startTime = startTime,
-                        endTime = endTime
-                    )
-                    Spacer(Modifier.weight(1f))
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        JourneySummaryCard(
+                            distanceKm = distanceKm,
+                            vehicleKey = vehicleKey,
+                            startTime = startTime,
+                            endTime = endTime
+                        )
+                        OdometerCard()
+                    }
+                    Spacer(Modifier.height(4.dp))
                     Button(
                         onClick = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
                         modifier = Modifier.fillMaxWidth().height(56.dp)
@@ -205,4 +221,80 @@ private fun formatTripDuration(startTime: Long, endTime: Long): String {
     val h = totalMin / 60
     val m = totalMin % 60
     return if (h > 0) "${h}h ${m}m" else "${m}m"
+}
+
+/**
+ * Optional odometer reading capture. Manual start/end entry with a computed odometer
+ * distance and a demo auto-fill (standing in for the camera/OCR reader in this mock app).
+ */
+@Composable
+private fun OdometerCard() {
+    var enabled by remember { mutableStateOf(false) }
+    var start by remember { mutableStateOf("") }
+    var end by remember { mutableStateOf("") }
+
+    val odometerDistance = run {
+        val s = start.toDoubleOrNull()
+        val e = end.toDoubleOrNull()
+        if (s != null && e != null && e >= s) e - s else null
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+    ) {
+        Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Straighten, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.m))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Odometer", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("Optional — record start & end readings", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(checked = enabled, onCheckedChange = { enabled = it })
+            }
+
+            if (enabled) {
+                Spacer(Modifier.height(DesignTokens.Spacing.m))
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+                    OutlinedTextField(
+                        value = start,
+                        onValueChange = { start = it.filter(Char::isDigit) },
+                        label = { Text("Start") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = end,
+                        onValueChange = { end = it.filter(Char::isDigit) },
+                        label = { Text("End") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = { start = "48213"; end = "48221" }) {
+                        Text("Auto-fill (demo)")
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (odometerDistance != null) {
+                        Text(
+                            "Odometer: %.0f km".format(odometerDistance),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

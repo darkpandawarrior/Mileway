@@ -101,8 +101,17 @@ private fun ProfileHeaderSection(header: ProfileHeader) {
             Text(
                 text = header.email,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
+                color = Color.White.copy(alpha = 0.9f),
             )
+            if (header.code.isNotBlank() || header.tenant.isNotBlank()) {
+                Text(
+                    text = listOf(header.code, header.tenant)
+                        .filter { it.isNotBlank() }
+                        .joinToString("  ·  "),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.8f),
+                )
+            }
         }
     }
 }
