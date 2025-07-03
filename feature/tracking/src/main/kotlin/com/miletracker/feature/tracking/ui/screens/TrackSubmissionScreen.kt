@@ -1,6 +1,7 @@
 package com.miletracker.feature.tracking.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.ErrorOutline
@@ -48,10 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.miletracker.core.ui.components.StatCard
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.tracking.ui.components.CameraCaptureSheet
+import com.miletracker.feature.tracking.ui.components.CaptureMode
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import com.miletracker.feature.tracking.viewmodel.SubmissionUiState
 import org.koin.compose.viewmodel.koinViewModel
@@ -69,6 +72,10 @@ fun TrackSubmissionScreen(
     viewModel: MileageSubmissionViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var captureRequest by remember { mutableStateOf<CaptureMode?>(null) }
+    var odometerEnabled by remember { mutableStateOf(false) }
+    var odoStart by remember { mutableStateOf("") }
+    var odoEnd by remember { mutableStateOf("") }
 
     LaunchedEffect(state) {
         val s = state
@@ -97,8 +104,9 @@ fun TrackSubmissionScreen(
             )
         }
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -114,7 +122,15 @@ fun TrackSubmissionScreen(
                             startTime = startTime,
                             endTime = endTime
                         )
-                        OdometerCard()
+                        OdometerCard(
+                            enabled = odometerEnabled,
+                            startReading = odoStart,
+                            endReading = odoEnd,
+                            onEnabledChange = { odometerEnabled = it },
+                            onStartChange = { odoStart = it },
+                            onEndChange = { odoEnd = it },
+                            onScan = { captureRequest = CaptureMode.ODOMETER }
+                        )
                     }
                     Spacer(Modifier.height(4.dp))
                     Button(
@@ -160,6 +176,19 @@ fun TrackSubmissionScreen(
                         modifier = Modifier.fillMaxWidth()) { Text("Retry") }
                     OutlinedButton(onClick = { viewModel.reset(); onBack() }, modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
                 }
+            }
+        }
+
+            captureRequest?.let { mode ->
+                CameraCaptureSheet(
+                    mode = mode,
+                    onDismiss = { captureRequest = null },
+                    onOdometerReading = { reading ->
+                        if (reading.isNotBlank()) odoEnd = reading
+                        odometerEnabled = true
+                        captureRequest = null
+                    }
+                )
             }
         }
     }
@@ -224,18 +253,23 @@ private fun formatTripDuration(startTime: Long, endTime: Long): String {
 }
 
 /**
- * Optional odometer reading capture. Manual start/end entry with a computed odometer
- * distance and a demo auto-fill (standing in for the camera/OCR reader in this mock app).
+ * Optional odometer reading capture (stateless — state hoisted to the screen). Manual
+ * start/end entry plus a "Scan with camera" action that runs the real camera + mocked
+ * OCR to fill the end reading, and a demo auto-fill shortcut.
  */
 @Composable
-private fun OdometerCard() {
-    var enabled by remember { mutableStateOf(false) }
-    var start by remember { mutableStateOf("") }
-    var end by remember { mutableStateOf("") }
-
+private fun OdometerCard(
+    enabled: Boolean,
+    startReading: String,
+    endReading: String,
+    onEnabledChange: (Boolean) -> Unit,
+    onStartChange: (String) -> Unit,
+    onEndChange: (String) -> Unit,
+    onScan: () -> Unit
+) {
     val odometerDistance = run {
-        val s = start.toDoubleOrNull()
-        val e = end.toDoubleOrNull()
+        val s = startReading.toDoubleOrNull()
+        val e = endReading.toDoubleOrNull()
         if (s != null && e != null && e >= s) e - s else null
     }
 
@@ -254,45 +288,48 @@ private fun OdometerCard() {
                     Text("Optional — record start & end readings", style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Switch(checked = enabled, onCheckedChange = { enabled = it })
+                Switch(checked = enabled, onCheckedChange = onEnabledChange)
             }
 
             if (enabled) {
                 Spacer(Modifier.height(DesignTokens.Spacing.m))
                 Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
                     OutlinedTextField(
-                        value = start,
-                        onValueChange = { start = it.filter(Char::isDigit) },
+                        value = startReading,
+                        onValueChange = { onStartChange(it.filter(Char::isDigit)) },
                         label = { Text("Start") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
-                        value = end,
-                        onValueChange = { end = it.filter(Char::isDigit) },
+                        value = endReading,
+                        onValueChange = { onEndChange(it.filter(Char::isDigit)) },
                         label = { Text("End") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
                     )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(onClick = { start = "48213"; end = "48221" }) {
-                        Text("Auto-fill (demo)")
+                Spacer(Modifier.height(DesignTokens.Spacing.s))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = onScan) {
+                        Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
+                        Spacer(Modifier.size(DesignTokens.Spacing.s))
+                        Text("Scan with camera")
                     }
-                    Spacer(Modifier.weight(1f))
-                    if (odometerDistance != null) {
-                        Text(
-                            "Odometer: %.0f km".format(odometerDistance),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
+                    Spacer(Modifier.size(DesignTokens.Spacing.s))
+                    TextButton(onClick = { onStartChange("48213"); onEndChange("48221") }) {
+                        Text("Auto-fill")
                     }
+                }
+                if (odometerDistance != null) {
+                    Text(
+                        "Odometer distance: %.0f km".format(odometerDistance),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
             }
         }
