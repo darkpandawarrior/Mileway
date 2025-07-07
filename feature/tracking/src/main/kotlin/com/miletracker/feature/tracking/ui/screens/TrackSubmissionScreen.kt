@@ -1,5 +1,8 @@
 package com.miletracker.feature.tracking.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,7 +23,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
@@ -40,11 +47,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -76,6 +87,7 @@ fun TrackSubmissionScreen(
     var odometerEnabled by remember { mutableStateOf(false) }
     var odoStart by remember { mutableStateOf("") }
     var odoEnd by remember { mutableStateOf("") }
+    val receipts = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(state) {
         val s = state
@@ -130,6 +142,11 @@ fun TrackSubmissionScreen(
                             onStartChange = { odoStart = it },
                             onEndChange = { odoEnd = it },
                             onScan = { captureRequest = CaptureMode.ODOMETER }
+                        )
+                        ReceiptsCard(
+                            receipts = receipts,
+                            onAdd = { captureRequest = CaptureMode.PLAIN },
+                            onRemove = { receipts.remove(it) }
                         )
                     }
                     Spacer(Modifier.height(4.dp))
@@ -187,6 +204,10 @@ fun TrackSubmissionScreen(
                         if (reading.isNotBlank()) odoEnd = reading
                         odometerEnabled = true
                         captureRequest = null
+                    },
+                    onPhotoCaptured = { uri ->
+                        receipts.add(uri)
+                        captureRequest = null
                     }
                 )
             }
@@ -233,6 +254,88 @@ private fun SummaryRow(icon: ImageVector, label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+    }
+}
+
+/**
+ * Optional proof-of-journey receipts. Captures photos through the shared camera sheet
+ * (mocked upload) and shows them as removable thumbnails.
+ */
+@Composable
+private fun ReceiptsCard(
+    receipts: List<String>,
+    onAdd: () -> Unit,
+    onRemove: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+    ) {
+        Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.ReceiptLong, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.m))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Receipts", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("Optional — attach proof photos", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                OutlinedButton(onClick = onAdd) {
+                    Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
+                    Spacer(Modifier.size(DesignTokens.Spacing.s))
+                    Text("Add")
+                }
+            }
+            if (receipts.isNotEmpty()) {
+                Spacer(Modifier.height(DesignTokens.Spacing.m))
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                ) {
+                    receipts.forEach { uri ->
+                        ReceiptThumbnail(uri = uri, onRemove = { onRemove(uri) })
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReceiptThumbnail(uri: String, onRemove: () -> Unit) {
+    Box(modifier = Modifier.size(88.dp)) {
+        AsyncImage(
+            model = uri,
+            contentDescription = "Receipt photo",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        )
+        // Mocked "uploaded" badge.
+        Icon(
+            Icons.Default.CheckCircle,
+            contentDescription = "Uploaded",
+            tint = DesignTokens.StatusColors.success,
+            modifier = Modifier.align(Alignment.BottomStart).padding(2.dp).size(18.dp)
+        )
+        // Remove control.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(2.dp)
+                .size(22.dp)
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Close, contentDescription = "Remove", tint = androidx.compose.ui.graphics.Color.White,
+                modifier = Modifier.size(14.dp))
+        }
     }
 }
 
