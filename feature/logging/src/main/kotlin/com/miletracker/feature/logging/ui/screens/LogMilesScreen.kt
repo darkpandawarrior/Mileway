@@ -13,12 +13,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -27,11 +33,13 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,10 +48,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -78,7 +88,7 @@ fun LogMilesScreen(viewModel: LogMilesViewModel = koinViewModel()) {
         return
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Log Miles") }) }) { padding ->
+    Scaffold(topBar = { DepthAwareTopBar(title = "Log Miles", depth = NavigationDepth.ROOT) }) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
                 .verticalScroll(rememberScrollState()).padding(16.dp),
@@ -125,7 +135,15 @@ fun LogMilesScreen(viewModel: LogMilesViewModel = koinViewModel()) {
                     ExposedDropdownMenu(expanded = serviceExpanded, onDismissRequest = { serviceExpanded = false }) {
                         uiState.services.forEach { s ->
                             DropdownMenuItem(
-                                text = { Text(s.name) },
+                                text = {
+                                    Column {
+                                        Text(s.name, style = MaterialTheme.typography.bodyMedium)
+                                        if (s.glCode.isNotBlank()) {
+                                            Text(s.glCode, style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    }
+                                },
                                 onClick = { viewModel.selectService(s); serviceExpanded = false }
                             )
                         }
@@ -146,6 +164,36 @@ fun LogMilesScreen(viewModel: LogMilesViewModel = koinViewModel()) {
                 suffix = { Text("km") }
             )
 
+            // Trip date (optional, display-only)
+            var showDatePicker by remember { mutableStateOf(false) }
+            var tripDateMillis by remember { mutableStateOf<Long?>(null) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CalendarMonth, null, tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.m))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Trip date", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        tripDateMillis?.let { DateUtils.epochToDisplayDate(it) } ?: "Not set",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                OutlinedButton(onClick = { showDatePicker = true }) { Text("Pick") }
+            }
+            if (showDatePicker) {
+                val dpState = rememberDatePickerState()
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = { tripDateMillis = dpState.selectedDateMillis; showDatePicker = false }) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }
+                ) { DatePicker(state = dpState) }
+            }
+
             // Round trip toggle
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FilterChip(
@@ -156,17 +204,39 @@ fun LogMilesScreen(viewModel: LogMilesViewModel = koinViewModel()) {
                 )
             }
 
-            // Pricing display
+            // Reimbursement card
             if (uiState.reimbursableAmount > 0) {
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = DesignTokens.Shape.roundedMd,
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
                 ) {
-                    Text("Estimated Reimbursement", style = MaterialTheme.typography.bodyMedium)
-                    Text("₹%.2f".format(uiState.reimbursableAmount),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Payments, null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(DesignTokens.IconSize.actionTile))
+                            Spacer(Modifier.size(DesignTokens.Spacing.m))
+                            Column {
+                                Text("Estimated reimbursement", style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                uiState.selectedVehicle?.let { v ->
+                                    Text("₹${v.vehiclePricing}/km · %.1f km".format(uiState.distanceKm),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                                }
+                            }
+                        }
+                        Text("₹%.2f".format(uiState.reimbursableAmount),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
                 }
             }
 
