@@ -24,9 +24,9 @@ class ProfileViewModel(
             header = repository.header(),
             tiles = listOf(
                 SettingsTile(id = TILE_SETTINGS, label = "Settings", icon = Icons.Default.Settings),
-                SettingsTile(id = "notifications", label = "Notifications", icon = Icons.Default.Notifications),
-                SettingsTile(id = "help", label = "Help", icon = Icons.AutoMirrored.Filled.HelpOutline),
-                SettingsTile(id = "about", label = "About", icon = Icons.Default.Info),
+                SettingsTile(id = TILE_NOTIFICATIONS, label = "Notifications", icon = Icons.Default.Notifications),
+                SettingsTile(id = TILE_HELP, label = "Help", icon = Icons.AutoMirrored.Filled.HelpOutline),
+                SettingsTile(id = TILE_ABOUT, label = "About", icon = Icons.Default.Info),
             ),
         )
     )
@@ -38,13 +38,23 @@ class ProfileViewModel(
     private val _useMiles = MutableStateFlow(true)
     val useMiles: StateFlow<Boolean> = _useMiles.asStateFlow()
 
+    private val _notificationsEnabled = MutableStateFlow(true)
+    val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
+
     fun toggleUnits() {
         _useMiles.value = !_useMiles.value
+    }
+
+    fun toggleNotifications() {
+        _notificationsEnabled.value = !_notificationsEnabled.value
     }
 
     fun setDarkTheme(dark: Boolean?) = themeController.set(dark)
 
     companion object {
         const val TILE_SETTINGS = "settings"
+        const val TILE_NOTIFICATIONS = "notifications"
+        const val TILE_HELP = "help"
+        const val TILE_ABOUT = "about"
     }
 }

@@ -4,6 +4,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
@@ -35,6 +36,8 @@ fun SettingsScreen(
 ) {
     val darkOverride by viewModel.darkThemeOverride.collectAsStateWithLifecycle()
     val useMiles by viewModel.useMiles.collectAsStateWithLifecycle()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
+    val profile by viewModel.uiState.collectAsStateWithLifecycle()
     val systemDark = isSystemInDarkTheme()
     val about = SettingsUiState(darkThemeOverride = darkOverride, useMiles = useMiles)
 
@@ -57,8 +60,31 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState()),
         ) {
+            SettingsSectionLabel("Account")
+            val header = profile.header
+            ListItem(
+                headlineContent = { Text(header.name) },
+                supportingContent = { Text(header.email) },
+            )
+            if (header.code.isNotBlank()) {
+                ListItem(
+                    headlineContent = { Text("Employee code") },
+                    supportingContent = { Text(header.code) },
+                )
+            }
+            if (header.tenant.isNotBlank()) {
+                ListItem(
+                    headlineContent = { Text("Organization") },
+                    supportingContent = { Text(header.tenant) },
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
+
+            SettingsSectionLabel("Preferences")
             ListItem(
                 headlineContent = { Text("Dark theme") },
                 supportingContent = { Text("Override the system theme") },
@@ -79,23 +105,26 @@ fun SettingsScreen(
                     )
                 },
             )
+            ListItem(
+                headlineContent = { Text("Notifications") },
+                supportingContent = { Text(if (notificationsEnabled) "Trip reminders on" else "Off") },
+                trailingContent = {
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { viewModel.toggleNotifications() },
+                    )
+                },
+            )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
 
-            Text(
-                text = "About",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(
-                    horizontal = DesignTokens.Spacing.l,
-                    vertical = DesignTokens.Spacing.s,
-                ),
-            )
+            SettingsSectionLabel("About")
             ListItem(
                 headlineContent = { Text("App version") },
                 supportingContent = { Text(about.appVersion) },
             )
             Text(
-                text = "Demo build — all data is mocked",
+                text = "Demo build — mock data only, no network calls.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(
@@ -105,4 +134,17 @@ fun SettingsScreen(
             )
         }
     }
+}
+
+@Composable
+private fun SettingsSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(
+            horizontal = DesignTokens.Spacing.l,
+            vertical = DesignTokens.Spacing.s,
+        ),
+    )
 }

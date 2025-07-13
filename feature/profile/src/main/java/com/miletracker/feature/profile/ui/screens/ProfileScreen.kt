@@ -36,6 +36,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ProfileScreen(
     onOpenSettings: () -> Unit,
+    onOpenHelp: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,7 +56,10 @@ fun ProfileScreen(
                 SettingsTileCard(
                     tile = tile,
                     onClick = {
-                        if (tile.id == ProfileViewModel.TILE_SETTINGS) onOpenSettings()
+                        when (tile.id) {
+                            ProfileViewModel.TILE_HELP -> onOpenHelp()
+                            else -> onOpenSettings()
+                        }
                     },
                 )
             }
