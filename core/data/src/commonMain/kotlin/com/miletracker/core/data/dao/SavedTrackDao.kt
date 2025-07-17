@@ -54,6 +54,9 @@ interface SavedTrackDao {
     @Query("SELECT * FROM saved_tracks WHERE routeId = :routeId")
     suspend fun getSavedTrackById(routeId: String): SavedTrack?
 
+    @Query("SELECT * FROM saved_tracks WHERE routeId = :routeId LIMIT 1")
+    fun observeTrackById(routeId: String): Flow<SavedTrack?>
+
     @Query("SELECT * FROM saved_tracks WHERE isRetained = 1 OR isDiscarded = 1 ORDER BY createdAt DESC")
     fun getRetainedTracks(): Flow<List<SavedTrack>>
 

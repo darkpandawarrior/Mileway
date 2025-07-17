@@ -17,6 +17,8 @@ class SavedTrackRepository(private val dao: SavedTrackDao) {
 
     suspend fun getByRouteId(routeId: String): SavedTrack? = dao.getSavedTrackById(routeId)
 
+    fun observeByRouteId(routeId: String): Flow<SavedTrack?> = dao.observeTrackById(routeId)
+
     suspend fun insert(track: SavedTrack) = dao.insertSavedTrack(track)
 
     suspend fun update(track: SavedTrack) = dao.updateSavedTrack(track)

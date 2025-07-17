@@ -1,7 +1,9 @@
 package com.miletracker.feature.tracking.di
 
 import com.miletracker.core.network.config.ConfigProvider
+import com.miletracker.feature.tracking.manager.LocationTrackingController
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
+import org.koin.android.ext.koin.androidContext
 import com.miletracker.feature.tracking.repository.CurrentTrackRepository
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
 import com.miletracker.feature.tracking.repository.LocationRepository
@@ -26,6 +28,7 @@ val trackingModule = module {
     single { LogMilesSubmissionRepository(get()) }
     single { CurrentTrackRepository(get()) }
     single { HardwareEventRepository(get()) }
+    single { LocationTrackingController(androidContext()) }
 
     viewModelOf(::SavedTracksViewModel)
     viewModelOf(::TrackMilesViewModel)

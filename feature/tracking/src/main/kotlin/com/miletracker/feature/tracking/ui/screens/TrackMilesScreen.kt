@@ -49,8 +49,14 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -75,6 +81,22 @@ fun TrackMilesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isActive = uiState.phase == TrackMilesPhase.TRACKING || uiState.phase == TrackMilesPhase.PAUSED
+
+    // The location foreground service needs the location permission at runtime; request it
+    // before starting, then begin tracking regardless of the result (the demo simulates GPS).
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { viewModel.startTracking() }
+    val requestStart = {
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) viewModel.startTracking()
+        else permissionLauncher.launch(
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        )
+    }
 
     Scaffold(
         topBar = { DepthAwareTopBar(title = "Track Miles", depth = NavigationDepth.ROOT) },
@@ -136,7 +158,7 @@ fun TrackMilesScreen(
             when (uiState.phase) {
                 TrackMilesPhase.IDLE -> {
                     Button(
-                        onClick = { viewModel.startTracking() },
+                        onClick = { requestStart() },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         enabled = uiState.selectedVehicle != null
                     ) {

@@ -6,12 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.SavedTrack
 import com.miletracker.core.data.model.network.ApprovedVehicle
 import com.miletracker.core.data.model.state.TrackMilesPluginConfig
+import com.miletracker.feature.tracking.manager.LocationTrackingController
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -36,11 +40,14 @@ data class TrackMilesUiState(
 class TrackMilesViewModel(
     private val configManager: TrackingConfigManager,
     private val vehicleRepo: VehiclePricingRepository,
-    private val trackRepo: SavedTrackRepository
+    private val trackRepo: SavedTrackRepository,
+    private val trackingController: LocationTrackingController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrackMilesUiState())
     val uiState: StateFlow<TrackMilesUiState> = _uiState.asStateFlow()
+
+    private var liveObserveJob: Job? = null
 
     init {
         loadConfig()
@@ -69,9 +76,11 @@ class TrackMilesViewModel(
                 it.copy(
                     phase = TrackMilesPhase.TRACKING,
                     currentRouteId = active.routeId,
-                    distanceKm = active.distance / 1000.0
+                    distanceKm = active.distance / 1000.0,
+                    startTime = active.startTime
                 )
             }
+            observeLive(active.routeId)
         }
     }
 
@@ -97,19 +106,47 @@ class TrackMilesViewModel(
                 createdAt = now, startedAtTimestamp = now, startedByEmployeeCode = "EMP001"
             )
             trackRepo.insert(track)
-            _uiState.update { it.copy(phase = TrackMilesPhase.TRACKING, currentRouteId = routeId, distanceKm = 0.0, startTime = now) }
+            _uiState.update {
+                it.copy(phase = TrackMilesPhase.TRACKING, currentRouteId = routeId, distanceKm = 0.0, startTime = now)
+            }
+            // Kick off the advanced foreground tracking service and observe its live writes.
+            trackingController.start(routeId)
+            observeLive(routeId)
         }
     }
 
+    /** Stream the service's live writes to `saved_tracks` into the UI in real time. */
+    private fun observeLive(routeId: String) {
+        liveObserveJob?.cancel()
+        liveObserveJob = trackRepo.observeByRouteId(routeId)
+            .onEach { track ->
+                if (track == null) return@onEach
+                val pricing = _uiState.value.selectedVehicle?.vehiclePricing ?: track.vehiclePricing
+                val km = track.distance / 1000.0
+                _uiState.update {
+                    it.copy(
+                        distanceKm = km,
+                        durationMs = track.duration,
+                        reimbursableAmount = km * pricing
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
     fun pauseTracking() {
+        _uiState.value.currentRouteId?.let { trackingController.pause(it) }
         _uiState.update { it.copy(phase = TrackMilesPhase.PAUSED) }
     }
 
     fun resumeTracking() {
+        _uiState.value.currentRouteId?.let { trackingController.resume(it) }
         _uiState.update { it.copy(phase = TrackMilesPhase.TRACKING) }
     }
 
     fun stopTracking() {
+        _uiState.value.currentRouteId?.let { trackingController.stop(it) }
+        liveObserveJob?.cancel()
         _uiState.update { it.copy(phase = TrackMilesPhase.STOPPED, endTime = System.currentTimeMillis()) }
     }
 
@@ -119,6 +156,13 @@ class TrackMilesViewModel(
     }
 
     fun discardTracking() {
+        _uiState.value.currentRouteId?.let { trackingController.stop(it) }
+        liveObserveJob?.cancel()
         _uiState.update { TrackMilesUiState(config = it.config, vehicles = it.vehicles, selectedVehicle = it.selectedVehicle) }
+    }
+
+    override fun onCleared() {
+        liveObserveJob?.cancel()
+        super.onCleared()
     }
 }
