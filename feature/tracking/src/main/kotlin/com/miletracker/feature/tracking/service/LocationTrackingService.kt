@@ -181,6 +181,24 @@ class LocationTrackingService : Service() {
                     avgSpeed = stats.avgSpeedMps,
                     maxSpeed = stats.maxSpeedMps
                 )
+                // Persist the full advanced distance breakdown into the rich schema fields.
+                savedTrackDao.getSavedTrackById(token)?.let { t ->
+                    savedTrackDao.updateSavedTrack(
+                        t.copy(
+                            duration = endTime - startTime,
+                            originalDistance = stats.originalDistanceM,
+                            cleanedDistance = stats.cleanedDistanceM,
+                            abnormalDistance = stats.abnormalDistanceM,
+                            mockDistance = stats.mockDistanceM,
+                            smartDistanceFinal = stats.cleanedDistanceM,
+                            totalLocationPoints = stats.totalPoints.toLong(),
+                            avgSpeed = stats.avgSpeedMps,
+                            maxSpeed = stats.maxSpeedMps,
+                            wasMockLocationUsed = stats.mockDistanceM > 0.0,
+                            wasEverPaused = t.wasEverPaused
+                        )
+                    )
+                }
                 logEventSuspend(token, EventType.TRACKING_STOPPED, "Tracking Stopped")
                 clearSessionTracking()
             }
