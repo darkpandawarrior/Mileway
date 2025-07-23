@@ -1,5 +1,6 @@
 package com.miletracker.feature.tracking.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Map
@@ -31,16 +33,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.data.model.display.TrackDisplayData
@@ -49,6 +57,8 @@ import com.miletracker.core.ui.components.LoadingScreen
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.tracking.ui.components.ExportOptionsDialog
+import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.TrackDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -60,13 +70,47 @@ fun TrackDetailScreen(
     onOpenInsights: () -> Unit,
     onOpenMap: () -> Unit,
     onOpenHwEvents: () -> Unit,
-    viewModel: TrackDetailViewModel = koinViewModel()
+    viewModel: TrackDetailViewModel = koinViewModel(),
+    exportViewModel: ExportViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val exportState by exportViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var showExportDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(routeId) { viewModel.load(routeId) }
 
+    // Fire share intent once ready
+    LaunchedEffect(exportState.shareIntent) {
+        exportState.shareIntent?.let { intent ->
+            context.startActivity(intent)
+            exportViewModel.clearShareIntent()
+        }
+    }
+
+    // Show error in snackbar
+    LaunchedEffect(exportState.error) {
+        exportState.error?.let { msg ->
+            snackbarHostState.showSnackbar("Export failed: $msg")
+            exportViewModel.clearError()
+        }
+    }
+
+    if (showExportDialog) {
+        ExportOptionsDialog(
+            onDismiss = { showExportDialog = false },
+            onExport = { format, filter ->
+                showExportDialog = false
+                exportViewModel.export(context, routeId, format, filter)
+            },
+            trackName = uiState.track?.name
+        )
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             DepthAwareTopBar(
                 title = uiState.track?.name ?: "Journey Details",
@@ -77,6 +121,9 @@ fun TrackDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showExportDialog = true }) {
+                        Icon(Icons.Default.Download, contentDescription = "Export track")
+                    }
                     IconButton(onClick = onOpenMap) {
                         Icon(Icons.Default.Map, contentDescription = "View Map")
                     }
@@ -126,6 +173,10 @@ fun TrackDetailScreen(
             }
 
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
+            FilledTonalButton(onClick = { showExportDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Download, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Text(if (exportState.isExporting) "Exporting…" else "Export track data")
+            }
             FilledTonalButton(onClick = onOpenMap, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Default.Map, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text("View route map")

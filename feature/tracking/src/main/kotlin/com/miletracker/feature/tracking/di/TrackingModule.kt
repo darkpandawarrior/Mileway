@@ -10,6 +10,7 @@ import com.miletracker.feature.tracking.repository.LocationRepository
 import com.miletracker.feature.tracking.repository.LogMilesSubmissionRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
+import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
@@ -37,4 +38,5 @@ val trackingModule = module {
     viewModelOf(::LiveTrackViewModel)
     viewModelOf(::HardwareEventsViewModel)
     viewModelOf(::TrackInsightsViewModel)
+    viewModelOf(::ExportViewModel)
 }
