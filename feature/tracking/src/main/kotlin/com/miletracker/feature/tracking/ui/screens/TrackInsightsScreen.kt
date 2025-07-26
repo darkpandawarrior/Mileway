@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Speed
@@ -29,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,14 +35,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.tracking.ui.components.ActivityBreakdownCard
 import com.miletracker.feature.tracking.ui.components.DataQualityReportCard
+import com.miletracker.feature.tracking.ui.components.DistanceQualityCard
+import com.miletracker.feature.tracking.ui.components.QualityDetailCard
 import com.miletracker.feature.tracking.ui.components.SectionHeader
 import com.miletracker.feature.tracking.ui.components.StatItem
+import com.miletracker.feature.tracking.ui.components.SystemImpactCard
 import com.miletracker.feature.tracking.ui.components.formatDuration
 import com.miletracker.feature.tracking.ui.components.qualityColor
 import com.miletracker.feature.tracking.viewmodel.TrackInsightsViewModel
@@ -60,9 +61,8 @@ fun TrackInsightsScreen(
     LaunchedEffect(routeId) { viewModel.loadTrackInsights(routeId) }
 
     val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val insights by viewModel.insights.collectAsState()
-    val track by viewModel.track.collectAsState()
+    val error     by viewModel.error.collectAsState()
+    val insights  by viewModel.insights.collectAsState()
 
     Scaffold(
         topBar = {
@@ -152,37 +152,54 @@ fun TrackInsightsScreen(
                             }
                         }
 
+                        // Rich quality card (analyzer result) or fallback to the basic one
                         item {
-                            DataQualityReportCard(
-                                qualityScore = data.qualityScore,
-                                locationCount = data.locationCount,
-                                mockCount = data.mockLocationCount,
-                                abnormalCount = data.abnormalLocationCount,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            if (data.qualityResult != null) {
+                                QualityDetailCard(
+                                    qualityResult = data.qualityResult,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                DataQualityReportCard(
+                                    qualityScore = data.qualityScore,
+                                    locationCount = data.locationCount,
+                                    mockCount = data.mockLocationCount,
+                                    abnormalCount = data.abnormalLocationCount,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
 
-                        if (data.activityBreakdown.isNotEmpty()) {
+                        // Activity analysis card
+                        data.activityResult?.let { activity ->
                             item {
-                                SectionHeader("Activity Breakdown")
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        data.activityBreakdown.entries
-                                            .sortedByDescending { it.value }
-                                            .forEach { (activity, count) ->
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    Text(activity.lowercase().replaceFirstChar { it.uppercase() })
-                                                    Text("$count points", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                                }
-                                            }
-                                    }
-                                }
+                                SectionHeader("Activity & Driving Style")
+                                ActivityBreakdownCard(
+                                    activityResult = activity,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+
+                        // System impact card
+                        data.systemImpactResult?.let { systemImpact ->
+                            item {
+                                SectionHeader("System Impact")
+                                SystemImpactCard(
+                                    systemImpactResult = systemImpact,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+
+                        // Distance quality card
+                        data.distanceQualityResult?.let { dq ->
+                            item {
+                                SectionHeader("Distance Quality")
+                                DistanceQualityCard(
+                                    distanceQualityResult = dq,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                             }
                         }
 
