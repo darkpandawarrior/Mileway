@@ -28,9 +28,14 @@ dependencies {
     implementation(libs.koin.compose)
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.kotlinx.coroutines.android)
+    // Coroutines bridge for Google Tasks API (provides .await() on Task<T>)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // ML Kit document scanner
     implementation(libs.mlkit.document.scanner)
+
+    // ML Kit on-device text recognition (bundled Latin model — fully offline, no Play download)
+    implementation(libs.mlkit.text.recognition)
 
     // Image
     implementation(libs.coil.compose)
