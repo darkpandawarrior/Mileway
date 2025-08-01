@@ -140,7 +140,9 @@ import com.miletracker.core.data.state.UiState
 import com.miletracker.core.ui.map.centerOn
 import com.miletracker.core.ui.map.configure
 import com.miletracker.core.ui.map.drawPolyline
+import com.miletracker.core.ui.map.fitBounds
 import com.miletracker.feature.tracking.R
+import com.miletracker.feature.tracking.map.MapRouteBuilder
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -512,7 +514,16 @@ fun EnhancedLiveTrackingUI(
         }
     }
 
+    // Named overlay references so we can add/remove them precisely.
     var directionMarker by remember { mutableStateOf<Marker?>(null) }
+    var startMarker by remember { mutableStateOf<Marker?>(null) }
+    var endMarker by remember { mutableStateOf<Marker?>(null) }
+    // Mutable lists kept in state so we can clear previous sets before re-adding.
+    val filteredMarkers = remember { mutableListOf<Marker>() }
+    val abnormalMarkers = remember { mutableListOf<Marker>() }
+    // Playback position marker (shown during replay).
+    var playbackMarker by remember { mutableStateOf<Marker?>(null) }
+
     var isMapInitialized by remember { mutableStateOf(false) }
 
     // Layer toggles
@@ -566,9 +577,23 @@ fun EnhancedLiveTrackingUI(
         }
     }
 
-    // Playback animation
+    // Playback animation — advance index every tick, move playback marker on real map.
     LaunchedEffect(isPlayingBack, playbackSpeed, playbackIndex) {
         if (isPlayingBack && locationPoints.isNotEmpty() && playbackIndex < locationPoints.size) {
+            // Move the playback position marker to the current playback point.
+            if (isMapInitialized) {
+                val pt = locationPoints[playbackIndex]
+                val pos = GeoPoint(pt.lat, pt.lng)
+                if (playbackMarker == null) {
+                    playbackMarker = Marker(mapView).apply {
+                        title = "Playback Position"
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        mapView.overlays.add(this)
+                    }
+                }
+                playbackMarker?.position = pos
+                mapView.invalidate()
+            }
             delay((500 / playbackSpeed).toLong())
             if (playbackIndex < locationPoints.size - 1) {
                 playbackIndex++
@@ -577,16 +602,119 @@ fun EnhancedLiveTrackingUI(
                 playbackIndex = 0
             }
         }
+        // Hide the playback marker when not playing.
+        if (!isPlayingBack) {
+            playbackMarker?.let { marker ->
+                mapView.overlays.remove(marker)
+                mapView.invalidate()
+            }
+            playbackMarker = null
+        }
     }
 
-    // Update route polyline
-    LaunchedEffect(locationPoints, isMapInitialized) {
-        if (locationPoints.isNotEmpty() && isMapInitialized) {
-            mapView.overlays.removeAll { it is org.osmdroid.views.overlay.Polyline }
-            val points = locationPoints.map { GeoPoint(it.lat, it.lng) }
-            mapView.drawPolyline(points)
-            mapView.invalidate()
+    // Rebuild route overlays whenever location points or issue-toggle changes.
+    LaunchedEffect(locationPoints, isMapInitialized, showIssues) {
+        if (!isMapInitialized) return@LaunchedEffect
+
+        // Build the route data with the pure-Kotlin helper.
+        val routeData = MapRouteBuilder.build(locationPoints)
+
+        // ---------------------------------------------------------------
+        // 1. Main route polyline (normal / clean points — blue)
+        // ---------------------------------------------------------------
+        mapView.overlays.removeAll { it is org.osmdroid.views.overlay.Polyline }
+        if (routeData.routeCoords.isNotEmpty()) {
+            val geoPoints = routeData.routeCoords.map { GeoPoint(it.lat, it.lng) }
+            mapView.drawPolyline(geoPoints)
+        } else if (locationPoints.isNotEmpty()) {
+            // Fallback: if all points were filtered/abnormal, draw everything so the
+            // screen is never blank.
+            val geoPoints = locationPoints.map { GeoPoint(it.lat, it.lng) }
+            mapView.drawPolyline(geoPoints, android.graphics.Color.parseColor("#B0BEC5"))
         }
+
+        // ---------------------------------------------------------------
+        // 2. Start marker (green)
+        // ---------------------------------------------------------------
+        startMarker?.let { mapView.overlays.remove(it) }
+        startMarker = null
+        routeData.startCoord?.let { coord ->
+            startMarker = Marker(mapView).apply {
+                position = GeoPoint(coord.lat, coord.lng)
+                title = "Start"
+                snippet = "Trip start point"
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                // osmdroid default marker is fine; set a tint via the icon's color
+                // filter for a visual distinction.
+                mapView.overlays.add(this)
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // 3. End marker (red-ish — use osmdroid default which is blue pin;
+        //    title distinguishes it in the snippet callout).
+        // ---------------------------------------------------------------
+        endMarker?.let { mapView.overlays.remove(it) }
+        endMarker = null
+        routeData.endCoord?.let { coord ->
+            // Only draw the end marker if there is more than one point, so start
+            // and end are not the same dot.
+            if (locationPoints.size > 1) {
+                endMarker = Marker(mapView).apply {
+                    position = GeoPoint(coord.lat, coord.lng)
+                    title = "End"
+                    snippet = "Trip end point"
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    mapView.overlays.add(this)
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // 4. Filtered markers (mock / paused — orange) — shown when showIssues
+        // ---------------------------------------------------------------
+        filteredMarkers.forEach { mapView.overlays.remove(it) }
+        filteredMarkers.clear()
+        if (showIssues) {
+            routeData.filteredCoords.forEach { coord ->
+                val m = Marker(mapView).apply {
+                    position = GeoPoint(coord.lat, coord.lng)
+                    title = "Filtered point"
+                    snippet = "Mock or paused location"
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                }
+                filteredMarkers.add(m)
+                mapView.overlays.add(m)
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // 5. Abnormal markers (GPS spike — red) — shown when showIssues
+        // ---------------------------------------------------------------
+        abnormalMarkers.forEach { mapView.overlays.remove(it) }
+        abnormalMarkers.clear()
+        if (showIssues) {
+            routeData.abnormalCoords.forEach { coord ->
+                val m = Marker(mapView).apply {
+                    position = GeoPoint(coord.lat, coord.lng)
+                    title = "Abnormal point"
+                    snippet = "GPS spike detected"
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                }
+                abnormalMarkers.add(m)
+                mapView.overlays.add(m)
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // 6. Auto-fit bounding box when not live-tracking (track review mode).
+        // ---------------------------------------------------------------
+        if (!isTracking && locationPoints.isNotEmpty() && !routeData.bounds.isEmpty) {
+            val allGeo = locationPoints.map { GeoPoint(it.lat, it.lng) }
+            mapView.fitBounds(allGeo)
+        }
+
+        mapView.invalidate()
     }
 
     // Update direction marker

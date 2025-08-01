@@ -19,6 +19,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.dsl.module
+import org.osmdroid.config.Configuration
 
 val appModule = module {
     single { DatabaseSeeder(get(), get()) }
@@ -30,6 +31,9 @@ class MileTrackerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Initialize osmdroid with the app's package name as the user-agent string.
+        // Must happen before any MapView is inflated.
+        Configuration.getInstance().userAgentValue = packageName
         startKoin {
             androidContext(this@MileTrackerApplication)
             androidLogger(Level.DEBUG)
