@@ -72,6 +72,9 @@ dependencies {
     // WorkManager
     implementation(libs.workmanager.runtime)
 
+    // osmdroid — needed for Configuration init in Application class
+    implementation(libs.osmdroid)
+
     // Tests
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
