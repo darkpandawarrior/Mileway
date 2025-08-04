@@ -25,7 +25,7 @@ class DemoConfigManager : ConfigProvider {
         isTrackMilesEnabled = true, trackMilesV2 = true, draftTrackMiles = true,
         allowPauseTrackMiles = true, allowExpenseCreation = true,
         isOdometerMandatory = false, odometerOcrEnabled = false,
-        geoCheckInEnabled = false, calculateDistanceOnBackend = false,
+        geoCheckInEnabled = true, calculateDistanceOnBackend = false,
         autoDiscardTrackMileage = false, skipOdometer = true,
         showTrackingOverlay = true, saveTrackMilesEnabled = true,
         isDiscardJourneyEnabled = true, allowManualCheckIn = true,
@@ -45,10 +45,17 @@ class DemoConfigManager : ConfigProvider {
 
     fun isTrackMilesV2Enabled(): Boolean = true
     fun isDraftTrackMilesEnabled(): Boolean = true
-    fun isGeoCheckInEnabled(): Boolean = false
+    fun isGeoCheckInEnabled(): Boolean = true
+    fun isManualCheckInEnabled(): Boolean = true
     fun isOdometerMandatory(): Boolean = false
     fun isAutoDiscardEnabled(): Boolean = false
     fun isCalculateDistanceOnBackend(): Boolean = false
     fun isMultiServiceLogMiles(): Boolean = false
     fun getMileageTimeThreshold(): Int = 10
+
+    /** Default geofence radius in metres for geo check-in validation. */
+    fun getDefaultGeoCheckInRadiusMeters(): Double = 100.0
+
+    /** Returns the list of mock check-in locations for local geofence validation. */
+    fun getMockCheckInLocations(): List<MockCheckInLocation> = DemoMockData.checkInLocations()
 }

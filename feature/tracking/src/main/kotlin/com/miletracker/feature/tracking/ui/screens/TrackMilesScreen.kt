@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -62,9 +64,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import com.miletracker.feature.tracking.viewmodel.TrackMilesUiState
 import com.miletracker.feature.tracking.viewmodel.TrackMilesPhase
 import com.miletracker.feature.tracking.viewmodel.TrackMilesViewModel
@@ -77,14 +81,25 @@ fun TrackMilesScreen(
     onStop: (id: String, distKm: Double, vehicleKey: String, startTime: Long, endTime: Long) -> Unit,
     onOpenMap: () -> Unit,
     onOpenHwEvents: () -> Unit,
-    viewModel: TrackMilesViewModel = koinViewModel()
+    viewModel: TrackMilesViewModel = koinViewModel(),
+    checkInViewModel: CheckInViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val checkInUiState by checkInViewModel.uiState.collectAsState()
     val isActive = uiState.phase == TrackMilesPhase.TRACKING || uiState.phase == TrackMilesPhase.PAUSED
 
     // The location foreground service needs the location permission at runtime; request it
     // before starting, then begin tracking regardless of the result (the demo simulates GPS).
     val context = LocalContext.current
+
+    // Surface check-in success as a toast
+    LaunchedEffect(checkInUiState.checkInSuccess) {
+        if (checkInUiState.checkInSuccess) {
+            Toast.makeText(context, checkInUiState.successMessage.ifBlank { "Check-in recorded." }, Toast.LENGTH_SHORT).show()
+            checkInViewModel.acknowledgeSuccess()
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { viewModel.startTracking() }
@@ -178,6 +193,23 @@ fun TrackMilesScreen(
                             Spacer(Modifier.width(4.dp)); Text("Stop")
                         }
                     }
+                    // Check-in actions (shown only while actively tracking)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(
+                            onClick = { checkInViewModel.openManualCheckIn() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp)); Text("Manual Check-In")
+                        }
+                        OutlinedButton(
+                            onClick = { checkInViewModel.openGeoCheckIn() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.LocationOn, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp)); Text("Geo Check-In")
+                        }
+                    }
                 }
                 TrackMilesPhase.PAUSED -> {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -210,6 +242,32 @@ fun TrackMilesScreen(
                 else -> {}
             }
         }
+    }
+
+    // ── Check-in bottom sheets ──────────────────────────────────────────────────
+
+    if (checkInUiState.showManualCheckInSheet) {
+        ManualCheckInSheet(
+            viewModel = checkInViewModel,
+            uiState = checkInUiState,
+            onDismiss = { checkInViewModel.dismissManualCheckIn() }
+        )
+    }
+
+    if (checkInUiState.showGeoCheckInSheet) {
+        GeoCheckInSheet(
+            viewModel = checkInViewModel,
+            uiState = checkInUiState,
+            onDismiss = { checkInViewModel.dismissGeoCheckIn() }
+        )
+    }
+
+    if (checkInUiState.showRadiusWarning) {
+        CheckInRadiusWarningSheet(
+            viewModel = checkInViewModel,
+            uiState = checkInUiState,
+            onDismiss = { checkInViewModel.dismissRadiusWarning() }
+        )
     }
 }
 
