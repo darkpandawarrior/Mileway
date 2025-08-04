@@ -11,6 +11,17 @@ import com.miletracker.core.data.model.network.TrackMileageStatusResponse
 import com.miletracker.core.data.model.network.UserConfigResponseV2
 import com.miletracker.core.data.model.network.UserProfile
 
+/** A named geographic point used for local geofence check-in validation. */
+data class MockCheckInLocation(
+    val id: String,
+    val name: String,
+    val lat: Double,
+    val lng: Double,
+    val type: String,
+    /** Per-location radius override in metres; null falls back to the global default (100 m). */
+    val radiusMeters: Double? = null
+)
+
 object DemoMockData {
 
     fun userConfig(): UserConfigResponseV2 = UserConfigResponseV2(
@@ -76,4 +87,54 @@ object DemoMockData {
         TrackMileageStatusResponse(statusCode = 200, description = "Active")
 
     fun logMilesRoutes(): LogMilesRoutesResponse = LogMilesRoutesResponse()
+
+    /**
+     * A small set of realistic-looking mock check-in locations for local geofence validation.
+     * Coordinates are placed around a typical urban cluster to allow meaningful distance testing.
+     *
+     * The first location (HEAD_OFFICE) sits near the city centre; the others are spread across
+     * a ~5 km radius so that demo tracking trips naturally pass near at least one of them.
+     */
+    fun checkInLocations(): List<MockCheckInLocation> = listOf(
+        MockCheckInLocation(
+            id = "CHK-001",
+            name = "Head Office",
+            lat = 18.5204,
+            lng = 73.8567,
+            type = "OFFICE",
+            radiusMeters = 100.0
+        ),
+        MockCheckInLocation(
+            id = "CHK-002",
+            name = "Warehouse / Supply Center",
+            lat = 18.5480,
+            lng = 73.8718,
+            type = "SUPPLY_CENTER",
+            radiusMeters = 150.0
+        ),
+        MockCheckInLocation(
+            id = "CHK-003",
+            name = "North Job Site",
+            lat = 18.5601,
+            lng = 73.8234,
+            type = "JOB_SITE",
+            radiusMeters = 200.0
+        ),
+        MockCheckInLocation(
+            id = "CHK-004",
+            name = "East Distribution Hub",
+            lat = 18.5120,
+            lng = 73.9012,
+            type = "DISTRIBUTION_HUB",
+            radiusMeters = 120.0
+        ),
+        MockCheckInLocation(
+            id = "CHK-005",
+            name = "South Service Point",
+            lat = 18.4890,
+            lng = 73.8350,
+            type = "SERVICE_POINT",
+            radiusMeters = 80.0
+        )
+    )
 }
