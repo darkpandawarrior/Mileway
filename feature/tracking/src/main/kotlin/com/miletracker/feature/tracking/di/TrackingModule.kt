@@ -9,6 +9,7 @@ import com.miletracker.feature.tracking.repository.HardwareEventRepository
 import com.miletracker.feature.tracking.repository.LocationRepository
 import com.miletracker.feature.tracking.repository.LogMilesSubmissionRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
+import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
 import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
@@ -29,6 +30,7 @@ val trackingModule = module {
     single { LogMilesSubmissionRepository(get()) }
     single { CurrentTrackRepository(get()) }
     single { HardwareEventRepository(get()) }
+    single { TripAttachmentRepository(get()) }
     single { LocationTrackingController(androidContext()) }
 
     viewModelOf(::SavedTracksViewModel)

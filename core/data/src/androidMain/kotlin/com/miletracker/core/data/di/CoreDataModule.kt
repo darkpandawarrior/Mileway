@@ -13,5 +13,6 @@ val coreDataModule = module {
     single { get<MileTrackerDatabase>().hardwareEventDao() }
     single { get<MileTrackerDatabase>().logMilesDraftDao() }
     single { get<MileTrackerDatabase>().logMilesFrequentRouteDao() }
+    single { get<MileTrackerDatabase>().tripAttachmentDao() }
     single { CurrentTrackDataStore(androidContext()) }
 }
