@@ -47,7 +47,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -70,6 +69,9 @@ import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import com.miletracker.feature.tracking.viewmodel.SubmissionUiState
 import org.koin.compose.viewmodel.koinViewModel
 
+/** Which odometer photo slot is being captured (null = receipt). */
+private enum class OdometerSlot { START, END }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackSubmissionScreen(
@@ -83,11 +85,24 @@ fun TrackSubmissionScreen(
     viewModel: MileageSubmissionViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var captureRequest by remember { mutableStateOf<CaptureMode?>(null) }
+    val pendingReceipts by viewModel.pendingReceipts.collectAsState()
+    val pendingOdoStart by viewModel.pendingOdoStart.collectAsState()
+    val pendingOdoEnd by viewModel.pendingOdoEnd.collectAsState()
+
+    // Local UI state that drives the camera sheet
+    var captureMode by remember { mutableStateOf<CaptureMode?>(null) }
+    var odometerSlot by remember { mutableStateOf<OdometerSlot?>(null) }
     var odometerEnabled by remember { mutableStateOf(false) }
     var odoStart by remember { mutableStateOf("") }
     var odoEnd by remember { mutableStateOf("") }
-    val receipts = remember { mutableStateListOf<String>() }
+
+    // Sync text fields from persisted odometer readings if available
+    LaunchedEffect(pendingOdoStart) {
+        pendingOdoStart?.second?.let { ocr -> if (ocr.isNotBlank()) odoStart = ocr }
+    }
+    LaunchedEffect(pendingOdoEnd) {
+        pendingOdoEnd?.second?.let { ocr -> if (ocr.isNotBlank()) odoEnd = ocr }
+    }
 
     LaunchedEffect(state) {
         val s = state
@@ -117,97 +132,122 @@ fun TrackSubmissionScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            when (val s = state) {
-                is SubmissionUiState.Idle -> {
-                    Column(
-                        modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        JourneySummaryCard(
-                            distanceKm = distanceKm,
-                            vehicleKey = vehicleKey,
-                            startTime = startTime,
-                            endTime = endTime
-                        )
-                        OdometerCard(
-                            enabled = odometerEnabled,
-                            startReading = odoStart,
-                            endReading = odoEnd,
-                            onEnabledChange = { odometerEnabled = it },
-                            onStartChange = { odoStart = it },
-                            onEndChange = { odoEnd = it },
-                            onScan = { captureRequest = CaptureMode.ODOMETER }
-                        )
-                        ReceiptsCard(
-                            receipts = receipts,
-                            onAdd = { captureRequest = CaptureMode.PLAIN },
-                            onRemove = { receipts.remove(it) }
-                        )
+            Column(
+                modifier = Modifier.fillMaxSize().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                when (val s = state) {
+                    is SubmissionUiState.Idle -> {
+                        Column(
+                            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            JourneySummaryCard(
+                                distanceKm = distanceKm,
+                                vehicleKey = vehicleKey,
+                                startTime = startTime,
+                                endTime = endTime
+                            )
+                            OdometerCard(
+                                enabled = odometerEnabled,
+                                startReading = odoStart,
+                                endReading = odoEnd,
+                                startPhotoUri = pendingOdoStart?.first,
+                                endPhotoUri = pendingOdoEnd?.first,
+                                onEnabledChange = { odometerEnabled = it },
+                                onStartChange = { odoStart = it },
+                                onEndChange = { odoEnd = it },
+                                onScanStart = {
+                                    odometerSlot = OdometerSlot.START
+                                    captureMode = CaptureMode.ODOMETER
+                                },
+                                onScanEnd = {
+                                    odometerSlot = OdometerSlot.END
+                                    captureMode = CaptureMode.ODOMETER
+                                }
+                            )
+                            ReceiptsCard(
+                                receipts = pendingReceipts,
+                                onAdd = {
+                                    odometerSlot = null
+                                    captureMode = CaptureMode.PLAIN
+                                },
+                                onRemove = { viewModel.removeReceipt(it) }
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Button(
+                            onClick = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
+                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                        ) { Text("Confirm & Submit") }
+                        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Button(
-                        onClick = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
-                        modifier = Modifier.fillMaxWidth().height(56.dp)
-                    ) { Text("Confirm & Submit") }
-                    OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
-                }
-                is SubmissionUiState.Submitting -> {
-                    Spacer(Modifier.weight(1f))
-                    CircularProgressIndicator(Modifier.size(64.dp))
-                    Spacer(Modifier.height(16.dp))
-                    Text("Submitting journey…", style = MaterialTheme.typography.bodyMedium)
-                    Spacer(Modifier.weight(1f))
-                }
-                is SubmissionUiState.Success -> {
-                    Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(80.dp))
-                    Spacer(Modifier.height(16.dp))
-                    Text("Journey Submitted!", style = MaterialTheme.typography.headlineMedium,
-                        textAlign = TextAlign.Center)
-                    s.response.reimbursableAmount?.let { amt ->
-                        Text("Reimbursable: ₹%.2f".format(amt), style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary)
+                    is SubmissionUiState.Submitting -> {
+                        Spacer(Modifier.weight(1f))
+                        CircularProgressIndicator(Modifier.size(64.dp))
+                        Spacer(Modifier.height(16.dp))
+                        Text("Submitting journey…", style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.weight(1f))
                     }
-                    Spacer(Modifier.weight(1f))
-                    Button(
-                        onClick = { onSuccess(distanceKm, s.response.reimbursableAmount ?: 0.0, vehicleKey, startTime, endTime, s.response.transId) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Done") }
-                }
-                is SubmissionUiState.Error -> {
-                    Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(64.dp))
-                    Spacer(Modifier.height(8.dp))
-                    Text("Submission failed", style = MaterialTheme.typography.titleMedium)
-                    Text(s.message, style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-                    Spacer(Modifier.weight(1f))
-                    Button(onClick = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
-                        modifier = Modifier.fillMaxWidth()) { Text("Retry") }
-                    OutlinedButton(onClick = { viewModel.reset(); onBack() }, modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
+                    is SubmissionUiState.Success -> {
+                        Spacer(Modifier.weight(1f))
+                        Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(80.dp))
+                        Spacer(Modifier.height(16.dp))
+                        Text("Journey Submitted!", style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Center)
+                        s.response.reimbursableAmount?.let { amt ->
+                            Text("Reimbursable: ₹%.2f".format(amt), style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.secondary)
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Button(
+                            onClick = { onSuccess(distanceKm, s.response.reimbursableAmount ?: 0.0, vehicleKey, startTime, endTime, s.response.transId) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Done") }
+                    }
+                    is SubmissionUiState.Error -> {
+                        Spacer(Modifier.weight(1f))
+                        Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(64.dp))
+                        Spacer(Modifier.height(8.dp))
+                        Text("Submission failed", style = MaterialTheme.typography.titleMedium)
+                        Text(s.message, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                        Spacer(Modifier.weight(1f))
+                        Button(onClick = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
+                            modifier = Modifier.fillMaxWidth()) { Text("Retry") }
+                        OutlinedButton(onClick = { viewModel.reset(); onBack() }, modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
+                    }
                 }
             }
-        }
 
-            captureRequest?.let { mode ->
+            captureMode?.let { mode ->
                 CameraCaptureSheet(
                     mode = mode,
-                    onDismiss = { captureRequest = null },
+                    onDismiss = { captureMode = null; odometerSlot = null },
                     onOdometerReading = { reading ->
-                        if (reading.isNotBlank()) odoEnd = reading
+                        // reading = OCR-detected text; capturedUri comes via onPhotoCaptured
+                        if (reading.isNotBlank()) {
+                            when (odometerSlot) {
+                                OdometerSlot.START -> odoStart = reading
+                                OdometerSlot.END   -> odoEnd = reading
+                                null               -> { /* plain receipt — no-op */ }
+                            }
+                        }
                         odometerEnabled = true
-                        captureRequest = null
+                        captureMode = null
+                        odometerSlot = null
                     },
                     onPhotoCaptured = { uri ->
-                        receipts.add(uri)
-                        captureRequest = null
+                        when (odometerSlot) {
+                            OdometerSlot.START -> viewModel.setOdometerStart(uri, null)
+                            OdometerSlot.END   -> viewModel.setOdometerEnd(uri, null)
+                            null               -> viewModel.addReceipt(uri)
+                        }
+                        captureMode = null
+                        odometerSlot = null
                     }
                 )
             }
@@ -259,7 +299,8 @@ private fun SummaryRow(icon: ImageVector, label: String, value: String) {
 
 /**
  * Optional proof-of-journey receipts. Captures photos through the shared camera sheet
- * (mocked upload) and shows them as removable thumbnails.
+ * and shows them as removable thumbnails. URIs are staged in the ViewModel immediately
+ * so they survive configuration changes before the final submit.
  */
 @Composable
 private fun ReceiptsCard(
@@ -295,7 +336,7 @@ private fun ReceiptsCard(
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
                 ) {
                     receipts.forEach { uri ->
-                        ReceiptThumbnail(uri = uri, onRemove = { onRemove(uri) })
+                        AttachmentThumbnail(uri = uri, onRemove = { onRemove(uri) })
                     }
                 }
             }
@@ -304,37 +345,37 @@ private fun ReceiptsCard(
 }
 
 @Composable
-private fun ReceiptThumbnail(uri: String, onRemove: () -> Unit) {
+private fun AttachmentThumbnail(uri: String, label: String? = null, onRemove: (() -> Unit)? = null) {
     Box(modifier = Modifier.size(88.dp)) {
         AsyncImage(
             model = uri,
-            contentDescription = "Receipt photo",
+            contentDescription = label ?: "Attachment photo",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
-        // Mocked "uploaded" badge.
         Icon(
             Icons.Default.CheckCircle,
-            contentDescription = "Uploaded",
+            contentDescription = "Saved",
             tint = DesignTokens.StatusColors.success,
             modifier = Modifier.align(Alignment.BottomStart).padding(2.dp).size(18.dp)
         )
-        // Remove control.
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(2.dp)
-                .size(22.dp)
-                .clip(RoundedCornerShape(50))
-                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Default.Close, contentDescription = "Remove", tint = androidx.compose.ui.graphics.Color.White,
-                modifier = Modifier.size(14.dp))
+        if (onRemove != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(2.dp)
+                    .size(22.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
+                    .clickable(onClick = onRemove),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Remove", tint = androidx.compose.ui.graphics.Color.White,
+                    modifier = Modifier.size(14.dp))
+            }
         }
     }
 }
@@ -356,19 +397,21 @@ private fun formatTripDuration(startTime: Long, endTime: Long): String {
 }
 
 /**
- * Optional odometer reading capture (stateless — state hoisted to the screen). Manual
- * start/end entry plus a "Scan with camera" action that runs the real camera + mocked
- * OCR to fill the end reading, and a demo auto-fill shortcut.
+ * Optional odometer reading capture. Shows separate "Scan Start" and "Scan End" buttons
+ * so each odometer proof photo can be captured independently and stored to Room.
  */
 @Composable
 private fun OdometerCard(
     enabled: Boolean,
     startReading: String,
     endReading: String,
+    startPhotoUri: String?,
+    endPhotoUri: String?,
     onEnabledChange: (Boolean) -> Unit,
     onStartChange: (String) -> Unit,
     onEndChange: (String) -> Unit,
-    onScan: () -> Unit
+    onScanStart: () -> Unit,
+    onScanEnd: () -> Unit
 ) {
     val odometerDistance = run {
         val s = startReading.toDoubleOrNull()
@@ -415,18 +458,36 @@ private fun OdometerCard(
                     )
                 }
                 Spacer(Modifier.height(DesignTokens.Spacing.s))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(onClick = onScan) {
-                        Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
-                        Spacer(Modifier.size(DesignTokens.Spacing.s))
-                        Text("Scan with camera")
+
+                // Camera buttons + previews for start and end proofs
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (startPhotoUri != null) {
+                        AttachmentThumbnail(uri = startPhotoUri, label = "Start proof")
+                    } else {
+                        OutlinedButton(onClick = onScanStart) {
+                            Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
+                            Spacer(Modifier.size(DesignTokens.Spacing.s))
+                            Text("Scan Start")
+                        }
                     }
-                    Spacer(Modifier.size(DesignTokens.Spacing.s))
+                    if (endPhotoUri != null) {
+                        AttachmentThumbnail(uri = endPhotoUri, label = "End proof")
+                    } else {
+                        OutlinedButton(onClick = onScanEnd) {
+                            Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
+                            Spacer(Modifier.size(DesignTokens.Spacing.s))
+                            Text("Scan End")
+                        }
+                    }
                     TextButton(onClick = { onStartChange("48213"); onEndChange("48221") }) {
                         Text("Auto-fill")
                     }
                 }
                 if (odometerDistance != null) {
+                    Spacer(Modifier.height(DesignTokens.Spacing.xs))
                     Text(
                         "Odometer distance: %.0f km".format(odometerDistance),
                         style = MaterialTheme.typography.bodyMedium,

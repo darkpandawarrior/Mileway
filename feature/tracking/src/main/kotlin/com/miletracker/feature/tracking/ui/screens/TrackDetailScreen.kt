@@ -2,7 +2,9 @@ package com.miletracker.feature.tracking.ui.screens
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,7 +24,9 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Timer
@@ -48,9 +53,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.miletracker.core.data.model.db.AttachmentType
+import com.miletracker.core.data.model.db.TripAttachmentEntity
 import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.components.LoadingScreen
@@ -172,6 +181,11 @@ fun TrackDetailScreen(
                 }
             }
 
+            // Attachments section — shown only when there are persisted photos
+            if (uiState.attachments.isNotEmpty()) {
+                AttachmentsCard(attachments = uiState.attachments)
+            }
+
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
             FilledTonalButton(onClick = { showExportDialog = true }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Default.Download, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -260,6 +274,107 @@ private fun DetailStatusChip(isSubmitted: Boolean) {
             Icon(Icons.Default.CheckCircle, null, tint = Color.White, modifier = Modifier.size(DesignTokens.IconSize.inline))
         }
         Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = Color.White)
+    }
+}
+
+/**
+ * Card showing all locally-stored attachments for the trip: receipts as a scrollable
+ * thumbnail strip, and odometer start/end proofs each with their OCR reading.
+ */
+@Composable
+private fun AttachmentsCard(attachments: List<TripAttachmentEntity>) {
+    val receipts = attachments.filter { it.type == AttachmentType.RECEIPT }
+    val odoStart = attachments.lastOrNull { it.type == AttachmentType.ODOMETER_START }
+    val odoEnd = attachments.lastOrNull { it.type == AttachmentType.ODOMETER_END }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+    ) {
+        Column(modifier = Modifier.padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Photo, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.m))
+                Text("Attachments", style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold)
+            }
+
+            // Odometer proofs
+            if (odoStart != null || odoEnd != null) {
+                Text("Odometer proofs", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+                    odoStart?.let { a ->
+                        OdometerProofTile(label = "Start", uri = a.uri, ocrText = a.ocrText)
+                    }
+                    odoEnd?.let { a ->
+                        OdometerProofTile(label = "End", uri = a.uri, ocrText = a.ocrText)
+                    }
+                }
+            }
+
+            // Receipt thumbnails
+            if (receipts.isNotEmpty()) {
+                Text("Receipts (${receipts.size})", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                ) {
+                    receipts.forEach { a ->
+                        Box(modifier = Modifier.size(80.dp)) {
+                            AsyncImage(
+                                model = a.uri,
+                                contentDescription = "Receipt photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                            Icon(
+                                Icons.Default.ReceiptLong,
+                                contentDescription = null,
+                                tint = Color.White.copy(alpha = 0.8f),
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(14.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OdometerProofTile(label: String, uri: String, ocrText: String?) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs)
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        AsyncImage(
+            model = uri,
+            contentDescription = "$label odometer proof",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        )
+        if (!ocrText.isNullOrBlank()) {
+            Text(
+                ocrText,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
     }
 }
 
