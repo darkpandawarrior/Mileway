@@ -3,12 +3,14 @@ package com.miletracker.feature.tracking.debug
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.miletracker.feature.tracking.export.TrackExportManager
+import com.miletracker.feature.tracking.repository.LocationRepository
+import com.miletracker.feature.tracking.repository.SavedTrackRepository
+import com.miletracker.feature.tracking.ui.components.ExportFormat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,13 +21,16 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 
 /**
- * ViewModel for the Compose-based Debug Menu
- * Manages state and business logic for debug options
+ * ViewModel for the Compose-based Debug Menu.
+ * Manages state and business logic for debug options.
+ * Accepts repositories so the location-export action can reach local storage.
  */
-class DebugMenuComposeViewModel : ViewModel() {
+class DebugMenuComposeViewModel(
+    private val savedTrackRepository: SavedTrackRepository,
+    private val locationRepository: LocationRepository,
+) : ViewModel() {
 
     // --- Location Tracking Fine-tuning Config Flows ---
     private val _abnormalConfigValues = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -540,6 +545,43 @@ class DebugMenuComposeViewModel : ViewModel() {
                 Log.d(TAG, "App cache cleared")
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing cache: ${e.message}", e)
+            }
+        }
+    }
+
+    /**
+     * Export the most recent saved track as a GPX file and fire a share chooser.
+     * Falls back gracefully when no track is found.
+     */
+    fun exportMostRecentTrack(context: Context) {
+        scope.launch {
+            try {
+                val tracks = savedTrackRepository.count()
+                if (tracks == 0L) {
+                    Log.w(TAG, "No saved tracks to export")
+                    return@launch
+                }
+                // Load the most recently active/completed track
+                val track = savedTrackRepository.getActiveTrack()
+                    ?: return@launch Unit.also { Log.w(TAG, "No active track found") }
+
+                val locations = locationRepository.getForToken(track.routeId)
+                val content = TrackExportManager.buildContent(
+                    format = ExportFormat.GPX,
+                    track = track,
+                    locations = locations,
+                    events = emptyList(),
+                )
+                val intent = TrackExportManager.buildShareIntent(
+                    context = context,
+                    format = ExportFormat.GPX,
+                    trackName = track.routeId,
+                    content = content,
+                )
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error exporting track: ${e.message}", e)
             }
         }
     }

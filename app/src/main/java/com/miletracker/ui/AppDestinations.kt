@@ -10,3 +10,10 @@ object AppGraph {
     const val MEDIA = "media_graph"
     const val PROFILE = "profile_graph"
 }
+
+/**
+ * Top-level destinations that live outside the bottom-nav nested graphs.
+ */
+object AppRoutes {
+    const val DEBUG_MENU = "debug_menu"
+}
