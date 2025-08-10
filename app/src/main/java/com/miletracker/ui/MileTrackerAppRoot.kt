@@ -28,12 +28,14 @@ import com.miletracker.core.ui.components.bottombar.EnhancedBottomBar
 import com.miletracker.core.ui.components.bottombar.EnhancedBottomNavItem
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
+import androidx.navigation.compose.composable
 import com.miletracker.feature.logging.ui.navigation.LoggingRoutes
 import com.miletracker.feature.logging.ui.navigation.loggingGraph
 import com.miletracker.feature.media.ui.navigation.MediaRoutes
 import com.miletracker.feature.media.ui.navigation.mediaGraph
 import com.miletracker.feature.profile.ui.navigation.ProfileRoutes
 import com.miletracker.feature.profile.ui.navigation.profileGraph
+import com.miletracker.feature.tracking.debug.DebugMenuScreen
 import com.miletracker.feature.tracking.ui.navigation.TrackingRoutes
 import com.miletracker.feature.tracking.ui.navigation.trackingGraph
 import org.koin.compose.koinInject
@@ -118,7 +120,15 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                     mediaGraph(navController)
                 }
                 navigation(startDestination = ProfileRoutes.HOME, route = AppGraph.PROFILE) {
-                    profileGraph(navController)
+                    profileGraph(
+                        navController = navController,
+                        onOpenDebugMenu = { navController.navigate(AppRoutes.DEBUG_MENU) },
+                    )
+                }
+                // Global debug destination — outside bottom-nav graphs so it renders
+                // full-screen without the bottom bar.
+                composable(AppRoutes.DEBUG_MENU) {
+                    DebugMenuScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

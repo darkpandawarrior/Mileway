@@ -13,7 +13,15 @@ object ProfileRoutes {
     const val HELP = "profile_help"
 }
 
-fun NavGraphBuilder.profileGraph(navController: NavHostController) {
+/**
+ * Profile nav graph.
+ * [onOpenDebugMenu] is a callback supplied by the app shell so the profile
+ * module itself does not need to depend on :feature:tracking.
+ */
+fun NavGraphBuilder.profileGraph(
+    navController: NavHostController,
+    onOpenDebugMenu: () -> Unit = {},
+) {
     composable(ProfileRoutes.HOME) {
         ProfileScreen(
             onOpenSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
@@ -23,6 +31,7 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
     composable(ProfileRoutes.SETTINGS) {
         SettingsScreen(
             onBack = { navController.popBackStack() },
+            onOpenDebugMenu = onOpenDebugMenu,
         )
     }
     composable(ProfileRoutes.HELP) {

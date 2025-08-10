@@ -1,5 +1,6 @@
 package com.miletracker.feature.profile.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,6 +35,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenDebugMenu: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val darkOverride by viewModel.darkThemeOverride.collectAsStateWithLifecycle()
@@ -131,6 +135,29 @@ fun SettingsScreen(
                     horizontal = DesignTokens.Spacing.l,
                     vertical = DesignTokens.Spacing.s,
                 ),
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
+
+            SettingsSectionLabel("Developer")
+            ListItem(
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Default.BugReport,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
+                headlineContent = { Text("Developer options") },
+                supportingContent = { Text("Debug flags, profiles, export tools") },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable(onClick = onOpenDebugMenu),
             )
         }
     }

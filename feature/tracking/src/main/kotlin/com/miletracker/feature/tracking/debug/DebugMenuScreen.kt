@@ -1,0 +1,781 @@
+package com.miletracker.feature.tracking.debug
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.network.config.ConfigProvider
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+
+// ---------------------------------------------------------------------------
+// Debug menu entry screen — offline-relevant tools only.
+// Server-only tools (API tester, HTTP logs, WormaCeptor, deep-link tester)
+// are intentionally excluded from this standalone demo build.
+// ---------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DebugMenuScreen(
+    onBack: () -> Unit,
+    viewModel: DebugMenuComposeViewModel = koinViewModel(),
+    configProvider: ConfigProvider = koinInject(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val availableProfiles by viewModel.availableProfiles.collectAsStateWithLifecycle()
+    val selectedProfile by viewModel.selectedProfile.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    var showRestartDialog by remember { mutableStateOf(false) }
+    var showClearAllDialog by remember { mutableStateOf(false) }
+    var restartResult by remember { mutableStateOf<ApplyResult?>(null) }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(
+                title = {
+                    Text(
+                        text = "Developer Options",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(
+                horizontal = 16.dp,
+                vertical = 12.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // Search bar
+            item {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { viewModel.updateSearchQuery(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Search options") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    ),
+                )
+            }
+
+            // Config snapshot — always shown when not searching
+            if (searchQuery.isEmpty()) {
+                item {
+                    ConfigSnapshotCard(
+                        uiState = uiState,
+                        configProvider = configProvider,
+                    )
+                }
+            }
+
+            // Performance / memory
+            if (searchQuery.isEmpty()) {
+                item {
+                    PerformanceCard(onRunGc = { viewModel.runGarbageCollection() })
+                }
+            }
+
+            // Profile presets
+            if (searchQuery.isEmpty()) {
+                item {
+                    ProfilePresetsCard(
+                        profiles = availableProfiles,
+                        selectedProfile = selectedProfile,
+                        onProfileSelected = { viewModel.selectProfile(it) },
+                    )
+                }
+            }
+
+            // Tracking / location options
+            item {
+                DebugSectionCard(
+                    title = "Location & Tracking",
+                    icon = Icons.Default.LocationOn,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        uiState.trackingOptions.forEach { (name, enabled) ->
+                            if (searchMatches(name, searchQuery)) {
+                                DebugToggleRow(
+                                    title = name,
+                                    checked = enabled,
+                                    onCheckedChange = { viewModel.toggleTrackingOption(name) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Feature flags
+            item {
+                DebugSectionCard(
+                    title = "Feature Flags",
+                    icon = Icons.Default.Flag,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        uiState.featureOptions.forEach { (name, enabled) ->
+                            if (searchMatches(name, searchQuery)) {
+                                DebugToggleRow(
+                                    title = name,
+                                    checked = enabled,
+                                    onCheckedChange = { viewModel.toggleFeatureOption(name) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Actions: location export, reset, restart
+            if (searchQuery.isEmpty()) {
+                item {
+                    OfflineActionsCard(
+                        onExportLastTrack = { viewModel.exportMostRecentTrack(context) },
+                        onClearCache = { viewModel.clearAppCache(context) },
+                        onResetDefaults = { showClearAllDialog = true },
+                        onRestart = {
+                            val result = viewModel.applyChanges()
+                            restartResult = result
+                            showRestartDialog = true
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    // Restart dialog
+    if (showRestartDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestartDialog = false },
+            title = { Text("Restart app?", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    restartResult?.let {
+                        Text("${it.changeCount} debug option(s) toggled in-memory.")
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    Text("The app will close and relaunch. Any unsaved work may be lost.")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRestartDialog = false
+                        viewModel.performAppRestart(context)
+                    },
+                ) { Text("Restart") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRestartDialog = false }) { Text("Not now") }
+            },
+        )
+    }
+
+    // Clear-all dialog
+    if (showClearAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearAllDialog = false },
+            title = { Text("Reset to defaults?") },
+            text = { Text("All debug toggles will be reset to their default state.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.clearAllDebugSettings()
+                        showClearAllDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                    ),
+                ) { Text("Reset") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showClearAllDialog = false }) { Text("Cancel") }
+            },
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Config snapshot card — shows offline-relevant flags from ConfigProvider
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun ConfigSnapshotCard(
+    uiState: DebugMenuUiState,
+    configProvider: ConfigProvider,
+) {
+    val trackCfg = configProvider.getTrackMilesConfig()
+    val logCfg = configProvider.getLogMilesConfig()
+
+    val snapshot = buildConfigSnapshot(
+        uiState = uiState,
+        trackMilesV2 = trackCfg.trackMilesV2,
+        geoCheckIn = trackCfg.geoCheckInEnabled,
+        manualCheckIn = trackCfg.allowManualCheckIn,
+        currency = configProvider.getCurrency(),
+        tenant = trackCfg.tenantCode,
+        service = logCfg.service,
+        allowMockLocations = uiState.trackingOptions["Allow Mock Locations"] == true,
+    )
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.DataObject,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Config Snapshot",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                if (uiState.enabledOptionsCount > 0) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                    ) {
+                        Text(
+                            text = "${uiState.enabledOptionsCount} on",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+
+            snapshot.forEach { (key, value) ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 3.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = key,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f),
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = value,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Pure function that builds the key-value snapshot shown in the config card. */
+fun buildConfigSnapshot(
+    uiState: DebugMenuUiState,
+    trackMilesV2: Boolean,
+    geoCheckIn: Boolean,
+    manualCheckIn: Boolean,
+    currency: String,
+    tenant: String,
+    service: String,
+    allowMockLocations: Boolean,
+): Map<String, String> = buildMap {
+    put("Tenant", tenant.ifBlank { "—" })
+    put("Currency", currency.ifBlank { "—" })
+    put("Service", service.ifBlank { "—" })
+    put("Track Miles V2", if (trackMilesV2) "enabled" else "disabled")
+    put("Geo check-in", if (geoCheckIn) "on" else "off")
+    put("Manual check-in", if (manualCheckIn) "on" else "off")
+    put("Mock locations (debug)", if (allowMockLocations) "allowed" else "blocked")
+    put("Debug flags active", uiState.enabledOptionsCount.toString())
+}
+
+// ---------------------------------------------------------------------------
+// Performance card — GC trigger + memory readout
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun PerformanceCard(onRunGc: () -> Unit) {
+    val runtime = Runtime.getRuntime()
+    val usedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
+    val totalMb = runtime.totalMemory() / (1024 * 1024)
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Memory,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Performance",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "Heap used: ${usedMb}MB / ${totalMb}MB",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onRunGc,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Run garbage collection")
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Profile presets card
+// ---------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfilePresetsCard(
+    profiles: List<DebugProfile>,
+    selectedProfile: DebugProfile?,
+    onProfileSelected: (DebugProfile) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.AccountTree,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Debug Profiles",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                text = "Apply a preset bundle of debug flags in one tap",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+            )
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                TextField(
+                    value = selectedProfile?.name ?: "Select a profile",
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(
+                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                            enabled = true,
+                        ),
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    profiles.forEach { profile ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(
+                                        text = profile.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Text(
+                                        text = profile.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onProfileSelected(profile)
+                                expanded = false
+                            },
+                            trailingIcon = {
+                                if (selectedProfile?.name == profile.name) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
+            // Show which flags the active profile turns on
+            selectedProfile?.let { profile ->
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "Active: ${profile.name}",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        val enabledKeys = profile.options.filter { it.value }.keys
+                        if (enabledKeys.isNotEmpty()) {
+                            Text(
+                                text = enabledKeys.joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Offline actions card
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun OfflineActionsCard(
+    onExportLastTrack: () -> Unit,
+    onClearCache: () -> Unit,
+    onResetDefaults: () -> Unit,
+    onRestart: () -> Unit,
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.BugReport,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Debug Actions",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            DebugActionRow(
+                icon = Icons.Default.Share,
+                title = "Export most recent track",
+                description = "Share the latest saved track as a file",
+                onClick = onExportLastTrack,
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+            DebugActionRow(
+                icon = Icons.Default.Delete,
+                title = "Clear app cache",
+                description = "Wipe cached files (export cache, etc.)",
+                onClick = onClearCache,
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+            DebugActionRow(
+                icon = Icons.Default.Settings,
+                title = "Reset debug flags to defaults",
+                description = "Turn off all toggled options",
+                onClick = onResetDefaults,
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+            DebugActionRow(
+                icon = Icons.Default.PowerSettingsNew,
+                title = "Apply & restart app",
+                description = "Restart now so flag changes take effect",
+                onClick = onRestart,
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Shared sub-composables
+// ---------------------------------------------------------------------------
+
+@Composable
+fun DebugSectionCard(
+    title: String,
+    icon: ImageVector = Icons.Default.Settings,
+    content: @Composable () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "chevron",
+    )
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp),
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    modifier = Modifier.rotate(rotation),
+                )
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                        content()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DebugToggleRow(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: () -> Unit,
+) {
+    ListItem(
+        headlineContent = { Text(title, style = MaterialTheme.typography.bodyMedium) },
+        trailingContent = {
+            Switch(checked = checked, onCheckedChange = { onCheckedChange() })
+        },
+        modifier = Modifier.clickable { onCheckedChange() },
+    )
+}
+
+@Composable
+private fun DebugActionRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    onClick: () -> Unit,
+) {
+    ListItem(
+        leadingContent = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        },
+        headlineContent = {
+            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+        },
+        supportingContent = {
+            Text(
+                description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        modifier = Modifier.clickable(onClick = onClick),
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Helpers (pure, safe to unit-test)
+// ---------------------------------------------------------------------------
+
+fun searchMatches(name: String, query: String): Boolean =
+    query.isBlank() || name.contains(query, ignoreCase = true)
