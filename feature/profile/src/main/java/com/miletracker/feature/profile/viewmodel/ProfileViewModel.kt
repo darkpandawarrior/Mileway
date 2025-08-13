@@ -6,6 +6,9 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.lifecycle.ViewModel
+import com.miletracker.core.ui.theme.AccentPalette
+import com.miletracker.core.ui.theme.AppLanguage
+import com.miletracker.core.ui.theme.ExperimentalFlags
 import com.miletracker.core.ui.theme.ThemeController
 import com.miletracker.feature.profile.model.ProfileUiState
 import com.miletracker.feature.profile.model.SettingsTile
@@ -35,6 +38,15 @@ class ProfileViewModel(
     /** `null` = follow system, `true` = force dark, `false` = force light. */
     val darkThemeOverride: StateFlow<Boolean?> = themeController.darkThemeOverride
 
+    /** Currently selected accent palette. */
+    val accentPalette: StateFlow<AccentPalette> = themeController.accentPalette
+
+    /** Currently selected app language. */
+    val language: StateFlow<AppLanguage> = themeController.language
+
+    /** Experimental optimization flags. */
+    val experimentalFlags: StateFlow<ExperimentalFlags> = themeController.experimentalFlags
+
     private val _useMiles = MutableStateFlow(true)
     val useMiles: StateFlow<Boolean> = _useMiles.asStateFlow()
 
@@ -50,6 +62,27 @@ class ProfileViewModel(
     }
 
     fun setDarkTheme(dark: Boolean?) = themeController.set(dark)
+
+    fun setPalette(palette: AccentPalette) = themeController.setPalette(palette)
+
+    fun setLanguage(language: AppLanguage) = themeController.setLanguage(language)
+
+    fun toggleBatteryAwareTracking() {
+        val current = themeController.experimentalFlags.value
+        themeController.updateExperimentalFlags(current.copy(batteryAwareTracking = !current.batteryAwareTracking))
+    }
+
+    fun toggleLowEndDeviceTuning() {
+        val current = themeController.experimentalFlags.value
+        themeController.updateExperimentalFlags(current.copy(lowEndDeviceTuning = !current.lowEndDeviceTuning))
+    }
+
+    fun toggleAggressiveGpsFilter() {
+        val current = themeController.experimentalFlags.value
+        themeController.updateExperimentalFlags(current.copy(aggressiveGpsFilter = !current.aggressiveGpsFilter))
+    }
+
+    fun resetCustomization() = themeController.resetCustomization()
 
     companion object {
         const val TILE_SETTINGS = "settings"

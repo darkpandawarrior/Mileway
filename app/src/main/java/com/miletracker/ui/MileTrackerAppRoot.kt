@@ -54,8 +54,9 @@ private data class TabSpec(
 fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
     val systemDark = isSystemInDarkTheme()
     val override by themeController.darkThemeOverride.collectAsStateWithLifecycle()
+    val palette by themeController.accentPalette.collectAsStateWithLifecycle()
 
-    MileTrackerTheme(darkTheme = override ?: systemDark) {
+    MileTrackerTheme(darkTheme = override ?: systemDark, palette = palette) {
         val navController = rememberNavController()
 
         val tabs = remember {
