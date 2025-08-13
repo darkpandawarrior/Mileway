@@ -1,7 +1,9 @@
 package com.miletracker.feature.profile.ui.screens
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,11 +23,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.core.ui.theme.AccentPalette
+import com.miletracker.core.ui.theme.AppLanguage
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.profile.model.SettingsUiState
@@ -42,8 +53,16 @@ fun SettingsScreen(
     val useMiles by viewModel.useMiles.collectAsStateWithLifecycle()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     val profile by viewModel.uiState.collectAsStateWithLifecycle()
+    val accentPalette by viewModel.accentPalette.collectAsStateWithLifecycle()
+    val language by viewModel.language.collectAsStateWithLifecycle()
+    val experimentalFlags by viewModel.experimentalFlags.collectAsStateWithLifecycle()
     val systemDark = isSystemInDarkTheme()
+    val context = LocalContext.current
     val about = SettingsUiState(darkThemeOverride = darkOverride, useMiles = useMiles)
+
+    var showPalettePicker by remember { mutableStateOf(false) }
+    var showLanguagePicker by remember { mutableStateOf(false) }
+    var showResetConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -122,6 +141,90 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
 
+            // ----------------------------------------------------------------
+            // Customization section
+            // ----------------------------------------------------------------
+            SettingsSectionLabel("Customization")
+
+            // Accent palette
+            ListItem(
+                headlineContent = { Text("Accent palette") },
+                supportingContent = { Text(accentPalette.label) },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable { showPalettePicker = true },
+            )
+
+            // Language / locale
+            ListItem(
+                headlineContent = { Text("Language") },
+                supportingContent = { Text(language.displayName) },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable { showLanguagePicker = true },
+            )
+
+            // Map provider (OSM only — multi-provider toggle not meaningful)
+            ListItem(
+                headlineContent = { Text("Map provider") },
+                supportingContent = { Text("OpenStreetMap (fixed — single provider build)") },
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
+
+            // Experimental toggles
+            SettingsSectionLabel("Experimental")
+
+            ListItem(
+                headlineContent = { Text("Battery-aware tracking") },
+                supportingContent = { Text("Reduce GPS polling below 15% battery (real effect)") },
+                trailingContent = {
+                    Switch(
+                        checked = experimentalFlags.batteryAwareTracking,
+                        onCheckedChange = { viewModel.toggleBatteryAwareTracking() },
+                    )
+                },
+            )
+            ListItem(
+                headlineContent = { Text("Low-end device tuning") },
+                supportingContent = { Text("Fewer UI animations (cosmetic in demo)") },
+                trailingContent = {
+                    Switch(
+                        checked = experimentalFlags.lowEndDeviceTuning,
+                        onCheckedChange = { viewModel.toggleLowEndDeviceTuning() },
+                    )
+                },
+            )
+            ListItem(
+                headlineContent = { Text("Aggressive GPS filter") },
+                supportingContent = { Text("Tighter spike rejection radius — 40 m vs 80 m (real effect)") },
+                trailingContent = {
+                    Switch(
+                        checked = experimentalFlags.aggressiveGpsFilter,
+                        onCheckedChange = { viewModel.toggleAggressiveGpsFilter() },
+                    )
+                },
+            )
+
+            // Reset customization
+            ListItem(
+                headlineContent = { Text("Reset customization") },
+                supportingContent = { Text("Restore palette, language, and experimental flags to defaults") },
+                modifier = Modifier.clickable { showResetConfirm = true },
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
+
             SettingsSectionLabel("About")
             ListItem(
                 headlineContent = { Text("App version") },
@@ -161,6 +264,103 @@ fun SettingsScreen(
             )
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Dialogs
+    // -------------------------------------------------------------------------
+
+    if (showPalettePicker) {
+        SimpleSelectionDialog(
+            title = "Accent palette",
+            options = AccentPalette.entries.map { it.label },
+            selected = accentPalette.label,
+            onDismiss = { showPalettePicker = false },
+            onSelect = { label ->
+                showPalettePicker = false
+                AccentPalette.entries.firstOrNull { it.label == label }?.let { viewModel.setPalette(it) }
+            },
+        )
+    }
+
+    if (showLanguagePicker) {
+        SimpleSelectionDialog(
+            title = "Language",
+            options = AppLanguage.entries.map { it.displayName },
+            selected = language.displayName,
+            onDismiss = { showLanguagePicker = false },
+            onSelect = { displayName ->
+                showLanguagePicker = false
+                val picked = AppLanguage.entries.firstOrNull { it.displayName == displayName }
+                if (picked != null) {
+                    viewModel.setLanguage(picked)
+                    // Wire per-app locale via AppCompatDelegate — persisted by the platform.
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(picked.tag)
+                    )
+                }
+            },
+        )
+    }
+
+    if (showResetConfirm) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text("Reset customization") },
+            text = { Text("Palette, language, and experimental flags will return to defaults.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showResetConfirm = false
+                    viewModel.resetCustomization()
+                    // Also reset locale to English
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(AppLanguage.ENGLISH.tag)
+                    )
+                }) {
+                    Text("Reset")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetConfirm = false }) { Text("Cancel") }
+            },
+        )
+    }
+}
+
+@Composable
+private fun SimpleSelectionDialog(
+    title: String,
+    options: List<String>,
+    selected: String,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs)) {
+                options.forEach { option ->
+                    val isSelected = option == selected
+                    TextButton(
+                        onClick = { onSelect(option) },
+                        modifier = Modifier.padding(vertical = DesignTokens.Spacing.xs),
+                    ) {
+                        Text(
+                            text = option,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface,
+                            style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            ) else MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Close") }
+        },
+    )
 }
 
 @Composable

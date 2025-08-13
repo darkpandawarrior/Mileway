@@ -6,13 +6,25 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainer,
-    onPrimaryContainer = OnPrimaryContainer,
-    secondary = Secondary,
-    onSecondary = OnSecondary,
+private fun Color(value: Long) = androidx.compose.ui.graphics.Color(value)
+
+// Dark-mode neutral tokens (independent of accent palette)
+private val DarkSurface = Color(0xFF1A1C1E)
+private val DarkOnSurface = Color(0xFFE3E2E6)
+private val DarkSurfaceVariant = Color(0xFF41474D)
+private val DarkOnSurfaceVariant = Color(0xFFC1C7CE)
+private val DarkError = Color(0xFFFFB4AB)
+private val DarkOnError = Color(0xFF690005)
+private val DarkOutline = Color(0xFF8B9198)
+
+/** Build a light color scheme from the given [PaletteColors]. */
+private fun lightSchemeFor(p: PaletteColors) = lightColorScheme(
+    primary = p.primary,
+    onPrimary = p.onPrimary,
+    primaryContainer = p.primaryContainer,
+    onPrimaryContainer = p.onPrimaryContainer,
+    secondary = p.secondary,
+    onSecondary = p.onSecondary,
     surface = Surface,
     onSurface = OnSurface,
     surfaceVariant = SurfaceVariant,
@@ -21,37 +33,39 @@ private val LightColorScheme = lightColorScheme(
     onError = OnError,
     outline = Outline,
     background = Background,
-    onBackground = OnBackground
+    onBackground = OnBackground,
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF9ABEFF),
-    onPrimary = Color(0xFF00317E),
-    primaryContainer = Color(0xFF0047B0),
-    onPrimaryContainer = Color(0xFFD6E4FF),
-    secondary = Color(0xFF80CBC4),
-    onSecondary = Color(0xFF00403B),
-    surface = Color(0xFF1A1C1E),
-    onSurface = Color(0xFFE3E2E6),
-    surfaceVariant = Color(0xFF41474D),
-    onSurfaceVariant = Color(0xFFC1C7CE),
-    error = Color(0xFFFFB4AB),
-    onError = Color(0xFF690005),
-    outline = Color(0xFF8B9198),
-    background = Color(0xFF1A1C1E),
-    onBackground = Color(0xFFE3E2E6)
+/** Build a dark color scheme from the given [PaletteColors]. */
+private fun darkSchemeFor(p: PaletteColors) = darkColorScheme(
+    primary = p.primaryDark,
+    onPrimary = p.onPrimaryDark,
+    primaryContainer = p.primaryContainerDark,
+    onPrimaryContainer = p.onPrimaryContainerDark,
+    secondary = p.secondaryDark,
+    onSecondary = p.onSecondaryDark,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    error = DarkError,
+    onError = DarkOnError,
+    outline = DarkOutline,
+    background = DarkSurface,
+    onBackground = DarkOnSurface,
 )
-
-private fun Color(value: Long) = androidx.compose.ui.graphics.Color(value)
 
 @Composable
 fun MileTrackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    palette: AccentPalette = AccentPalette.DEFAULT,
     content: @Composable () -> Unit
 ) {
+    val paletteColors = palette.colors()
+    val colorScheme = if (darkTheme) darkSchemeFor(paletteColors) else lightSchemeFor(paletteColors)
     MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+        colorScheme = colorScheme,
         typography = MileTrackerTypography,
-        content = content
+        content = content,
     )
 }
