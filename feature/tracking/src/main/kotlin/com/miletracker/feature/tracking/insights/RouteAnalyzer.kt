@@ -9,8 +9,8 @@ import java.util.Locale
 /**
  * Coordinator that runs all four analyzers and assembles a [RouteAnalysisResult].
  *
- * Mirrors the structure of the DiCE EnhancedAIRouteAnalyzer without the Android/Hilt
- * or backend dependencies. Each analyzer is pure Kotlin and independently testable.
+ * Composes the four route analyzers with no Android/DI or backend dependencies.
+ * Each analyzer is pure Kotlin and independently testable.
  *
  * Route categorisation logic (preserved verbatim):
  *   - Weekday + hour 6-9 or 17-19  → "Commute"
