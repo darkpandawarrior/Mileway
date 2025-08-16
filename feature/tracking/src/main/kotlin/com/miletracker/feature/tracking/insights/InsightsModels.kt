@@ -23,7 +23,7 @@ data class ScoreFactor(val label: String, val deduction: Int)
 
 // ---------------------------------------------------------------------------
 
-/** Activity classification type — speed-based thresholds from the reference app analyzer. */
+/** Activity classification type — speed-based thresholds. */
 enum class ActivityType {
     STATIONARY, WALKING, CYCLING, DRIVING, HIGHWAY, PAUSED, UNKNOWN
 }
