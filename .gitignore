@@ -25,3 +25,10 @@ local.properties
 
 # Logs
 *.log
+
+# Agent tooling (local only)
+.ralph/
+.claude/
+CLAUDE.md
+AGENTS.md
+.kotlin/
