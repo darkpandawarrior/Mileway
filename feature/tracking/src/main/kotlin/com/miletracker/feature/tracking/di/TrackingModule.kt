@@ -4,6 +4,7 @@ import com.miletracker.core.network.config.ConfigProvider
 import com.miletracker.feature.tracking.manager.LocationTrackingController
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
 import org.koin.android.ext.koin.androidContext
+import com.miletracker.feature.tracking.insights.RouteAnalyzer
 import com.miletracker.feature.tracking.repository.CurrentTrackRepository
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
 import com.miletracker.feature.tracking.repository.LocationRepository
@@ -33,6 +34,10 @@ val trackingModule = module {
     single { HardwareEventRepository(get()) }
     single { TripAttachmentRepository(get()) }
     single { LocationTrackingController(androidContext()) }
+
+    // viewModelOf resolves every constructor parameter through Koin — Kotlin default
+    // arguments are NOT applied — so the analyzer needs an explicit definition.
+    single { RouteAnalyzer() }
 
     viewModelOf(::SavedTracksViewModel)
     viewModelOf(::TrackMilesViewModel)

@@ -10,6 +10,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!-- Tracking notification (runtime permission on API 33+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Floating bubble overlay -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
