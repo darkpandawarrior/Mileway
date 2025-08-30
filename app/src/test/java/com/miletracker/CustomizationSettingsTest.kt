@@ -14,7 +14,7 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 /**
- * Unit tests for the customization/settings logic added in the parity task.
+ * Unit tests for the theme/locale customization and settings logic.
  *
  * All tests are pure JVM — no Android framework, no Koin, no Compose.
  * Each test is isolated via a fresh [ThemeController] + [ProfileViewModel] pair.

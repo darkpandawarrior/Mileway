@@ -5,7 +5,7 @@ import com.miletracker.core.data.model.db.SavedTrack
 /**
  * Pure-Kotlin analyzer for overall journey quality.
  *
- * Scoring rules (preserved verbatim from source):
+ * Scoring rules:
  *   - mock location used          → −20
  *   - battery optimisation on     → −15
  *   - power saver on              → −15

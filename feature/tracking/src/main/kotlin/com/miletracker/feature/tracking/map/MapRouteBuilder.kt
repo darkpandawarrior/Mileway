@@ -61,7 +61,7 @@ object MapRouteBuilder {
     /**
      * Build [RouteMapData] from a raw [List<LocationData>].
      *
-     * Classification rules (mirror MarkerFactory semantics from the source app):
+     * Classification rules:
      * - **abnormal** — [LocationData.isAbnormal] is true → drawn in red
      * - **filtered** — [LocationData.isMock] or [LocationData.isPaused] → drawn in orange
      * - **normal** — everything else → drawn on the main blue polyline

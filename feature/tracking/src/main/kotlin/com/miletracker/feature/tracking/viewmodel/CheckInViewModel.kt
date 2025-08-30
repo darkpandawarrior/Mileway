@@ -224,7 +224,7 @@ class CheckInViewModel(
 
     /**
      * Called from the radius-warning sheet when the user explicitly overrides and wants to
-     * record the check-in anyway (same UX pattern as the enterprise updateAndCheckIn).
+     * record the check-in anyway.
      */
     fun forceGeoCheckInDespiteRadius() {
         val pending = _uiState.value.pendingValidationResult ?: return

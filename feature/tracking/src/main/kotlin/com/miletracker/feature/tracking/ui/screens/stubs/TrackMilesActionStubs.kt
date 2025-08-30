@@ -1,11 +1,11 @@
 package com.miletracker.feature.tracking.ui.screens.stubs
 
 /**
- * Stub action hierarchy mirroring the enterprise mileageTracker action model.
+ * Action model for the Track Miles screen family (MVI user intents).
  *
- * The full enterprise ViewModel is not available in MileTrackerDemo. These stubs
- * preserve the shape of the action sealed class so that all ported screen files
- * compile. Replace with the real implementations once the full ViewModel is ported.
+ * Kept as a flat sealed hierarchy in a single file so the complete set of
+ * user intents the tracking surface can emit is visible at a glance. Screens
+ * dispatch these; the ViewModel is the single reducer.
  */
 sealed interface TrackMilesAction
 

@@ -6,14 +6,14 @@ import kotlin.math.abs
 /**
  * Pure-Kotlin activity-pattern analyzer.
  *
- * Speed thresholds (m/s) — preserved verbatim from source:
+ * Speed thresholds (m/s):
  *   STATIONARY  < 1.0
  *   WALKING     < 5.0
  *   CYCLING     < 15.0
  *   DRIVING     < 50.0
  *   HIGHWAY    >= 50.0
  *
- * Acceleration thresholds (m/s²) — preserved verbatim from source:
+ * Acceleration thresholds (m/s²):
  *   smooth acceleration   >  1.0
  *   harsh  acceleration   >  2.5
  *   smooth braking        < -1.0

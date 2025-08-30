@@ -9,9 +9,8 @@ import kotlin.math.sqrt
 /**
  * Pure-Kotlin (no Android imports) Haversine-based check-in validator.
  *
- * Mirrors the radius-validation concept from the enterprise RadiusExtractor: given a user's
- * current coordinates and a target check-in location with a configured radius, this class
- * computes whether the user is within range and — if not — how far outside they are.
+ * Given a user's current coordinates and a target check-in location with a configured
+ * radius, computes whether the user is within range and — if not — how far outside they are.
  *
  * All validation is done locally; no network calls are made.
  */
@@ -114,8 +113,7 @@ object CheckInValidator {
     }
 
     /**
-     * Builds a human-readable radius-warning message mirroring the enterprise
-     * RadiusExtractor.createRadiusWarningMessage pattern.
+     * Builds the human-readable radius warning shown on the override sheet.
      */
     fun buildOutsideRadiusMessage(result: ValidationResult): String =
         "You are ${result.distanceOutside.toInt()} m outside the check-in radius of " +
