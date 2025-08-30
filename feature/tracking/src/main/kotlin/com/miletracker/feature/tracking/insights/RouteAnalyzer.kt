@@ -12,7 +12,7 @@ import java.util.Locale
  * Composes the four route analyzers with no Android/DI or backend dependencies.
  * Each analyzer is pure Kotlin and independently testable.
  *
- * Route categorisation logic (preserved verbatim):
+ * Route categorisation rules:
  *   - Weekday + hour 6-9 or 17-19  → "Commute"
  *   - Weekend                       → "Leisure"
  *   - avgSpeed < 10 km/h            → "Exercise"

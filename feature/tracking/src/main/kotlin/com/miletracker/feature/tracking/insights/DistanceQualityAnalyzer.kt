@@ -6,7 +6,7 @@ import com.miletracker.core.data.model.db.SavedTrack
 /**
  * Pure-Kotlin distance-quality analyzer.
  *
- * Score rules (preserved verbatim from source):
+ * Score rules:
  *   - Start at 100.
  *   - Deduct (problematicDistancePct * 0.5), capped at 50.
  *   - Deduct (problemPointPct * 0.3),         capped at 30.

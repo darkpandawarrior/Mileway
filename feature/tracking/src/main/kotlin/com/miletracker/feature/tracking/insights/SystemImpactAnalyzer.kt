@@ -8,7 +8,7 @@ import kotlin.math.min
 /**
  * Pure-Kotlin system-impact analyzer.
  *
- * Impact rules (preserved verbatim from source):
+ * Impact rules:
  *   - Battery optimisation     → impactPct = min(100, batteryOptTime / duration * 100)
  *   - Power saver              → impactPct = min(100, powerSaverTime / duration * 100)
  *   - App killed               → fixed 25 %

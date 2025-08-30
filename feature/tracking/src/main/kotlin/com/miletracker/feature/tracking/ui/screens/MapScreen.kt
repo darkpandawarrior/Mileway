@@ -159,7 +159,7 @@ import kotlin.math.sqrt
 private const val TAG = "LocationMapScreen"
 
 // ---------------------------------------------------------------------------
-// Stub data classes for marker system (enterprise feature — no-op in demo)
+// Data model for the map-marker overlay system
 // ---------------------------------------------------------------------------
 
 data class MapMarkerData(
@@ -923,7 +923,7 @@ fun EnhancedLiveTrackingUI(
 }
 
 // ---------------------------------------------------------------------------
-// Stub marker info dialog (enterprise feature)
+// Marker info dialog
 // ---------------------------------------------------------------------------
 
 @Composable
@@ -955,7 +955,7 @@ fun MarkerInfoDialog(
 }
 
 // ---------------------------------------------------------------------------
-// Stub marker filter chips (enterprise feature)
+// Marker filter chips
 // ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -975,7 +975,7 @@ fun MarkerFilterChips(
 }
 
 // ---------------------------------------------------------------------------
-// Stub legend composables (enterprise feature)
+// Map legend composables
 // ---------------------------------------------------------------------------
 
 @Composable

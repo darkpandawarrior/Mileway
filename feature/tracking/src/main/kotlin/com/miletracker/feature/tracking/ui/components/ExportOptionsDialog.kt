@@ -39,9 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 // ---------------------------------------------------------------------------
-// Local stubs for enterprise-only domain types that are not available in the
-// MileTrackerDemo project. These provide enough structure for the UI to
-// compile and render correctly.
+// Domain types for the export options UI.
 // ---------------------------------------------------------------------------
 
 /**

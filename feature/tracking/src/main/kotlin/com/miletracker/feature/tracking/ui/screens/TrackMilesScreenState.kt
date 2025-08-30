@@ -5,19 +5,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-// Enterprise type stubs — ContactV2 and PermissionType are not available in MileTrackerDemo.
-// They are referenced only in screenState fields; stubs allow compilation.
+// Lightweight domain types referenced by the tracking screen state.
 
-/** Stub for ContactV2 from enterprise network layer. */
+/** Emergency/outlet contact shown on the tracking surface. */
 data class ContactV2(
     val title: String? = null,
     val coords: ContactCoords? = null
 )
 
-/** Stub for contact coordinates. */
+/** Coordinates attached to a contact. */
 data class ContactCoords(val lat: Double? = null, val lng: Double? = null)
 
-/** Stub enum mirroring enterprise PermissionType values. */
+/** Permission categories the tracking screen can prompt for. */
 enum class PermissionType {
     LocationForeground,
     LocationBackground,

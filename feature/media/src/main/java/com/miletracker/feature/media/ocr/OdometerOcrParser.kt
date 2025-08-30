@@ -19,7 +19,7 @@ package com.miletracker.feature.media.ocr
  *  4. When multiple candidates survive, prefer the longest digit sequence (more
  *     specific reading is more likely correct).
  *
- * OCR normalisation (ported from OdometerTextPreProcessor in the source repo):
+ * OCR normalisation:
  *  - Common misread characters are substituted before regex matching.
  *    Only the digit-substitutions are applied; word-character substitutions
  *    (O→0, I→1, etc.) are applied ONLY to tokens that look like they might be

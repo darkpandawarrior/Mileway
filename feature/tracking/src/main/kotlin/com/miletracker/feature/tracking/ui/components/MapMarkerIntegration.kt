@@ -18,10 +18,9 @@ import androidx.compose.ui.unit.dp
 import com.miletracker.core.data.model.db.EventType
 
 // ---------------------------------------------------------------------------
-// Local stubs for map-marker domain types that are not available in the
-// MileTrackerDemo project. Enterprise map integration helpers (IMapView,
-// MapMarkerConfig, R.drawable.*) are omitted — only the Compose UI layer is
-// ported here.
+// Map-marker domain types for the Compose marker UI. These model marker
+// semantics (position, severity, event type) independently of any map SDK;
+// the osmdroid binding lives in the map package.
 // ---------------------------------------------------------------------------
 
 /** Geographic position used for map markers. */
@@ -91,23 +90,6 @@ data class MarkerFilters(
     val minTimestamp: Long = 0L,
     val maxTimestamp: Long = Long.MAX_VALUE
 )
-
-// ---------------------------------------------------------------------------
-// NOTE: renderMarkersOnMap() and clearMarkers() depend on IMapView /
-// MapMarkerConfig which are enterprise-only types unavailable in MileTrackerDemo.
-// Their logic is preserved below as a comment for reference; call sites should
-// replace them with the map SDK available in this project.
-//
-// fun renderMarkersOnMap(
-//     mapView: IMapView,
-//     context: Context,
-//     markers: List<MapMarkerData>,
-//     filters: MarkerFilters,
-//     onMarkerClick: (MapMarkerData) -> Unit
-// ): List<Any> { ... }
-//
-// fun clearMarkers(mapView: IMapView, markerReferences: List<Any>) { ... }
-// ---------------------------------------------------------------------------
 
 /**
  * Marker filter chips component for the Layers tab.

@@ -354,7 +354,7 @@ fun GeoCheckInSheet(
 
 /**
  * Bottom sheet displayed when a geo check-in attempt fails because the user is outside
- * the configured radius. Mirrors the enterprise CheckInRadiusWarningBottomSheet.
+ * the configured radius.
  *
  * Offers two options: dismiss (cancel) or override (force check-in despite distance).
  */

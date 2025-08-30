@@ -9,7 +9,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Unit tests for the profile/settings view-model logic added in the parity phase.
+ * Unit tests for the profile/settings ViewModel, driven through a fake repository.
  */
 class ProfileViewModelTest {
 
