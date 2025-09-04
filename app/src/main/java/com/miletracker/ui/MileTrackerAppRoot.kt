@@ -1,34 +1,66 @@
 package com.miletracker.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.TravelExplore
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.TravelExplore
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.miletracker.core.ui.components.bottombar.EnhancedBottomBar
-import com.miletracker.core.ui.components.bottombar.EnhancedBottomNavItem
+import com.miletracker.R
+import com.miletracker.core.ui.components.bottombar.BubbleBottomBar
+import com.miletracker.core.ui.components.bottombar.BubbleNavItem
+import com.miletracker.core.ui.components.bottombar.CollapsedBottomPuck
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
-import androidx.navigation.compose.composable
 import com.miletracker.feature.logging.ui.navigation.LoggingRoutes
 import com.miletracker.feature.logging.ui.navigation.loggingGraph
 import com.miletracker.feature.media.ui.navigation.MediaRoutes
@@ -42,14 +74,18 @@ import org.koin.compose.koinInject
 
 private data class TabSpec(
     val graphRoute: String,
-    val startRoute: String,
-    val item: EnhancedBottomNavItem
+    val item: BubbleNavItem
 )
 
 /**
  * Single-Activity bottom-navigation shell. Hosts every feature's nested nav graph and
  * applies the app theme exactly once, honouring the runtime [ThemeController] override.
+ *
+ * The bottom bar is the bubble system: a floating cutout pill with a draggable FAB
+ * (drag horizontally to select, throw up for the assistant action, drag down to collapse
+ * into a corner puck whose long-press wheel selects tabs).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
     val systemDark = isSystemInDarkTheme()
@@ -62,74 +98,195 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         val tabs = remember {
             listOf(
                 TabSpec(
-                    AppGraph.TRACK, TrackingRoutes.SAVED_TRACKS,
-                    EnhancedBottomNavItem("Track", Icons.Filled.LocationOn, Icons.Outlined.LocationOn)
+                    AppGraph.TRAVEL,
+                    BubbleNavItem("Travel", Icons.Filled.TravelExplore, Icons.Outlined.TravelExplore)
                 ),
                 TabSpec(
-                    AppGraph.LOG, LoggingRoutes.HOME,
-                    EnhancedBottomNavItem("Log", Icons.Filled.Edit, Icons.Outlined.Edit)
+                    AppGraph.LOG,
+                    BubbleNavItem("Spends", Icons.AutoMirrored.Filled.ReceiptLong, Icons.AutoMirrored.Outlined.ReceiptLong)
                 ),
                 TabSpec(
-                    AppGraph.MEDIA, MediaRoutes.SELECTION,
-                    EnhancedBottomNavItem("Capture", Icons.Filled.CameraAlt, Icons.Outlined.CameraAlt)
+                    AppGraph.PAYABLES,
+                    BubbleNavItem("Payables", Icons.Filled.Business, Icons.Outlined.Business)
                 ),
                 TabSpec(
-                    AppGraph.PROFILE, ProfileRoutes.HOME,
-                    EnhancedBottomNavItem("Profile", Icons.Filled.Person, Icons.Outlined.Person)
+                    AppGraph.TRACK,
+                    BubbleNavItem(
+                        label = "Home",
+                        painter = { painterResource(R.drawable.ic_logo_mark) },
+                        isHome = true
+                    )
+                ),
+                TabSpec(
+                    AppGraph.APPROVALS,
+                    BubbleNavItem("Approvals", Icons.Filled.PersonAdd, Icons.Outlined.PersonAdd)
+                ),
+                TabSpec(
+                    AppGraph.PROFILE,
+                    BubbleNavItem("Account", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle)
                 )
             )
         }
+        val homeIndex = remember(tabs) { tabs.indexOfFirst { it.item.isHome } }
 
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = backStackEntry?.destination
         val selectedIndex = tabs.indexOfFirst { tab ->
             currentDestination?.hierarchy?.any { it.route == tab.graphRoute } == true
-        }.coerceAtLeast(0)
+        }.let { if (it >= 0) it else homeIndex }
+
+        var isBottomBarCollapsed by rememberSaveable { mutableStateOf(false) }
+        var showAssistantSheet by rememberSaveable { mutableStateOf(false) }
+
+        BackHandler(enabled = isBottomBarCollapsed) {
+            isBottomBarCollapsed = false
+        }
+
+        fun navigateToTab(index: Int) {
+            val tab = tabs.getOrNull(index) ?: return
+            navController.navigate(tab.graphRoute) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
 
         Scaffold(
             bottomBar = {
-                EnhancedBottomBar(
-                    items = tabs.map { it.item },
-                    selectedItemIndex = selectedIndex,
-                    onItemSelected = { index ->
-                        val tab = tabs[index]
-                        navController.navigate(tab.graphRoute) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                AnimatedVisibility(
+                    visible = !isBottomBarCollapsed,
+                    enter = fadeIn(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ) + scaleIn(initialScale = 0.9f),
+                    exit = fadeOut() + scaleOut(targetScale = 0.9f)
+                ) {
+                    BubbleBottomBar(
+                        items = tabs.map { it.item },
+                        selectedItemIndex = selectedIndex,
+                        onItemSelected = ::navigateToTab,
+                        onItemReselected = { index ->
+                            // Re-tapping the FAB pops the current tab back to its start.
+                            val tab = tabs.getOrNull(index) ?: return@BubbleBottomBar
+                            navController.navigate(tab.graphRoute) {
+                                popUpTo(tab.graphRoute) { inclusive = true }
+                                launchSingleTop = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                )
-            }
-        ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = AppGraph.TRACK,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                navigation(startDestination = TrackingRoutes.SAVED_TRACKS, route = AppGraph.TRACK) {
-                    trackingGraph(navController)
-                }
-                navigation(startDestination = LoggingRoutes.HOME, route = AppGraph.LOG) {
-                    loggingGraph(navController)
-                }
-                navigation(startDestination = MediaRoutes.SELECTION, route = AppGraph.MEDIA) {
-                    mediaGraph(navController)
-                }
-                navigation(startDestination = ProfileRoutes.HOME, route = AppGraph.PROFILE) {
-                    profileGraph(
-                        navController = navController,
-                        onOpenDebugMenu = { navController.navigate(AppRoutes.DEBUG_MENU) },
+                        },
+                        // Throw-up gesture on the centre FAB opens the assistant action.
+                        onFabThrowUp = { showAssistantSheet = true },
+                        onCollapseRequested = { isBottomBarCollapsed = true }
                     )
                 }
-                // Global debug destination — outside bottom-nav graphs so it renders
-                // full-screen without the bottom bar.
-                composable(AppRoutes.DEBUG_MENU) {
-                    DebugMenuScreen(onBack = { navController.popBackStack() })
+            }
+        ) { innerPadding ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavHost(
+                    navController = navController,
+                    startDestination = AppGraph.TRACK,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    navigation(startDestination = TrackingRoutes.SAVED_TRACKS, route = AppGraph.TRACK) {
+                        trackingGraph(navController)
+                    }
+                    navigation(startDestination = LoggingRoutes.HOME, route = AppGraph.LOG) {
+                        loggingGraph(navController)
+                    }
+                    navigation(startDestination = MediaRoutes.SELECTION, route = AppGraph.MEDIA) {
+                        mediaGraph(navController)
+                    }
+                    navigation(startDestination = ProfileRoutes.HOME, route = AppGraph.PROFILE) {
+                        profileGraph(
+                            navController = navController,
+                            onOpenDebugMenu = { navController.navigate(AppRoutes.DEBUG_MENU) },
+                        )
+                    }
+                    composable(AppGraph.TRAVEL) {
+                        ShellPlaceholderScreen("Travel", Icons.Filled.TravelExplore)
+                    }
+                    composable(AppGraph.PAYABLES) {
+                        ShellPlaceholderScreen("Payables", Icons.Filled.Business)
+                    }
+                    composable(AppGraph.APPROVALS) {
+                        ShellPlaceholderScreen("Approvals", Icons.Filled.PersonAdd)
+                    }
+                    // Global debug destination — outside bottom-nav graphs so it renders
+                    // full-screen without the bottom bar.
+                    composable(AppRoutes.DEBUG_MENU) {
+                        DebugMenuScreen(onBack = { navController.popBackStack() })
+                    }
+                }
+
+                // Collapsed-state puck: bottom-end overlay with long-press wheel selector.
+                AnimatedVisibility(
+                    visible = isBottomBarCollapsed,
+                    enter = fadeIn(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ) + scaleIn(
+                        initialScale = 0.68f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ),
+                    exit = fadeOut(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    ) + scaleOut(
+                        targetScale = 0.68f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    ),
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                ) {
+                    CollapsedBottomPuck(
+                        items = tabs.map { it.item },
+                        selectedItemIndex = selectedIndex,
+                        onExpand = { isBottomBarCollapsed = false },
+                        onItemSelected = ::navigateToTab
+                    )
+                }
+            }
+        }
+
+        if (showAssistantSheet) {
+            ModalBottomSheet(onDismissRequest = { showAssistantSheet = false }) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text("Assistant", style = MaterialTheme.typography.headlineSmall)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "The throw-up gesture opens the in-app assistant. It is illustrative in this demo.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(24.dp))
                 }
             }
         }
