@@ -1,42 +1,42 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKmpLibrary)
+    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
-android {
-    namespace = "com.miletracker.core.ui"
-    compileSdk = 37
-    defaultConfig { minSdk = 30 }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+kotlin {
+    android {
+        namespace = "com.miletracker.core.ui"
+        compileSdk = 36
+        minSdk = 30
     }
-    buildFeatures { compose = true }
-}
 
-dependencies {
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.material.icons.extended)
-    implementation(libs.compose.ui.tooling.preview)
-    debugImplementation(libs.compose.ui.tooling)
+    sourceSets {
+        commonMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            implementation(compose.materialIconsExtended)
 
-    implementation(libs.core.ktx)
-    implementation(libs.activity.compose)
-    implementation(libs.navigation.compose)
-    implementation(libs.lifecycle.viewmodel)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.koin.core)
-    implementation(libs.koin.android)
-    implementation(libs.koin.compose)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.koin.core)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(project(":core:data"))
+        }
+        androidMain.dependencies {
+            implementation(libs.core.ktx)
+            implementation(libs.activity.compose)
+            implementation(libs.navigation.compose)
+            implementation(libs.lifecycle.viewmodel)
+            implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.koin.android)
+            implementation(libs.koin.compose)
+            implementation(libs.kotlinx.coroutines.android)
 
-    implementation(libs.osmdroid)
-    implementation(libs.coil.compose)
-    implementation(libs.exifinterface)
-
-    implementation(project(":core:data"))
+            implementation(libs.osmdroid)
+            implementation(libs.coil.compose)
+            implementation(libs.exifinterface)
+        }
+    }
 }

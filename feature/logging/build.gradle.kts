@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.miletracker.feature.logging"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig { minSdk = 30 }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
