@@ -2,6 +2,7 @@ package com.miletracker
 
 import com.miletracker.feature.tracking.service.location.GpsFix
 import com.miletracker.feature.tracking.service.location.LocationProcessor
+import com.miletracker.feature.tracking.service.location.TrackStats
 import com.miletracker.feature.tracking.service.location.haversineMeters
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -69,6 +70,50 @@ class LocationProcessorTest {
         assertTrue(mock != null && mock.isMock)
         assertEquals(cleanedBefore, proc.cleanedDistanceM, 0.001)
         assertTrue(proc.mockDistanceM > 100.0)
+    }
+
+    @Test
+    fun `seeded processor reports persisted totals before any new fix`() {
+        val proc = LocationProcessor(
+            initialStats = TrackStats(
+                totalPoints = 40,
+                originalDistanceM = 5_000.0,
+                cleanedDistanceM = 5_000.0,
+                abnormalDistanceM = 0.0,
+                mockDistanceM = 0.0,
+                avgSpeedMps = 10.0,
+                maxSpeedMps = 18.0
+            )
+        )
+        assertEquals(5_000.0, proc.cleanedDistanceM, 0.001)
+        assertEquals(40, proc.totalPoints)
+        assertEquals(10.0, proc.avgSpeedMps, 0.001)
+        assertEquals(18.0, proc.maxSpeedMps, 0.001)
+    }
+
+    @Test
+    fun `seeded processor accumulates new movement on top of persisted distance`() {
+        val proc = LocationProcessor(
+            initialStats = TrackStats(
+                totalPoints = 40,
+                originalDistanceM = 5_000.0,
+                cleanedDistanceM = 5_000.0,
+                abnormalDistanceM = 0.0,
+                mockDistanceM = 0.0,
+                avgSpeedMps = 10.0,
+                maxSpeedMps = 18.0
+            )
+        )
+        // First fix after a restore is only an anchor: the gap travelled while the service
+        // was dead must not count as distance, even if it is kilometres from the last point.
+        val anchor = proc.process(fix(18.5000, 73.8, 0), isPaused = false)
+        assertTrue(anchor != null)
+        assertEquals(5_000.0, proc.cleanedDistanceM, 0.001)
+
+        // Movement from the anchor accumulates on top of the seeded total (~111m).
+        proc.process(fix(18.5010, 73.8, 10_000), isPaused = false)
+        assertTrue(proc.cleanedDistanceM in 5_105.0..5_115.0, "cleaned=${proc.cleanedDistanceM}")
+        assertEquals(42, proc.totalPoints)
     }
 
     @Test

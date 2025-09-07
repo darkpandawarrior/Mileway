@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
@@ -58,7 +59,7 @@ class FloatingBubbleService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIF_ID, buildSilentNotification())
+        if (!enterForeground()) return START_NOT_STICKY
 
         if (!Settings.canDrawOverlays(this)) {
             Log.w(TAG, "Overlay permission missing — stopping bubble service")
@@ -74,6 +75,20 @@ class FloatingBubbleService : Service() {
         )
 
         return START_STICKY
+    }
+
+    /** Calls startForeground defensively. Returns false (and stops self) on failure. */
+    private fun enterForeground(): Boolean = try {
+        startForeground(
+            NOTIF_ID,
+            buildSilentNotification(),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        )
+        true
+    } catch (e: Exception) {
+        Log.w(TAG, "startForeground failed", e)
+        stopSelf()
+        false
     }
 
     override fun onDestroy() {
