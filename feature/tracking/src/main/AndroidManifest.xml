@@ -14,7 +14,12 @@
 
         <service
             android:name="com.miletracker.feature.tracking.service.FloatingBubbleService"
-            android:exported="false" />
+            android:foregroundServiceType="specialUse"
+            android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Draggable overlay bubble showing live trip-tracking status; none of the standard FGS types cover an overlay companion UI" />
+        </service>
 
         <receiver
             android:name="com.miletracker.feature.tracking.service.LocationTrackingBootReceiver"

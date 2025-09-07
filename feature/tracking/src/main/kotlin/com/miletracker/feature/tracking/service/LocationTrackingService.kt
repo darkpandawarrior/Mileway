@@ -12,6 +12,7 @@ import android.os.PowerManager
 import com.miletracker.core.data.dao.HardwareEventDao
 import com.miletracker.core.data.dao.LocationDao
 import com.miletracker.core.data.dao.SavedTrackDao
+import com.miletracker.core.data.model.db.CurrentTrackData
 import com.miletracker.core.data.model.db.EventAudience
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
@@ -22,6 +23,7 @@ import com.miletracker.feature.tracking.service.location.LocationProcessor
 import com.miletracker.feature.tracking.service.location.LocationSource
 import com.miletracker.feature.tracking.service.location.ProcessResult
 import com.miletracker.feature.tracking.service.location.SimulatedLocationSource
+import com.miletracker.feature.tracking.service.location.TrackStats
 import com.miletracker.feature.tracking.service.location.TrackingSensorMonitor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +32,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
 /**
@@ -70,6 +73,7 @@ class LocationTrackingService : Service() {
         const val ACTION_STOP = "action_stop"
         const val ACTION_PAUSE = "action_pause"
         const val ACTION_RESUME = "action_resume"
+        const val ACTION_RESTORE = "action_restore"
         const val CHANNEL_ID = "tracking_channel"
         const val NOTIFICATION_ID = 1001
 
@@ -84,43 +88,105 @@ class LocationTrackingService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // A startForegroundService() launch that doesn't reach startForeground() within the
+        // ANR window kills the whole process (ForegroundServiceDidNotStartInTimeException),
+        // so promote to foreground before ANY other work — especially before the suspendable
+        // session-restore read below.
+        if (!enterForeground()) return START_NOT_STICKY
+
         when (intent?.action) {
             ACTION_START -> {
-                val token = intent.getStringExtra(EXTRA_TOKEN) ?: return START_NOT_STICKY
+                val token = intent.getStringExtra(EXTRA_TOKEN)
+                if (token.isNullOrEmpty()) {
+                    leaveForegroundAndStop()
+                    return START_NOT_STICKY
+                }
                 startTracking(token)
             }
             ACTION_PAUSE -> setPaused(true)
             ACTION_RESUME -> setPaused(false)
             ACTION_STOP -> stopAndFinalize()
+            // Boot/update restore, and the system redelivering a null intent when it
+            // restarts a killed sticky service: both re-derive state from the persisted
+            // session rather than trusting the intent.
+            ACTION_RESTORE, null -> restoreSession(intent?.getStringExtra(EXTRA_TOKEN))
+            else -> leaveForegroundAndStop()
         }
         return START_STICKY
     }
 
-    private fun startTracking(token: String) {
+    /** Calls startForeground defensively. Returns false (and stops self) on failure. */
+    private fun enterForeground(): Boolean = try {
+        startForeground(NOTIFICATION_ID, buildNotification("Tracking…"))
+        true
+    } catch (e: Exception) {
+        // e.g. missing FGS location permission on Android 14+, or a background start the
+        // OS disallows (ForegroundServiceStartNotAllowedException). Don't crash the app.
+        android.util.Log.w("LocationTrackingService", "startForeground failed", e)
+        stopSelf()
+        false
+    }
+
+    private fun leaveForegroundAndStop() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    /**
+     * Resume an interrupted session (after reboot, app update, or sticky-service restart).
+     * The DataStore read suspends, which is safe here because we are already foreground.
+     */
+    private fun restoreSession(intentToken: String?) {
+        if (activeToken != null) return // already tracking — duplicate restore, ignore
+        scope.launch {
+            val session = sessionStore.currentTrackFlow.first()
+            val token = intentToken?.takeIf { it.isNotEmpty() } ?: session.token
+            val resumable = session.isTracking && token.isNotEmpty() && token == session.token
+            withContext(Dispatchers.Main) {
+                if (resumable) startTracking(token, resumeFrom = session)
+                else leaveForegroundAndStop()
+            }
+        }
+    }
+
+    private fun startTracking(token: String, resumeFrom: CurrentTrackData? = null) {
         activeToken = token
-        startTime = System.currentTimeMillis()
-        isPaused = false
-        startCoordsWritten = false
+        startTime = resumeFrom?.startTime?.takeIf { it > 0L } ?: System.currentTimeMillis()
+        isPaused = resumeFrom?.isPaused ?: false
+        startCoordsWritten = resumeFrom != null &&
+            (resumeFrom.startLatitude != 0.0 || resumeFrom.startLongitude != 0.0)
         processor = LocationProcessor(
             deviceModel = Build.MODEL ?: "",
-            appVersionName = appVersionName()
+            appVersionName = appVersionName(),
+            initialStats = resumeFrom?.let { seedStats(it) }
         )
 
-        try {
-            startForeground(NOTIFICATION_ID, buildNotification("Starting GPS tracking…"))
-        } catch (e: Exception) {
-            // e.g. missing FGS location permission on Android 14+. Don't crash the app.
-            android.util.Log.w("LocationTrackingService", "startForeground failed", e)
-            stopSelf()
-            return
-        }
         acquireWakeLock()
         sensorMonitor.start()
-        logEvent(token, EventType.TRACKING_STARTED, "Tracking Started")
+        logEvent(
+            token,
+            if (resumeFrom != null) EventType.TRACKING_RESUMED else EventType.TRACKING_STARTED,
+            if (resumeFrom != null) "Tracking Restored After Restart" else "Tracking Started"
+        )
 
         source = if (SIMULATE_LOCATION) SimulatedLocationSource() else FusedLocationSource(this)
         source?.start { fix -> onFix(token, fix) }
     }
+
+    /**
+     * Rebuild processor accumulators from the persisted session so distance/duration carry
+     * over a restart instead of resetting to zero. Only the cleaned totals are persisted
+     * live, so the abnormal/mock buckets restart at zero for the resumed segment.
+     */
+    private fun seedStats(s: CurrentTrackData) = TrackStats(
+        totalPoints = s.totalLocationPoints.toInt(),
+        originalDistanceM = s.distance,
+        cleanedDistanceM = s.distance,
+        abnormalDistanceM = 0.0,
+        mockDistanceM = 0.0,
+        avgSpeedMps = s.avgSpeed,
+        maxSpeedMps = s.maxSpeed
+    )
 
     private fun onFix(token: String, fix: GpsFix) {
         val proc = processor ?: return
@@ -155,7 +221,11 @@ class LocationTrackingService : Service() {
     }
 
     private fun setPaused(paused: Boolean) {
-        val token = activeToken ?: return
+        // Pause/resume with no live session (service started cold) — don't linger foreground.
+        val token = activeToken ?: run {
+            leaveForegroundAndStop()
+            return
+        }
         isPaused = paused
         logEvent(
             token,

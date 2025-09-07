@@ -67,7 +67,8 @@ class LocationProcessor(
     private val jitterDistanceM: Double = 8.0,
     private val maxPlausibleSpeedMps: Double = 70.0, // ~252 km/h — anything faster is a GPS spike
     private val deviceModel: String = "",
-    private val appVersionName: String = ""
+    private val appVersionName: String = "",
+    initialStats: TrackStats? = null
 ) {
     private var last: GpsFix? = null
     private var firstFix: GpsFix? = null
@@ -80,6 +81,24 @@ class LocationProcessor(
     var maxSpeedMps = 0.0; private set
     private var speedSum = 0.0
     private var speedCount = 0
+
+    init {
+        // Resume accumulators from a persisted session (e.g. after the tracking service is
+        // restarted across a reboot). `last` stays null so the first fix of the resumed
+        // segment is an anchor: the gap travelled while not tracking never counts as distance.
+        initialStats?.let { s ->
+            totalPoints = s.totalPoints
+            originalDistanceM = s.originalDistanceM
+            cleanedDistanceM = s.cleanedDistanceM
+            abnormalDistanceM = s.abnormalDistanceM
+            mockDistanceM = s.mockDistanceM
+            maxSpeedMps = s.maxSpeedMps
+            // The exact speed-sample count isn't persisted; weighting by totalPoints keeps
+            // the running average continuous across the restart.
+            speedSum = s.avgSpeedMps * s.totalPoints
+            speedCount = s.totalPoints
+        }
+    }
 
     val avgSpeedMps: Double get() = if (speedCount > 0) speedSum / speedCount else 0.0
     val firstLat: Double? get() = firstFix?.lat
