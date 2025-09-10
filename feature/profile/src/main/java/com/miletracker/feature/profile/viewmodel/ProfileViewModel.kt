@@ -41,6 +41,15 @@ class ProfileViewModel(
     /** Currently selected accent palette. */
     val accentPalette: StateFlow<AccentPalette> = themeController.accentPalette
 
+    /** Custom seed colour hex ("" = use the preset's seed). */
+    val customSeedHex: StateFlow<String> = themeController.customSeedHex
+
+    /** Wallpaper-derived dynamic colours (Android 12+). */
+    val useSystemColors: StateFlow<Boolean> = themeController.useSystemColors
+
+    /** Scheme-generation style name (TonalSpot, Vibrant, …). */
+    val paletteStyle: StateFlow<String> = themeController.paletteStyle
+
     /** Currently selected app language. */
     val language: StateFlow<AppLanguage> = themeController.language
 
@@ -64,6 +73,12 @@ class ProfileViewModel(
     fun setDarkTheme(dark: Boolean?) = themeController.set(dark)
 
     fun setPalette(palette: AccentPalette) = themeController.setPalette(palette)
+
+    fun setCustomSeed(hex: String) = themeController.setCustomSeed(hex)
+
+    fun setUseSystemColors(enabled: Boolean) = themeController.setUseSystemColors(enabled)
+
+    fun setPaletteStyle(style: String) = themeController.setPaletteStyle(style)
 
     fun setLanguage(language: AppLanguage) = themeController.setLanguage(language)
 

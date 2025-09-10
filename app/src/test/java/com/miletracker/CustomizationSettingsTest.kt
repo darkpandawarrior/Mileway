@@ -4,13 +4,13 @@ import com.miletracker.core.ui.theme.AccentPalette
 import com.miletracker.core.ui.theme.AppLanguage
 import com.miletracker.core.ui.theme.ExperimentalFlags
 import com.miletracker.core.ui.theme.ThemeController
-import com.miletracker.core.ui.theme.colors
+import com.miletracker.core.ui.theme.ThemeDefaults
+import com.miletracker.core.ui.theme.parseHexColor
 import com.miletracker.feature.profile.repository.FakeProfileRepository
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 /**
@@ -57,34 +57,86 @@ class CustomizationSettingsTest {
     }
 
     @Test
-    fun `each palette maps to a distinct primary color`() {
-        val primaries = AccentPalette.entries.map { it.colors().primary }
-        // All primaries should be unique (no two palettes share the same primary)
-        assertEquals(primaries.size, primaries.toSet().size,
-            "Each AccentPalette must map to a unique primary color")
+    fun `each palette maps to a distinct seed color`() {
+        val seeds = AccentPalette.entries.map { it.seedHex }
+        assertEquals(seeds.size, seeds.toSet().size,
+            "Each AccentPalette must map to a unique seed color")
     }
 
     @Test
-    fun `TEAL palette primary differs from DEFAULT palette primary`() {
-        assertNotEquals(
-            AccentPalette.DEFAULT.colors().primary,
-            AccentPalette.TEAL.colors().primary,
-        )
+    fun `every preset seed is a parseable hex color`() {
+        AccentPalette.entries.forEach { palette ->
+            assertTrue(parseHexColor(palette.seedHex) != null,
+                "Seed for ${palette.name} must parse: ${palette.seedHex}")
+        }
     }
 
     @Test
-    fun `INDIGO palette dark primary differs from DEFAULT palette dark primary`() {
-        assertNotEquals(
-            AccentPalette.DEFAULT.colors().primaryDark,
-            AccentPalette.INDIGO.colors().primaryDark,
-        )
+    fun `default preset uses the canonical base seed`() {
+        assertEquals(ThemeDefaults.BASE_COLOR, AccentPalette.DEFAULT.seedHex)
+        assertEquals("#6367FA", ThemeDefaults.BASE_COLOR)
     }
 
     @Test
-    fun `AMBER palette onPrimary is white in light mode`() {
-        // Amber uses white on the orange primary to ensure contrast
-        val amber = AccentPalette.AMBER.colors()
-        assertEquals(androidx.compose.ui.graphics.Color.White, amber.onPrimary)
+    fun `custom seed overrides until cleared and presets clear it`() {
+        val tc = controller()
+        tc.setCustomSeed("#A1B2C3")
+        assertEquals("#A1B2C3", tc.customSeedHex.value)
+        // Picking a preset visibly takes effect by clearing the custom seed
+        tc.setPalette(AccentPalette.TEAL)
+        assertEquals("", tc.customSeedHex.value)
+    }
+
+    @Test
+    fun `malformed custom seed is rejected`() {
+        val tc = controller()
+        tc.setCustomSeed("#A1B2C3")
+        tc.setCustomSeed("not-a-color")
+        assertEquals("#A1B2C3", tc.customSeedHex.value)
+    }
+
+    @Test
+    fun `parseHexColor handles rgb and argb and rejects garbage`() {
+        assertTrue(parseHexColor("#6367FA") != null)
+        assertTrue(parseHexColor("#FF6367FA") != null)
+        assertTrue(parseHexColor("6367FA") != null)
+        assertEquals(null, parseHexColor(""))
+        assertEquals(null, parseHexColor("#12345"))
+        assertEquals(null, parseHexColor("#ZZZZZZ"))
+    }
+
+    @Test
+    fun `theme settings start at source defaults`() {
+        val tc = controller()
+        assertEquals(ThemeDefaults.CUSTOM_THEME, tc.customSeedHex.value)
+        assertEquals(ThemeDefaults.USE_SYSTEM_COLORS, tc.useSystemColors.value)
+        assertEquals(ThemeDefaults.PALETTE_STYLE, tc.paletteStyle.value)
+        assertEquals(ThemeDefaults.THEME_VARIANT, tc.themeVariant.value)
+        assertEquals(ThemeDefaults.MAP_PROVIDER, tc.mapProvider.value)
+        assertEquals("TonalSpot", ThemeDefaults.PALETTE_STYLE)
+    }
+
+    @Test
+    fun `system colors and palette style round-trip through the controller`() {
+        val tc = controller()
+        tc.setUseSystemColors(true)
+        tc.setPaletteStyle("Vibrant")
+        assertTrue(tc.useSystemColors.value)
+        assertEquals("Vibrant", tc.paletteStyle.value)
+    }
+
+    @Test
+    fun `reset restores seed and generator settings to defaults`() {
+        val tc = controller()
+        tc.setPalette(AccentPalette.AMBER)
+        tc.setCustomSeed("#123456")
+        tc.setUseSystemColors(true)
+        tc.setPaletteStyle("Monochrome")
+        tc.resetCustomization()
+        assertEquals(AccentPalette.DEFAULT, tc.accentPalette.value)
+        assertEquals("", tc.customSeedHex.value)
+        assertFalse(tc.useSystemColors.value)
+        assertEquals("TonalSpot", tc.paletteStyle.value)
     }
 
     @Test

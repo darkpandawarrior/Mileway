@@ -91,8 +91,17 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
     val systemDark = isSystemInDarkTheme()
     val override by themeController.darkThemeOverride.collectAsStateWithLifecycle()
     val palette by themeController.accentPalette.collectAsStateWithLifecycle()
+    val customSeedHex by themeController.customSeedHex.collectAsStateWithLifecycle()
+    val useSystemColors by themeController.useSystemColors.collectAsStateWithLifecycle()
+    val paletteStyle by themeController.paletteStyle.collectAsStateWithLifecycle()
 
-    MileTrackerTheme(darkTheme = override ?: systemDark, palette = palette) {
+    MileTrackerTheme(
+        darkTheme = override ?: systemDark,
+        palette = palette,
+        customSeedHex = customSeedHex,
+        useSystemColors = useSystemColors,
+        paletteStyle = paletteStyle,
+    ) {
         val navController = rememberNavController()
 
         val tabs = remember {

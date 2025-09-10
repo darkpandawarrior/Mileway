@@ -22,6 +22,9 @@ kotlin {
 
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.datastore.preferences.core)
+            implementation(libs.materialkolor)
+            implementation(libs.colorpicker.compose)
             implementation(project(":core:data"))
         }
         androidMain.dependencies {
@@ -34,6 +37,7 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.kotlinx.coroutines.android)
 
+            implementation(libs.datastore.preferences)
             implementation(libs.osmdroid)
             implementation(libs.coil.compose)
             implementation(libs.exifinterface)
