@@ -1,13 +1,18 @@
 package com.miletracker.feature.profile.ui.screens
 
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -30,14 +35,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.ui.components.dialog.ColorWheelDialog
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.AccentPalette
 import com.miletracker.core.ui.theme.AppLanguage
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.core.ui.theme.PaletteStyleNames
+import com.miletracker.core.ui.theme.parseHexColor
 import com.miletracker.feature.profile.model.SettingsUiState
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -54,6 +64,9 @@ fun SettingsScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     val profile by viewModel.uiState.collectAsStateWithLifecycle()
     val accentPalette by viewModel.accentPalette.collectAsStateWithLifecycle()
+    val customSeedHex by viewModel.customSeedHex.collectAsStateWithLifecycle()
+    val useSystemColors by viewModel.useSystemColors.collectAsStateWithLifecycle()
+    val paletteStyle by viewModel.paletteStyle.collectAsStateWithLifecycle()
     val language by viewModel.language.collectAsStateWithLifecycle()
     val experimentalFlags by viewModel.experimentalFlags.collectAsStateWithLifecycle()
     val systemDark = isSystemInDarkTheme()
@@ -61,6 +74,8 @@ fun SettingsScreen(
     val about = SettingsUiState(darkThemeOverride = darkOverride, useMiles = useMiles)
 
     var showPalettePicker by remember { mutableStateOf(false) }
+    var showColorWheel by remember { mutableStateOf(false) }
+    var showStylePicker by remember { mutableStateOf(false) }
     var showLanguagePicker by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
 
@@ -146,10 +161,31 @@ fun SettingsScreen(
             // ----------------------------------------------------------------
             SettingsSectionLabel("Customization")
 
-            // Accent palette
+            // Theme colour — preset seed the whole scheme is generated from
             ListItem(
-                headlineContent = { Text("Accent palette") },
-                supportingContent = { Text(accentPalette.label) },
+                headlineContent = { Text("Theme color") },
+                supportingContent = {
+                    Text(if (customSeedHex.isBlank()) accentPalette.label else "Custom ($customSeedHex)")
+                },
+                trailingContent = {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(
+                                parseHexColor(customSeedHex)
+                                    ?: parseHexColor(accentPalette.seedHex)
+                                    ?: MaterialTheme.colorScheme.primary
+                            ),
+                    )
+                },
+                modifier = Modifier.clickable { showPalettePicker = true },
+            )
+
+            // Fully custom seed via colour wheel
+            ListItem(
+                headlineContent = { Text("Custom color") },
+                supportingContent = { Text("Pick any seed color with the color wheel") },
                 trailingContent = {
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
@@ -157,8 +193,36 @@ fun SettingsScreen(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 },
-                modifier = Modifier.clickable { showPalettePicker = true },
+                modifier = Modifier.clickable { showColorWheel = true },
             )
+
+            // Palette generation style
+            ListItem(
+                headlineContent = { Text("Palette style") },
+                supportingContent = { Text(paletteStyle) },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable { showStylePicker = true },
+            )
+
+            // Android 12+ wallpaper-derived colours
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ListItem(
+                    headlineContent = { Text("Use system colors") },
+                    supportingContent = { Text("Material You — colors from your wallpaper") },
+                    trailingContent = {
+                        Switch(
+                            checked = useSystemColors,
+                            onCheckedChange = { viewModel.setUseSystemColors(it) },
+                        )
+                    },
+                )
+            }
 
             // Language / locale
             ListItem(
@@ -271,13 +335,41 @@ fun SettingsScreen(
 
     if (showPalettePicker) {
         SimpleSelectionDialog(
-            title = "Accent palette",
+            title = "Theme color",
             options = AccentPalette.entries.map { it.label },
-            selected = accentPalette.label,
+            selected = if (customSeedHex.isBlank()) accentPalette.label else "",
             onDismiss = { showPalettePicker = false },
             onSelect = { label ->
                 showPalettePicker = false
                 AccentPalette.entries.firstOrNull { it.label == label }?.let { viewModel.setPalette(it) }
+            },
+        )
+    }
+
+    if (showColorWheel) {
+        ColorWheelDialog(
+            selectedColor = parseHexColor(customSeedHex)
+                ?: parseHexColor(accentPalette.seedHex)
+                ?: MaterialTheme.colorScheme.primary,
+            showHexcode = true,
+            title = "Custom theme color",
+            onDismiss = { showColorWheel = false },
+            onColorSelected = { _, hex ->
+                showColorWheel = false
+                viewModel.setCustomSeed(hex)
+            },
+        )
+    }
+
+    if (showStylePicker) {
+        SimpleSelectionDialog(
+            title = "Palette style",
+            options = PaletteStyleNames,
+            selected = paletteStyle,
+            onDismiss = { showStylePicker = false },
+            onSelect = { style ->
+                showStylePicker = false
+                viewModel.setPaletteStyle(style)
             },
         )
     }

@@ -7,6 +7,8 @@ sqlite-bundled = "2.6.2"
 koin = "4.2.1"
 compose-multiplatform = "1.10.3"
 datastore = "1.2.1"
+materialKolor = "4.1.1"
+colorpicker = "1.1.4"
 kotlinx-datetime = "0.8.0"
 kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
@@ -39,6 +41,8 @@ sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sql
 # DataStore (KMP)
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
+materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
+colorpicker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
 
 # Koin (KMP)
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
