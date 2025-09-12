@@ -54,6 +54,7 @@ import com.miletracker.feature.media.viewmodel.MediaViewModel
  * @param onNavigateToCamera   navigate to the CameraX capture route
  * @param onNavigateToPreview  navigate to the preview route once a uri is selected
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun AttachmentSelectionScreen(
     viewModel: MediaViewModel,
