@@ -58,4 +58,24 @@ class DemoConfigManager : ConfigProvider {
 
     /** Returns the list of mock check-in locations for local geofence validation. */
     fun getMockCheckInLocations(): List<MockCheckInLocation> = DemoMockData.checkInLocations()
+
+    /** Whether the expense form shows the office-selection picker. */
+    fun isOfficeSelectionOnExpenseEnabled(): Boolean = true
+
+    /** Whether inter-office journeys are enabled in the demo. */
+    fun isInterOfficeEnabled(): Boolean = true
+
+    /** Whether odometer photo upload is enabled for the given entry point (e.g. "start", "end"). */
+    fun isOdometerUploadEnabled(source: String): Boolean = true
+
+    /** Branch check-in gate before starting a journey. Default off; debug-flippable later. */
+    fun isBranchCheckInRequired(): Boolean = false
+
+    /** Consent text shown by the start-journey disclaimer sheet; null hides the sheet. */
+    fun getJourneyDisclaimer(): String? =
+        "This demo records your trip locally on this device only. " +
+            "By starting a journey you consent to location tracking while the trip is active."
+
+    /** Maximum reimbursable distance per day, in kilometres. */
+    fun getMaxDailyDistanceKm(): Double = 10.0
 }

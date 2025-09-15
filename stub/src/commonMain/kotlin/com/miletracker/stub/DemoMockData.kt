@@ -80,7 +80,7 @@ object DemoMockData {
             reimbursableAmount = (distanceKm * 10.0),
             distance = distanceKm,
             message = "Journey submitted successfully",
-            transId = "DEMO-TXN-${(1000..9999).random()}"
+            transId = "DEMO-TXN-${1000 + (distanceKm * 100).toInt() % 9000}"
         )
 
     fun trackMileageStatus(): TrackMileageStatusResponse =
