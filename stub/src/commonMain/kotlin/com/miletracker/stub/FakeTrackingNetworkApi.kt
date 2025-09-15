@@ -47,7 +47,11 @@ class FakeTrackingNetworkApi : MileTrackerNetworkApi {
         LogMilesResponseV2()
 
     override suspend fun logMiles(request: LogMilesSubmitRequestV2): ExpenseSubmissionResponse =
-        DemoMockData.submissionResponse(request.distance)
+        PolicyMockData.enrich(
+            base = DemoMockData.submissionResponse(request.distance),
+            distanceKm = request.distance,
+            token = request.vehicleType
+        )
 
     override suspend fun fetchLogMilesServices(isInsideTrip: Boolean): LogMilesServicesResponse =
         DemoMockData.logMilesServices(isInsideTrip)
@@ -71,7 +75,11 @@ class FakeTrackingNetworkApi : MileTrackerNetworkApi {
     }
 
     override suspend fun submitMiles(request: SubmitMilesRequestK): ExpenseSubmissionResponse =
-        DemoMockData.submissionResponse(request.distance)
+        PolicyMockData.enrich(
+            base = DemoMockData.submissionResponse(request.distance),
+            distanceKm = request.distance,
+            token = request.token
+        )
 
     override suspend fun getTrackMileageStatus(trackingToken: String): TrackMileageStatusResponse =
         DemoMockData.trackMileageStatus()
@@ -119,10 +127,10 @@ class FakeTrackingNetworkApi : MileTrackerNetworkApi {
 
     private fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val R = 6371.0
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLon = Math.toRadians(lon2 - lon1)
+        val dLat = (lat2 - lat1) * kotlin.math.PI / 180.0
+        val dLon = (lon2 - lon1) * kotlin.math.PI / 180.0
         val a = kotlin.math.sin(dLat / 2).let { it * it } +
-                kotlin.math.cos(Math.toRadians(lat1)) * kotlin.math.cos(Math.toRadians(lat2)) *
+                kotlin.math.cos(lat1 * kotlin.math.PI / 180.0) * kotlin.math.cos(lat2 * kotlin.math.PI / 180.0) *
                 kotlin.math.sin(dLon / 2).let { it * it }
         return R * 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
     }

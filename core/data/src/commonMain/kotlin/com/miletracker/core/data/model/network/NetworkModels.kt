@@ -49,7 +49,11 @@ data class ExpenseSubmissionResponse(
     @SerialName("distance") val distance: Double = 0.0,
     @SerialName("message") val message: String? = null,
     @SerialName("error") val error: String? = null,
-    @SerialName("transId") val transId: String? = null
+    @SerialName("transId") val transId: String? = null,
+    @SerialName("submissionStatus") val submissionStatus: SubmissionStatus = SubmissionStatus.SUCCESS,
+    @SerialName("violations") val violations: List<PolicyViolation> = emptyList(),
+    @SerialName("issuedVoucher") val issuedVoucher: Voucher? = null,
+    @SerialName("transaction") val transaction: TransactionRef? = null
 )
 
 @Serializable
@@ -61,6 +65,70 @@ data class VoucherInfo(
     @SerialName("id") val id: Long? = null,
     @SerialName("purpose") val purpose: String? = null,
     @SerialName("title") val title: String? = null
+)
+
+// ── Submission policy outcome ─────────────────────────────────────────────────
+//
+// These types are re-exported under `com.miletracker.core.network.model` (see
+// core:network model/PolicyModels.kt). They are defined here because
+// ExpenseSubmissionResponse embeds them and the module graph points
+// core:network -> core:data.
+
+/** Overall outcome of a mileage submission as evaluated by the policy engine. */
+@Serializable
+enum class SubmissionStatus {
+    SUCCESS,
+    NEEDS_APPROVAL,
+    REIMBURSABLE_ADJUSTED,
+    POLICY_VIOLATION,
+    HARD_STOP
+}
+
+/** Severity of a single policy violation attached to a submission. */
+@Serializable
+enum class ViolationSeverity {
+    REIMBURSABLE,
+    VIOLATION,
+    HARDSTOP
+}
+
+@Serializable
+data class PolicyViolation(
+    @SerialName("id") val id: String = "",
+    @SerialName("title") val title: String = "",
+    @SerialName("message") val message: String = "",
+    @SerialName("severity") val severity: ViolationSeverity = ViolationSeverity.VIOLATION
+)
+
+/** Declaration text the user must acknowledge before a voucher can be filed. */
+@Serializable
+data class VoucherDeclaration(
+    @SerialName("text") val text: String = "",
+    @SerialName("requiresAcknowledgement") val requiresAcknowledgement: Boolean = true
+)
+
+@Serializable
+enum class VoucherStatus {
+    UNCLAIMED,
+    FILED,
+    CREATED
+}
+
+@Serializable
+data class Voucher(
+    @SerialName("id") val id: Long = 0L,
+    @SerialName("number") val number: String = "",
+    @SerialName("amount") val amount: Double = 0.0,
+    @SerialName("status") val status: VoucherStatus = VoucherStatus.UNCLAIMED
+)
+
+/** Reference to the ledger transaction created for a submission. */
+@Serializable
+data class TransactionRef(
+    @SerialName("id") val id: String = "",
+    @SerialName("createdAtMillis") val createdAtMillis: Long = 0L,
+    @SerialName("amount") val amount: Double = 0.0,
+    @SerialName("serviceTag") val serviceTag: String = ""
 )
 
 // ── Track status ──────────────────────────────────────────────────────────────
