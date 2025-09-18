@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.osmdroid)
     implementation(libs.mlkit.document.scanner)
     implementation(libs.coil.compose)
+    implementation(libs.lottie.compose)
     implementation(libs.exifinterface)
 
     implementation(project(":core:data"))

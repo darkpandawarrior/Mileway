@@ -6,6 +6,8 @@ import com.miletracker.core.data.model.db.SavedTrack
 import com.miletracker.core.network.api.MileTrackerNetworkApi
 import com.miletracker.feature.tracking.manager.LocationTrackingController
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
+import com.miletracker.feature.tracking.repository.CurrentTrackRepository
+import com.miletracker.feature.tracking.repository.LocationRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
 import com.miletracker.feature.tracking.viewmodel.TrackMilesPhase
@@ -58,7 +60,9 @@ class TrackMilesViewModelTest {
             configManager = TrackingConfigManager(DemoConfigManager()),
             vehicleRepo = VehiclePricingRepository(api),
             trackRepo = SavedTrackRepository(dao),
-            trackingController = trackingController
+            trackingController = trackingController,
+            currentTrackRepo = CurrentTrackRepository(mockk(relaxed = true)),
+            locationRepo = LocationRepository(mockk(relaxed = true)),
         )
 
     // ── Initialisation ───────────────────────────────────────────────────────

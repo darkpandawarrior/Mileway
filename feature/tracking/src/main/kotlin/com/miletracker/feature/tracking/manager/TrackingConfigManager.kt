@@ -10,4 +10,7 @@ class TrackingConfigManager(private val configProvider: ConfigProvider) {
     fun isMilesEnabled(): Boolean = configProvider.isMilesEnabled()
     fun isLogMilesEnabled(): Boolean = configProvider.isLogMilesEnabled()
     fun getCurrency(): String = configProvider.getCurrency()
+    fun getJourneyDisclaimer(): String? = configProvider.getJourneyDisclaimer()
+    fun getMaxDailyDistanceKm(): Double = configProvider.getMaxDailyDistanceKm()
+    fun isBranchCheckInRequired(): Boolean = configProvider.isBranchCheckInRequired()
 }
