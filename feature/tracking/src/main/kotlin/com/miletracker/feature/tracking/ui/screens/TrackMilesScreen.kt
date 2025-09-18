@@ -1,48 +1,39 @@
 package com.miletracker.feature.tracking.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.NetworkCell
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.PinDrop
+import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,29 +42,59 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.core.ui.components.tracking.ActivitySegment
+import com.miletracker.core.ui.components.tracking.ActivityType
+import com.miletracker.core.ui.components.tracking.CompactSystemStatusIndicator
+import com.miletracker.core.ui.components.tracking.ExpandableStatsCard
+import com.miletracker.core.ui.components.tracking.GaugeMode
+import com.miletracker.core.ui.components.tracking.GaugeSignal
+import com.miletracker.core.ui.components.tracking.HeroTrackingCard
+import com.miletracker.core.ui.components.tracking.QuickAction
+import com.miletracker.core.ui.components.tracking.StatItem
+import com.miletracker.core.ui.components.tracking.StatusChip
+import com.miletracker.core.ui.components.tracking.StatusLevel
+import com.miletracker.core.ui.components.tracking.SystemStatusBanner
+import com.miletracker.core.ui.components.tracking.ThreeButtonFabSystem
 import com.miletracker.core.ui.theme.DesignTokens
-import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.tracking.R
+import com.miletracker.feature.tracking.ui.sheets.CenterOption
+import com.miletracker.feature.tracking.ui.sheets.JourneyConsentSheet
+import com.miletracker.feature.tracking.ui.sheets.JourneyGuideSheet
+import com.miletracker.feature.tracking.ui.sheets.JourneyGuideState
+import com.miletracker.feature.tracking.ui.sheets.JourneyGuideStep
+import com.miletracker.feature.tracking.ui.sheets.PauseReasonSheet
+import com.miletracker.feature.tracking.ui.sheets.ResumeTrackingSheet
+import com.miletracker.feature.tracking.ui.sheets.VehicleOption
+import com.miletracker.feature.tracking.ui.sheets.VendorPickerSheet
+import com.miletracker.feature.tracking.ui.sheets.VehiclePickerSheet
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
-import com.miletracker.feature.tracking.viewmodel.TrackMilesUiState
+import com.miletracker.feature.tracking.viewmodel.HeroGaugeMode
 import com.miletracker.feature.tracking.viewmodel.TrackMilesPhase
+import com.miletracker.feature.tracking.viewmodel.TrackMilesUiState
 import com.miletracker.feature.tracking.viewmodel.TrackMilesViewModel
+import com.miletracker.feature.tracking.viewmodel.TrackSheet
+import com.miletracker.feature.tracking.viewmodel.TrackSignal
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
+
+/** Quick-action ids dispatched from the FAB grid. */
+private object Qa {
+    const val MAP = "map"
+    const val CHECK_IN = "check_in"
+    const val MANUAL_CHECK_IN = "manual_check_in"
+    const val CENTERS = "centers"
+    const val HISTORY = "history"
+    const val DATA = "data"
+    const val SAVED = "saved"
+    const val DISCARD = "discard"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,295 +107,293 @@ fun TrackMilesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val checkInUiState by checkInViewModel.uiState.collectAsState()
-    val isActive = uiState.phase == TrackMilesPhase.TRACKING || uiState.phase == TrackMilesPhase.PAUSED
-
-    // The location foreground service needs the location permission at runtime; request it
-    // before starting, then begin tracking regardless of the result (the demo simulates GPS).
     val context = LocalContext.current
+    val isActive = uiState.phase == TrackMilesPhase.TRACKING || uiState.phase == TrackMilesPhase.PAUSED
+    val isPaused = uiState.phase == TrackMilesPhase.PAUSED
+    var statsExpanded by remember { mutableStateOf(true) }
 
-    // Surface check-in success as a toast
+    // When tracking stops, hand off to the submission flow.
+    LaunchedEffect(uiState.phase) {
+        if (uiState.phase == TrackMilesPhase.STOPPED) {
+            uiState.currentRouteId?.let { routeId ->
+                onStop(
+                    routeId,
+                    uiState.distanceKm,
+                    uiState.selectedVehicle?.vehicleKey ?: "",
+                    uiState.startTime,
+                    uiState.endTime,
+                )
+            }
+        }
+    }
+
+    // Surface check-in success as a toast.
     LaunchedEffect(checkInUiState.checkInSuccess) {
         if (checkInUiState.checkInSuccess) {
-            Toast.makeText(context, checkInUiState.successMessage.ifBlank { "Check-in recorded." }, Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                checkInUiState.successMessage.ifBlank { "Check-in recorded." },
+                Toast.LENGTH_SHORT,
+            ).show()
             checkInViewModel.acknowledgeSuccess()
         }
     }
 
+    // Location permission is requested before the foreground service starts; we proceed
+    // through the guide regardless of the result (the demo simulates GPS).
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { viewModel.startTracking() }
-    val requestStart = {
+    ) { viewModel.requestStartTracking() }
+    val requestStartTracking = {
         val granted = ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        if (granted) viewModel.startTracking()
+        if (granted) viewModel.requestStartTracking()
         else permissionLauncher.launch(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         )
     }
 
     Scaffold(
-        topBar = { DepthAwareTopBar(title = "Track Miles", depth = NavigationDepth.ROOT) },
-        floatingActionButton = {
+        topBar = { DepthAwareTopBar(title = "Track Miles", depth = DesignTokens.NavigationDepth.ROOT) },
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(DesignTokens.Spacing.l)
+                // Leave room so the pinned control cluster never hides the last card.
+                .padding(bottom = 140.dp),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
+        ) {
+            HeroTrackingCard(
+                distanceText = "%.2f".format(uiState.distanceKm),
+                durationText = formatElapsed(liveElapsedMs(uiState)),
+                vehicleName = uiState.selectedVehicle?.vehicleName,
+                bearingDegrees = uiState.bearingDegrees,
+                speedKmh = if (isActive) uiState.speedKmh.toFloat() else null,
+                signalQuality = uiState.signal.toGauge(),
+                segments = uiState.activitySegments(),
+                gaugeMode = uiState.gaugeMode.toGauge(),
+                onToggleMode = viewModel::toggleGaugeMode,
+                isActive = isActive,
+                isPaused = isPaused,
+                historyCount = uiState.pointsLabel,
+                trackingActivity = uiState.trackingActivity,
+                vehicleIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.track_car),
+                        contentDescription = null,
+                        modifier = Modifier.height(40.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                },
+                onVehicleClick = if (uiState.phase == TrackMilesPhase.IDLE) viewModel::openVehiclePicker else null,
+                pauseReason = uiState.pauseReason,
+            )
+
+            // Live system-status chips while active; a calm "All systems OK" banner otherwise.
             if (isActive) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SmallFloatingActionButton(onClick = onOpenHwEvents) {
-                        Icon(Icons.Default.History, contentDescription = "Hardware Events")
-                    }
-                    FloatingActionButton(onClick = onOpenMap) {
-                        Icon(Icons.Default.Map, contentDescription = "Open Map")
-                    }
-                }
+                CompactSystemStatusIndicator(chips = uiState.statusChips())
+            }
+            SystemStatusBanner(allOk = uiState.error == null, message = uiState.error ?: "All systems OK")
+
+            if (isActive) {
+                ExpandableStatsCard(
+                    stats = uiState.statItems(),
+                    expanded = statsExpanded,
+                    onToggle = { statsExpanded = !statsExpanded },
+                )
             }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Vehicle selector (shown only when idle)
-            if (uiState.phase == TrackMilesPhase.IDLE && uiState.vehicles.isNotEmpty()) {
-                var expanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-                    TextField(
-                        value = uiState.selectedVehicle?.vehicleName ?: "Select vehicle",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Vehicle") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
-                        leadingIcon = { Icon(Icons.Default.DirectionsCar, null) }
-                    )
-                    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        uiState.vehicles.forEach { v ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(v.vehicleName ?: "", style = MaterialTheme.typography.bodyMedium)
-                                        Text("₹${v.vehiclePricing}/km", style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                },
-                                onClick = { viewModel.selectVehicle(v); expanded = false }
-                            )
-                        }
-                    }
-                }
-            }
 
-            // Hero tracking card (shown during/after tracking)
-            if (uiState.phase != TrackMilesPhase.IDLE) {
-                HeroTrackingCard(uiState = uiState)
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            // Control buttons
-            when (uiState.phase) {
-                TrackMilesPhase.IDLE -> {
-                    Button(
-                        onClick = { requestStart() },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        enabled = uiState.selectedVehicle != null
-                    ) {
-                        Icon(Icons.Default.PlayArrow, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Start Journey")
-                    }
+        // Pinned control cluster — always reachable, never scrolls away.
+        ThreeButtonFabSystem(
+            isActive = isActive,
+            isPaused = isPaused,
+            actions = quickActions,
+            onHero = { if (isActive) viewModel.stopTracking() else viewModel.openJourneyGuide() },
+            onPauseResume = { if (isPaused) viewModel.openResumeSheet() else viewModel.openPauseSheet() },
+            onAction = { id ->
+                when (id) {
+                    Qa.MAP -> onOpenMap()
+                    Qa.HISTORY, Qa.DATA -> onOpenHwEvents()
+                    Qa.CHECK_IN, Qa.MANUAL_CHECK_IN -> checkInViewModel.openManualCheckIn()
+                    Qa.CENTERS -> viewModel.openVendorPicker()
+                    Qa.SAVED -> onOpenHwEvents()
+                    Qa.DISCARD -> viewModel.discardTracking()
                 }
-                TrackMilesPhase.TRACKING -> {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        FilledTonalButton(onClick = { viewModel.pauseTracking() }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.Pause, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp)); Text("Pause")
-                        }
-                        Button(onClick = { viewModel.stopTracking() }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.Stop, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp)); Text("Stop")
-                        }
-                    }
-                    // Check-in actions (shown only while actively tracking)
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(
-                            onClick = { checkInViewModel.openManualCheckIn() },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp)); Text("Manual Check-In")
-                        }
-                        OutlinedButton(
-                            onClick = { checkInViewModel.openGeoCheckIn() },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.LocationOn, null, Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp)); Text("Geo Check-In")
-                        }
-                    }
-                }
-                TrackMilesPhase.PAUSED -> {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = { viewModel.discardTracking() }, modifier = Modifier.weight(1f)) { Text("Discard") }
-                        Button(onClick = { viewModel.resumeTracking() }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.PlayArrow, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp)); Text("Resume")
-                        }
-                    }
-                }
-                TrackMilesPhase.STOPPED -> {
-                    val routeId = uiState.currentRouteId
-                    Button(
-                        onClick = {
-                            if (routeId != null) onStop(
-                                routeId,
-                                uiState.distanceKm,
-                                uiState.selectedVehicle?.vehicleKey ?: "",
-                                uiState.startTime,
-                                uiState.endTime
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth().height(56.dp)
-                    ) { Text("Submit Journey") }
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = { viewModel.discardTracking() }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Discard")
-                    }
-                }
-                else -> {}
-            }
+            },
+            showGeoCheckIn = isActive && uiState.config.geoCheckInEnabled,
+            onGeoCheckIn = { checkInViewModel.openGeoCheckIn() },
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
         }
     }
 
-    // ── Check-in bottom sheets ──────────────────────────────────────────────────
+    // ── Start-flow & control sheets ─────────────────────────────────────────────
+    when (uiState.activeSheet) {
+        TrackSheet.JOURNEY_GUIDE -> JourneyGuideSheet(
+            state = JourneyGuideState(
+                step = when {
+                    uiState.selectedVehicle == null -> JourneyGuideStep.VEHICLE
+                    else -> JourneyGuideStep.TRACKING
+                },
+                vehicleName = uiState.selectedVehicle?.vehicleName,
+                vehicleRatePerKm = uiState.selectedVehicle?.vehiclePricing,
+                startOdometer = uiState.startOdometer,
+                draftEnabled = uiState.draftEnabled,
+                requiresOdometer = uiState.config.isOdometerMandatory,
+            ),
+            onPickVehicle = viewModel::openVehiclePicker,
+            onCaptureOdometer = viewModel::captureStartOdometer,
+            onToggleDraft = viewModel::toggleDraft,
+            onStartTracking = requestStartTracking,
+            onDismiss = viewModel::dismissSheet,
+        )
 
+        TrackSheet.VEHICLE_PICKER -> VehiclePickerSheet(
+            vehicles = uiState.vehicles.map {
+                VehicleOption(
+                    key = it.vehicleKey ?: it.vehicleName.orEmpty(),
+                    name = it.vehicleName.orEmpty(),
+                    ratePerKm = it.vehiclePricing ?: 0.0,
+                    icon = Icons.Filled.DirectionsCar,
+                )
+            },
+            query = uiState.vehicleQuery,
+            onQueryChange = viewModel::setVehicleQuery,
+            onSelect = viewModel::pickVehicle,
+            onDismiss = viewModel::openJourneyGuide,
+        )
+
+        TrackSheet.VENDOR_PICKER -> VendorPickerSheet(
+            centers = uiState.centers.map { CenterOption(it.id, it.name, it.type) },
+            query = uiState.vendorQuery,
+            onQueryChange = viewModel::setVendorQuery,
+            onSelect = viewModel::pickVendor,
+            onOpenMaps = { /* maps deep-link is out of scope for the offline demo */ },
+            onDismiss = viewModel::dismissSheet,
+        )
+
+        TrackSheet.PAUSE -> PauseReasonSheet(
+            timestamp = "now",
+            selectedReason = uiState.pauseSelectedReason,
+            customReason = uiState.pauseCustomReason,
+            onSelectReason = viewModel::setPauseReason,
+            onCustomReason = viewModel::setPauseCustomReason,
+            onConfirm = viewModel::confirmPause,
+            onCancel = viewModel::dismissSheet,
+        )
+
+        TrackSheet.RESUME -> ResumeTrackingSheet(
+            pauseReason = uiState.pauseReason,
+            resumeNotes = uiState.resumeNotes,
+            onNotesChange = viewModel::setResumeNotes,
+            onResume = { viewModel.confirmResume() },
+            onCancel = viewModel::dismissSheet,
+        )
+
+        TrackSheet.CONSENT -> JourneyConsentSheet(
+            disclaimer = uiState.journeyDisclaimerOrDefault(),
+            onAccept = viewModel::acceptConsentAndStart,
+            onDismiss = viewModel::dismissSheet,
+        )
+
+        TrackSheet.NONE -> Unit
+    }
+
+    // ── Check-in sheets (unchanged) ─────────────────────────────────────────────
     if (checkInUiState.showManualCheckInSheet) {
         ManualCheckInSheet(
             viewModel = checkInViewModel,
             uiState = checkInUiState,
-            onDismiss = { checkInViewModel.dismissManualCheckIn() }
+            onDismiss = { checkInViewModel.dismissManualCheckIn() },
         )
     }
-
     if (checkInUiState.showGeoCheckInSheet) {
         GeoCheckInSheet(
             viewModel = checkInViewModel,
             uiState = checkInUiState,
-            onDismiss = { checkInViewModel.dismissGeoCheckIn() }
+            onDismiss = { checkInViewModel.dismissGeoCheckIn() },
         )
     }
-
     if (checkInUiState.showRadiusWarning) {
         CheckInRadiusWarningSheet(
             viewModel = checkInViewModel,
             uiState = checkInUiState,
-            onDismiss = { checkInViewModel.dismissRadiusWarning() }
+            onDismiss = { checkInViewModel.dismissRadiusWarning() },
         )
     }
 }
 
-/**
- * Prominent hero card surfacing the live journey: big distance, a ticking duration,
- * average speed and reimbursable amount, on a brand gradient with a pulsing status pill.
- */
-@Composable
-private fun HeroTrackingCard(uiState: TrackMilesUiState) {
-    // Live-ticking elapsed time while actively tracking; otherwise use the recorded duration.
-    var nowMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    val isTracking = uiState.phase == TrackMilesPhase.TRACKING
-    LaunchedEffect(isTracking, uiState.startTime) {
-        while (isTracking) {
-            nowMs = System.currentTimeMillis()
-            delay(1000)
-        }
-    }
-    val elapsedMs = when {
-        isTracking && uiState.startTime > 0 -> nowMs - uiState.startTime
-        else -> uiState.durationMs
-    }.coerceAtLeast(0L)
-    val avgSpeed = if (elapsedMs > 0) uiState.distanceKm / (elapsedMs / 3_600_000.0) else 0.0
+// ── State → component mapping ───────────────────────────────────────────────────
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = DesignTokens.Shape.roundedLg,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.raised)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(DesignTokens.topBarGradientBrush())
-                .padding(DesignTokens.Spacing.xl)
-        ) {
-            StatusPill(phase = uiState.phase)
-            Spacer(Modifier.height(DesignTokens.Spacing.l))
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "%.2f".format(uiState.distanceKm),
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = "km",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.85f),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-            uiState.selectedVehicle?.vehicleName?.let { vehicle ->
-                Text(vehicle, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
-            }
-            Spacer(Modifier.height(DesignTokens.Spacing.l))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                HeroMetric("Duration", formatElapsed(elapsedMs), Modifier.weight(1f))
-                HeroMetric("Avg speed", "%.0f km/h".format(avgSpeed), Modifier.weight(1f))
-                HeroMetric("Amount", "₹%.0f".format(uiState.reimbursableAmount), Modifier.weight(1f))
-            }
-        }
-    }
+private val quickActions = listOf(
+    QuickAction(Qa.MAP, "Map", Icons.Filled.Map),
+    QuickAction(Qa.CHECK_IN, "Check In", Icons.Filled.CheckCircle),
+    QuickAction(Qa.MANUAL_CHECK_IN, "Manual Check In", Icons.Filled.PinDrop),
+    QuickAction(Qa.CENTERS, "Centers", Icons.Filled.Storefront),
+    QuickAction(Qa.HISTORY, "Journey History", Icons.Filled.History),
+    QuickAction(Qa.DATA, "Data", Icons.Filled.DataObject),
+    QuickAction(Qa.SAVED, "Saved Journeys", Icons.Filled.Bookmark),
+    QuickAction(Qa.DISCARD, "Discard", Icons.Filled.DeleteOutline, destructive = true),
+)
+
+private fun TrackSignal.toGauge(): GaugeSignal = when (this) {
+    TrackSignal.GOOD -> GaugeSignal.GOOD
+    TrackSignal.FAIR -> GaugeSignal.FAIR
+    TrackSignal.POOR -> GaugeSignal.POOR
 }
 
-@Composable
-private fun HeroMetric(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Color.White)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f))
-    }
+private fun HeroGaugeMode.toGauge(): GaugeMode = when (this) {
+    HeroGaugeMode.COMPASS -> GaugeMode.COMPASS
+    HeroGaugeMode.ACTIVITY -> GaugeMode.ACTIVITY
 }
 
-@Composable
-private fun StatusPill(phase: TrackMilesPhase) {
-    val label = when (phase) {
-        TrackMilesPhase.TRACKING -> "Tracking in progress"
-        TrackMilesPhase.PAUSED -> "Paused"
-        TrackMilesPhase.STOPPED -> "Ready to submit"
-        else -> ""
+private fun TrackMilesUiState.activitySegments(): List<ActivitySegment> {
+    if (phase == TrackMilesPhase.IDLE) return emptyList()
+    val type = when (trackingActivity.lowercase()) {
+        "walking" -> ActivityType.WALKING
+        "cycling" -> ActivityType.CYCLING
+        "driving", "in_vehicle", "automotive" -> ActivityType.DRIVING
+        else -> ActivityType.IDLE
     }
-    // Pulsing dot only while actively tracking.
-    val pulse = rememberInfiniteTransition(label = "pulse")
-    val dotAlpha by pulse.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.3f,
-        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
-        label = "dotAlpha"
-    )
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .clip(DesignTokens.Shape.chip)
-            .background(Color.White.copy(alpha = 0.2f))
-            .padding(horizontal = DesignTokens.Spacing.m, vertical = 6.dp)
-    ) {
-        Box(
-            Modifier
-                .size(8.dp)
-                .alpha(if (phase == TrackMilesPhase.TRACKING) dotAlpha else 1f)
-                .clip(CircleShape)
-                .background(Color.White)
-        )
-        Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = Color.White)
-    }
+    return listOf(ActivitySegment(type, 1f))
 }
+
+private fun TrackMilesUiState.statusChips(): List<StatusChip> = listOf(
+    StatusChip(Icons.Filled.GpsFixed, "GPS", signal.toLevel()),
+    StatusChip(Icons.Filled.NetworkCell, if (unsyncedPoints > 0) "$unsyncedPoints queued" else "Synced",
+        if (unsyncedPoints > 0) StatusLevel.WARN else StatusLevel.OK),
+    StatusChip(Icons.Filled.Speed, "%.0f km/h".format(speedKmh), StatusLevel.OK),
+)
+
+private fun TrackSignal.toLevel(): StatusLevel = when (this) {
+    TrackSignal.GOOD -> StatusLevel.OK
+    TrackSignal.FAIR -> StatusLevel.WARN
+    TrackSignal.POOR -> StatusLevel.BAD
+}
+
+private fun TrackMilesUiState.statItems(): List<StatItem> = listOf(
+    StatItem("Distance", "%.2f km".format(distanceKm), Icons.Filled.Map),
+    StatItem("Duration", formatElapsed(liveElapsedMs(this)), Icons.Filled.Timer),
+    StatItem("Avg Speed", "%.1f km/h".format(avgSpeedKmh), Icons.Filled.Speed),
+    StatItem("Points", pointsLabel.toString(), Icons.Filled.GpsFixed),
+    StatItem("Max Speed", "%.1f km/h".format(maxSpeedKmh), Icons.Filled.Bolt),
+    StatItem("Activity", trackingActivity, Icons.Filled.DirectionsCar),
+)
+
+private fun TrackMilesUiState.journeyDisclaimerOrDefault(): String =
+    "By starting this journey you confirm the trip details are accurate and consent to " +
+        "location tracking for the duration of the journey."
+
+private fun liveElapsedMs(uiState: TrackMilesUiState): Long = when {
+    uiState.startTime > 0 && uiState.phase == TrackMilesPhase.TRACKING ->
+        (System.currentTimeMillis() - uiState.startTime).coerceAtLeast(uiState.durationMs)
+    else -> uiState.durationMs
+}.coerceAtLeast(0L)
 
 private fun formatElapsed(ms: Long): String {
     val totalSec = ms / 1000

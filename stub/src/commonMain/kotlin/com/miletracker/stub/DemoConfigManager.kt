@@ -69,13 +69,13 @@ class DemoConfigManager : ConfigProvider {
     fun isOdometerUploadEnabled(source: String): Boolean = true
 
     /** Branch check-in gate before starting a journey. Default off; debug-flippable later. */
-    fun isBranchCheckInRequired(): Boolean = false
+    override fun isBranchCheckInRequired(): Boolean = false
 
     /** Consent text shown by the start-journey disclaimer sheet; null hides the sheet. */
-    fun getJourneyDisclaimer(): String? =
+    override fun getJourneyDisclaimer(): String? =
         "This demo records your trip locally on this device only. " +
             "By starting a journey you consent to location tracking while the trip is active."
 
     /** Maximum reimbursable distance per day, in kilometres. */
-    fun getMaxDailyDistanceKm(): Double = 10.0
+    override fun getMaxDailyDistanceKm(): Double = 10.0
 }
