@@ -2,6 +2,8 @@ package com.miletracker.core.network.config
 
 import com.miletracker.core.data.model.state.LogMilesPluginConfig
 import com.miletracker.core.data.model.state.TrackMilesPluginConfig
+import com.miletracker.core.network.model.BusinessEntity
+import com.miletracker.core.network.model.Office
 
 interface ConfigProvider {
     fun getTrackMilesConfig(): TrackMilesPluginConfig
@@ -18,4 +20,13 @@ interface ConfigProvider {
 
     /** When true, stopping a journey requires at least one branch check-in. */
     fun isBranchCheckInRequired(): Boolean = false
+
+    /** Offices a mileage expense can be billed against (submission picker). */
+    fun getOffices(): List<Office> = emptyList()
+
+    /** Business entities (legal companies) a submission can be filed under. */
+    fun getBusinessEntities(): List<BusinessEntity> = emptyList()
+
+    /** When true, the submission form must collect an office + entity. */
+    fun isOfficeSelectionRequired(): Boolean = false
 }

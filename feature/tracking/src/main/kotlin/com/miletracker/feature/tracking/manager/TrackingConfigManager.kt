@@ -13,4 +13,7 @@ class TrackingConfigManager(private val configProvider: ConfigProvider) {
     fun getJourneyDisclaimer(): String? = configProvider.getJourneyDisclaimer()
     fun getMaxDailyDistanceKm(): Double = configProvider.getMaxDailyDistanceKm()
     fun isBranchCheckInRequired(): Boolean = configProvider.isBranchCheckInRequired()
+    fun getOffices() = configProvider.getOffices()
+    fun getBusinessEntities() = configProvider.getBusinessEntities()
+    fun isOfficeSelectionRequired(): Boolean = configProvider.isOfficeSelectionRequired()
 }

@@ -2,10 +2,14 @@ package com.miletracker.feature.tracking.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.miletracker.core.data.model.db.TripAttachmentEntity
 import com.miletracker.core.data.model.network.ExpenseSubmissionResponse
+import com.miletracker.core.data.model.network.PolicyViolation
+import com.miletracker.core.data.model.network.SubmissionStatus
 import com.miletracker.core.data.model.network.SubmitMilesRequestK
 import com.miletracker.core.network.api.MileTrackerNetworkApi
+import com.miletracker.core.network.model.BusinessEntity
+import com.miletracker.core.network.model.Office
+import com.miletracker.feature.tracking.manager.TrackingConfigManager
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,14 +25,79 @@ sealed class SubmissionUiState {
     data class Error(val message: String) : SubmissionUiState()
 }
 
+/** A required custom-form field rendered in the "Additional Details" section. */
+enum class SubmissionFieldType { TEXT, DROPDOWN }
+
+data class SubmissionField(
+    val id: String,
+    val label: String,
+    val type: SubmissionFieldType,
+    val required: Boolean = true,
+    val options: List<String> = emptyList(),
+)
+
+/** Which submission sheet (if any) is presented. */
+enum class SubmissionSheet { NONE, SUBMIT_CONFIRM, POLICY_VIOLATION, OFFICE_PICKER, ENTITY_PICKER, SMART_DISTANCE }
+
+/** All form + policy + sheet state for the submission screen (single source of truth). */
+data class SubmissionFormUi(
+    val offices: List<Office> = emptyList(),
+    val entities: List<BusinessEntity> = emptyList(),
+    val officeRequired: Boolean = false,
+    val selectedOffice: Office? = null,
+    val selectedEntity: BusinessEntity? = null,
+    val fields: List<SubmissionField> = emptyList(),
+    val values: Map<String, String> = emptyMap(),
+    val saveAsDraft: Boolean = false,
+    val sheet: SubmissionSheet = SubmissionSheet.NONE,
+    val officeQuery: String = "",
+    val entityQuery: String = "",
+    val violations: List<PolicyViolation> = emptyList(),
+    val askAuthorities: Boolean = false,
+    val violationNote: String = "",
+) {
+    /** Required items still missing — drives the "N remaining" checklist header. */
+    val remainingRequirements: List<String>
+        get() = buildList {
+            if (officeRequired && selectedOffice == null) add("Office selection")
+            if (officeRequired && selectedEntity == null) add("Entity selection")
+            val missingFields = fields.count { it.required && values[it.id].isNullOrBlank() }
+            if (missingFields > 0) add("Complete required fields")
+        }
+
+    val canSubmit: Boolean get() = remainingRequirements.isEmpty()
+}
+
 class MileageSubmissionViewModel(
     private val api: MileTrackerNetworkApi,
     private val trackRepository: SavedTrackRepository,
-    private val attachmentRepository: TripAttachmentRepository
+    private val attachmentRepository: TripAttachmentRepository,
+    private val configManager: TrackingConfigManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<SubmissionUiState>(SubmissionUiState.Idle)
     val state: StateFlow<SubmissionUiState> = _state.asStateFlow()
+
+    private val _form = MutableStateFlow(
+        SubmissionFormUi(
+            offices = configManager.getOffices(),
+            entities = configManager.getBusinessEntities(),
+            officeRequired = configManager.isOfficeSelectionRequired(),
+            // Two representative required fields (the source uses server-driven forms).
+            fields = listOf(
+                SubmissionField("purpose", "Purpose of travel", SubmissionFieldType.TEXT),
+                SubmissionField(
+                    "gender", "Gender", SubmissionFieldType.DROPDOWN,
+                    options = listOf("Male", "Female", "Others"),
+                ),
+            ),
+        )
+    )
+    val form: StateFlow<SubmissionFormUi> = _form.asStateFlow()
+
+    /** Snapshot of the last submission response, for the success screen. */
+    private val _lastResponse = MutableStateFlow<ExpenseSubmissionResponse?>(null)
+    val lastResponse: StateFlow<ExpenseSubmissionResponse?> = _lastResponse.asStateFlow()
 
     // ---------------------------------------------------------------------------
     // Pending attachments collected from UI before submit
@@ -67,10 +136,46 @@ class MileageSubmissionViewModel(
     }
 
     // ---------------------------------------------------------------------------
+    // Submission form intents (single source of truth in the VM)
+    // ---------------------------------------------------------------------------
+
+    fun setFormValue(id: String, value: String) =
+        _form.update { it.copy(values = it.values + (id to value)) }
+
+    fun toggleDraft(enabled: Boolean) = _form.update { it.copy(saveAsDraft = enabled) }
+
+    fun openOfficePicker() = _form.update { it.copy(sheet = SubmissionSheet.OFFICE_PICKER) }
+    fun openEntityPicker() = _form.update { it.copy(sheet = SubmissionSheet.ENTITY_PICKER) }
+    fun setOfficeQuery(q: String) = _form.update { it.copy(officeQuery = q) }
+    fun setEntityQuery(q: String) = _form.update { it.copy(entityQuery = q) }
+    fun selectOffice(code: String) = _form.update {
+        it.copy(selectedOffice = it.offices.firstOrNull { o -> o.code == code }, sheet = SubmissionSheet.NONE)
+    }
+    fun selectEntity(name: String) = _form.update {
+        it.copy(selectedEntity = it.entities.firstOrNull { e -> e.name == name }, sheet = SubmissionSheet.NONE)
+    }
+
+    fun openSubmitConfirm() = _form.update { it.copy(sheet = SubmissionSheet.SUBMIT_CONFIRM) }
+    fun dismissSheet() = _form.update { it.copy(sheet = SubmissionSheet.NONE) }
+
+    fun setAskAuthorities(enabled: Boolean) = _form.update { it.copy(askAuthorities = enabled) }
+    fun setViolationNote(note: String) = _form.update { it.copy(violationNote = note) }
+
+    /** True once the policy-violation resolution is complete enough to proceed. */
+    val policyResolved: Boolean
+        get() = _form.value.askAuthorities && _form.value.violationNote.isNotBlank()
+
+    // ---------------------------------------------------------------------------
     // Submit: persist attachments locally, then record the trip as submitted
     // ---------------------------------------------------------------------------
 
+    // Finalize parameters stashed while a policy-violation response awaits resolution.
+    private var pendingFinalize: PendingFinalize? = null
+
+    private data class PendingFinalize(val routeId: String, val response: ExpenseSubmissionResponse)
+
     fun submit(routeId: String, distanceKm: Double, vehicleKey: String, startTime: Long, endTime: Long) {
+        _form.update { it.copy(sheet = SubmissionSheet.NONE) }
         _state.update { SubmissionUiState.Submitting }
         viewModelScope.launch {
             // 1. Persist all staged attachments to local Room before any network call.
@@ -89,12 +194,37 @@ class MileageSubmissionViewModel(
                     )
                 )
             }.onSuccess { response ->
-                val transId = response.transId ?: "DEMO-${System.currentTimeMillis()}"
-                trackRepository.markSubmitted(routeId, transId, response.reimbursableAmount ?: 0.0)
-                _state.update { SubmissionUiState.Success(response) }
+                _lastResponse.value = response
+                val needsResolution = response.submissionStatus == SubmissionStatus.POLICY_VIOLATION ||
+                    response.submissionStatus == SubmissionStatus.HARD_STOP
+                if (needsResolution && response.violations.isNotEmpty()) {
+                    // Park the response and surface the policy-violation sheet for the user
+                    // to choose a resolution before the expense is finalized.
+                    pendingFinalize = PendingFinalize(routeId, response)
+                    _form.update { it.copy(violations = response.violations, sheet = SubmissionSheet.POLICY_VIOLATION) }
+                    _state.update { SubmissionUiState.Idle }
+                } else {
+                    finalize(routeId, response)
+                }
             }.onFailure { e ->
                 _state.update { SubmissionUiState.Error(e.message ?: "Submission failed") }
             }
+        }
+    }
+
+    /** Called from the policy-violation sheet once the user picks a resolution + note. */
+    fun resolvePolicyAndFinalize() {
+        val pending = pendingFinalize ?: return
+        _form.update { it.copy(sheet = SubmissionSheet.NONE) }
+        finalize(pending.routeId, pending.response)
+        pendingFinalize = null
+    }
+
+    private fun finalize(routeId: String, response: ExpenseSubmissionResponse) {
+        viewModelScope.launch {
+            val transId = response.transId ?: "DEMO-${System.currentTimeMillis()}"
+            trackRepository.markSubmitted(routeId, transId, response.reimbursableAmount ?: 0.0)
+            _state.update { SubmissionUiState.Success(response) }
         }
     }
 
