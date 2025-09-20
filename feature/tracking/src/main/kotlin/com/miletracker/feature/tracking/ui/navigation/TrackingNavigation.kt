@@ -28,7 +28,10 @@ object TrackingRoutes {
     const val HW_EVENTS = "hw_events/{routeId}"
     const val ROUTE_MAP = "route_map/{routeId}"
     const val SUBMIT = "submit/{routeId}?distanceKm={distanceKm}&vehicleKey={vehicleKey}&startTime={startTime}&endTime={endTime}"
-    const val SUCCESS = "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleKey={vehicleKey}&startTime={startTime}&endTime={endTime}&transId={transId}"
+    const val SUCCESS = "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleName={vehicleName}" +
+        "&startTime={startTime}&endTime={endTime}&transId={transId}&status={status}" +
+        "&violationCount={violationCount}&violationMsg={violationMsg}" +
+        "&voucherNumber={voucherNumber}&voucherAmount={voucherAmount}"
 
     fun liveTrack(routeId: String) = "live_track/$routeId"
     fun liveMap(routeId: String) = "live_map/$routeId"
@@ -38,9 +41,31 @@ object TrackingRoutes {
     fun routeMap(routeId: String) = "route_map/$routeId"
     fun submit(routeId: String, distanceKm: Double, vehicleKey: String, startTime: Long, endTime: Long) =
         "submit/$routeId?distanceKm=$distanceKm&vehicleKey=$vehicleKey&startTime=$startTime&endTime=$endTime"
-    fun success(distanceKm: Double, reimbursable: Double, vehicleKey: String, startTime: Long, endTime: Long, transId: String?) =
-        "success?distanceKm=$distanceKm&reimbursable=$reimbursable&vehicleKey=$vehicleKey&startTime=$startTime&endTime=$endTime&transId=${transId ?: ""}"
+
+    fun success(r: SubmissionResult): String {
+        fun enc(s: String) = java.net.URLEncoder.encode(s, "UTF-8")
+        return "success?distanceKm=${r.distanceKm}&reimbursable=${r.reimbursableAmount}" +
+            "&vehicleName=${enc(r.vehicleName)}&startTime=${r.startTime}&endTime=${r.endTime}" +
+            "&transId=${enc(r.transactionId ?: "")}&status=${r.submissionStatus}" +
+            "&violationCount=${r.violationCount}&violationMsg=${enc(r.violationMessage ?: "")}" +
+            "&voucherNumber=${enc(r.voucherNumber ?: "")}&voucherAmount=${r.voucherAmount}"
+    }
 }
+
+/** Everything the success screen needs, produced by the submission screen on submit. */
+data class SubmissionResult(
+    val distanceKm: Double,
+    val reimbursableAmount: Double,
+    val vehicleName: String,
+    val startTime: Long,
+    val endTime: Long,
+    val transactionId: String?,
+    val submissionStatus: String,
+    val violationCount: Int,
+    val violationMessage: String?,
+    val voucherNumber: String?,
+    val voucherAmount: Double,
+)
 
 /**
  * Standalone host used by [com.miletracker.feature.tracking.TrackMilesActivity].
@@ -154,10 +179,8 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     vehicleKey = args.getString("vehicleKey") ?: "",
                     startTime = args.getLong("startTime"),
                     endTime = args.getLong("endTime"),
-                    onSuccess = { distKm, reimbursable, vehicleKey, startTime, endTime, transId ->
-                        navController.navigate(
-                            TrackingRoutes.success(distKm, reimbursable, vehicleKey, startTime, endTime, transId)
-                        ) {
+                    onSuccess = { result ->
+                        navController.navigate(TrackingRoutes.success(result)) {
                             popUpTo(TrackingRoutes.SAVED_TRACKS)
                         }
                     },
@@ -170,27 +193,39 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                 arguments = listOf(
                     navArgument("distanceKm") { type = NavType.FloatType; defaultValue = 0f },
                     navArgument("reimbursable") { type = NavType.FloatType; defaultValue = 0f },
-                    navArgument("vehicleKey") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("vehicleName") { type = NavType.StringType; defaultValue = "" },
                     navArgument("startTime") { type = NavType.LongType; defaultValue = 0L },
                     navArgument("endTime") { type = NavType.LongType; defaultValue = 0L },
-                    navArgument("transId") { type = NavType.StringType; defaultValue = "" }
+                    navArgument("transId") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("status") { type = NavType.StringType; defaultValue = "SUCCESS" },
+                    navArgument("violationCount") { type = NavType.IntType; defaultValue = 0 },
+                    navArgument("violationMsg") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("voucherNumber") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("voucherAmount") { type = NavType.FloatType; defaultValue = 0f }
                 )
             ) { backStack ->
                 val args = backStack.arguments!!
-                val transId = args.getString("transId").orEmpty().ifBlank { null }
+                fun dec(s: String?) = s.orEmpty().let { java.net.URLDecoder.decode(it, "UTF-8") }
+                val toSaved = {
+                    navController.navigate(TrackingRoutes.SAVED_TRACKS) {
+                        popUpTo(TrackingRoutes.SAVED_TRACKS) { inclusive = true }
+                    }
+                }
                 TrackingSuccessScreen(
                     distanceKm = args.getFloat("distanceKm").toDouble(),
                     reimbursableAmount = args.getFloat("reimbursable").toDouble(),
-                    vehicleKey = args.getString("vehicleKey") ?: "",
+                    vehicleName = dec(args.getString("vehicleName")),
                     startTime = args.getLong("startTime"),
                     endTime = args.getLong("endTime"),
-                    transId = transId,
-                    onViewSavedTracks = {
-                        navController.navigate(TrackingRoutes.SAVED_TRACKS) {
-                            popUpTo(TrackingRoutes.SAVED_TRACKS) { inclusive = true }
-                        }
-                    },
-                    onHome = { navController.popBackStack(TrackingRoutes.SAVED_TRACKS, false) }
+                    transactionId = dec(args.getString("transId")).ifBlank { null },
+                    submissionStatus = args.getString("status") ?: "SUCCESS",
+                    violationCount = args.getInt("violationCount"),
+                    violationMessage = dec(args.getString("violationMsg")).ifBlank { null },
+                    voucherNumber = dec(args.getString("voucherNumber")).ifBlank { null },
+                    voucherAmount = args.getFloat("voucherAmount").toDouble(),
+                    onTrackNewJourney = toSaved,
+                    onViewExpense = toSaved,
+                    onCreateVoucher = {},
                 )
             }
 }

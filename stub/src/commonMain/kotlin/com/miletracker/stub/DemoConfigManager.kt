@@ -78,4 +78,8 @@ class DemoConfigManager : ConfigProvider {
 
     /** Maximum reimbursable distance per day, in kilometres. */
     override fun getMaxDailyDistanceKm(): Double = 10.0
+
+    override fun getOffices() = PolicyMockData.offices()
+    override fun getBusinessEntities() = PolicyMockData.businessEntities()
+    override fun isOfficeSelectionRequired(): Boolean = true
 }
