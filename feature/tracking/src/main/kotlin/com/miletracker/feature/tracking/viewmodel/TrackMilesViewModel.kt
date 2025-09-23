@@ -54,6 +54,8 @@ data class TrackMilesUiState(
     val unsyncedPoints: Long = 0L,
     val trackingActivity: String = "Stationary",
     val signal: TrackSignal = TrackSignal.GOOD,
+    /** Human-readable current position (last fix coordinates; the demo has no geocoder). */
+    val currentLocationLabel: String = "Waiting for location…",
     val gaugeMode: HeroGaugeMode = HeroGaugeMode.COMPASS,
     val pauseReason: String? = null,
     // ── Start-flow / sheet orchestration (single-source-of-truth in the VM) ──────
@@ -143,7 +145,8 @@ class TrackMilesViewModel(
                     points.size >= 2 -> headingBetween(points[points.size - 2], last)
                     else -> 0f
                 }
-                _uiState.update { it.copy(bearingDegrees = bearing) }
+                val locationLabel = "%.4f, %.4f".format(last.lat, last.lng)
+                _uiState.update { it.copy(bearingDegrees = bearing, currentLocationLabel = locationLabel) }
             }
             .launchIn(viewModelScope)
     }

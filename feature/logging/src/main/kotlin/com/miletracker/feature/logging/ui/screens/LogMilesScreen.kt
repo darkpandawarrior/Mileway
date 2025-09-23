@@ -91,7 +91,7 @@ fun LogMilesScreen(viewModel: LogMilesViewModel = koinViewModel()) {
     Scaffold(topBar = { DepthAwareTopBar(title = "Log Miles", depth = NavigationDepth.ROOT) }) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
-                .verticalScroll(rememberScrollState()).padding(16.dp),
+                .verticalScroll(rememberScrollState()).padding(16.dp).padding(bottom = 124.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Vehicle dropdown

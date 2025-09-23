@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -49,6 +50,8 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(DesignTokens.Spacing.screenHorizontal),
+            // Clearance for the floating bubble bar (content draws behind it).
+            contentPadding = PaddingValues(bottom = 140.dp),
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
