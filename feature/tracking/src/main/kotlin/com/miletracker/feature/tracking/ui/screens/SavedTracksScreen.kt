@@ -62,7 +62,9 @@ fun SavedTracksScreen(
             ExtendedFloatingActionButton(
                 onClick = onStartNew,
                 icon = { Icon(Icons.Default.PlayArrow, null) },
-                text = { Text("Start Journey") }
+                text = { Text("Start Journey") },
+                // Lift above the floating bubble bar.
+                modifier = Modifier.padding(bottom = 88.dp)
             )
         }
     ) { padding ->
@@ -141,7 +143,7 @@ private fun SavedTracksContent(
         else -> LazyColumn(
             contentPadding = PaddingValues(
                 top = DesignTokens.Spacing.l,
-                bottom = bottomPadding + 96.dp,
+                bottom = bottomPadding + 140.dp,
                 start = DesignTokens.Spacing.l,
                 end = DesignTokens.Spacing.l
             ),

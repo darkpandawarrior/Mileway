@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -1014,9 +1015,11 @@ fun MileageDraftBottomBar(
         tonalElevation = DesignTokens.Elevation.raised,
         shadowElevation = DesignTokens.Elevation.raised
     ) {
+        // Inner content clears the gesture-nav area (the bar itself spans full-bleed).
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(DesignTokens.Spacing.l),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
         ) {

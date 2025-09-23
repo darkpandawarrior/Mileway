@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.Speed
@@ -164,9 +167,11 @@ fun TrackMilesScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(DesignTokens.Spacing.l)
                 // Leave room so the pinned control cluster never hides the last card.
-                .padding(bottom = 140.dp),
+                .padding(bottom = 220.dp),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
+            CurrentLocationPill(label = uiState.currentLocationLabel)
+
             HeroTrackingCard(
                 distanceText = "%.2f".format(uiState.distanceKm),
                 durationText = formatElapsed(liveElapsedMs(uiState)),
@@ -401,4 +406,35 @@ private fun formatElapsed(ms: Long): String {
     val m = (totalSec % 3600) / 60
     val s = totalSec % 60
     return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%02d:%02d".format(m, s)
+}
+
+/** The current-location pill shown above the hero card (mirrors the reference layout). */
+@Composable
+private fun CurrentLocationPill(label: String) {
+    androidx.compose.material3.Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.chip,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.padding(
+                horizontal = DesignTokens.Spacing.l,
+                vertical = DesignTokens.Spacing.m,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.LocationOn,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -147,6 +148,22 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         var isBottomBarCollapsed by rememberSaveable { mutableStateOf(false) }
         var showAssistantSheet by rememberSaveable { mutableStateOf(false) }
 
+        // The floating bubble bar shows only on top-level tab destinations; detail and
+        // flow screens (tracking, submission, settings, …) own the full screen — matching
+        // the source app, where those flows render without the bottom nav.
+        val topLevelRoutes = remember {
+            setOf(
+                TrackingRoutes.SAVED_TRACKS,
+                LoggingRoutes.HOME,
+                MediaRoutes.SELECTION,
+                ProfileRoutes.HOME,
+                AppGraph.TRAVEL,
+                AppGraph.PAYABLES,
+                AppGraph.APPROVALS,
+            )
+        }
+        val onTopLevelDestination = currentDestination?.route in topLevelRoutes
+
         BackHandler(enabled = isBottomBarCollapsed) {
             isBottomBarCollapsed = false
         }
@@ -163,9 +180,13 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         }
 
         Scaffold(
+            // Edge-to-edge: the shell consumes no insets itself. Every screen owns its
+            // insets via its own Scaffold/TopAppBar, so the status-bar inset is applied
+            // exactly once, and content draws behind the floating bubble bar.
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 AnimatedVisibility(
-                    visible = !isBottomBarCollapsed,
+                    visible = onTopLevelDestination && !isBottomBarCollapsed,
                     enter = fadeIn(
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -192,14 +213,14 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                     )
                 }
             }
-        ) { innerPadding ->
+        ) { _ ->
+            // innerPadding is deliberately NOT applied: content draws full-bleed behind the
+            // floating bar; top-level screens add their own bottom content padding instead.
             Box(modifier = Modifier.fillMaxSize()) {
                 NavHost(
                     navController = navController,
                     startDestination = AppGraph.TRACK,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     navigation(startDestination = TrackingRoutes.SAVED_TRACKS, route = AppGraph.TRACK) {
                         trackingGraph(navController)

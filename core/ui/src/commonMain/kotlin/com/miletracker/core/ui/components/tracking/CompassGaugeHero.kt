@@ -569,7 +569,16 @@ fun HeroTrackingCard(
 ) {
     val shape = RoundedCornerShape(shapeRadius)
     val onSurface = MaterialTheme.colorScheme.onSurface
-    val gradient = DesignTokens.topBarGradientBrush()
+    // Soft green-tinted card fading to the surface tone, saturating while a journey is
+    // live (the reference hero's idle vs active treatment); dark content text throughout.
+    val heroTopColor = if (isActive) Color(0xFFA9DCAE) else Color(0xFFD3EAD6)
+    val gradient = Brush.verticalGradient(
+        colors = listOf(
+            heroTopColor,
+            heroTopColor.copy(alpha = 0.45f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+        )
+    )
 
     // Subtle breathing when tracking is live (ported timing/easing from the source hero).
     val breath = if (isActive) {
