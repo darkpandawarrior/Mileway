@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -29,10 +30,14 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,13 +46,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.data.util.DateUtils
+import com.miletracker.core.ui.components.ConfettiBurst
 import com.miletracker.core.ui.components.EmptyState
 import com.miletracker.core.ui.components.LoadingScreen
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.feature.tracking.ui.components.CreateVoucherButton
+import com.miletracker.feature.tracking.ui.components.NoJourneysThisWeekState
+import com.miletracker.feature.tracking.ui.components.NoSubmissionsState
+import com.miletracker.feature.tracking.ui.components.SavedTracksChipRow
+import com.miletracker.feature.tracking.ui.components.SavedTracksFilterChip
+import com.miletracker.feature.tracking.ui.components.SavedTracksSearchField
+import com.miletracker.feature.tracking.ui.components.SavedTracksSegment
+import com.miletracker.feature.tracking.ui.components.SavedTracksSegmentedToggle
+import com.miletracker.feature.tracking.ui.components.SubmissionCard
+import com.miletracker.feature.tracking.ui.components.SubmissionCardData
+import com.miletracker.feature.tracking.ui.components.SubmissionDateHeader
+import com.miletracker.feature.tracking.ui.components.SubmissionSelectionRow
+import com.miletracker.feature.tracking.viewmodel.JourneyFilter
+import com.miletracker.feature.tracking.viewmodel.SavedTracksTab
 import com.miletracker.feature.tracking.viewmodel.SavedTracksUiState
 import com.miletracker.feature.tracking.viewmodel.SavedTracksViewModel
+import com.miletracker.feature.tracking.viewmodel.SubmissionFilter
+import com.miletracker.feature.tracking.viewmodel.SubmissionItem
+import com.miletracker.feature.tracking.viewmodel.SubmissionSource
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Top-level "Saved Tracks" tab — a Journeys/Submissions surface sitting above the bubble bottom bar.
+ *
+ * The public signature is intentionally stable: the integrator still passes [onTrackClick] and
+ * [onStartNew], and the screen still owns its own [SavedTracksViewModel] via Koin.
+ *
+ * Layout:
+ *  - Gradient ROOT header with aggregate stats (the "deeper = calmer" anchor).
+ *  - A Journeys/Submissions segmented toggle, a rounded search field, and chip filters.
+ *  - Journeys tab: the filtered journey card list (with a "No journeys this week" empty state).
+ *  - Submissions tab: date-grouped submission cards with a long-press selection mode and a
+ *    full-width "Create Voucher" CTA. Creating a voucher is a pure-demo acknowledgement (confetti).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedTracksScreen(
@@ -56,25 +92,43 @@ fun SavedTracksScreen(
     viewModel: SavedTracksViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onStartNew,
-                icon = { Icon(Icons.Default.PlayArrow, null) },
-                text = { Text("Start Journey") },
-                // Lift above the floating bubble bar.
-                modifier = Modifier.padding(bottom = 88.dp)
-            )
+    // Pure-demo voucher acknowledgement: snackbar + confetti, then consume the one-shot flag.
+    LaunchedEffect(uiState.voucherCreatedAck) {
+        if (uiState.voucherCreatedAck) {
+            snackbarHostState.showSnackbar("Voucher created")
+            viewModel.onVoucherAckConsumed()
         }
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize()) {
-            TrackMilesHeader(tracks = uiState.tracks)
-            SavedTracksContent(
-                uiState = uiState,
-                bottomPadding = padding.calculateBottomPadding(),
-                onTrackClick = onTrackClick
-            )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            floatingActionButton = {
+                ExtendedFloatingActionButton(
+                    onClick = onStartNew,
+                    icon = { Icon(Icons.Default.PlayArrow, null) },
+                    text = { Text("Start Journey") },
+                    // Lift above the floating bubble bar.
+                    modifier = Modifier.padding(bottom = 88.dp)
+                )
+            }
+        ) { padding ->
+            Column(modifier = Modifier.fillMaxSize()) {
+                TrackMilesHeader(tracks = uiState.tracks)
+                SavedTracksBody(
+                    uiState = uiState,
+                    bottomPadding = padding.calculateBottomPadding(),
+                    onTrackClick = onTrackClick,
+                    viewModel = viewModel
+                )
+            }
+        }
+
+        // Celebration overlay floats above everything while the flag is set.
+        if (uiState.voucherCreatedAck) {
+            ConfettiBurst(modifier = Modifier.fillMaxSize())
         }
     }
 }
@@ -95,13 +149,13 @@ private fun TrackMilesHeader(tracks: List<TrackDisplayData>) {
     ) {
         Column {
             Text(
-                text = "Track Miles",
+                text = "Saved Tracks",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             Text(
-                text = "Your recorded journeys",
+                text = "Track and manage your journeys",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.85f)
             )
@@ -128,32 +182,131 @@ private fun HeaderStat(value: String, label: String, modifier: Modifier = Modifi
     }
 }
 
+/**
+ * Below-header content: the toggle/search/chips controls and the per-tab list. Everything below
+ * the gradient header lives in a single [LazyColumn] so the controls scroll with the content.
+ */
 @Composable
-private fun SavedTracksContent(
+private fun SavedTracksBody(
     uiState: SavedTracksUiState,
     bottomPadding: androidx.compose.ui.unit.Dp,
-    onTrackClick: (String) -> Unit
+    onTrackClick: (String) -> Unit,
+    viewModel: SavedTracksViewModel
 ) {
-    when {
-        uiState.isLoading -> LoadingScreen()
-        uiState.tracks.isEmpty() -> EmptyState(
-            title = "No saved journeys",
-            subtitle = "Tap 'Start Journey' to record your first trip"
-        )
-        else -> LazyColumn(
-            contentPadding = PaddingValues(
-                top = DesignTokens.Spacing.l,
-                bottom = bottomPadding + 140.dp,
-                start = DesignTokens.Spacing.l,
-                end = DesignTokens.Spacing.l
-            ),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
-        ) {
-            items(uiState.tracks) { track ->
-                JourneyCard(track = track, onClick = { onTrackClick(track.token) })
-            }
+    if (uiState.isLoading) {
+        LoadingScreen()
+        return
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().imePadding(),
+        contentPadding = PaddingValues(
+            top = DesignTokens.Spacing.l,
+            bottom = bottomPadding + 140.dp,
+            start = DesignTokens.Spacing.l,
+            end = DesignTokens.Spacing.l
+        ),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+    ) {
+        // Controls shared by both tabs.
+        item {
+            SavedTracksSegmentedToggle(
+                selected = if (uiState.tab == SavedTracksTab.JOURNEYS) SavedTracksSegment.JOURNEYS else SavedTracksSegment.SUBMISSIONS,
+                journeyCount = uiState.journeyCount,
+                submissionCount = uiState.submissionCount,
+                onSelect = { segment ->
+                    viewModel.onTabSelected(
+                        if (segment == SavedTracksSegment.JOURNEYS) SavedTracksTab.JOURNEYS else SavedTracksTab.SUBMISSIONS
+                    )
+                }
+            )
+        }
+
+        when (uiState.tab) {
+            SavedTracksTab.JOURNEYS -> journeysSection(uiState, onTrackClick, viewModel)
+            SavedTracksTab.SUBMISSIONS -> submissionsSection(uiState, viewModel)
         }
     }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Journeys tab
+// ─────────────────────────────────────────────────────────────────────────────
+
+private fun androidx.compose.foundation.lazy.LazyListScope.journeysSection(
+    uiState: SavedTracksUiState,
+    onTrackClick: (String) -> Unit,
+    viewModel: SavedTracksViewModel
+) {
+    item {
+        SavedTracksSearchField(
+            query = uiState.journeySearch,
+            placeholder = "Search journeys…",
+            onQueryChange = viewModel::onJourneySearchChanged,
+            onFilterClick = {}
+        )
+    }
+    item {
+        SavedTracksChipRow {
+            SavedTracksFilterChip(
+                label = "This Week",
+                selected = uiState.journeyFilter == JourneyFilter.THIS_WEEK,
+                onClick = { viewModel.onJourneyFilterSelected(JourneyFilter.THIS_WEEK) }
+            )
+            SavedTracksFilterChip(
+                label = "Kept",
+                selected = uiState.journeyFilter == JourneyFilter.KEPT,
+                onClick = { viewModel.onJourneyFilterSelected(JourneyFilter.KEPT) }
+            )
+            SavedTracksFilterChip(
+                label = "All",
+                selected = uiState.journeyFilter == JourneyFilter.ALL,
+                onClick = { viewModel.onJourneyFilterSelected(JourneyFilter.ALL) }
+            )
+        }
+    }
+
+    val journeys = filterJourneys(uiState)
+    when {
+        journeys.isEmpty() && uiState.journeyFilter == JourneyFilter.THIS_WEEK && uiState.journeySearch.isBlank() -> {
+            item {
+                NoJourneysThisWeekState(onViewAll = { viewModel.onJourneyFilterSelected(JourneyFilter.ALL) })
+            }
+        }
+        journeys.isEmpty() -> {
+            item {
+                EmptyState(
+                    title = if (uiState.journeySearch.isNotBlank()) "No matching journeys" else "No saved journeys",
+                    subtitle = if (uiState.journeySearch.isNotBlank()) "Try a different search term" else "Tap 'Start Journey' to record your first trip"
+                )
+            }
+        }
+        else -> items(journeys, key = { it.token }) { track ->
+            JourneyCard(track = track, onClick = { onTrackClick(track.token) })
+        }
+    }
+}
+
+/**
+ * Applies the active Journeys-tab search and chip filter to the track list. "Kept" reuses the
+ * submitted flag as the demo's "retained" signal; "This Week" keeps tracks from the last 7 days.
+ */
+private fun filterJourneys(uiState: SavedTracksUiState): List<TrackDisplayData> {
+    val now = System.currentTimeMillis()
+    val weekAgo = now - 7L * 24 * 60 * 60 * 1000
+    return uiState.tracks
+        .filter { track ->
+            when (uiState.journeyFilter) {
+                JourneyFilter.THIS_WEEK -> track.startTime >= weekAgo
+                JourneyFilter.KEPT -> track.isSubmitted
+                JourneyFilter.ALL -> true
+            }
+        }
+        .filter { track ->
+            uiState.journeySearch.isBlank() ||
+                (track.name?.contains(uiState.journeySearch, ignoreCase = true) == true) ||
+                track.token.contains(uiState.journeySearch, ignoreCase = true)
+        }
 }
 
 @Composable
@@ -251,3 +404,120 @@ private fun StatusChip(isSubmitted: Boolean) {
         Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = color)
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Submissions tab
+// ─────────────────────────────────────────────────────────────────────────────
+
+private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
+    uiState: SavedTracksUiState,
+    viewModel: SavedTracksViewModel
+) {
+    item {
+        SavedTracksSearchField(
+            query = uiState.submissionSearch,
+            placeholder = "Search submissions…",
+            onQueryChange = viewModel::onSubmissionSearchChanged,
+            onFilterClick = {}
+        )
+    }
+    // Primary submission filter chips.
+    item {
+        SavedTracksChipRow {
+            SavedTracksFilterChip(
+                label = "All (${uiState.submissionCount})",
+                selected = uiState.submissionFilter == SubmissionFilter.ALL,
+                onClick = { viewModel.onSubmissionFilterSelected(SubmissionFilter.ALL) }
+            )
+            SavedTracksFilterChip(
+                label = "Unclaimed (${uiState.unclaimedCount})",
+                selected = uiState.submissionFilter == SubmissionFilter.UNCLAIMED,
+                onClick = { viewModel.onSubmissionFilterSelected(SubmissionFilter.UNCLAIMED) }
+            )
+            SavedTracksFilterChip(
+                label = "Filed (${uiState.filedCount})",
+                selected = uiState.submissionFilter == SubmissionFilter.FILED,
+                onClick = { viewModel.onSubmissionFilterSelected(SubmissionFilter.FILED) }
+            )
+        }
+    }
+    // Secondary source chips.
+    item {
+        SavedTracksChipRow {
+            SavedTracksFilterChip(
+                label = "All",
+                selected = uiState.submissionSource == SubmissionSource.ALL,
+                onClick = { viewModel.onSubmissionSourceSelected(SubmissionSource.ALL) }
+            )
+            SavedTracksFilterChip(
+                label = "New Tracker",
+                selected = uiState.submissionSource == SubmissionSource.NEW_TRACKER,
+                onClick = { viewModel.onSubmissionSourceSelected(SubmissionSource.NEW_TRACKER) }
+            )
+            SavedTracksFilterChip(
+                label = "Other",
+                selected = uiState.submissionSource == SubmissionSource.OTHER,
+                onClick = { viewModel.onSubmissionSourceSelected(SubmissionSource.OTHER) }
+            )
+        }
+    }
+
+    // Selection-mode header + Create Voucher CTA.
+    if (uiState.selectionMode && uiState.selectedSubmissionIds.isNotEmpty()) {
+        item {
+            SubmissionSelectionRow(
+                selectedCount = uiState.selectedSubmissionIds.size,
+                onClearSelection = viewModel::onClearSelection
+            )
+        }
+        val voucherCount = uiState.selectedUnclaimedIds.size
+        if (voucherCount > 0) {
+            item {
+                CreateVoucherButton(count = voucherCount, onClick = viewModel::onCreateVoucher)
+            }
+        }
+    }
+
+    val submissions = uiState.filteredSubmissions
+    if (submissions.isEmpty()) {
+        item {
+            NoSubmissionsState(
+                title = if (uiState.submissionSearch.isNotBlank()) "No matching submissions" else "No submissions yet",
+                subtitle = if (uiState.submissionSearch.isNotBlank()) "Try a different search term" else "Submit mileage from your journeys to see them here"
+            )
+        }
+    } else {
+        // Date-grouped: a header per day, then the day's submission cards.
+        val grouped = submissions.groupBy { DateUtils.epochToDisplayDate(it.expenseDateMillis) }
+        grouped.forEach { (date, daySubmissions) ->
+            item(key = "header_$date") {
+                SubmissionDateHeader(label = date)
+            }
+            items(daySubmissions, key = { it.id }) { submission ->
+                SubmissionCard(
+                    data = submission.toCardData(),
+                    isSelected = submission.id in uiState.selectedSubmissionIds,
+                    selectionMode = uiState.selectionMode,
+                    onClick = {
+                        if (uiState.selectionMode) viewModel.onSubmissionTapped(submission.id)
+                        else viewModel.onSubmissionSelectionToggled(submission.id)
+                    },
+                    onLongClick = { viewModel.onSubmissionLongPressed(submission.id) }
+                )
+            }
+        }
+    }
+}
+
+/** Maps the ViewModel's [SubmissionItem] onto the stateless card's render data. */
+private fun SubmissionItem.toCardData() = SubmissionCardData(
+    id = id,
+    transId = transId,
+    amount = amount,
+    expenseDateMillis = expenseDateMillis,
+    attachmentCount = attachmentCount,
+    violationCount = violationCount,
+    acknowledged = acknowledged,
+    isNewTracker = isNewTracker,
+    voucherCreated = voucherCreated
+)

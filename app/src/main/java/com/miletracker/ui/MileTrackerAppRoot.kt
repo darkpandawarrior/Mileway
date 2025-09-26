@@ -71,6 +71,7 @@ import com.miletracker.feature.profile.ui.navigation.profileGraph
 import com.miletracker.feature.tracking.debug.DebugMenuScreen
 import com.miletracker.feature.tracking.ui.navigation.TrackingRoutes
 import com.miletracker.feature.tracking.ui.navigation.trackingGraph
+import com.miletracker.ui.home.HomeScreen
 import org.koin.compose.koinInject
 
 private data class TabSpec(
@@ -120,7 +121,7 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                     BubbleNavItem("Payables", Icons.Filled.Business, Icons.Outlined.Business)
                 ),
                 TabSpec(
-                    AppGraph.TRACK,
+                    AppGraph.HOME,
                     BubbleNavItem(
                         label = "Home",
                         painter = { painterResource(R.drawable.ic_logo_mark) },
@@ -153,9 +154,8 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         // the source app, where those flows render without the bottom nav.
         val topLevelRoutes = remember {
             setOf(
-                TrackingRoutes.SAVED_TRACKS,
+                AppGraph.HOME,
                 LoggingRoutes.HOME,
-                MediaRoutes.SELECTION,
                 ProfileRoutes.HOME,
                 AppGraph.TRAVEL,
                 AppGraph.PAYABLES,
@@ -219,9 +219,19 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
             Box(modifier = Modifier.fillMaxSize()) {
                 NavHost(
                     navController = navController,
-                    startDestination = AppGraph.TRACK,
+                    startDestination = AppGraph.HOME,
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    // Centre tab: the Home screen. Its mileage card opens the tracking flow.
+                    navigation(startDestination = "home_screen", route = AppGraph.HOME) {
+                        composable("home_screen") {
+                            HomeScreen(
+                                onStartTracking = { navController.navigate(AppGraph.TRACK) },
+                                onAddExpense = { navigateToTab(tabs.indexOfFirst { it.graphRoute == AppGraph.LOG }) },
+                                onOpenAccount = { navigateToTab(tabs.indexOfFirst { it.graphRoute == AppGraph.PROFILE }) },
+                            )
+                        }
+                    }
                     navigation(startDestination = TrackingRoutes.SAVED_TRACKS, route = AppGraph.TRACK) {
                         trackingGraph(navController)
                     }
