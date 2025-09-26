@@ -7,7 +7,10 @@ package com.miletracker.ui
  * illustrative placeholders until Phase 6 builds them out (see [MileTrackerAppRoot]).
  */
 object AppGraph {
-    /** Centre logo action — hosts the tracking feature until the home screen lands (Phase 6). */
+    /** Centre logo tab — the Home screen (greeting, action-required, mileage carousel, …). */
+    const val HOME = "home_graph"
+
+    /** Mileage tracking flow — reached from Home's mileage card (not a top-level tab). */
     const val TRACK = "track_graph"
 
     /** Spends tab — manual mileage logging / expenses. */

@@ -43,6 +43,8 @@ class ProfileViewModelTest {
     fun `header is populated from the repository`() {
         val vm = viewModel()
         assertTrue(vm.uiState.value.header.name.isNotBlank())
-        assertTrue(vm.uiState.value.tiles.isNotEmpty())
+        // The rich profile + completion are populated from the repository.
+        assertTrue(vm.uiState.value.profile.name.isNotBlank())
+        assertTrue(vm.uiState.value.completion.categories.isNotEmpty())
     }
 }

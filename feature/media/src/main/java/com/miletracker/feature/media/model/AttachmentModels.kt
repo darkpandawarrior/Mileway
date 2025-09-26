@@ -4,6 +4,14 @@ package com.miletracker.feature.media.model
 enum class AttachmentSource { CAMERA, GALLERY, FILES }
 
 /**
+ * Camera flash mode, cycled by the in-camera flash toggle.
+ *
+ * The order [AUTO] -> [ON] -> [OFF] mirrors the cycle of the on-screen toggle and the
+ * underlying CameraX `ImageCapture.FLASH_MODE_*` constants the controller is configured with.
+ */
+enum class FlashMode { AUTO, ON, OFF }
+
+/**
  * Result of a (mocked) OCR pass over an attachment image.
  *
  * @param rawText            full text the OCR engine "read" from the document

@@ -10,6 +10,7 @@ import com.miletracker.feature.tracking.checkin.CheckInValidator.CheckInLocation
 import com.miletracker.feature.tracking.di.trackingModule
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import com.miletracker.seeder.DatabaseSeeder
+import com.miletracker.ui.home.homeModule
 import com.miletracker.stub.DemoConfigManager
 import com.miletracker.stub.di.stubModule
 import kotlinx.coroutines.CoroutineScope
@@ -74,6 +75,7 @@ class MileTrackerApplication : Application() {
                 loggingModule,
                 mediaModule,
                 profileModule,
+                homeModule,
                 appModule
             )
         }
