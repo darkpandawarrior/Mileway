@@ -105,6 +105,7 @@ fun TrackMilesScreen(
     onStop: (id: String, distKm: Double, vehicleKey: String, startTime: Long, endTime: Long) -> Unit,
     onOpenMap: () -> Unit,
     onOpenHwEvents: () -> Unit,
+    onOpenCheckInHistory: () -> Unit = {},
     viewModel: TrackMilesViewModel = koinViewModel(),
     checkInViewModel: CheckInViewModel = koinViewModel()
 ) {
@@ -223,7 +224,8 @@ fun TrackMilesScreen(
             onAction = { id ->
                 when (id) {
                     Qa.MAP -> onOpenMap()
-                    Qa.HISTORY, Qa.DATA -> onOpenHwEvents()
+                    Qa.HISTORY -> onOpenCheckInHistory()
+                    Qa.DATA -> onOpenHwEvents()
                     Qa.CHECK_IN, Qa.MANUAL_CHECK_IN -> checkInViewModel.openManualCheckIn()
                     Qa.CENTERS -> viewModel.openVendorPicker()
                     Qa.SAVED -> onOpenHwEvents()
