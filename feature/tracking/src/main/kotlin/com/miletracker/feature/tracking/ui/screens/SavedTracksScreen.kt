@@ -243,7 +243,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.journeysSection(
             query = uiState.journeySearch,
             placeholder = "Search journeys…",
             onQueryChange = viewModel::onJourneySearchChanged,
-            onFilterClick = {}
+            onFilterClick = null
         )
     }
     item {
@@ -418,7 +418,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
             query = uiState.submissionSearch,
             placeholder = "Search submissions…",
             onQueryChange = viewModel::onSubmissionSearchChanged,
-            onFilterClick = {}
+            onFilterClick = null
         )
     }
     // Primary submission filter chips.

@@ -47,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -85,6 +86,7 @@ fun AttachmentSelectionScreen(
     viewModel: MediaViewModel,
     onNavigateToCamera: (odometer: Boolean) -> Unit,
     onNavigateToPreview: () -> Unit,
+    onNavigateBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -130,7 +132,7 @@ fun AttachmentSelectionScreen(
                 subtitle = "Upload Attachments",
                 depth = NavigationDepth.ROOT,
                 navigationIcon = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -138,23 +140,27 @@ fun AttachmentSelectionScreen(
                     }
                 },
                 actions = {
-                    // Trailing config icons row (parity with the reference: theme, biometric, scan).
-                    IconButton(onClick = {}) {
+                    // Trailing config icons (reference parity: theme, biometric, scan).
+                    // Not interactive in this demo — rendered disabled per M3 pattern.
+                    IconButton(enabled = false, onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.WaterDrop,
-                            contentDescription = "Theme color"
+                            contentDescription = "Theme color",
+                            modifier = Modifier.alpha(0.38f)
                         )
                     }
-                    IconButton(onClick = {}) {
+                    IconButton(enabled = false, onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.Fingerprint,
-                            contentDescription = "Biometric lock"
+                            contentDescription = "Biometric lock",
+                            modifier = Modifier.alpha(0.38f)
                         )
                     }
-                    IconButton(onClick = {}) {
+                    IconButton(enabled = false, onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
-                            contentDescription = "Scan"
+                            contentDescription = "Scan",
+                            modifier = Modifier.alpha(0.38f)
                         )
                     }
                 }

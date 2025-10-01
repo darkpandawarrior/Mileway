@@ -43,7 +43,8 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
             onNavigateToCamera = { odometer ->
                 navController.navigate(MediaRoutes.camera(odometer))
             },
-            onNavigateToPreview = { navController.navigate(MediaRoutes.PREVIEW) }
+            onNavigateToPreview = { navController.navigate(MediaRoutes.PREVIEW) },
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 
