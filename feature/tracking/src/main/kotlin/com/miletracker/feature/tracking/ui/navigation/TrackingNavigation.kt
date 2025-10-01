@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.miletracker.core.ui.AppHost
 import com.miletracker.feature.tracking.ui.screens.CheckInHistoryItem
 import com.miletracker.feature.tracking.ui.screens.CheckInHistoryScreen
+import com.miletracker.feature.tracking.ui.screens.CreateVoucherScreen
 import com.miletracker.feature.tracking.ui.screens.HardwareEventsLogScreen
 import com.miletracker.feature.tracking.ui.screens.LiveTrackScreen
 import com.miletracker.feature.tracking.ui.screens.LocationMapScreen
@@ -31,6 +32,7 @@ object TrackingRoutes {
     const val CHECK_IN_HISTORY = "check_in_history"
     const val ROUTE_MAP = "route_map/{routeId}"
     const val SUBMIT = "submit/{routeId}?distanceKm={distanceKm}&vehicleKey={vehicleKey}&startTime={startTime}&endTime={endTime}"
+    const val CREATE_VOUCHER = "create_voucher"
     const val SUCCESS = "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleName={vehicleName}" +
         "&startTime={startTime}&endTime={endTime}&transId={transId}&status={status}" +
         "&violationCount={violationCount}&violationMsg={violationMsg}" +
@@ -236,8 +238,12 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     voucherAmount = args.getFloat("voucherAmount").toDouble(),
                     onTrackNewJourney = toSaved,
                     onViewExpense = toSaved,
-                    onCreateVoucher = {},
+                    onCreateVoucher = { navController.navigate(TrackingRoutes.CREATE_VOUCHER) },
                 )
+            }
+
+            composable(TrackingRoutes.CREATE_VOUCHER) {
+                CreateVoucherScreen(onBack = { navController.popBackStack() })
             }
 }
 

@@ -48,6 +48,7 @@ import com.miletracker.feature.tracking.ui.navigation.SubmissionResult
 import com.miletracker.feature.tracking.ui.sheets.EntityPickerSheet
 import com.miletracker.feature.tracking.ui.sheets.OfficePickerSheet
 import com.miletracker.feature.tracking.ui.sheets.PolicyViolationSheet
+import com.miletracker.feature.tracking.ui.sheets.SmartDistanceSheet
 import com.miletracker.feature.tracking.ui.sheets.SubmitConfirmSheet
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import com.miletracker.feature.tracking.viewmodel.SubmissionFieldType
@@ -74,9 +75,18 @@ fun TrackSubmissionScreen(
     var startOdo by remember { mutableStateOf<Int?>(null) }
     var endOdo by remember { mutableStateOf<Int?>(null) }
     var selectedTab by remember { mutableStateOf("Journey") }
+    var smartDistanceVerified by remember { mutableStateOf(false) }
+    var smartDistanceExplanation by remember { mutableStateOf("") }
 
     val durationMs = (endTime - startTime).coerceAtLeast(0L)
     val odometerDistanceKm = if (startOdo != null && endOdo != null) (endOdo!! - startOdo!!).toDouble() else null
+
+    // Trigger SmartDistanceSheet automatically when odometer discrepancy exceeds 15%.
+    LaunchedEffect(odometerDistanceKm) {
+        val odometer = odometerDistanceKm ?: return@LaunchedEffect
+        val discrepancy = if (distanceKm > 0.0) kotlin.math.abs(odometer - distanceKm) / distanceKm else 0.0
+        if (discrepancy > 0.15) viewModel.openSmartDistanceSheet(distanceKm, odometer)
+    }
 
     // On a finalized submission, hand the full result to the success screen.
     LaunchedEffect(state) {
@@ -251,7 +261,19 @@ fun TrackSubmissionScreen(
             onDismiss = viewModel::dismissSheet,
         )
 
-        SubmissionSheet.SMART_DISTANCE, SubmissionSheet.NONE -> Unit
+        SubmissionSheet.SMART_DISTANCE -> SmartDistanceSheet(
+            trackedKm = form.smartDistanceTrackedKm,
+            odometerKm = form.smartDistanceOdometerKm,
+            verified = smartDistanceVerified,
+            explanation = smartDistanceExplanation,
+            onVerifiedChange = { smartDistanceVerified = it },
+            onExplanationChange = { smartDistanceExplanation = it },
+            onStop = viewModel::dismissSheet,
+            onContinue = viewModel::dismissSheet,
+            onDismiss = viewModel::dismissSheet,
+        )
+
+        SubmissionSheet.NONE -> Unit
     }
 }
 

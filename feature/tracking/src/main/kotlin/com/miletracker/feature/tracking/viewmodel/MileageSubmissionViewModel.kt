@@ -55,6 +55,8 @@ data class SubmissionFormUi(
     val violations: List<PolicyViolation> = emptyList(),
     val askAuthorities: Boolean = false,
     val violationNote: String = "",
+    val smartDistanceTrackedKm: Double = 0.0,
+    val smartDistanceOdometerKm: Double = 0.0,
 ) {
     /** Required items still missing — drives the "N remaining" checklist header. */
     val remainingRequirements: List<String>
@@ -156,6 +158,13 @@ class MileageSubmissionViewModel(
     }
 
     fun openSubmitConfirm() = _form.update { it.copy(sheet = SubmissionSheet.SUBMIT_CONFIRM) }
+    fun openSmartDistanceSheet(trackedKm: Double, odometerKm: Double) = _form.update {
+        it.copy(
+            sheet = SubmissionSheet.SMART_DISTANCE,
+            smartDistanceTrackedKm = trackedKm,
+            smartDistanceOdometerKm = odometerKm,
+        )
+    }
     fun dismissSheet() = _form.update { it.copy(sheet = SubmissionSheet.NONE) }
 
     fun setAskAuthorities(enabled: Boolean) = _form.update { it.copy(askAuthorities = enabled) }
