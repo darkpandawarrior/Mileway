@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -52,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.feature.tracking.ui.components.StatusBadge
 import com.miletracker.core.ui.components.tracking.ActivitySegment
 import com.miletracker.core.ui.components.tracking.ActivityType
 import com.miletracker.core.ui.components.tracking.CompactSystemStatusIndicator
@@ -159,7 +161,20 @@ fun TrackMilesScreen(
     }
 
     Scaffold(
-        topBar = { DepthAwareTopBar(title = "Track Miles", depth = DesignTokens.NavigationDepth.ROOT) },
+        topBar = {
+            DepthAwareTopBar(
+                title = "Track Miles",
+                depth = DesignTokens.NavigationDepth.ROOT,
+                actions = {
+                    if (isActive) {
+                        StatusBadge(
+                            text = if (isPaused) "PAUSED" else "ACTIVE",
+                            color = if (isPaused) Color(0xFFFF9800) else Color(0xFF4CAF50),
+                        )
+                    }
+                }
+            )
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
         Column(

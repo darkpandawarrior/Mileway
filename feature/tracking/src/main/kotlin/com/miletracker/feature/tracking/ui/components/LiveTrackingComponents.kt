@@ -196,7 +196,7 @@ fun LiveIndicatorBadge(isPaused: Boolean) {
         animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "pulse_alpha"
     )
     StatusBadge(
-        text = if (isPaused) "PAUSED" else "LIVE",
+        text = if (isPaused) "PAUSED" else "ACTIVE",
         color = if (isPaused) Color(0xFFFF9800) else Color(0xFF4CAF50),
         modifier = if (isPaused) Modifier else Modifier.alpha(alpha)
     )
