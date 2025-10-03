@@ -115,6 +115,7 @@ fun TrackSubmissionScreen(
         topBar = {
             DepthAwareTopBar(
                 title = "Submit Track Miles",
+                subtitle = "Fill out the details given below",
                 depth = NavigationDepth.LEVEL_2,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
