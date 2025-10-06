@@ -62,6 +62,8 @@ import com.miletracker.core.ui.components.bottombar.BubbleNavItem
 import com.miletracker.core.ui.components.bottombar.CollapsedBottomPuck
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
+import com.miletracker.feature.approvals.ui.navigation.ApprovalsRoutes
+import com.miletracker.feature.approvals.ui.navigation.approvalsGraph
 import com.miletracker.feature.logging.ui.navigation.LoggingRoutes
 import com.miletracker.feature.logging.ui.navigation.loggingGraph
 import com.miletracker.feature.media.ui.navigation.MediaRoutes
@@ -253,8 +255,8 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                     composable(AppGraph.PAYABLES) {
                         ShellPlaceholderScreen("Payables", Icons.Filled.Business)
                     }
-                    composable(AppGraph.APPROVALS) {
-                        ShellPlaceholderScreen("Approvals", Icons.Filled.PersonAdd)
+                    navigation(startDestination = ApprovalsRoutes.HOME, route = AppGraph.APPROVALS) {
+                        approvalsGraph(navController)
                     }
                     // Global debug destination — outside bottom-nav graphs so it renders
                     // full-screen without the bottom bar.
