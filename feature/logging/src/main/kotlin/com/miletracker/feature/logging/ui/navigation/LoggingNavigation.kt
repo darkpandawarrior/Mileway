@@ -2,49 +2,83 @@ package com.miletracker.feature.logging.ui.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.miletracker.feature.logging.ui.screens.ExpenseDetailScreen
+import com.miletracker.feature.logging.ui.screens.ExpenseDetailsInputScreen
+import com.miletracker.feature.logging.ui.screens.ExpenseEntryScreen
+import com.miletracker.feature.logging.ui.screens.ExpenseHistoryScreen
+import com.miletracker.feature.logging.ui.screens.ExpenseSuccessScreen
 import com.miletracker.feature.logging.ui.screens.LogMilesHistoryScreen
 import com.miletracker.feature.logging.ui.screens.LogMilesScreen
 import com.miletracker.feature.logging.ui.screens.LogMilesStep2Screen
 import com.miletracker.feature.logging.ui.screens.LogMilesSuccessScreen
+import com.miletracker.feature.logging.ui.screens.SpendsHomeScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Route constants for the Log Miles flow.
+ * Route constants for the Spends tab (Log Miles + Expense flows).
  *
- * [HOME] remains the canonical entry (Step 1) so the app shell hosts the same
- * destination as before. The remaining routes are pushed full-screen flows.
+ * [HOME] is the Spends hub landing — renders two primary-action cards.
+ * [LOG_MILES] is the Log Miles Step 1 entry; deeper log-miles routes share
+ * its ViewModel via [rememberLogMilesEntry].
  */
 object LoggingRoutes {
-    /** Step 1 — journey basics + travelled locations (top-level tab). */
-    const val HOME = "log_miles"
+    /** Spends hub — two-card home (top-level tab destination). */
+    const val HOME = "spends_home"
 
-    /** Step 2 — expense details + submission. */
+    /** Log Miles Step 1 — journey basics + travelled locations. */
+    const val LOG_MILES = "log_miles"
+
+    /** Log Miles Step 2 — expense details + submission. */
     const val STEP2 = "log_miles/step2"
 
-    /** Post-submission success route. */
+    /** Log Miles post-submission success route. */
     const val SUCCESS = "log_miles/success"
 
-    /** Drafts + submitted history. */
+    /** Log Miles drafts + submitted history. */
     const val HISTORY = "log_miles/history"
+
+    /** Add Expense Step 1 — category picker. */
+    const val EXPENSE_ENTRY = "expense/entry"
+
+    /** Add Expense Step 2 — amount, merchant, notes + submit. */
+    const val EXPENSE_DETAILS = "expense/details"
+
+    /** Add Expense success screen. */
+    const val EXPENSE_SUCCESS = "expense/success"
+
+    /** Expense history list. */
+    const val EXPENSE_HISTORY = "expense/history"
+
+    /** Expense detail pushed screen. Route param: id. */
+    const val EXPENSE_DETAIL = "expense/detail/{id}"
+
+    fun expenseDetailRoute(id: String) = "expense/detail/$id"
 }
 
 /**
- * Logging destinations as a reusable nav-graph builder so the app shell can host
- * the Log Miles flow inside a nested graph.
+ * Logging + Expense destinations as a reusable nav-graph builder.
  *
- * The two-step flow shares a single [com.miletracker.feature.logging.viewmodel.LogMilesViewModel]
- * across Step 1, Step 2 and the success route by resolving it from the back-stack
- * entry of the [LoggingRoutes.HOME] destination — so the itinerary built on Step 1
- * is still present on Step 2 and the submission result on the success screen. The
- * History screen reads the same shared state (drafts/submitted) the same way.
- *
- * [LogMilesScreen] still resolves its own ViewModel by default, so the public
- * entry signature is unchanged for existing callers.
+ * The Spends home renders two action cards; each branches into its own sub-flow:
+ *   - Track Mileage → Log Miles two-step flow (shares one ViewModel anchored to LOG_MILES)
+ *   - Add Expense   → Expense category → details → success flow (ExpenseViewModel)
  */
 fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
-    composable(LoggingRoutes.HOME) { entry ->
-        // Anchor the shared VM to the HOME back-stack entry.
+
+    // ── Spends home ──────────────────────────────────────────────────────────
+    composable(LoggingRoutes.HOME) {
+        SpendsHomeScreen(
+            onTrackMileage = { navController.navigate(LoggingRoutes.LOG_MILES) },
+            onAddExpense = { navController.navigate(LoggingRoutes.EXPENSE_ENTRY) },
+            onMileageHistory = { navController.navigate(LoggingRoutes.HISTORY) },
+            onExpenseHistory = { navController.navigate(LoggingRoutes.EXPENSE_HISTORY) }
+        )
+    }
+
+    // ── Log Miles flow ───────────────────────────────────────────────────────
+    composable(LoggingRoutes.LOG_MILES) { entry ->
         val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
             viewModelStoreOwner = entry
         )
@@ -56,16 +90,15 @@ fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
     }
 
     composable(LoggingRoutes.STEP2) {
-        val homeEntry = rememberHomeEntry(navController)
+        val logMilesEntry = rememberLogMilesEntry(navController)
         val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = homeEntry
+            viewModelStoreOwner = logMilesEntry
         )
         LogMilesStep2Screen(
             viewModel = viewModel,
             onBack = { navController.popBackStack() },
             onSubmitted = {
                 navController.navigate(LoggingRoutes.SUCCESS) {
-                    // Drop Step 2 so Back from success returns to a fresh Step 1.
                     popUpTo(LoggingRoutes.STEP2) { inclusive = true }
                 }
             }
@@ -73,43 +106,117 @@ fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
     }
 
     composable(LoggingRoutes.SUCCESS) {
-        val homeEntry = rememberHomeEntry(navController)
+        val logMilesEntry = rememberLogMilesEntry(navController)
         val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = homeEntry
+            viewModelStoreOwner = logMilesEntry
         )
         LogMilesSuccessScreen(
             viewModel = viewModel,
             onLogAnother = {
-                navController.navigate(LoggingRoutes.HOME) {
-                    popUpTo(LoggingRoutes.HOME) { inclusive = true }
+                navController.navigate(LoggingRoutes.LOG_MILES) {
+                    popUpTo(LoggingRoutes.LOG_MILES) { inclusive = true }
                 }
             }
         )
     }
 
     composable(LoggingRoutes.HISTORY) {
-        val homeEntry = rememberHomeEntry(navController)
+        val logMilesEntry = rememberLogMilesEntry(navController)
         val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = homeEntry
+            viewModelStoreOwner = logMilesEntry
         )
         LogMilesHistoryScreen(
             viewModel = viewModel,
             onBack = { navController.popBackStack() },
             onOpenDraft = {
-                // Re-opening a draft returns to Step 1 where the itinerary lives.
-                navController.popBackStack(LoggingRoutes.HOME, inclusive = false)
+                navController.popBackStack(LoggingRoutes.LOG_MILES, inclusive = false)
             }
+        )
+    }
+
+    // ── Expense flow ─────────────────────────────────────────────────────────
+    composable(LoggingRoutes.EXPENSE_ENTRY) { entry ->
+        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
+            viewModelStoreOwner = entry
+        )
+        ExpenseEntryScreen(
+            onBack = { navController.popBackStack() },
+            onCategorySelected = { navController.navigate(LoggingRoutes.EXPENSE_DETAILS) },
+            viewModel = viewModel
+        )
+    }
+
+    composable(LoggingRoutes.EXPENSE_DETAILS) {
+        val expenseEntry = rememberExpenseEntry(navController)
+        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
+            viewModelStoreOwner = expenseEntry
+        )
+        ExpenseDetailsInputScreen(
+            onBack = { navController.popBackStack() },
+            onSubmitted = {
+                navController.navigate(LoggingRoutes.EXPENSE_SUCCESS) {
+                    popUpTo(LoggingRoutes.EXPENSE_DETAILS) { inclusive = true }
+                }
+            },
+            viewModel = viewModel
+        )
+    }
+
+    composable(LoggingRoutes.EXPENSE_SUCCESS) {
+        val expenseEntry = rememberExpenseEntry(navController)
+        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
+            viewModelStoreOwner = expenseEntry
+        )
+        ExpenseSuccessScreen(
+            onAddAnother = {
+                navController.navigate(LoggingRoutes.EXPENSE_ENTRY) {
+                    popUpTo(LoggingRoutes.EXPENSE_ENTRY) { inclusive = true }
+                }
+            },
+            onViewHistory = {
+                navController.navigate(LoggingRoutes.EXPENSE_HISTORY) {
+                    popUpTo(LoggingRoutes.EXPENSE_SUCCESS) { inclusive = true }
+                }
+            },
+            viewModel = viewModel
+        )
+    }
+
+    composable(LoggingRoutes.EXPENSE_HISTORY) {
+        ExpenseHistoryScreen(
+            onBack = { navController.popBackStack() },
+            onOpenDetail = { id -> navController.navigate(LoggingRoutes.expenseDetailRoute(id)) }
+        )
+    }
+
+    composable(
+        route = LoggingRoutes.EXPENSE_DETAIL,
+        arguments = listOf(navArgument("id") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val id = backStackEntry.arguments?.getString("id") ?: return@composable
+        ExpenseDetailScreen(
+            expenseId = id,
+            onBack = { navController.popBackStack() }
         )
     }
 }
 
 /**
- * Resolves the [LoggingRoutes.HOME] back-stack entry so deeper destinations share
- * the same ViewModel store as Step 1. Falls back to the current entry if HOME is
- * not on the back stack (defensive — should not happen within this flow).
+ * Resolves the [LoggingRoutes.LOG_MILES] back-stack entry so step-2, success and history
+ * share the same ViewModel store as Step 1. Falls back to the current entry defensively.
  */
 @androidx.compose.runtime.Composable
-private fun rememberHomeEntry(navController: NavHostController) =
+private fun rememberLogMilesEntry(navController: NavHostController) =
     androidx.compose.runtime.remember(navController.currentBackStackEntry) {
-        runCatching { navController.getBackStackEntry(LoggingRoutes.HOME) }.getOrNull()
+        runCatching { navController.getBackStackEntry(LoggingRoutes.LOG_MILES) }.getOrNull()
+    } ?: navController.currentBackStackEntry!!
+
+/**
+ * Resolves the [LoggingRoutes.EXPENSE_ENTRY] back-stack entry so the details and success
+ * screens share the same ExpenseViewModel as the entry screen.
+ */
+@androidx.compose.runtime.Composable
+private fun rememberExpenseEntry(navController: NavHostController) =
+    androidx.compose.runtime.remember(navController.currentBackStackEntry) {
+        runCatching { navController.getBackStackEntry(LoggingRoutes.EXPENSE_ENTRY) }.getOrNull()
     } ?: navController.currentBackStackEntry!!
