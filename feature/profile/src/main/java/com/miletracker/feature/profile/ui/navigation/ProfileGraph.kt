@@ -2,7 +2,14 @@ package com.miletracker.feature.profile.ui.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.miletracker.feature.profile.ui.screens.AdvanceHistoryScreen
+import com.miletracker.feature.profile.ui.screens.AskAdvanceFormScreen
+import com.miletracker.feature.profile.ui.screens.CardDetailScreen
+import com.miletracker.feature.profile.ui.screens.CardRequestScreen
+import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
 import com.miletracker.feature.profile.ui.screens.PreferencesScreen
 import com.miletracker.feature.profile.ui.screens.ProfileDetailsScreen
@@ -15,6 +22,12 @@ object ProfileRoutes {
     const val PREFERENCES = "preferences"
     const val SETTINGS = "profile_settings"
     const val HELP = "profile_help"
+    const val ADVANCE_HISTORY = "profile/advance"
+    const val ASK_ADVANCE = "profile/advance/new"
+    const val CARDS_HOME = "profile/cards"
+    const val CARD_REQUEST = "profile/cards/new"
+    const val CARD_DETAIL = "profile/cards/detail/{cardId}"
+    fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
 }
 
 /**
@@ -38,6 +51,8 @@ fun NavGraphBuilder.profileGraph(
             onOpenNotifications = { navController.navigate(ProfileRoutes.HELP) },
             onOpenSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
             onOpenAboutSupport = { navController.navigate(ProfileRoutes.HELP) },
+            onOpenAdvance = { navController.navigate(ProfileRoutes.ADVANCE_HISTORY) },
+            onOpenCards = { navController.navigate(ProfileRoutes.CARDS_HOME) },
         )
     }
     composable(ProfileRoutes.DETAILS) {
@@ -58,6 +73,40 @@ fun NavGraphBuilder.profileGraph(
     }
     composable(ProfileRoutes.HELP) {
         HelpScreen(
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.ADVANCE_HISTORY) {
+        AdvanceHistoryScreen(
+            onBack = { navController.popBackStack() },
+            onRequestAdvance = { navController.navigate(ProfileRoutes.ASK_ADVANCE) },
+        )
+    }
+    composable(ProfileRoutes.ASK_ADVANCE) {
+        AskAdvanceFormScreen(
+            onBack = { navController.popBackStack() },
+            onSubmitted = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.CARDS_HOME) {
+        CardsHomeScreen(
+            onBack = { navController.popBackStack() },
+            onOpenCard = { cardId -> navController.navigate(ProfileRoutes.cardDetailRoute(cardId)) },
+            onRequestCard = { navController.navigate(ProfileRoutes.CARD_REQUEST) },
+        )
+    }
+    composable(ProfileRoutes.CARD_REQUEST) {
+        CardRequestScreen(
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(
+        route = ProfileRoutes.CARD_DETAIL,
+        arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val cardId = backStackEntry.arguments?.getString("cardId") ?: return@composable
+        CardDetailScreen(
+            cardId = cardId,
             onBack = { navController.popBackStack() },
         )
     }
