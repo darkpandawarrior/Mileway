@@ -20,11 +20,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -80,6 +82,8 @@ fun ProfileScreen(
     onOpenNotifications: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAboutSupport: () -> Unit,
+    onOpenAdvance: () -> Unit = {},
+    onOpenCards: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -107,6 +111,8 @@ fun ProfileScreen(
                 onOpenPreferences = onOpenPreferences,
                 onOpenSessions = viewModel::intentOpenSessionsDialog,
                 onOpenAboutSupport = onOpenAboutSupport,
+                onOpenAdvance = onOpenAdvance,
+                onOpenCards = onOpenCards,
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
@@ -301,6 +307,8 @@ private fun AccountTileGrid(
     onOpenPreferences: () -> Unit,
     onOpenSessions: () -> Unit,
     onOpenAboutSupport: () -> Unit,
+    onOpenAdvance: () -> Unit,
+    onOpenCards: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val blue = Color(0xFF2563EB)
@@ -309,6 +317,8 @@ private fun AccountTileGrid(
     val orange = Color(0xFFEA580C)
     val purple = Color(0xFF7C3AED)
     val violet = Color(0xFF6D28D9)
+    val teal = Color(0xFF0F766E)
+    val indigo = Color(0xFF3730A3)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -328,6 +338,10 @@ private fun AccountTileGrid(
         TileRow(
             left = accountTile("acc_sessions", "Active Sessions", "Devices", Icons.Default.Devices, purple, onOpenSessions),
             right = accountTile("acc_about", "About & Support", "Help & info", Icons.Default.HelpOutline, violet, onOpenAboutSupport),
+        )
+        TileRow(
+            left = accountTile("acc_advance", "My Advances", "Cash advances", Icons.Default.MonetizationOn, teal, onOpenAdvance),
+            right = accountTile("acc_cards", "Corporate Cards", "Manage cards", Icons.Default.CreditCard, indigo, onOpenCards),
         )
     }
 }
