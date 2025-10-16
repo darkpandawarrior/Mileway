@@ -84,6 +84,7 @@ fun ProfileScreen(
     onOpenAboutSupport: () -> Unit,
     onOpenAdvance: () -> Unit = {},
     onOpenCards: () -> Unit = {},
+    onOpenInsights: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -120,6 +121,7 @@ fun ProfileScreen(
         item {
             AnalyticsCard(
                 analytics = state.analytics,
+                onClick = onOpenInsights,
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
@@ -381,13 +383,14 @@ private fun accountTile(
 @Composable
 private fun AnalyticsCard(
     analytics: AccountAnalyticsSnapshot,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         shape = DesignTokens.Shape.roundedLg,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = DesignTokens.Elevation.card,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(

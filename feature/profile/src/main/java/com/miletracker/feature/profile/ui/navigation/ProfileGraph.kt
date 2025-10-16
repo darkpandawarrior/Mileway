@@ -6,6 +6,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.miletracker.feature.profile.ui.screens.AdvanceHistoryScreen
+import com.miletracker.feature.profile.ui.screens.AnalyticsDetailScreen
+import com.miletracker.feature.profile.ui.screens.AnalyticsHomeScreen
 import com.miletracker.feature.profile.ui.screens.AskAdvanceFormScreen
 import com.miletracker.feature.profile.ui.screens.CardDetailScreen
 import com.miletracker.feature.profile.ui.screens.CardRequestScreen
@@ -27,7 +29,10 @@ object ProfileRoutes {
     const val CARDS_HOME = "profile/cards"
     const val CARD_REQUEST = "profile/cards/new"
     const val CARD_DETAIL = "profile/cards/detail/{cardId}"
+    const val ANALYTICS_HOME = "profile/analytics"
+    const val ANALYTICS_DETAIL = "profile/analytics/{category}"
     fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
+    fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
 
 /**
@@ -53,6 +58,7 @@ fun NavGraphBuilder.profileGraph(
             onOpenAboutSupport = { navController.navigate(ProfileRoutes.HELP) },
             onOpenAdvance = { navController.navigate(ProfileRoutes.ADVANCE_HISTORY) },
             onOpenCards = { navController.navigate(ProfileRoutes.CARDS_HOME) },
+            onOpenInsights = { navController.navigate(ProfileRoutes.ANALYTICS_HOME) },
         )
     }
     composable(ProfileRoutes.DETAILS) {
@@ -107,6 +113,22 @@ fun NavGraphBuilder.profileGraph(
         val cardId = backStackEntry.arguments?.getString("cardId") ?: return@composable
         CardDetailScreen(
             cardId = cardId,
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.ANALYTICS_HOME) {
+        AnalyticsHomeScreen(
+            onBack = { navController.popBackStack() },
+            onOpenDetail = { category -> navController.navigate(ProfileRoutes.analyticsDetailRoute(category)) },
+        )
+    }
+    composable(
+        route = ProfileRoutes.ANALYTICS_DETAIL,
+        arguments = listOf(navArgument("category") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val category = backStackEntry.arguments?.getString("category") ?: return@composable
+        AnalyticsDetailScreen(
+            category = category,
             onBack = { navController.popBackStack() },
         )
     }
