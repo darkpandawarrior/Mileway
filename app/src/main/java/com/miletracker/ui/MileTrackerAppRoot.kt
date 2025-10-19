@@ -307,32 +307,7 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         }
 
         if (showAssistantSheet) {
-            ModalBottomSheet(onDismissRequest = { showAssistantSheet = false }) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AutoAwesome,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Text("Assistant", style = MaterialTheme.typography.headlineSmall)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "The throw-up gesture opens the in-app assistant. It is illustrative in this demo.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(24.dp))
-                }
-            }
+            AssistantHomeSheet(onDismiss = { showAssistantSheet = false })
         }
     }
 }
