@@ -9,11 +9,17 @@ import com.miletracker.core.data.dao.SavedTrackDao
 import com.miletracker.core.data.dao.TripAttachmentDao
 import com.miletracker.core.data.session.CurrentTrackDataStore
 import com.miletracker.core.ui.di.coreUiModule
+import com.miletracker.feature.approvals.di.approvalsModule
+import com.miletracker.feature.approvals.viewmodel.ApprovalsViewModel
 import com.miletracker.feature.logging.di.loggingModule
+import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import com.miletracker.feature.media.di.mediaModule
 import com.miletracker.feature.media.viewmodel.MediaViewModel
+import com.miletracker.feature.payables.di.payablesModule
+import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import com.miletracker.feature.profile.di.profileModule
+import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
 import com.miletracker.feature.tracking.debug.DebugMenuComposeViewModel
 import com.miletracker.feature.tracking.di.trackingModule
@@ -81,6 +87,8 @@ class KoinGraphTest : KoinTest {
                 loggingModule,
                 mediaModule,
                 profileModule,
+                approvalsModule,
+                payablesModule,
                 appModule
             )
         }
@@ -105,9 +113,13 @@ class KoinGraphTest : KoinTest {
         assertNotNull(get<ExportViewModel>())
         assertNotNull(get<DebugMenuComposeViewModel>())
         assertNotNull(get<LogMilesViewModel>())
+        assertNotNull(get<ExpenseViewModel>())
         assertNotNull(get<MediaViewModel>())
         assertNotNull(get<ProfileViewModel>())
+        assertNotNull(get<AdvanceViewModel>())
         assertNotNull(get<CheckInViewModel>())
+        assertNotNull(get<ApprovalsViewModel>())
+        assertNotNull(get<PayablesViewModel>())
     }
 
     @Test
