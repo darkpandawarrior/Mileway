@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":feature:profile"))
     implementation(project(":feature:approvals"))
     implementation(project(":feature:payables"))
+    implementation(project(":feature:travel"))
     implementation(project(":stub"))
 
     implementation(libs.core.ktx)

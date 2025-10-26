@@ -66,6 +66,7 @@ import com.miletracker.feature.approvals.ui.navigation.ApprovalsRoutes
 import com.miletracker.feature.approvals.ui.navigation.approvalsGraph
 import com.miletracker.feature.payables.ui.navigation.PayablesRoutes
 import com.miletracker.feature.payables.ui.navigation.payablesGraph
+import com.miletracker.feature.travel.ui.screens.TravelHomeScreen
 import com.miletracker.feature.logging.ui.navigation.LoggingRoutes
 import com.miletracker.feature.logging.ui.navigation.loggingGraph
 import com.miletracker.feature.media.ui.navigation.MediaRoutes
@@ -252,7 +253,7 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                         )
                     }
                     composable(AppGraph.TRAVEL) {
-                        ShellPlaceholderScreen("Travel", Icons.Filled.TravelExplore)
+                        TravelHomeScreen()
                     }
                     navigation(startDestination = PayablesRoutes.HOME, route = AppGraph.PAYABLES) {
                         payablesGraph(navController)
