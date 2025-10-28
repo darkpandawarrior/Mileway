@@ -13,6 +13,7 @@ import com.miletracker.feature.profile.ui.screens.CardDetailScreen
 import com.miletracker.feature.profile.ui.screens.CardRequestScreen
 import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
+import com.miletracker.feature.profile.ui.screens.NotificationCentreScreen
 import com.miletracker.feature.profile.ui.screens.PreferencesScreen
 import com.miletracker.feature.profile.ui.screens.ProfileDetailsScreen
 import com.miletracker.feature.profile.ui.screens.ProfileScreen
@@ -24,6 +25,7 @@ object ProfileRoutes {
     const val PREFERENCES = "preferences"
     const val SETTINGS = "profile_settings"
     const val HELP = "profile_help"
+    const val NOTIFICATIONS = "profile/notifications"
     const val ADVANCE_HISTORY = "profile/advance"
     const val ASK_ADVANCE = "profile/advance/new"
     const val CARDS_HOME = "profile/cards"
@@ -53,7 +55,7 @@ fun NavGraphBuilder.profileGraph(
         ProfileScreen(
             onOpenDetails = { navController.navigate(ProfileRoutes.DETAILS) },
             onOpenPreferences = { navController.navigate(ProfileRoutes.PREFERENCES) },
-            onOpenNotifications = { navController.navigate(ProfileRoutes.HELP) },
+            onOpenNotifications = { navController.navigate(ProfileRoutes.NOTIFICATIONS) },
             onOpenSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
             onOpenAboutSupport = { navController.navigate(ProfileRoutes.HELP) },
             onOpenAdvance = { navController.navigate(ProfileRoutes.ADVANCE_HISTORY) },
@@ -79,6 +81,11 @@ fun NavGraphBuilder.profileGraph(
     }
     composable(ProfileRoutes.HELP) {
         HelpScreen(
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.NOTIFICATIONS) {
+        NotificationCentreScreen(
             onBack = { navController.popBackStack() },
         )
     }
