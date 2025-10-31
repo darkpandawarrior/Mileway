@@ -8,7 +8,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -16,9 +20,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,6 +39,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,11 +49,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.ui.components.dialog.ColorWheelDialog
@@ -78,8 +101,11 @@ fun SettingsScreen(
     var showStylePicker by remember { mutableStateOf(false) }
     var showLanguagePicker by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
+    val permSnackbarState = remember { SnackbarHostState() }
+    val permScope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(permSnackbarState) },
         topBar = {
             DepthAwareTopBar(
                 title = "Settings",
@@ -101,6 +127,14 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            PermissionHealthSection(
+                onPermissionToggle = {
+                    permScope.launch {
+                        permSnackbarState.showSnackbar("Permission changes require system settings.")
+                    }
+                }
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
             SettingsSectionLabel("Account")
             val header = profile.header
             ListItem(
@@ -465,5 +499,164 @@ private fun SettingsSectionLabel(text: String) {
             horizontal = DesignTokens.Spacing.l,
             vertical = DesignTokens.Spacing.s,
         ),
+    )
+}
+
+private data class PermissionEntry(
+    val name: String,
+    val icon: ImageVector,
+    val isRequired: Boolean,
+    val isGranted: Boolean,
+)
+
+private val PERMISSIONS = listOf(
+    PermissionEntry("Location (Precise)", Icons.Filled.LocationOn, isRequired = true, isGranted = true),
+    PermissionEntry("Location (Background)", Icons.Filled.PinDrop, isRequired = true, isGranted = true),
+    PermissionEntry("Camera", Icons.Filled.Camera, isRequired = true, isGranted = true),
+    PermissionEntry("Storage", Icons.Filled.Folder, isRequired = true, isGranted = true),
+    PermissionEntry("Notifications", Icons.Filled.NotificationsNone, isRequired = false, isGranted = true),
+    PermissionEntry("Activity Recognition", Icons.AutoMirrored.Filled.DirectionsRun, isRequired = false, isGranted = true),
+    PermissionEntry("Bluetooth", Icons.Filled.Bluetooth, isRequired = false, isGranted = false),
+)
+
+@Composable
+private fun PermissionHealthSection(onPermissionToggle: () -> Unit) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+
+    SettingsSectionLabel("Permission Health")
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DesignTokens.Spacing.l),
+        shape = DesignTokens.Shape.roundedMd,
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(DesignTokens.Spacing.l),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.size(80.dp)) {
+                    val strokeWidth = 8.dp.toPx()
+                    val sweep = 360f * 0.90f
+                    drawArc(
+                        color = surfaceVariantColor,
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        color = primaryColor,
+                        startAngle = -90f,
+                        sweepAngle = sweep,
+                        useCenter = false,
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                    )
+                }
+                Text(
+                    "90%",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "90% — All required permissions granted",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.height(DesignTokens.Spacing.s))
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
+                    PermChip(label = "Required 4/4 ✓", color = DesignTokens.StatusColors.success)
+                    PermChip(label = "Recommended 3/4", color = DesignTokens.StatusColors.warning)
+                }
+            }
+        }
+    }
+
+    Spacer(Modifier.height(DesignTokens.Spacing.m))
+
+    PERMISSIONS.forEach { perm ->
+        PermissionCard(entry = perm, onToggle = onPermissionToggle)
+    }
+}
+
+@Composable
+private fun PermChip(label: String, color: androidx.compose.ui.graphics.Color) {
+    Surface(
+        color = color.copy(alpha = 0.15f),
+        shape = DesignTokens.Shape.chip
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun PermissionCard(entry: PermissionEntry, onToggle: () -> Unit) {
+    val grantedColor = if (entry.isGranted) DesignTokens.StatusColors.success else DesignTokens.StatusColors.error
+    val grantedLabel = if (entry.isGranted) "GRANTED" else "DENIED"
+    ListItem(
+        leadingContent = {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = entry.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        },
+        headlineContent = { Text(entry.name) },
+        supportingContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            ) {
+                Surface(
+                    color = grantedColor.copy(alpha = 0.12f),
+                    shape = DesignTokens.Shape.chip
+                ) {
+                    Text(
+                        text = grantedLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = grantedColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+                if (!entry.isRequired) {
+                    Text(
+                        "recommended",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        },
+        trailingContent = {
+            Switch(
+                checked = entry.isGranted,
+                onCheckedChange = { onToggle() }
+            )
+        }
     )
 }
