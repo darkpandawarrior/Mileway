@@ -1,100 +1,154 @@
-# MileTracker
+# MileTracker Demo
 
-A production-grade mileage & trip tracking app built with **Compose Multiplatform** — demonstrating the location-engineering, offline-first, and multi-module architecture patterns I use in production apps serving 50k+ MAU.
+A production-grade standalone offline mileage-tracking and expense-management demo app built with **Compose Multiplatform** — demonstrating the location-engineering, offline-first, and multi-module architecture patterns I use in production apps serving 50k+ MAU.
 
-**Stack:** Compose Multiplatform 1.10 · Kotlin 2.3 · Room 2.8 (KMP) · Koin · kotlinx coroutines/serialization/datetime · ML Kit · osmdroid
+## Features
 
-## Screenshots
+All screens are fully functional with deterministic mock data — no network calls required.
 
-| Trip history | Live tracking | Route map |
-|:---:|:---:|:---:|
-| ![Trip history](docs/screenshots/01_home.png) | ![Live tracking](docs/screenshots/02_live_tracking.png) | ![Route map](docs/screenshots/03_route_map.png) |
+**Tracking**
+- Live GPS trip tracking with foreground service, jitter suppression, spike detection, and four-bucket distance accounting (`original / cleaned / abnormal / mock`)
+- Geofenced check-in with manual fallback, check-in history with timeline view
+- Saved tracks: journey/submission tabs, date-grouped cards, multi-select, voucher creation
+- Track detail, trip insights, hardware events log, GPX/CSV/KML/GeoJSON export
 
-| Track detail | Trip insights | Odometer OCR |
-|:---:|:---:|:---:|
-| ![Track detail](docs/screenshots/04_track_detail.png) | ![Trip insights](docs/screenshots/05_insights.png) | ![Odometer OCR](docs/screenshots/06_ocr.png) |
+**Logging & Expenses**
+- Manual trip logging (step-by-step location search, verify-distance dialog)
+- Expense entry → detail → success chain with category selection
+- Expense history with filter chips
 
-## What it does
+**Travel**
+- Travel hub with teal gradient header, summary metrics strip
+- Active trip card (flight PNQ→BOM, IndiGo 6E-401, boarding pass, ON TIME chip)
+- Upcoming bookings list (3 entries: flights + train)
+- Quick-action buttons, travel policy reminder card
 
-- **High-accuracy trip tracking** — foreground service feeding a pure-Kotlin processing pipeline: jitter suppression, spike detection, mock-location flagging, and a per-bucket distance breakdown persisted with every track
-- **Odometer OCR** — on-device ML Kit text recognition + document scanner, with a pure-Kotlin parser that survives OCR misreads
-- **Geofenced check-ins** — local geofence detection with manual check-in fallback
-- **Route rendering** — OpenStreetMap (osmdroid) polylines with abnormal/filtered points color-classified
-- **Trip insights** — analyzers for trip quality, activity classification, system impact, and distance integrity
-- **Exports** — CSV / GPX / KML / GeoJSON / JSON via `FileProvider` share sheet
-- **Receipts & attachments** — camera capture persisted alongside trip submissions
-- **Theming & settings** — palette customization, locale switching, experimental feature toggles
+**Approvals & Payables**
+- Approvals queue with policy-violation badges, approval/rejection flow, seek-clarification sheet
+- Payables hub, create purchase request (2-step with category dropdown + quantity stepper), PO detail
+
+**Profile & Account**
+- Account hub with 9-tile grid, profile completion ring (72%)
+- Advance history, ask-advance multi-step form (auto-approves < ₹10k)
+- Cards home, card detail (block/unblock dialog), card request (KYC-lite)
+- Analytics dashboard (Canvas bar chart, stacked category bar, compliance ring)
+- Analytics detail per category (Canvas bezier line chart, merchant table)
+- AI Assistant bottom sheet with pre-seeded Q&A and simulated typing delay
+
+**Notifications**
+- Notification centre with 8 deterministic entries, filter chips (ALL/UNREAD/APPROVALS/SYSTEM)
+- Per-type icon colours, unread dot indicator, mark-all-read action
+
+**Settings & Permissions**
+- Permission health: Canvas 90% ring, Required 4/4 and Recommended 3/4 chips, per-permission toggle cards
+- Theme customization (MaterialKolor seed palette, colour wheel, system colours on Android 12+)
+- Language selector, experimental feature flags, dark theme override
+
+**Media**
+- 9-tile photo grid, camera with flash/pinch-zoom/tap-focus, multi-attachment preview
+- Odometer OCR (on-device ML Kit text recognition, pure-Kotlin parser)
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Build | AGP 9.2.1, Gradle Kotlin DSL |
+| Language | Kotlin 2.3.21 |
+| UI | Compose Multiplatform 1.10.3, Material3 |
+| DI | Koin 4.2.1 |
+| Database | Room 2.8.4 (KMP shared) |
+| Persistence | DataStore (settings + current-track session) |
+| Location | osmdroid, `location`-type FGS, partial wake lock |
+| Charts | Canvas-only (no MPAndroidChart or Vico) |
+| Testing | JUnit, MockK, Turbine, Robolectric, Koin Test |
+| Min SDK | API 30 |
+
+## Module Structure
+
+| Module | Type | Purpose |
+|---|---|---|
+| `:app` | Android application | Composition root, navigation host, Koin graph assembly |
+| `:core:ui` | KMP Android library | Design system — `DesignTokens`, `DepthAwareTopBar`, `BubbleBottomBar`, shimmer, `ConfettiBurst`, Canvas components |
+| `:core:data` | KMP library | Room database, DAOs, entity models, DataStore repositories |
+| `:core:network` | KMP library | API contract types, policy models |
+| `:feature:tracking` | Android library | Location service, tracking pipeline, check-in, saved tracks, insights, export |
+| `:feature:logging` | Android library | Manual trip logging, expense entry flow |
+| `:feature:media` | Android library | Camera capture, OCR, attachment grid |
+| `:feature:profile` | Android library | Account hub, advance, cards, analytics, AI assistant, notifications, settings |
+| `:feature:approvals` | Android library | Approval queue, details, seek-clarification sheet |
+| `:feature:payables` | Android library | Payables hub, create-PR flow, PO detail |
+| `:feature:travel` | Android library | Travel hub, active trip card, upcoming bookings |
+| `:stub` | KMP library | Deterministic mock data for all features (no backend calls) |
+
+## Running the App
+
+```bash
+./gradlew assembleDebug
+# Install on emulator (API 30+, Pixel 7a recommended)
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+No network connection required. All data is mock.
+
+```bash
+# Run unit tests (200+ JVM tests, no emulator)
+./gradlew testDebugUnitTest
+```
+
+## Offline Guarantee
+
+All reads and writes are local. The `:stub` module provides a deterministic mock layer for every repository — bookings, approvals, expenses, advances, cards, analytics, notifications, and check-in locations. No backend URLs, no API keys, no network calls are present anywhere in tracked code.
+
+The app works fully in airplane mode. Data persists across restarts via Room (trip records, logs) and DataStore (session state, settings).
 
 ## Architecture
 
-Multi-module, MVI, offline-first. Feature modules never depend on each other — they meet only at the `:app` composition root, and all of them talk to the same `core` layer.
+Multi-module, MVVM with single immutable `UiState`, Koin DI, Repository pattern. Feature modules never depend on each other — they meet only at the `:app` composition root.
 
 ```mermaid
 graph TD
-    APP[":app — composition root,<br/>navigation, DI assembly"]
-    TRACK[":feature:tracking<br/>location engine, geofence,<br/>check-ins, insights, exports"]
-    LOGGING[":feature:logging<br/>manual trip logging"]
+    APP[":app<br/>composition root, navigation, DI"]
+    TRACK[":feature:tracking<br/>location engine, check-ins, exports"]
+    LOGGING[":feature:logging<br/>manual logging, expenses"]
     MEDIA[":feature:media<br/>camera, OCR, attachments"]
-    PROFILE[":feature:profile<br/>settings, theming, debug"]
+    PROFILE[":feature:profile<br/>account, analytics, AI, settings"]
+    APPROVALS[":feature:approvals<br/>approval queue + flow"]
+    PAYABLES[":feature:payables<br/>purchase requests"]
+    TRAVEL[":feature:travel<br/>bookings, active trip"]
     UI[":core:ui<br/>design system, theme engine"]
-    DATA[":core:data<br/>Room (KMP), DAOs, models"]
-    NET[":core:network<br/>API contract, config"]
-    STUB[":stub<br/>fake network layer<br/>(offline-first dev + tests)"]
+    DATA[":core:data<br/>Room (KMP), DAOs"]
+    NET[":core:network<br/>API contract"]
+    STUB[":stub<br/>mock data layer"]
 
-    APP --> TRACK & LOGGING & MEDIA & PROFILE & STUB
-    TRACK --> UI & DATA & NET
-    LOGGING --> UI & DATA & NET
-    MEDIA --> UI & DATA & NET
-    PROFILE --> UI & DATA & NET
+    APP --> TRACK & LOGGING & MEDIA & PROFILE & APPROVALS & PAYABLES & TRAVEL & STUB
+    TRACK & LOGGING & MEDIA & PROFILE & APPROVALS & PAYABLES --> UI & DATA & NET
+    TRAVEL --> UI & STUB
     STUB --> DATA & NET
-    DATA -.->|entities shared| NET
 ```
 
-### MVI data flow (tracking screen)
+### ViewModel pattern
 
-```mermaid
-flowchart LR
-    UI["Compose UI<br/>(collectAsStateWithLifecycle)"] -- "Action" --> VM["TrackMilesViewModel<br/>single immutable UiState"]
-    VM -- "StateFlow&lt;UiState&gt;" --> UI
-    VM -- "start / pause / stop" --> CTRL["LocationTrackingController"]
-    CTRL -- "Intent" --> SVC["LocationTrackingService<br/>(foreground, type=location)"]
-    SVC -- "GpsFix" --> PIPE["LocationProcessor<br/>(pure Kotlin)"]
-    PIPE -- "classified points + stats" --> DB[("Room<br/>saved_tracks / locations")]
-    DB -- "Flow (invalidation tracker)" --> VM
+```kotlin
+data class FeatureUiState(
+    val items: List<Item> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+class FeatureViewModel(private val repository: FeatureRepository) : ViewModel() {
+    private val _uiState = MutableStateFlow(FeatureUiState())
+    val uiState: StateFlow<FeatureUiState> = _uiState.asStateFlow()
+}
 ```
 
-The service and the ViewModel never hold references to each other: the service writes live stats to Room, and the ViewModel observes the same rows as a `Flow`. This survives process death for free — on restart the ViewModel finds the active track in the database and reattaches to the live stream.
+### Location engine
 
-## The location engine
+The tracking pipeline (GPS accuracy improved from ~50% to ~95% in production):
 
-This is a public rebuild of GPS-accuracy work I led on a production fleet-tracking platform (raw GPS distance accuracy improved from ~50% to ~95% of ground truth). The core ideas, all visible in [`TrackingPipeline.kt`](feature/tracking/src/main/kotlin/com/miletracker/feature/tracking/service/location/TrackingPipeline.kt):
+- **Jitter suppression** — stationary drift is filtered while keeping the anchor point
+- **Spike detection** — implied-speed check flags teleporting fixes without discarding them  
+- **Four-bucket accounting** — `original / cleaned / abnormal / mock` all persisted per track
+- **Mock-location flagging** — fraud-detectable, not just fraud-prevented
+- **IMU fusion** — accelerometer + gyroscope snapshots feed post-hoc insight analyzers, not inline correction
 
-**1. Trust nothing the GPS says by default.** Every fix passes through `LocationProcessor`, a pure-Kotlin, Android-free pipeline (fully unit-tested on the JVM). Each point is classified before it can contribute distance:
-
-- **Jitter suppression** — while parked, GPS wanders a few metres per fix; naively summing Haversine displacements inflates a stationary hour into hundreds of phantom metres. Displacements under a threshold are suppressed, but the *anchor point is kept*, so a later genuine move is measured from the last persisted position rather than accumulating drift.
-- **Spike detection** — teleporting fixes (tunnel exits, cold starts, multipath bounces) are caught by implied speed: if `displacement / Δt` exceeds a plausibility ceiling, the point is recorded but flagged abnormal and excluded from the cleaned distance.
-- **Mock-location flagging** — points from mock providers are bucketed separately rather than silently dropped, so reimbursement fraud is *detectable*, not just prevented.
-
-**2. Account for every metre.** Distance is accumulated into four buckets — `original / cleaned / abnormal / mock` — and all four are persisted per track. The UI shows the trustworthy cleaned figure, but the raw figure is never thrown away: when a driver disputes a reimbursement, the delta between buckets explains exactly what was filtered and why.
-
-**3. Sensor fusion for context, not correction.** A `TrackingSensorMonitor` attaches the latest accelerometer + gyroscope snapshot to every persisted point. The IMU data isn't used to "fix" GPS in-line — it feeds the post-hoc insight analyzers (activity classification, hard-braking/spike correlation, walking-vs-driving discrimination), which is where it actually earns its battery cost.
-
-**4. Survive the platform.** Tracking runs in a `location`-type foreground service with a partial wake lock, persists its session in `DataStore` so a process kill mid-trip is recoverable, records hardware events (power saver, battery optimization, app kill, shutdown) as first-class data on the track, and restores via a boot receiver. On OEM builds that kill services aggressively, *knowing the track was interrupted* is half the accuracy battle.
-
-The repo ships with `SIMULATE_LOCATION = true` — a simulated drive source feeds believable fixes (gentle heading drift, realistic speeds, occasional mock-flagged points) through the exact same pipeline, so the full tracking flow works on an emulator with no GPS.
-
-## Testing
-
-200+ JVM unit tests, no emulator required (`./gradlew :app:testDebugUnitTest`). The strategy is deliberate:
-
-- **Pure-Kotlin core** — the distance pipeline, OCR parser, insight analyzers, check-in validator, and export writers have no Android imports, so the highest-risk logic is tested directly on the JVM.
-- **ViewModel tests with fakes at the boundary** — [`TrackMilesViewModelTest`](app/src/test/java/com/miletracker/TrackMilesViewModelTest.kt) runs the real repository over an in-memory `StateFlow`-backed DAO fake (mirroring Room's invalidation-tracker behaviour), reuses the same stub network layer the app ships with, and mocks only the fire-and-forget service façade — covering process-death restore, the live service→DB→UI stream, and lifecycle edge cases like straggler writes after stop.
-- **`StandardTestDispatcher` everywhere** — asynchrony is explicit (`advanceUntilIdle`), so tests can assert intermediate states deterministically instead of racing real dispatchers.
-
-## Running
-
-```bash
-./gradlew :app:installDebug
-```
-
-Requires JDK 17+ and an Android device/emulator (API 30+). The `stub` module fakes the backend and a seeder provides demo journeys, so the app runs fully offline.
+The repo ships with `SIMULATE_LOCATION = true` — a simulated drive source feeds believable fixes through the exact same pipeline, so the full tracking flow works on an emulator with no GPS hardware.
