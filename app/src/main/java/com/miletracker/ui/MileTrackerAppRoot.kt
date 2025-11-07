@@ -66,6 +66,7 @@ import com.miletracker.feature.approvals.ui.navigation.ApprovalsRoutes
 import com.miletracker.feature.approvals.ui.navigation.approvalsGraph
 import com.miletracker.feature.payables.ui.navigation.PayablesRoutes
 import com.miletracker.feature.payables.ui.navigation.payablesGraph
+import com.miletracker.feature.agent.ui.navigation.agentGraph
 import com.miletracker.feature.travel.ui.screens.TravelHomeScreen
 import com.miletracker.feature.logging.ui.navigation.LoggingRoutes
 import com.miletracker.feature.logging.ui.navigation.loggingGraph
@@ -152,7 +153,6 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         }.let { if (it >= 0) it else homeIndex }
 
         var isBottomBarCollapsed by rememberSaveable { mutableStateOf(false) }
-        var showAssistantSheet by rememberSaveable { mutableStateOf(false) }
 
         // The floating bubble bar shows only on top-level tab destinations; detail and
         // flow screens (tracking, submission, settings, …) own the full screen — matching
@@ -212,8 +212,8 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                                 launchSingleTop = true
                             }
                         },
-                        // Throw-up gesture on the centre FAB opens the assistant action.
-                        onFabThrowUp = { showAssistantSheet = true },
+                        // Throw-up gesture on the centre FAB opens the full-screen AI Agent.
+                        onFabThrowUp = { navController.navigate(AppRoutes.AGENT_CHAT) },
                         onCollapseRequested = { isBottomBarCollapsed = true }
                     )
                 }
@@ -266,6 +266,8 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                     composable(AppRoutes.DEBUG_MENU) {
                         DebugMenuScreen(onBack = { navController.popBackStack() })
                     }
+                    // Full-screen AI Agent — entered via FAB throw-up gesture.
+                    agentGraph(navController)
                 }
 
                 // Collapsed-state puck: bottom-end overlay with long-press wheel selector.
@@ -307,8 +309,5 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
             }
         }
 
-        if (showAssistantSheet) {
-            AssistantHomeSheet(onDismiss = { showAssistantSheet = false })
-        }
     }
 }

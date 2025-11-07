@@ -3,6 +3,7 @@ package com.miletracker
 import android.app.Application
 import com.miletracker.core.data.di.coreDataModule
 import com.miletracker.core.ui.di.coreUiModule
+import com.miletracker.feature.agent.di.agentModule
 import com.miletracker.feature.approvals.di.approvalsModule
 import com.miletracker.feature.payables.di.payablesModule
 import com.miletracker.feature.travel.di.travelModule
@@ -81,6 +82,7 @@ class MileTrackerApplication : Application() {
                 approvalsModule,
                 payablesModule,
                 travelModule,
+                agentModule,
                 homeModule,
                 appModule
             )
