@@ -9,6 +9,8 @@ import com.miletracker.core.data.dao.SavedTrackDao
 import com.miletracker.core.data.dao.TripAttachmentDao
 import com.miletracker.core.data.session.CurrentTrackDataStore
 import com.miletracker.core.ui.di.coreUiModule
+import com.miletracker.feature.agent.di.agentModule
+import com.miletracker.feature.agent.viewmodel.AgentViewModel
 import com.miletracker.feature.approvals.di.approvalsModule
 import com.miletracker.feature.approvals.viewmodel.ApprovalsViewModel
 import com.miletracker.feature.logging.di.loggingModule
@@ -89,6 +91,7 @@ class KoinGraphTest : KoinTest {
                 profileModule,
                 approvalsModule,
                 payablesModule,
+                agentModule,
                 appModule
             )
         }
@@ -120,6 +123,7 @@ class KoinGraphTest : KoinTest {
         assertNotNull(get<CheckInViewModel>())
         assertNotNull(get<ApprovalsViewModel>())
         assertNotNull(get<PayablesViewModel>())
+        assertNotNull(get<AgentViewModel>())
     }
 
     @Test

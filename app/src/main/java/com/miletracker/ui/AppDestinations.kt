@@ -33,4 +33,6 @@ object AppGraph {
  */
 object AppRoutes {
     const val DEBUG_MENU = "debug_menu"
+    const val AGENT_CHAT = "agent/chat"
+    const val AGENT_HISTORY = "agent/history"
 }
