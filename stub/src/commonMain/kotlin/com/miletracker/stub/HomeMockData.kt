@@ -9,7 +9,9 @@ data class AtAGlanceCounts(
     val upcomingTrips: Int,
     val pendingInvoices: Int,
     val pendingExpenses: Int,
-    val vouchersToFile: Int
+    val vouchersToFile: Int,
+    val pendingApprovals: Int = 3,
+    val unreadNotifications: Int = 174,
 )
 
 /** Banner shown at the top of the home screen when items need user action. */

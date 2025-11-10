@@ -19,15 +19,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.ui.components.DotsIndicator
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.stub.MarketingCarouselItem
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -80,74 +84,82 @@ private fun HomeScreenContent(
     onOpenAccount: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val snackbarState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val illustrativeSnackbar: suspend () -> Unit = { snackbarState.showSnackbar("Detail view available in full version.") }
+    val paymentsSnackbar: suspend () -> Unit = { snackbarState.showSnackbar("Payments require network in production.") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState),
-    ) {
-        // 1. Gradient header (draws behind the status bar; owns the top inset).
-        HomeProfileHeader(
-            name = state.greetingName,
-            notificationCount = state.notificationCount,
-            onSearch = onOpenAccount,
-            onNotifications = onOpenAccount,
-        )
-
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sectionSpacing),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState),
         ) {
-            Spacer(Modifier.height(DesignTokens.Spacing.l))
-
-            // 2. Action Required card.
-            ActionRequiredCard(
-                banner = state.actionRequired,
-                onTakeAction = onAddExpense,
+            // 1. Gradient header (draws behind the status bar; owns the top inset).
+            HomeProfileHeader(
+                name = state.greetingName,
+                notificationCount = state.notificationCount,
+                onSearch = onOpenAccount,
+                onNotifications = onOpenAccount,
             )
 
-            // 3. Quick Actions.
-            Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
-                HomeSectionHeader(title = "Quick Actions", leadingIcon = Icons.Filled.Bolt)
-                QuickActionsRow(
-                    actions = quickActions(
-                        onAddExpense = onAddExpense,
-                        onIllustrative = onOpenAccount,
-                    ),
-                )
-            }
-        }
+            // 2. Animated banner strip (rotating 4000ms; replaces static ActionRequired card).
+            AnimatedBannerStrip(isTrackingActive = false)
 
-        Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))
+            Column(
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sectionSpacing),
+            ) {
+                Spacer(Modifier.height(DesignTokens.Spacing.l))
 
-        // 4. Feature / mileage carousel (full-bleed horizontal pager).
-        FeatureCarousel(
-            onStartTracking = onStartTracking,
-            onIllustrative = onOpenAccount,
-        )
+                // 3. Quick Actions.
+                Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+                    HomeSectionHeader(title = "Quick Actions", leadingIcon = Icons.Filled.Bolt)
+                    QuickActionsRow(
+                        actions = quickActions(
+                            onAddExpense = onAddExpense,
+                            onIllustrative = onOpenAccount,
+                        ),
+                    )
+                }
 
-        Column(
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sectionSpacing),
-        ) {
-            Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))
+                // 4. My Cards carousel (Phase O).
+                MyCardsSection(onSnackbar = paymentsSnackbar)
 
-            // 5. At A Glance.
-            Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs)) {
-                HomeSectionHeader(title = "At A Glance", leadingIcon = Icons.Filled.Insights)
-                Spacer(Modifier.height(DesignTokens.Spacing.xs))
-                atAGlanceRows(state.atAGlance).forEach { row ->
-                    AtAGlanceRowView(row = row, onClick = onOpenAccount)
+                // 5. At A Glance 2×2 grid (Phase O).
+                Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+                    HomeSectionHeader(title = "At A Glance", leadingIcon = Icons.Filled.Insights)
+                    AtAGlanceGrid(counts = state.atAGlance, onClick = onOpenAccount)
                 }
             }
+
+            Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))
+
+            // 6. Feature / mileage carousel (full-bleed horizontal pager).
+            FeatureCarousel(
+                onStartTracking = onStartTracking,
+                onIllustrative = onOpenAccount,
+            )
+
+            Column(
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.sectionSpacing),
+            ) {
+                Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))
+
+                // 7. Recent Activity feed (Phase O).
+                RecentActivitySection(onSnackbar = illustrativeSnackbar)
+            }
+
+            Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))
+
+            // 8. Marketing / benefits strip (full-bleed horizontal list).
+            MarketingStrip(items = state.marketingItems)
+
+            Spacer(Modifier.height(BottomBarClearance))
         }
 
-        Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))
-
-        // 6. Marketing / benefits strip (full-bleed horizontal list).
-        MarketingStrip(items = state.marketingItems)
-
-        Spacer(Modifier.height(BottomBarClearance))
+        SnackbarHost(snackbarState, modifier = androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.BottomCenter))
     }
 }
 
