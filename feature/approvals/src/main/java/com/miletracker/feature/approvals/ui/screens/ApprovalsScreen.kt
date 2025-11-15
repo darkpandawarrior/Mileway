@@ -1,7 +1,9 @@
 package com.miletracker.feature.approvals.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,28 +23,38 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoneyOff
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,8 +68,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.feature.approvals.model.ApprovalItem
 import com.miletracker.feature.approvals.model.ApprovalStatus
 import com.miletracker.feature.approvals.model.ApprovalType
-import com.miletracker.feature.approvals.viewmodel.ApprovalTabFilter
+import com.miletracker.feature.approvals.repository.ApprovalsRepository
 import com.miletracker.feature.approvals.viewmodel.ApprovalsViewModel
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -72,6 +85,10 @@ fun ApprovalsScreen(
 ) {
     val state by viewModel.listState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectionMode by rememberSaveable { mutableStateOf(false) }
+    val selectedIds = remember { mutableStateOf(setOf<String>()) }
 
     LaunchedEffect(state.snackbarMessage) {
         state.snackbarMessage?.let {
@@ -80,82 +97,125 @@ fun ApprovalsScreen(
         }
     }
 
-    val tabs = ApprovalTabFilter.entries
-    val filtered = when (state.activeTab) {
-        ApprovalTabFilter.ALL -> state.items
-        ApprovalTabFilter.PENDING -> state.items.filter { it.status == ApprovalStatus.PENDING }
-        ApprovalTabFilter.APPROVED -> state.items.filter { it.status == ApprovalStatus.APPROVED }
-        ApprovalTabFilter.REJECTED -> state.items.filter { it.status == ApprovalStatus.REJECTED }
-    }
-    val pendingCount = state.items.count { it.status == ApprovalStatus.PENDING }
+    val pendingItems = state.items.filter { it.status == ApprovalStatus.PENDING }
+    val pendingCount = pendingItems.size
 
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            ApprovalsGradientHeader(pendingCount = pendingCount)
+            ApprovalsGradientHeader(
+                pendingCount = pendingCount,
+                selectionMode = selectionMode,
+                onCancelSelection = { selectionMode = false; selectedIds.value = emptySet() }
+            )
+        },
+        bottomBar = {
+            if (selectionMode && selectedTab == 0) {
+                Surface(
+                    tonalElevation = 4.dp,
+                    shadowElevation = 4.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { scope.launch { snackbarHostState.showSnackbar("Bulk action is illustrative.") }; selectionMode = false; selectedIds.value = emptySet() },
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Reject All (${selectedIds.value.size})") }
+                        Button(
+                            onClick = { scope.launch { snackbarHostState.showSnackbar("Bulk action is illustrative.") }; selectionMode = false; selectedIds.value = emptySet() },
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Approve All (${selectedIds.value.size})") }
+                    }
+                }
+            }
         }
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            ScrollableTabRow(
-                selectedTabIndex = tabs.indexOf(state.activeTab),
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.surface,
-            ) {
-                tabs.forEachIndexed { idx, tab ->
+            PrimaryTabRow(selectedTabIndex = selectedTab) {
+                listOf("TO APPROVE", "TEAM", "MY REQUESTS").forEachIndexed { idx, title ->
                     Tab(
-                        selected = state.activeTab == tab,
-                        onClick = { viewModel.setTab(tab) },
-                        text = {
-                            Text(
-                                text = tab.name.lowercase().replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = if (state.activeTab == tab) FontWeight.Bold else FontWeight.Normal,
-                            )
-                        }
+                        selected = selectedTab == idx,
+                        onClick = { selectedTab = idx; selectionMode = false; selectedIds.value = emptySet() },
+                        text = { Text(title, style = MaterialTheme.typography.labelMedium) }
                     )
                 }
             }
-
-            if (filtered.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "No ${state.activeTab.name.lowercase()} approvals",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
-                val grouped = filtered.groupBy { dateBucket(it.timestampMs) }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().navigationBarsPadding(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 16.dp, vertical = 12.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    grouped.forEach { (date, items) ->
-                        item {
-                            Text(
-                                text = date,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 4.dp),
-                            )
-                        }
-                        items(items, key = { it.id }) { item ->
-                            ApprovalCard(item = item, onClick = { onOpenDetail(item.id) })
-                        }
-                    }
-                }
+            when (selectedTab) {
+                0 -> ApprovalListTab(
+                    items = pendingItems,
+                    onOpenDetail = onOpenDetail,
+                    selectionMode = selectionMode,
+                    selectedIds = selectedIds.value,
+                    onLongPress = { id -> selectionMode = true; selectedIds.value = selectedIds.value + id },
+                    onToggleSelect = { id -> selectedIds.value = if (id in selectedIds.value) selectedIds.value - id else selectedIds.value + id },
+                )
+                1 -> ApprovalListTab(
+                    items = ApprovalsRepository.teamItems,
+                    onOpenDetail = {},
+                    selectionMode = false,
+                    selectedIds = emptySet(),
+                    onLongPress = {},
+                    onToggleSelect = {},
+                )
+                2 -> ApprovalListTab(
+                    items = ApprovalsRepository.myRequests,
+                    onOpenDetail = {},
+                    selectionMode = false,
+                    selectedIds = emptySet(),
+                    onLongPress = {},
+                    onToggleSelect = {},
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ApprovalsGradientHeader(pendingCount: Int) {
+private fun ApprovalListTab(
+    items: List<ApprovalItem>,
+    onOpenDetail: (String) -> Unit,
+    selectionMode: Boolean,
+    selectedIds: Set<String>,
+    onLongPress: (String) -> Unit,
+    onToggleSelect: (String) -> Unit,
+) {
+    if (items.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No items", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        return
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(items, key = { it.id }) { item ->
+            ApprovalCard(
+                item = item,
+                selectionMode = selectionMode,
+                isSelected = item.id in selectedIds,
+                onClick = { if (selectionMode) onToggleSelect(item.id) else onOpenDetail(item.id) },
+                onLongClick = { onLongPress(item.id) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ApprovalsGradientHeader(
+    pendingCount: Int,
+    selectionMode: Boolean,
+    onCancelSelection: () -> Unit,
+) {
     val gradient = Brush.horizontalGradient(
         listOf(Color(0xFF6C63FF), Color(0xFF9C6BFF))
     )
@@ -172,29 +232,37 @@ private fun ApprovalsGradientHeader(pendingCount: Int) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Approvals",
+                    text = if (selectionMode) "Select Items" else "Approvals",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (pendingCount > 0) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color(0xFFFF6B6B),
-                        ) {
-                            Text(
-                                text = "$pendingCount",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            )
+                    if (selectionMode) {
+                        TextButton(onClick = onCancelSelection) {
+                            Icon(Icons.Default.Close, contentDescription = "Cancel", tint = Color.White)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Cancel", color = Color.White)
                         }
-                        Spacer(Modifier.width(8.dp))
-                    }
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.White)
+                    } else {
+                        if (pendingCount > 0) {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFFFF6B6B),
+                            ) {
+                                Text(
+                                    text = "$pendingCount",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                )
+                            }
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.White)
+                        }
                     }
                 }
             }
@@ -202,12 +270,19 @@ private fun ApprovalsGradientHeader(pendingCount: Int) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ApprovalCard(item: ApprovalItem, onClick: () -> Unit) {
+private fun ApprovalCard(
+    item: ApprovalItem,
+    selectionMode: Boolean,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
@@ -215,6 +290,14 @@ private fun ApprovalCard(item: ApprovalItem, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onClick() },
+                    modifier = Modifier.size(24.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             TypeIconContainer(type = item.type)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
