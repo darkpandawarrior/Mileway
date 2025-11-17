@@ -12,6 +12,7 @@ import com.miletracker.feature.profile.ui.screens.AskAdvanceFormScreen
 import com.miletracker.feature.profile.ui.screens.CardDetailScreen
 import com.miletracker.feature.profile.ui.screens.CardRequestScreen
 import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
+import com.miletracker.feature.profile.ui.screens.DelegationScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
 import com.miletracker.feature.profile.ui.screens.NotificationCentreScreen
 import com.miletracker.feature.profile.ui.screens.PreferencesScreen
@@ -33,6 +34,7 @@ object ProfileRoutes {
     const val CARD_DETAIL = "profile/cards/detail/{cardId}"
     const val ANALYTICS_HOME = "profile/analytics"
     const val ANALYTICS_DETAIL = "profile/analytics/{category}"
+    const val DELEGATION = "profile/delegation"
     fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
     fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
@@ -61,6 +63,7 @@ fun NavGraphBuilder.profileGraph(
             onOpenAdvance = { navController.navigate(ProfileRoutes.ADVANCE_HISTORY) },
             onOpenCards = { navController.navigate(ProfileRoutes.CARDS_HOME) },
             onOpenInsights = { navController.navigate(ProfileRoutes.ANALYTICS_HOME) },
+            onOpenDelegation = { navController.navigate(ProfileRoutes.DELEGATION) },
         )
     }
     composable(ProfileRoutes.DETAILS) {
@@ -136,6 +139,11 @@ fun NavGraphBuilder.profileGraph(
         val category = backStackEntry.arguments?.getString("category") ?: return@composable
         AnalyticsDetailScreen(
             category = category,
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.DELEGATION) {
+        DelegationScreen(
             onBack = { navController.popBackStack() },
         )
     }

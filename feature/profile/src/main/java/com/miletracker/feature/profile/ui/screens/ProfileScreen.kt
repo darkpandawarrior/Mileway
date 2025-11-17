@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -85,6 +86,7 @@ fun ProfileScreen(
     onOpenAdvance: () -> Unit = {},
     onOpenCards: () -> Unit = {},
     onOpenInsights: () -> Unit = {},
+    onOpenDelegation: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -114,6 +116,7 @@ fun ProfileScreen(
                 onOpenAboutSupport = onOpenAboutSupport,
                 onOpenAdvance = onOpenAdvance,
                 onOpenCards = onOpenCards,
+                onOpenDelegation = onOpenDelegation,
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
@@ -311,6 +314,7 @@ private fun AccountTileGrid(
     onOpenAboutSupport: () -> Unit,
     onOpenAdvance: () -> Unit,
     onOpenCards: () -> Unit,
+    onOpenDelegation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val blue = Color(0xFF2563EB)
@@ -321,6 +325,7 @@ private fun AccountTileGrid(
     val violet = Color(0xFF6D28D9)
     val teal = Color(0xFF0F766E)
     val indigo = Color(0xFF3730A3)
+    val cyan = Color(0xFF0277BD)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -344,6 +349,10 @@ private fun AccountTileGrid(
         TileRow(
             left = accountTile("acc_advance", "My Advances", "Cash advances", Icons.Default.MonetizationOn, teal, onOpenAdvance),
             right = accountTile("acc_cards", "Corporate Cards", "Manage cards", Icons.Default.CreditCard, indigo, onOpenCards),
+        )
+        TileRow(
+            left = accountTile("acc_delegation", "Delegation", "Manage authority", Icons.Default.SupervisorAccount, cyan, onOpenDelegation),
+            right = accountTile("acc_insights", "Insights", "Analytics view", Icons.Default.History, Color(0xFF6D28D9), action = {}),
         )
     }
 }
