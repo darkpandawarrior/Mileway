@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +60,7 @@ fun CardsHomeScreen(
     onBack: () -> Unit,
     onOpenCard: (String) -> Unit,
     onRequestCard: () -> Unit,
+    onOpenQr: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel()
 ) {
@@ -96,6 +98,9 @@ fun CardsHomeScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Corporate Cards", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
                         Text("${state.cards.size} card${if (state.cards.size != 1) "s" else ""}", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.85f))
+                    }
+                    IconButton(onClick = onOpenQr) {
+                        Icon(Icons.Default.QrCode, contentDescription = "QR Pay", tint = Color.White)
                     }
                 }
             }
