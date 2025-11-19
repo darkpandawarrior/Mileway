@@ -14,6 +14,7 @@ import com.miletracker.feature.profile.ui.screens.CardRequestScreen
 import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
 import com.miletracker.feature.profile.ui.screens.DelegationScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
+import com.miletracker.feature.profile.ui.screens.QrHomeScreen
 import com.miletracker.feature.profile.ui.screens.NotificationCentreScreen
 import com.miletracker.feature.profile.ui.screens.PreferencesScreen
 import com.miletracker.feature.profile.ui.screens.ProfileDetailsScreen
@@ -35,6 +36,7 @@ object ProfileRoutes {
     const val ANALYTICS_HOME = "profile/analytics"
     const val ANALYTICS_DETAIL = "profile/analytics/{category}"
     const val DELEGATION = "profile/delegation"
+    const val QR_HOME = "profile/qr"
     fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
     fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
@@ -109,6 +111,7 @@ fun NavGraphBuilder.profileGraph(
             onBack = { navController.popBackStack() },
             onOpenCard = { cardId -> navController.navigate(ProfileRoutes.cardDetailRoute(cardId)) },
             onRequestCard = { navController.navigate(ProfileRoutes.CARD_REQUEST) },
+            onOpenQr = { navController.navigate(ProfileRoutes.QR_HOME) },
         )
     }
     composable(ProfileRoutes.CARD_REQUEST) {
@@ -144,6 +147,11 @@ fun NavGraphBuilder.profileGraph(
     }
     composable(ProfileRoutes.DELEGATION) {
         DelegationScreen(
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.QR_HOME) {
+        QrHomeScreen(
             onBack = { navController.popBackStack() },
         )
     }
