@@ -5,16 +5,21 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Battery5Bar
 import androidx.compose.material.icons.filled.GpsFixed
@@ -44,10 +49,18 @@ fun LiveTrackingOverviewCard(
     trackData: CurrentTrackData,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    val glassGradient = Brush.verticalGradient(
+        listOf(Color(0xFF0D2137).copy(alpha = 0.92f), Color(0xFF1A237E).copy(alpha = 0.88f))
+    )
+    val glassBorder = Brush.linearGradient(
+        listOf(Color.White.copy(alpha = 0.25f), Color.White.copy(alpha = 0.06f))
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(width = 1.dp, brush = glassBorder, shape = RoundedCornerShape(16.dp))
+            .background(glassGradient, RoundedCornerShape(16.dp)),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -55,7 +68,12 @@ fun LiveTrackingOverviewCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Live Tracking", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Live Tracking",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
                 LiveIndicatorBadge(isPaused = trackData.isPaused)
             }
             Spacer(Modifier.height(16.dp))
@@ -67,19 +85,19 @@ fun LiveTrackingOverviewCard(
                     label = "Distance",
                     value = "%.2f km".format(trackData.distance / 1000.0),
                     icon = Icons.Default.GpsFixed,
-                    color = MaterialTheme.colorScheme.primary
+                    color = Color(0xFF80DEEA)
                 )
                 LiveMetric(
                     label = "Duration",
                     value = formatDuration(System.currentTimeMillis() - trackData.startTime),
                     icon = Icons.Default.Timer,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = Color(0xFFB39DDB)
                 )
                 LiveMetric(
                     label = "Speed",
                     value = "%.1f km/h".format(trackData.speed * 3.6),
                     icon = Icons.Default.Speed,
-                    color = Color(0xFF4CAF50)
+                    color = Color(0xFF69F0AE)
                 )
             }
         }
