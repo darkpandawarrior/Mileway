@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -127,8 +128,17 @@ fun HomeProfileHeader(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding(),
-            dotColor = Color.White.copy(alpha = 0.10f),
+            dotColor = Color.White.copy(alpha = 0.13f),
         )
+        // Diagonal gloss sheen — top-left to centre, low-alpha white stripe.
+        Canvas(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+            val sheenBrush = Brush.linearGradient(
+                colors = listOf(Color.White.copy(alpha = 0.10f), Color.Transparent),
+                start = Offset(0f, 0f),
+                end = Offset(size.width * 0.55f, size.height),
+            )
+            drawRect(brush = sheenBrush)
+        }
 
         Row(
             modifier = Modifier
@@ -139,10 +149,16 @@ fun HomeProfileHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
-            // Avatar circle (initial of the greeting name).
+            // Avatar circle with gradient ring for extra polish.
             Box(
                 modifier = Modifier
                     .size(AvatarSize)
+                    .border(
+                        width = 2.dp,
+                        brush = Brush.linearGradient(listOf(Color.White.copy(alpha = 0.7f), Color.White.copy(alpha = 0.2f))),
+                        shape = CircleShape,
+                    )
+                    .padding(2.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.22f)),
                 contentAlignment = Alignment.Center,

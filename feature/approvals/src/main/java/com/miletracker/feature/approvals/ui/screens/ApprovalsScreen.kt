@@ -1,5 +1,12 @@
 package com.miletracker.feature.approvals.ui.screens
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,6 +65,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -219,12 +227,37 @@ private fun ApprovalsGradientHeader(
     val gradient = Brush.horizontalGradient(
         listOf(Color(0xFF6C63FF), Color(0xFF9C6BFF))
     )
+    val shimmerProgress by rememberInfiniteTransition(label = "shimmer").animateFloat(
+        initialValue = -1f,
+        targetValue = 2f,
+        animationSpec = infiniteRepeatable(
+            tween(durationMillis = 2000, easing = LinearEasing),
+            RepeatMode.Restart,
+        ),
+        label = "shimmerPos",
+    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(gradient)
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
+        // Animated shimmer sweep across the header
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val sweepWidth = size.width * 0.35f
+            val startX = shimmerProgress * (size.width + sweepWidth) - sweepWidth
+            drawRect(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.White.copy(alpha = 0.18f),
+                        Color.Transparent,
+                    ),
+                    start = Offset(startX, 0f),
+                    end = Offset(startX + sweepWidth, size.height),
+                ),
+            )
+        }
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),

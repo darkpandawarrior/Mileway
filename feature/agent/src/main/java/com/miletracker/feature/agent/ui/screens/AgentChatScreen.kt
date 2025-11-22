@@ -228,34 +228,55 @@ fun AgentChatScreen(
 
 @Composable
 private fun AgentHeader(onBack: () -> Unit, onHistory: () -> Unit, onDownload: () -> Unit) {
-    Row(
+    val orbGradient = Brush.linearGradient(listOf(Color(0xFF3949AB), Color(0xFF6A1B9A)))
+    val ringGradient = Brush.linearGradient(listOf(Color(0xFF80DEEA), Color(0xFFB39DDB)))
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 4.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .background(Color.White.copy(alpha = 0.07f)),
     ) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-        }
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF5C6BC0)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-        }
-        Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
-            Text("AI Assistant", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
-            Text("Powered by Dice Agent", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
-        }
-        IconButton(onClick = onHistory) {
-            Icon(Icons.Filled.Schedule, contentDescription = "History", tint = Color.White)
-        }
-        IconButton(onClick = onDownload) {
-            Icon(Icons.Filled.Download, contentDescription = "Export", tint = Color.White)
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 4.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                // Glassmorphic orb with gradient ring
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(width = 1.5.dp, brush = ringGradient, shape = CircleShape)
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(orbGradient),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+                Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
+                    Text("AI Assistant", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Powered by Dice Agent", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
+                }
+                IconButton(onClick = onHistory) {
+                    Icon(Icons.Filled.Schedule, contentDescription = "History", tint = Color.White)
+                }
+                IconButton(onClick = onDownload) {
+                    Icon(Icons.Filled.Download, contentDescription = "Export", tint = Color.White)
+                }
+            }
+            // Hairline separator simulating glass edge
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(0.5.dp)
+                    .background(Color.White.copy(alpha = 0.18f)),
+            )
         }
     }
 }
