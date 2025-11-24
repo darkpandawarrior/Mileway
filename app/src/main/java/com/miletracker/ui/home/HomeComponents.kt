@@ -11,6 +11,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.miletracker.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -123,17 +129,22 @@ fun HomeProfileHeader(
             .fillMaxWidth()
             .background(DesignTokens.topBarGradientBrush()),
     ) {
-        // Translucent dot-grid overlay — a subtle "world map" texture, asset-free.
-        WorldMapDotGrid(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding(),
-            dotColor = Color.White.copy(alpha = 0.13f),
+        // World map background — loaded via Coil to safely downsample the 4312×2128 PNG.
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(R.drawable.home_world_map)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.35f,
+            colorFilter = ColorFilter.tint(Color.White),
         )
-        // Diagonal gloss sheen — top-left to centre, low-alpha white stripe.
+        // Diagonal gloss sheen over the map.
         Canvas(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             val sheenBrush = Brush.linearGradient(
-                colors = listOf(Color.White.copy(alpha = 0.10f), Color.Transparent),
+                colors = listOf(Color.White.copy(alpha = 0.08f), Color.Transparent),
                 start = Offset(0f, 0f),
                 end = Offset(size.width * 0.55f, size.height),
             )

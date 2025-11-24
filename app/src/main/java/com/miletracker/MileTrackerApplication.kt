@@ -15,6 +15,7 @@ import com.miletracker.feature.tracking.di.trackingModule
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import com.miletracker.seeder.DatabaseSeeder
 import com.miletracker.ui.home.homeModule
+import com.miletracker.debug.WormaCeptorHelper
 import com.miletracker.stub.DemoConfigManager
 import com.miletracker.stub.di.stubModule
 import kotlinx.coroutines.CoroutineScope
@@ -68,6 +69,8 @@ class MileTrackerApplication : Application() {
         // Initialize osmdroid with the app's package name as the user-agent string.
         // Must happen before any MapView is inflated.
         Configuration.getInstance().userAgentValue = packageName
+        // Initialize WormaCeptor for HTTP inspection in debug builds (no-op in release).
+        WormaCeptorHelper.init(this)
         startKoin {
             androidContext(this@MileTrackerApplication)
             androidLogger(Level.DEBUG)

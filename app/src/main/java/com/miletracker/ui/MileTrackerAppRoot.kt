@@ -264,7 +264,12 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                     // Global debug destination — outside bottom-nav graphs so it renders
                     // full-screen without the bottom bar.
                     composable(AppRoutes.DEBUG_MENU) {
-                        DebugMenuScreen(onBack = { navController.popBackStack() })
+                        val ctx = androidx.compose.ui.platform.LocalContext.current
+                        DebugMenuScreen(
+                            onBack = { navController.popBackStack() },
+                            onOpenHttpInspector = com.miletracker.debug.WormaCeptorHelper.getLaunchIntent(ctx)
+                                ?.let { intent -> { ctx.startActivity(intent) } },
+                        )
                     }
                     // Full-screen AI Agent — entered via FAB throw-up gesture.
                     agentGraph(navController)

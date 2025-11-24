@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -84,16 +85,11 @@ import com.miletracker.core.network.config.ConfigProvider
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
-// ---------------------------------------------------------------------------
-// Debug menu entry screen — offline-relevant tools only.
-// Server-only tools (API tester, HTTP logs, WormaCeptor, deep-link tester)
-// are intentionally excluded from this standalone demo build.
-// ---------------------------------------------------------------------------
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugMenuScreen(
     onBack: () -> Unit,
+    onOpenHttpInspector: (() -> Unit)? = null,
     viewModel: DebugMenuComposeViewModel = koinViewModel(),
     configProvider: ConfigProvider = koinInject(),
 ) {
@@ -234,6 +230,13 @@ fun DebugMenuScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // Network inspector (WormaCeptor) — only shown when host app wires the intent
+            if (searchQuery.isEmpty() && onOpenHttpInspector != null) {
+                item {
+                    NetworkInspectorCard(onOpen = onOpenHttpInspector)
                 }
             }
 
@@ -592,6 +595,53 @@ private fun ProfilePresetsCard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Network inspector card (WormaCeptor) — only shown when callback is wired
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun NetworkInspectorCard(onOpen: () -> Unit) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.NetworkCheck,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Network Inspector",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                text = "Inspect live HTTP traffic, headers, and response bodies",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+            )
+            Button(
+                onClick = onOpen,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.NetworkCheck,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Open WormaCeptor")
             }
         }
     }
