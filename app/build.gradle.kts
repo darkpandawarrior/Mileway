@@ -79,6 +79,13 @@ dependencies {
     // osmdroid — needed for Configuration init in Application class
     implementation(libs.osmdroid)
 
+    // Coil — image loading (world map header background, profile avatars)
+    implementation(libs.coil.compose)
+
+    // WormaCeptor — HTTP traffic inspector, debug builds only
+    debugImplementation(libs.wormaceptor.api)
+    debugImplementation(libs.wormaceptor.impl)
+
     // Tests
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
