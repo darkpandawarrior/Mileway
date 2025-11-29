@@ -269,6 +269,8 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                             onBack = { navController.popBackStack() },
                             onOpenHttpInspector = com.miletracker.debug.WormaCeptorHelper.getLaunchIntent(ctx)
                                 ?.let { intent -> { ctx.startActivity(intent) } },
+                            onOpenShowcase = com.miletracker.debug.ShowcaseLauncher.getLaunchIntent(ctx)
+                                ?.let { intent -> { ctx.startActivity(intent) } },
                         )
                     }
                     // Full-screen AI Agent — entered via FAB throw-up gesture.

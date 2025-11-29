@@ -397,3 +397,42 @@ private fun QrRequestSheet(
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "QR Info Tile")
+@Composable
+private fun PreviewQrInfoTile() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        QrInfoTile(label = "Daily Limit", value = "₹50,000")
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "QR Info Row")
+@Composable
+private fun PreviewQrInfoRow() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        QrInfoRow()
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "QR Card Chip")
+@Composable
+private fun PreviewQrCardChip() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        QrCardChip(
+            card = CorporateCard(
+                id = "CARD-001",
+                lastFourDigits = "4821",
+                cardType = com.miletracker.feature.profile.model.CardType.VISA,
+                holderName = "Priya Sharma",
+                balanceRupees = 48000.0,
+                status = com.miletracker.feature.profile.model.CardStatus.ACTIVE,
+                expiryDate = "12/26",
+                creditLimitRupees = 100000.0,
+            )
+        )
+    }
+}

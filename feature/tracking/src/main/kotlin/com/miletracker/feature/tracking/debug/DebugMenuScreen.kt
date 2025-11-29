@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.NetworkCheck
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -90,6 +91,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun DebugMenuScreen(
     onBack: () -> Unit,
     onOpenHttpInspector: (() -> Unit)? = null,
+    onOpenShowcase: (() -> Unit)? = null,
     viewModel: DebugMenuComposeViewModel = koinViewModel(),
     configProvider: ConfigProvider = koinInject(),
 ) {
@@ -237,6 +239,13 @@ fun DebugMenuScreen(
             if (searchQuery.isEmpty() && onOpenHttpInspector != null) {
                 item {
                     NetworkInspectorCard(onOpen = onOpenHttpInspector)
+                }
+            }
+
+            // Component showcase browser — only shown when host app wires the launcher
+            if (searchQuery.isEmpty() && onOpenShowcase != null) {
+                item {
+                    ShowcaseBrowserCard(onOpen = onOpenShowcase)
                 }
             }
 
@@ -648,6 +657,53 @@ private fun NetworkInspectorCard(onOpen: () -> Unit) {
 }
 
 // ---------------------------------------------------------------------------
+// Component showcase card — launch the debug component browser
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun ShowcaseBrowserCard(onOpen: () -> Unit) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Widgets,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Component Showcase",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                text = "Browse all UI components in isolation with mock data",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+            )
+            Button(
+                onClick = onOpen,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Widgets,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Open Showcase Browser")
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Offline actions card
 // ---------------------------------------------------------------------------
 
@@ -829,3 +885,33 @@ private fun DebugActionRow(
 
 fun searchMatches(name: String, query: String): Boolean =
     query.isBlank() || name.contains(query, ignoreCase = true)
+
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Debug Section Card – collapsed")
+@Composable
+private fun PreviewDebugSectionCardCollapsed() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        DebugSectionCard(title = "Location & Tracking", icon = Icons.Default.LocationOn) {
+            Text("Toggle content hidden until expanded")
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Debug Toggle Row")
+@Composable
+private fun PreviewDebugToggleRow() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        DebugToggleRow(title = "Allow Mock Locations", checked = true, onCheckedChange = {})
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Network Inspector Card")
+@Composable
+private fun PreviewNetworkInspectorCard() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        NetworkInspectorCard(onOpen = {})
+    }
+}
