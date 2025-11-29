@@ -1045,3 +1045,48 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
 private fun TextButton(onClick: () -> Unit, content: @Composable () -> Unit) {
     androidx.compose.material3.TextButton(onClick = onClick) { content() }
 }
+
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Home Header – light")
+@Composable
+private fun PreviewHomeProfileHeader() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        HomeProfileHeader(
+            name = "Priya Sharma",
+            notificationCount = 3,
+            onSearch = {},
+            onNotifications = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
+    name = "Home Header – dark",
+)
+@Composable
+private fun PreviewHomeProfileHeaderDark() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        HomeProfileHeader(
+            name = "Priya Sharma",
+            notificationCount = 0,
+            onSearch = {},
+            onNotifications = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Section Header")
+@Composable
+private fun PreviewHomeSectionHeader() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        HomeSectionHeader(
+            title = "Recent Trips",
+            leadingIcon = androidx.compose.material.icons.Icons.Default.DirectionsCar,
+        )
+    }
+}

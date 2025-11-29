@@ -575,3 +575,30 @@ private fun UnansweredTab(questions: List<UnansweredQuestion>, onSubmit: () -> U
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Agent Header – glassmorphic")
+@Composable
+private fun PreviewAgentHeader() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        AgentHeader(onBack = {}, onHistory = {}, onDownload = {})
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = false, name = "Popular Tab")
+@Composable
+private fun PreviewPopularTab() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        PopularTab(
+            questions = listOf(
+                PopularQuestion("PQ-001", "What is the mileage reimbursement rate?", "Mileage", 248, true),
+                PopularQuestion("PQ-002", "How do I submit a GPS-tracked trip?", "Mileage", 187, true),
+                PopularQuestion("PQ-003", "What receipts are required for expenses?", "Expense", 215, false),
+            ),
+            onQuestion = {},
+        )
+    }
+}

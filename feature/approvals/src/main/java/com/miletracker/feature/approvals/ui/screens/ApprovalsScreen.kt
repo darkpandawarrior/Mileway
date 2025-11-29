@@ -434,6 +434,77 @@ private fun dateBucket(ms: Long): String {
     return sdf.format(Date(ms))
 }
 
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Approval Card – pending")
+@Composable
+private fun PreviewApprovalCardPending() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        ApprovalCard(
+            item = ApprovalItem(
+                id = "A001",
+                type = ApprovalType.MILEAGE,
+                requesterName = "Priya Sharma",
+                summary = "Client visit – 48 km trip",
+                amountRupees = 576.0,
+                status = ApprovalStatus.PENDING,
+                timestampMs = 1_718_200_000_000L - 3_600_000L,
+            ),
+            selectionMode = false,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Approval Card – selected")
+@Composable
+private fun PreviewApprovalCardSelected() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        ApprovalCard(
+            item = ApprovalItem(
+                id = "A003",
+                type = ApprovalType.TRAVEL,
+                requesterName = "Aisha Khan",
+                summary = "Bangalore–Pune flight",
+                amountRupees = 8400.0,
+                status = ApprovalStatus.PENDING,
+                timestampMs = 1_718_200_000_000L - 4 * 3_600_000L,
+                policyViolation = true,
+            ),
+            selectionMode = true,
+            isSelected = true,
+            onClick = {},
+            onLongClick = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Approval Card – approved")
+@Composable
+private fun PreviewApprovalCardApproved() {
+    com.miletracker.core.ui.theme.MileTrackerTheme {
+        ApprovalCard(
+            item = ApprovalItem(
+                id = "A005",
+                type = ApprovalType.EXPENSE,
+                requesterName = "Neha Patel",
+                summary = "Office supplies ₹680",
+                amountRupees = 680.0,
+                status = ApprovalStatus.APPROVED,
+                timestampMs = 1_718_200_000_000L - 86_400_000L,
+            ),
+            selectionMode = false,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+        )
+    }
+}
+
 private fun timeAgo(ms: Long): String {
     val diff = System.currentTimeMillis() - ms
     val hours = diff / 3_600_000
