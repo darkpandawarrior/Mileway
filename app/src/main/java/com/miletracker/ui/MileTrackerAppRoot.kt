@@ -58,6 +58,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.miletracker.R
 import com.miletracker.core.ui.components.bottombar.BubbleBottomBar
+import com.miletracker.ui.KoffeeHost
 import com.miletracker.core.ui.components.bottombar.BubbleNavItem
 import com.miletracker.core.ui.components.bottombar.CollapsedBottomPuck
 import com.miletracker.core.ui.theme.MileTrackerTheme
@@ -110,6 +111,7 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
         useSystemColors = useSystemColors,
         paletteStyle = paletteStyle,
     ) {
+        KoffeeHost {
         val navController = rememberNavController()
 
         val tabs = remember {
@@ -315,6 +317,8 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
                 }
             }
         }
+
+        } // KoffeeHost
 
     }
 }

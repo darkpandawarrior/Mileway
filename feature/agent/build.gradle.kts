@@ -36,4 +36,7 @@ dependencies {
 
     implementation(project(":core:ui"))
     implementation(project(":stub"))
+
+    // Compose Markdown — render AI responses as rich markdown text
+    implementation(libs.compose.markdown)
 }

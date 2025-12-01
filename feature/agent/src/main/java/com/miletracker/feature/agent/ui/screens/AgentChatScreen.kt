@@ -64,6 +64,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -261,7 +262,7 @@ private fun AgentHeader(onBack: () -> Unit, onHistory: () -> Unit, onDownload: (
                 }
                 Column(modifier = Modifier.weight(1f).padding(start = 10.dp)) {
                     Text("AI Assistant", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Powered by Dice Agent", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
+                    Text("Powered by MileTracker AI", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
                 }
                 IconButton(onClick = onHistory) {
                     Icon(Icons.Filled.Schedule, contentDescription = "History", tint = Color.White)
@@ -439,7 +440,10 @@ private fun MessageBubble(message: AgentMessage, onFeedback: () -> Unit) {
                     .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp))
                     .padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
-                Text(message.text, style = MaterialTheme.typography.bodyMedium, color = Color.White)
+                MarkdownText(
+                    markdown = message.text,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 IconButton(onClick = onFeedback, modifier = Modifier.size(32.dp)) {
