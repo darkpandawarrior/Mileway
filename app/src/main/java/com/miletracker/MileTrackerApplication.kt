@@ -1,6 +1,10 @@
 package com.miletracker
 
 import android.app.Application
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.decode.GifDecoder
+import coil.decode.SvgDecoder
 import com.miletracker.core.data.di.coreDataModule
 import com.miletracker.core.ui.di.coreUiModule
 import com.miletracker.feature.agent.di.agentModule
@@ -60,7 +64,14 @@ val appModule = module {
     }
 }
 
-class MileTrackerApplication : Application() {
+class MileTrackerApplication : Application(), ImageLoaderFactory {
+
+    override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
+        .components {
+            add(GifDecoder.Factory())
+            add(SvgDecoder.Factory())
+        }
+        .build()
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

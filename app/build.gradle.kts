@@ -3,6 +3,15 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=ke.don.koffee.ExperimentalKoffeeApi",
+            "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi",
+        )
+    }
+}
+
 android {
     namespace = "com.miletracker"
     compileSdk = 36
@@ -81,6 +90,15 @@ dependencies {
 
     // Coil — image loading (world map header background, profile avatars)
     implementation(libs.coil.compose)
+    // Coil decoders — GIF animations and SVG assets
+    implementation(libs.coil.gif)
+    implementation(libs.coil.svg)
+
+    // Koffee — lifecycle-aware in-app toasts
+    implementation(libs.koffee)
+
+    // Accompanist permissions — Compose-native permission request wrapper
+    implementation(libs.accompanist.permissions)
 
     // WormaCeptor — HTTP traffic inspector, debug builds only
     debugImplementation(libs.wormaceptor.api)
