@@ -33,6 +33,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import dev.tmapps.konnection.Konnection
 import org.osmdroid.config.Configuration
 
 val appModule = module {
@@ -82,6 +83,8 @@ class MileTrackerApplication : Application(), ImageLoaderFactory {
         Configuration.getInstance().userAgentValue = packageName
         // Initialize WormaCeptor for HTTP inspection in debug builds (no-op in release).
         WormaCeptorHelper.init(this)
+        // Initialize konnection for KMP network connectivity monitoring.
+        Konnection.createInstance(this)
         startKoin {
             androidContext(this@MileTrackerApplication)
             androidLogger(Level.DEBUG)
