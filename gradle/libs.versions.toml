@@ -29,6 +29,9 @@ wormaceptor = "2.2.1"
 koffee = "0.2.1"
 composeMarkdown = "0.5.8"
 accompanist_permissions = "0.37.3"
+picktime_compose = "1.1.4"
+compose_webview = "0.33.6"
+konnection = "1.4.5"
 
 [libraries]
 # Kotlin
@@ -98,6 +101,9 @@ coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
 koffee = { group = "io.github.donald-okara", name = "koffee", version.ref = "koffee" }
 compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist_permissions" }
+picktime-compose = { module = "com.github.anhaki:PickTime-Compose", version.ref = "picktime_compose" }
+compose-webview = { group = "io.github.kevinnzou", name = "compose-webview", version.ref = "compose_webview" }
+konnection = { group = "dev.tmapps", name = "konnection", version.ref = "konnection" }
 wormaceptor-api = { module = "com.github.azikar24.WormaCeptor:api-client", version.ref = "wormaceptor" }
 wormaceptor-impl = { module = "com.github.azikar24.WormaCeptor:api-impl-persistence", version.ref = "wormaceptor" }
 exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }

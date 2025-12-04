@@ -41,6 +41,8 @@ kotlin {
             implementation(libs.osmdroid)
             implementation(libs.coil.compose)
             implementation(libs.exifinterface)
+            implementation(libs.picktime.compose)
+            implementation(libs.compose.webview)
         }
     }
 }

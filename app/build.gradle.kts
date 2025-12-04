@@ -88,6 +88,9 @@ dependencies {
     // osmdroid — needed for Configuration init in Application class
     implementation(libs.osmdroid)
 
+    // Konnection — KMP network connectivity monitor (init in Application)
+    implementation(libs.konnection)
+
     // Coil — image loading (world map header background, profile avatars)
     implementation(libs.coil.compose)
     // Coil decoders — GIF animations and SVG assets
