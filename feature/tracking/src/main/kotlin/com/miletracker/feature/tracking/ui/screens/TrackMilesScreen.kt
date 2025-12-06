@@ -2,7 +2,7 @@ package com.miletracker.feature.tracking.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.widget.Toast
+import com.miletracker.core.ui.toast.Toasts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -136,11 +136,11 @@ fun TrackMilesScreen(
     // Surface check-in success as a toast.
     LaunchedEffect(checkInUiState.checkInSuccess) {
         if (checkInUiState.checkInSuccess) {
-            Toast.makeText(
-                context,
-                checkInUiState.successMessage.ifBlank { "Check-in recorded." },
-                Toast.LENGTH_SHORT,
-            ).show()
+            Toasts.show(
+                scenario = Toasts.ToastScenario.Success,
+                title = "Checked In",
+                description = checkInUiState.successMessage.ifBlank { "Check-in recorded." },
+            )
             checkInViewModel.acknowledgeSuccess()
         }
     }

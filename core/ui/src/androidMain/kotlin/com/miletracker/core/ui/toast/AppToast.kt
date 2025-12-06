@@ -1,4 +1,4 @@
-package com.miletracker.ui.toast
+package com.miletracker.core.ui.toast
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +42,7 @@ fun AppToast(data: ToastData) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null,
+                    contentDescription = "Toast Icon",
                     tint = tint,
                     modifier = Modifier.size(32.dp).padding(end = 12.dp),
                 )
