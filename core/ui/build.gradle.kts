@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.exifinterface)
             implementation(libs.picktime.compose)
             implementation(libs.compose.webview)
+            implementation(libs.koffee)
         }
     }
 }

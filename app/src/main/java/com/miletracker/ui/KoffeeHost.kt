@@ -11,26 +11,20 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.miletracker.ui.toast.AppToast
+import com.miletracker.core.ui.toast.AppToast
+import com.miletracker.core.ui.toast.KoffeeHostController
+import com.miletracker.core.ui.toast.LocalKoffeeHostController
 import ke.don.koffee.annotations.ExperimentalKoffeeApi
 import ke.don.koffee.domain.rememberToastHostState
 import ke.don.koffee.model.KoffeeDefaults
 import ke.don.koffee.model.ToastAnimation
 import ke.don.koffee.model.ToastPosition
 import ke.don.koffee.ui.KoffeeBar
-
-class KoffeeHostController(private val onReattach: () -> Unit) {
-    var isChildActive = false
-    fun reattach() = onReattach()
-}
-
-val LocalKoffeeHostController = staticCompositionLocalOf<KoffeeHostController?> { null }
 
 @OptIn(ExperimentalKoffeeApi::class)
 @Composable

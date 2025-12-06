@@ -1,6 +1,5 @@
 package com.miletracker.core.ui.components.pickers
 
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -48,6 +46,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.ui.toast.SheetKoffeeHost
+import com.miletracker.core.ui.toast.Toasts
 import com.anhaki.picktime.PickDate
 import com.anhaki.picktime.PickHourMinute
 import com.anhaki.picktime.PickHourMinuteSecond
@@ -387,7 +387,6 @@ private fun WheelDatePickerBottomSheetInternal(
 ) {
     if (!showSheet) return
 
-    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
@@ -405,100 +404,102 @@ private fun WheelDatePickerBottomSheetInternal(
         dragHandle = { BottomSheetDefaults.DragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
-                .heightIn(max = 385.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
-            val previewCalendar = Calendar.getInstance().apply {
-                set(selectedYear, selectedMonth - 1, selectedDay)
-            }
-            Text(
-                text = formatFriendlyDate(previewCalendar.timeInMillis),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            WheelDatePicker(
-                initialDay = selectedDay,
-                initialMonth = selectedMonth,
-                initialYear = selectedYear,
-                onDayChange = { selectedDay = it },
-                onMonthChange = {
-                    selectedMonth = it
-                    val maxDay = Calendar.getInstance().apply {
-                        set(selectedYear, it - 1, 1)
-                    }.getActualMaximum(Calendar.DAY_OF_MONTH)
-                    if (selectedDay > maxDay) selectedDay = maxDay
-                },
-                onYearChange = { selectedYear = it },
-                minYear = effectiveMinYear,
-                maxYear = effectiveMaxYear
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        SheetKoffeeHost {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp)
+                    .heightIn(max = 385.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) { Text("Cancel") }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
 
-                Button(
-                    onClick = {
-                        val selectedTimestamp = Calendar.getInstance().apply {
-                            set(selectedYear, selectedMonth - 1, selectedDay, 0, 0, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }.timeInMillis
+                val previewCalendar = Calendar.getInstance().apply {
+                    set(selectedYear, selectedMonth - 1, selectedDay)
+                }
+                Text(
+                    text = formatFriendlyDate(previewCalendar.timeInMillis),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
 
-                        if (minTimestamp != null && selectedTimestamp < minTimestamp) {
-                            Toast.makeText(
-                                context,
-                                validationMessage ?: "Selected date must be after the previous date",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@Button
-                        }
-
-                        if (maxTimestamp != null && selectedTimestamp > maxTimestamp) {
-                            Toast.makeText(
-                                context,
-                                maxValidationMessage ?: "Selected date must not be after the allowed date",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@Button
-                        }
-
-                        onDateSelected(selectedYear, selectedMonth, selectedDay, selectedTimestamp)
-                        onDismiss()
+                WheelDatePicker(
+                    initialDay = selectedDay,
+                    initialMonth = selectedMonth,
+                    initialYear = selectedYear,
+                    onDayChange = { selectedDay = it },
+                    onMonthChange = {
+                        selectedMonth = it
+                        val maxDay = Calendar.getInstance().apply {
+                            set(selectedYear, it - 1, 1)
+                        }.getActualMaximum(Calendar.DAY_OF_MONTH)
+                        if (selectedDay > maxDay) selectedDay = maxDay
                     },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) { Text("Confirm") }
+                    onYearChange = { selectedYear = it },
+                    minYear = effectiveMinYear,
+                    maxYear = effectiveMaxYear
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) { Text("Cancel") }
+
+                    Button(
+                        onClick = {
+                            val selectedTimestamp = Calendar.getInstance().apply {
+                                set(selectedYear, selectedMonth - 1, selectedDay, 0, 0, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }.timeInMillis
+
+                            if (minTimestamp != null && selectedTimestamp < minTimestamp) {
+                                Toasts.show(
+                                    scenario = Toasts.ToastScenario.Error,
+                                    title = "Invalid Date",
+                                    description = validationMessage ?: "Selected date must be after the previous date",
+                                )
+                                return@Button
+                            }
+
+                            if (maxTimestamp != null && selectedTimestamp > maxTimestamp) {
+                                Toasts.show(
+                                    scenario = Toasts.ToastScenario.Error,
+                                    title = "Invalid Date",
+                                    description = maxValidationMessage ?: "Selected date must not be after the allowed date",
+                                )
+                                return@Button
+                            }
+
+                            onDateSelected(selectedYear, selectedMonth, selectedDay, selectedTimestamp)
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) { Text("Confirm") }
+                }
             }
         }
     }
@@ -583,7 +584,6 @@ private fun WheelTimePickerBottomSheetInternal(
 ) {
     if (!showSheet) return
 
-    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
     var selectedHour by remember(initialHour) { mutableIntStateOf(initialHour) }
@@ -596,99 +596,101 @@ private fun WheelTimePickerBottomSheetInternal(
         dragHandle = { BottomSheetDefaults.DragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 16.dp)
-                .heightIn(max = 385.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
-            Text(
-                text = if (use24Hour) formatTime24h(selectedHour, selectedMinute)
-                       else formatTime12h(selectedHour, selectedMinute),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            WheelTimePicker(
-                initialHour = selectedHour,
-                initialMinute = selectedMinute,
-                onHourChange = { selectedHour = it },
-                onMinuteChange = { selectedMinute = it },
-                use12HourFormat = !use24Hour
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        SheetKoffeeHost {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp)
+                    .heightIn(max = 385.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                ) { Text("Cancel") }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
 
-                Button(
-                    onClick = {
-                        val selectedTimestamp = if (dateContext != null) {
-                            val parsedDate = parseDateContext(dateContext)
-                            Calendar.getInstance().apply {
-                                if (parsedDate != null) {
-                                    time = parsedDate
-                                    set(Calendar.HOUR_OF_DAY, selectedHour)
-                                    set(Calendar.MINUTE, selectedMinute)
-                                    set(Calendar.SECOND, 0)
-                                    set(Calendar.MILLISECOND, 0)
-                                }
-                            }.timeInMillis
-                        } else {
-                            selectedHour * 3600000L + selectedMinute * 60000L
-                        }
+                Text(
+                    text = if (use24Hour) formatTime24h(selectedHour, selectedMinute)
+                           else formatTime12h(selectedHour, selectedMinute),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
 
-                        if (minTimestamp != null && selectedTimestamp < minTimestamp) {
-                            Toast.makeText(
-                                context,
-                                validationMessage ?: "Time must be on or after the previous time",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@Button
-                        }
+                WheelTimePicker(
+                    initialHour = selectedHour,
+                    initialMinute = selectedMinute,
+                    onHourChange = { selectedHour = it },
+                    onMinuteChange = { selectedMinute = it },
+                    use12HourFormat = !use24Hour
+                )
 
-                        if (maxTimestamp != null && selectedTimestamp > maxTimestamp) {
-                            Toast.makeText(
-                                context,
-                                maxValidationMessage ?: "Time must not be after the allowed time",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@Button
-                        }
+                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(16.dp))
 
-                        onTimeSelected(selectedHour, selectedMinute, selectedTimestamp)
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) { Text("Confirm") }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) { Text("Cancel") }
+
+                    Button(
+                        onClick = {
+                            val selectedTimestamp = if (dateContext != null) {
+                                val parsedDate = parseDateContext(dateContext)
+                                Calendar.getInstance().apply {
+                                    if (parsedDate != null) {
+                                        time = parsedDate
+                                        set(Calendar.HOUR_OF_DAY, selectedHour)
+                                        set(Calendar.MINUTE, selectedMinute)
+                                        set(Calendar.SECOND, 0)
+                                        set(Calendar.MILLISECOND, 0)
+                                    }
+                                }.timeInMillis
+                            } else {
+                                selectedHour * 3600000L + selectedMinute * 60000L
+                            }
+
+                            if (minTimestamp != null && selectedTimestamp < minTimestamp) {
+                                Toasts.show(
+                                    scenario = Toasts.ToastScenario.Error,
+                                    title = "Invalid Time",
+                                    description = validationMessage ?: "Time must be on or after the previous time",
+                                )
+                                return@Button
+                            }
+
+                            if (maxTimestamp != null && selectedTimestamp > maxTimestamp) {
+                                Toasts.show(
+                                    scenario = Toasts.ToastScenario.Error,
+                                    title = "Invalid Time",
+                                    description = maxValidationMessage ?: "Time must not be after the allowed time",
+                                )
+                                return@Button
+                            }
+
+                            onTimeSelected(selectedHour, selectedMinute, selectedTimestamp)
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) { Text("Confirm") }
+                }
             }
         }
     }
@@ -734,6 +736,7 @@ fun WheelDateRangePickerBottomSheet(
         dragHandle = { BottomSheetDefaults.DragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets }
     ) {
+        SheetKoffeeHost {
         WheelDateRangePickerContent(
             initialStartMillis = initialStartMillis,
             initialEndMillis = initialEndMillis,
@@ -747,6 +750,7 @@ fun WheelDateRangePickerBottomSheet(
             maxYear = maxYear,
             allowPastDates = allowPastDates
         )
+        } // SheetKoffeeHost
     }
 }
 
@@ -761,7 +765,6 @@ fun WheelDateRangePickerContent(
     maxYear: Int? = null,
     allowPastDates: Boolean = true
 ) {
-    val context = LocalContext.current
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
     val effectiveMinYear = minYear ?: (if (allowPastDates) currentYear - 100 else currentYear)
@@ -870,11 +873,11 @@ fun WheelDateRangePickerContent(
                     if (startMillis <= endMillis) {
                         onConfirm(startMillis, endMillis)
                     } else {
-                        Toast.makeText(
-                            context,
-                            "End date must be after or equal to start date",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toasts.show(
+                            scenario = Toasts.ToastScenario.Error,
+                            title = "Invalid Range",
+                            description = "End date must be after or equal to start date",
+                        )
                     }
                 },
                 modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp)
@@ -902,7 +905,6 @@ fun WheelTimeRangePickerBottomSheet(
 ) {
     if (!showSheet) return
 
-    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
     var startHour by remember { mutableIntStateOf(initialStartHour) }
@@ -919,6 +921,7 @@ fun WheelTimeRangePickerBottomSheet(
         dragHandle = { BottomSheetDefaults.DragHandle() },
         contentWindowInsets = { BottomSheetDefaults.windowInsets }
     ) {
+        SheetKoffeeHost {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -990,7 +993,11 @@ fun WheelTimeRangePickerBottomSheet(
                             val startMins = startHour * 60 + startMinute
                             val endMins = endHour * 60 + endMinute
                             if (endMins <= startMins) {
-                                Toast.makeText(context, "End time must be after start time", Toast.LENGTH_SHORT).show()
+                                Toasts.show(
+                                    scenario = Toasts.ToastScenario.Error,
+                                    title = "Invalid Range",
+                                    description = "End time must be after start time",
+                                )
                                 return@Button
                             }
                         }
@@ -1001,6 +1008,7 @@ fun WheelTimeRangePickerBottomSheet(
                 ) { Text("Apply") }
             }
         }
+        } // SheetKoffeeHost
     }
 }
 
