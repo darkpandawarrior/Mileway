@@ -7,6 +7,7 @@ import com.miletracker.core.data.dao.LogMilesDraftDao
 import com.miletracker.core.data.dao.LogMilesFrequentRouteDao
 import com.miletracker.core.data.dao.SavedTrackDao
 import com.miletracker.core.data.dao.TripAttachmentDao
+import com.miletracker.core.data.library.MediaLibraryDao
 import com.miletracker.core.data.session.CurrentTrackDataStore
 import com.miletracker.core.ui.di.coreUiModule
 import com.miletracker.feature.agent.di.agentModule
@@ -17,6 +18,7 @@ import com.miletracker.feature.logging.di.loggingModule
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import com.miletracker.feature.media.di.mediaModule
+import com.miletracker.feature.media.viewmodel.CloudLibraryViewModel
 import com.miletracker.feature.media.viewmodel.MediaViewModel
 import com.miletracker.feature.payables.di.payablesModule
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
@@ -73,6 +75,7 @@ class KoinGraphTest : KoinTest {
         single<LogMilesDraftDao> { mockk(relaxed = true) }
         single<LogMilesFrequentRouteDao> { mockk(relaxed = true) }
         single<TripAttachmentDao> { mockk(relaxed = true) }
+        single<MediaLibraryDao> { mockk(relaxed = true) }
         single<CurrentTrackDataStore> { mockk(relaxed = true) }
     }
 
@@ -118,6 +121,7 @@ class KoinGraphTest : KoinTest {
         assertNotNull(get<LogMilesViewModel>())
         assertNotNull(get<ExpenseViewModel>())
         assertNotNull(get<MediaViewModel>())
+        assertNotNull(get<CloudLibraryViewModel>())
         assertNotNull(get<ProfileViewModel>())
         assertNotNull(get<AdvanceViewModel>())
         assertNotNull(get<CheckInViewModel>())

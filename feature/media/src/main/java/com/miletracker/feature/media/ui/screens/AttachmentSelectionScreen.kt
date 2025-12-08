@@ -87,6 +87,7 @@ fun AttachmentSelectionScreen(
     onNavigateToCamera: (odometer: Boolean) -> Unit,
     onNavigateToPreview: () -> Unit,
     onNavigateBack: () -> Unit = {},
+    onNavigateToLibrary: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -213,6 +214,7 @@ fun AttachmentSelectionScreen(
                                 viewModel.onSourceSelected(AttachmentSource.FILES)
                                 galleryLauncher.launch("*/*")
                             }
+                            SourceKey.CLOUD -> onNavigateToLibrary()
                             else -> showIllustrative(spec.label)
                         }
                     }

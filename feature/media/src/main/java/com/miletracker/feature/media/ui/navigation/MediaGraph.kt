@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.miletracker.feature.media.ui.camera.CameraCaptureScreen
 import com.miletracker.feature.media.ui.screens.AttachmentPreviewScreen
 import com.miletracker.feature.media.ui.screens.AttachmentSelectionScreen
+import com.miletracker.feature.media.ui.screens.CloudLibraryScreen
 import com.miletracker.feature.media.viewmodel.MediaViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -25,6 +26,7 @@ object MediaRoutes {
     fun camera(odometer: Boolean): String = "$CAMERA?$CAMERA_ARG_ODOMETER=$odometer"
 
     const val PREVIEW = "media_preview"
+    const val CLOUD_LIBRARY = "media_cloud_library"
 }
 
 /**
@@ -44,7 +46,8 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
                 navController.navigate(MediaRoutes.camera(odometer))
             },
             onNavigateToPreview = { navController.navigate(MediaRoutes.PREVIEW) },
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToLibrary = { navController.navigate(MediaRoutes.CLOUD_LIBRARY) }
         )
     }
 
@@ -69,6 +72,18 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
             isOdometerMode = odometer,
             flashMode = state.flashMode,
             onCycleFlash = vm::cycleFlashMode
+        )
+    }
+
+    composable(MediaRoutes.CLOUD_LIBRARY) { entry ->
+        val selEntry = remember(entry) { navController.getBackStackEntry(MediaRoutes.SELECTION) }
+        val selVm: MediaViewModel = koinViewModel(viewModelStoreOwner = selEntry)
+        CloudLibraryScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onSelectUri = { uri ->
+                selVm.onPickedFromGallery(uri)
+                navController.popBackStack(MediaRoutes.SELECTION, inclusive = false)
+            }
         )
     }
 
