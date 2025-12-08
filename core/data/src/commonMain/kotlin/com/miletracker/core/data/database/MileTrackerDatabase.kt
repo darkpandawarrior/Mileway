@@ -10,6 +10,8 @@ import com.miletracker.core.data.dao.LogMilesDraftDao
 import com.miletracker.core.data.dao.LogMilesFrequentRouteDao
 import com.miletracker.core.data.dao.SavedTrackDao
 import com.miletracker.core.data.dao.TripAttachmentDao
+import com.miletracker.core.data.library.MediaLibraryDao
+import com.miletracker.core.data.library.MediaLibraryEntry
 import com.miletracker.core.data.model.db.HardwareEvent
 import com.miletracker.core.data.model.db.LocationData
 import com.miletracker.core.data.model.db.LogMilesDraftEntity
@@ -24,9 +26,10 @@ import com.miletracker.core.data.model.db.TripAttachmentEntity
         HardwareEvent::class,
         LogMilesDraftEntity::class,
         LogMilesFrequentRouteEntity::class,
-        TripAttachmentEntity::class
+        TripAttachmentEntity::class,
+        MediaLibraryEntry::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @ConstructedBy(MileTrackerDatabaseConstructor::class)
@@ -37,6 +40,7 @@ abstract class MileTrackerDatabase : RoomDatabase() {
     abstract fun logMilesDraftDao(): LogMilesDraftDao
     abstract fun logMilesFrequentRouteDao(): LogMilesFrequentRouteDao
     abstract fun tripAttachmentDao(): TripAttachmentDao
+    abstract fun mediaLibraryDao(): MediaLibraryDao
 }
 
 @Suppress("NO_ACTUAL_FOR_EXPECT")

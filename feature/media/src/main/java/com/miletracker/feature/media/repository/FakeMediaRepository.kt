@@ -35,6 +35,7 @@ class FakeMediaRepository : MediaRepository {
 
     override suspend fun upload(item: AttachmentItem): UploadState.Done {
         delay(900)
-        return UploadState.Done("https://demo.miletracker.app/u/${item.id}")
+        // URI is the canonical URL in this offline demo — no server upload needed.
+        return UploadState.Done(remoteUrl = item.uri)
     }
 }

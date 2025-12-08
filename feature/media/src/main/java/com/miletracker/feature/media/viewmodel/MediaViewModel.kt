@@ -6,6 +6,7 @@ import com.miletracker.feature.media.model.AttachmentItem
 import com.miletracker.feature.media.model.AttachmentSource
 import com.miletracker.feature.media.model.FlashMode
 import com.miletracker.feature.media.model.UploadState
+import com.miletracker.feature.media.repository.MediaLibraryRepository
 import com.miletracker.feature.media.repository.MediaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +41,8 @@ data class MediaUiState(
 )
 
 class MediaViewModel(
-    private val repository: MediaRepository
+    private val repository: MediaRepository,
+    private val libraryRepository: MediaLibraryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MediaUiState())
@@ -159,6 +161,7 @@ class MediaViewModel(
                 val done: UploadState = repository.upload(uploading)
                 uploading.copy(uploadState = done)
             }
+            finished.forEach { libraryRepository.save(it) }
             _uiState.update { current ->
                 current.copy(
                     attachments = current.attachments + finished,
