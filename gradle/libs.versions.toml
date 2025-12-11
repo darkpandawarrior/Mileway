@@ -32,6 +32,7 @@ accompanist_permissions = "0.37.3"
 picktime_compose = "1.1.4"
 compose_webview = "0.33.6"
 konnection = "1.4.5"
+biometric = "1.1.0"
 
 [libraries]
 # Kotlin
@@ -62,6 +63,7 @@ koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager
 
 # Android X
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -129,5 +131,6 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
