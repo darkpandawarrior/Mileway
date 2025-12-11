@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:network"))
+    implementation(project(":core:security"))
     implementation(project(":feature:tracking"))
     implementation(project(":feature:logging"))
     implementation(project(":feature:media"))
