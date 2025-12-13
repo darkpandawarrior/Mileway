@@ -13,12 +13,14 @@ import com.miletracker.feature.profile.ui.screens.CardDetailScreen
 import com.miletracker.feature.profile.ui.screens.CardRequestScreen
 import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
 import com.miletracker.feature.profile.ui.screens.DelegationScreen
+import com.miletracker.feature.profile.ui.screens.DemoSettingsScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
 import com.miletracker.feature.profile.ui.screens.QrHomeScreen
 import com.miletracker.feature.profile.ui.screens.NotificationCentreScreen
 import com.miletracker.feature.profile.ui.screens.PreferencesScreen
 import com.miletracker.feature.profile.ui.screens.ProfileDetailsScreen
 import com.miletracker.feature.profile.ui.screens.ProfileScreen
+import com.miletracker.feature.profile.ui.screens.RootGuardScreen
 import com.miletracker.feature.profile.ui.screens.SettingsScreen
 
 object ProfileRoutes {
@@ -37,6 +39,8 @@ object ProfileRoutes {
     const val ANALYTICS_DETAIL = "profile/analytics/{category}"
     const val DELEGATION = "profile/delegation"
     const val QR_HOME = "profile/qr"
+    const val DEMO_SETTINGS = "profile/demo_settings"
+    const val ROOT_GUARD = "profile/root_guard"
     fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
     fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
@@ -66,6 +70,7 @@ fun NavGraphBuilder.profileGraph(
             onOpenCards = { navController.navigate(ProfileRoutes.CARDS_HOME) },
             onOpenInsights = { navController.navigate(ProfileRoutes.ANALYTICS_HOME) },
             onOpenDelegation = { navController.navigate(ProfileRoutes.DELEGATION) },
+            onOpenDemoSettings = { navController.navigate(ProfileRoutes.DEMO_SETTINGS) },
         )
     }
     composable(ProfileRoutes.DETAILS) {
@@ -153,6 +158,16 @@ fun NavGraphBuilder.profileGraph(
     composable(ProfileRoutes.QR_HOME) {
         QrHomeScreen(
             onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.DEMO_SETTINGS) {
+        DemoSettingsScreen(
+            onBack = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.ROOT_GUARD) {
+        RootGuardScreen(
+            onContinue = { navController.popBackStack() },
         )
     }
 }

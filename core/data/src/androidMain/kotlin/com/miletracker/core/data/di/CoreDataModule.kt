@@ -3,6 +3,7 @@ package com.miletracker.core.data.di
 import com.miletracker.core.data.database.MileTrackerDatabase
 import com.miletracker.core.data.database.buildMileTrackerDatabase
 import com.miletracker.core.data.session.CurrentTrackDataStore
+import com.miletracker.core.data.settings.DemoSettingsRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -16,4 +17,5 @@ val coreDataModule = module {
     single { get<MileTrackerDatabase>().tripAttachmentDao() }
     single { get<MileTrackerDatabase>().mediaLibraryDao() }
     single { CurrentTrackDataStore(androidContext()) }
+    single { DemoSettingsRepository(androidContext()) }
 }

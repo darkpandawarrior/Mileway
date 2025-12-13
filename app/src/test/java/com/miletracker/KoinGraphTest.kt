@@ -23,7 +23,9 @@ import com.miletracker.feature.media.viewmodel.MediaViewModel
 import com.miletracker.feature.payables.di.payablesModule
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import com.miletracker.feature.profile.di.profileModule
+import com.miletracker.core.data.settings.DemoSettingsRepository
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
+import com.miletracker.feature.profile.viewmodel.DemoSettingsViewModel
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
 import com.miletracker.feature.tracking.debug.DebugMenuComposeViewModel
 import com.miletracker.feature.tracking.di.trackingModule
@@ -77,6 +79,7 @@ class KoinGraphTest : KoinTest {
         single<TripAttachmentDao> { mockk(relaxed = true) }
         single<MediaLibraryDao> { mockk(relaxed = true) }
         single<CurrentTrackDataStore> { mockk(relaxed = true) }
+        single<DemoSettingsRepository> { mockk(relaxed = true) }
     }
 
     @Before
@@ -124,6 +127,7 @@ class KoinGraphTest : KoinTest {
         assertNotNull(get<CloudLibraryViewModel>())
         assertNotNull(get<ProfileViewModel>())
         assertNotNull(get<AdvanceViewModel>())
+        assertNotNull(get<DemoSettingsViewModel>())
         assertNotNull(get<CheckInViewModel>())
         assertNotNull(get<ApprovalsViewModel>())
         assertNotNull(get<PayablesViewModel>())
