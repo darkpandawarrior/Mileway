@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
@@ -87,6 +88,7 @@ fun ProfileScreen(
     onOpenCards: () -> Unit = {},
     onOpenInsights: () -> Unit = {},
     onOpenDelegation: () -> Unit = {},
+    onOpenDemoSettings: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -117,6 +119,7 @@ fun ProfileScreen(
                 onOpenAdvance = onOpenAdvance,
                 onOpenCards = onOpenCards,
                 onOpenDelegation = onOpenDelegation,
+                onOpenDemoSettings = onOpenDemoSettings,
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
@@ -315,6 +318,7 @@ private fun AccountTileGrid(
     onOpenAdvance: () -> Unit,
     onOpenCards: () -> Unit,
     onOpenDelegation: () -> Unit,
+    onOpenDemoSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val blue = Color(0xFF2563EB)
@@ -326,6 +330,7 @@ private fun AccountTileGrid(
     val teal = Color(0xFF0F766E)
     val indigo = Color(0xFF3730A3)
     val cyan = Color(0xFF0277BD)
+    val darkTeal = Color(0xFF00695C)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -353,6 +358,10 @@ private fun AccountTileGrid(
         TileRow(
             left = accountTile("acc_delegation", "Delegation", "Manage authority", Icons.Default.SupervisorAccount, cyan, onOpenDelegation),
             right = accountTile("acc_insights", "Insights", "Analytics view", Icons.Default.History, Color(0xFF6D28D9), action = {}),
+        )
+        TileRow(
+            left = accountTile("acc_demo", "Demo Settings", "Feature toggles", Icons.Default.BugReport, darkTeal, onOpenDemoSettings),
+            right = accountTile("acc_placeholder", "", "", Icons.Default.Settings, Color.Transparent, action = {}),
         )
     }
 }
