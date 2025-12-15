@@ -2,6 +2,9 @@ package com.miletracker.feature.profile.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.tooling.preview.Preview
+import com.miletracker.core.ui.theme.MileTrackerTheme
+import com.miletracker.feature.profile.ui.previews.LightDarkPreview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -97,5 +100,27 @@ fun RootGuardScreen(
         ) {
             Text("Continue Anyway (Demo)", fontWeight = FontWeight.SemiBold)
         }
+    }
+}
+
+@LightDarkPreview
+@Composable
+private fun RootGuardScreenPreview() {
+    MileTrackerTheme {
+        RootGuardScreen(
+            onContinue = {},
+            signals = listOf("su binary found at /system/xbin/su", "test-keys build", "Magisk detected"),
+        )
+    }
+}
+
+@Preview(name = "Clean device", showBackground = true)
+@Composable
+private fun RootGuardScreenCleanPreview() {
+    MileTrackerTheme {
+        RootGuardScreen(
+            onContinue = {},
+            signals = emptyList(),
+        )
     }
 }

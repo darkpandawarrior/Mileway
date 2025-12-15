@@ -33,6 +33,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.tooling.preview.Preview
+import com.miletracker.core.ui.theme.MileTrackerTheme
+import com.miletracker.feature.profile.ui.previews.LightDarkPreview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -223,4 +226,46 @@ private fun DemoToggle(
             Switch(checked = checked, onCheckedChange = { onToggle() })
         }
     )
+}
+
+@LightDarkPreview
+@Composable
+private fun DemoTogglePreview() {
+    MileTrackerTheme {
+        androidx.compose.foundation.layout.Column {
+            DemoToggle(
+                title = "Biometric Guard",
+                subtitle = "Require biometric auth before viewing Cards and Advance screens",
+                checked = true,
+                onToggle = {},
+            )
+            DemoToggle(
+                title = "Simulate Root Detection",
+                subtitle = "App treats this device as rooted — shows RootGuardScreen on restart",
+                checked = false,
+                onToggle = {},
+            )
+        }
+    }
+}
+
+@Preview(name = "Root detection dialog", showBackground = true)
+@Composable
+private fun RootDetectionDialogPreview() {
+    MileTrackerTheme {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Root Signals Detected") },
+            text = {
+                androidx.compose.foundation.layout.Column {
+                    Text("Signals found:")
+                    Text("• su binary found at /system/xbin/su", style = MaterialTheme.typography.bodySmall)
+                    Text("• test-keys build", style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {}) { Text("OK") }
+            }
+        )
+    }
 }
