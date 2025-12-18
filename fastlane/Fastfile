@@ -1,0 +1,44 @@
+default_platform(:android)
+
+platform :android do
+
+  desc "Run unit tests"
+  lane :test do
+    gradle(task: "testDebugUnitTest")
+  end
+
+  desc "Build a debug APK"
+  lane :build do
+    gradle(task: "assembleDebug")
+  end
+
+  desc "CI: run tests, then build"
+  lane :ci do
+    test
+    build
+  end
+
+  desc "Capture Roborazzi baseline screenshots (JVM — no device needed)"
+  lane :screenshots do
+    gradle(
+      task: "recordRoborazziDebug",
+      flags: "--rerun-tasks"
+    )
+  end
+
+  desc "Verify screenshots against recorded baselines"
+  lane :verify_screenshots do
+    gradle(
+      task: "verifyRoborazziDebug"
+    )
+  end
+
+  desc "Build a release AAB (requires signing config)"
+  lane :release_bundle do
+    gradle(
+      task: "bundle",
+      build_type: "Release"
+    )
+  end
+
+end

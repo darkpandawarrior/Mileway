@@ -1,0 +1,2 @@
+json_key_file("")         # Path to Google Play API key JSON (fill in for real distribution)
+package_name("com.miletracker.app")
