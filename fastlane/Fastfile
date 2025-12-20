@@ -20,16 +20,19 @@ platform :android do
 
   desc "Capture Roborazzi baseline screenshots (JVM — no device needed)"
   lane :screenshots do
+    # Roborazzi captures images as a side effect of the test run.
+    # Output path is configured in roborazzi.properties.
     gradle(
-      task: "recordRoborazziDebug",
-      flags: "--rerun-tasks"
+      task: "testDebugUnitTest",
+      flags: "--tests com.miletracker.ScreenshotTests --rerun-tasks"
     )
   end
 
-  desc "Verify screenshots against recorded baselines"
+  desc "Verify screenshots against recorded baselines (re-run and diff)"
   lane :verify_screenshots do
     gradle(
-      task: "verifyRoborazziDebug"
+      task: "testDebugUnitTest",
+      flags: "--tests com.miletracker.ScreenshotTests"
     )
   end
 
