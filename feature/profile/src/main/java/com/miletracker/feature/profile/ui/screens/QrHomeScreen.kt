@@ -198,7 +198,7 @@ fun QrHomeScreen(
                 Spacer(Modifier.height(DesignTokens.Spacing.l))
 
                 Text("Siddharth Pandalai", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("EMP-4421 · Dice Technologies", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("EMP-4421 · Apex Corp", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Spacer(Modifier.height(DesignTokens.Spacing.xl))
 
