@@ -271,5 +271,11 @@ private class FakeSavedTrackDao(
     override suspend fun getActiveTrack(): SavedTrack? =
         tracks.value.values.firstOrNull { !it.isCompleted }
 
+    override fun getCompletedTracks(): Flow<List<SavedTrack>> =
+        tracks.map { it.values.filter { t -> t.isCompleted }.toList() }
+
+    override fun getAllSavedTracks(): Flow<List<SavedTrack>> =
+        tracks.map { it.values.toList() }
+
     override suspend fun count(): Long = tracks.value.size.toLong()
 }

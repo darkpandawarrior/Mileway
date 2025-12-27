@@ -131,6 +131,15 @@ private fun HomeScreenContent(
                     HomeSectionHeader(title = "At A Glance", leadingIcon = Icons.Filled.Insights)
                     AtAGlanceGrid(counts = state.atAGlance, onClick = onOpenAccount)
                 }
+
+                // VII.1: HomeMileageCard — progress ring + stats + quick actions.
+                HomeMileageCard(
+                    onTrackJourney = onStartTracking,
+                    onLogMiles = onAddExpense,
+                )
+
+                // VII.2: HomeCheckInCard — check-in button + recent list.
+                HomeCheckInCard(onCheckIn = onOpenAccount)
             }
 
             Spacer(Modifier.height(DesignTokens.Spacing.sectionSpacing))

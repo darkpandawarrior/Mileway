@@ -10,6 +10,7 @@ import com.miletracker.core.network.api.MileTrackerNetworkApi
 import com.miletracker.core.network.model.BusinessEntity
 import com.miletracker.core.network.model.Office
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
+import com.miletracker.feature.tracking.repository.OfflinePlacesRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +58,16 @@ data class SubmissionFormUi(
     val violationNote: String = "",
     val smartDistanceTrackedKm: Double = 0.0,
     val smartDistanceOdometerKm: Double = 0.0,
+    // Loaded from Room on init — exposed to avoid hardcoded strings in the screen.
+    val startAddress: String = "",
+    val endAddress: String = "",
+    val vehicleName: String = "",
+    val vehicleRatePerKm: Double = 0.0,
+    // Simulated odometer readings stored in VM state (not local `remember`).
+    val simulatedStartOdo: Int? = null,
+    val simulatedEndOdo: Int? = null,
+    val isManualStartOdo: Boolean = false,
+    val isManualEndOdo: Boolean = false,
 ) {
     /** Required items still missing — drives the "N remaining" checklist header. */
     val remainingRequirements: List<String>
@@ -173,6 +184,59 @@ class MileageSubmissionViewModel(
     /** True once the policy-violation resolution is complete enough to proceed. */
     val policyResolved: Boolean
         get() = _form.value.askAuthorities && _form.value.violationNote.isNotBlank()
+
+    // ---------------------------------------------------------------------------
+    // Track info loading (addresses, vehicle)
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Loads start/end addresses and vehicle info from Room for the given routeId.
+     * Safe to call multiple times — subsequent calls are no-ops if already loaded.
+     */
+    fun loadTrackInfo(routeId: String, vehicleKey: String, distanceKm: Double) {
+        if (_form.value.startAddress.isNotEmpty()) return
+        viewModelScope.launch {
+            val track = trackRepository.getByRouteId(routeId)
+            val startAddr = if (track != null)
+                OfflinePlacesRepository.addressFor(track.startLatitude, track.startLongitude)
+            else "Start Location"
+            val endAddr = if (track != null)
+                OfflinePlacesRepository.addressFor(track.endLatitude, track.endLongitude)
+            else "End Location"
+            // Resolve vehicle display name and rate from the vehicles list.
+            val vehicles = runCatching { api.vehicles(trackMiles = true).vehicles }.getOrElse { emptyList() }
+            val vehicle = vehicles.firstOrNull { it.vehicleKey == vehicleKey }
+            _form.update {
+                it.copy(
+                    startAddress = startAddr,
+                    endAddress = endAddr,
+                    vehicleName = vehicle?.vehicleName ?: vehicleKey,
+                    vehicleRatePerKm = vehicle?.vehiclePricing ?: 0.0,
+                )
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Odometer simulation (stored in VM, not local remember)
+    // ---------------------------------------------------------------------------
+
+    /** Simulate capturing the start odometer (uses a plausible base reading). */
+    fun simulateCaptureStartOdo(distanceKm: Double) {
+        val baseReading = 45_000
+        _form.update { it.copy(simulatedStartOdo = baseReading, isManualStartOdo = false) }
+    }
+
+    /** Simulate capturing the end odometer based on the start reading + distance. */
+    fun simulateCaptureEndOdo(distanceKm: Double) {
+        val start = _form.value.simulatedStartOdo ?: 45_000
+        _form.update {
+            it.copy(
+                simulatedEndOdo = start + distanceKm.toInt().coerceAtLeast(1),
+                isManualEndOdo = false
+            )
+        }
+    }
 
     // ---------------------------------------------------------------------------
     // Submit: persist attachments locally, then record the trip as submitted

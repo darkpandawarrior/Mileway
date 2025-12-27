@@ -59,6 +59,7 @@ import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.logging.ui.components.ChecklistChip
 import com.miletracker.feature.logging.ui.components.TravelledLocationsActions
 import com.miletracker.feature.logging.ui.components.TravelledLocationsCard
+import com.miletracker.feature.tracking.ui.components.SubmissionTabChips
 import com.miletracker.feature.logging.ui.dialog.TaggedEmployeesDialog
 import com.miletracker.feature.logging.ui.dialog.ViolationDialog
 import com.miletracker.feature.logging.ui.model.SubmittedVoucherSamples
@@ -92,6 +93,10 @@ fun LogMilesStep2Screen(
     var showInvoiceDatePicker by remember { mutableStateOf(false) }
     var showEmployeesDialog by remember { mutableStateOf(false) }
     var additionalExpanded by remember { mutableStateOf(true) }
+    var selectedStep2Tab by remember { mutableStateOf("Stops") }
+    var selectedService by remember { mutableStateOf("Client Visit") }
+    var purposeText by remember { mutableStateOf("") }
+    var costCenter by remember { mutableStateOf("") }
 
     // When a non-violation success result lands, advance to the success route once.
     // Violation results are routed by the dialog's "Acknowledge" action instead.
@@ -185,56 +190,71 @@ fun LogMilesStep2Screen(
                 }
             }
 
-            // Group chips.
-            Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
-                ChecklistChip("Locations", locationsDone)
-                ChecklistChip("Vehicle", vehicleDone)
-                ChecklistChip("Odometer", true)
-                ChecklistChip("Forms", formsDone)
+            // Tab navigation chips.
+            SubmissionTabChips(
+                tabs = listOf("Stops", "Expense Details", "Additional Details", "Attachments"),
+                selected = selectedStep2Tab,
+                onSelect = { selectedStep2Tab = it },
+            )
+
+            // ── Stops tab ────────────────────────────────────────────────────────
+            if (selectedStep2Tab == "Stops") {
+                TravelledLocationsCard(
+                    stops = uiState.stops,
+                    totalDistanceKm = uiState.distanceKm,
+                    pricePerKm = uiState.pricePerKm,
+                    amount = uiState.reimbursableAmount,
+                    isRoundTrip = uiState.isRoundTrip,
+                    compact = true,
+                    actions = TravelledLocationsActions(
+                        onEdit = {},
+                        onRemove = viewModel::removeStop,
+                        onMoveUp = viewModel::moveStopUp,
+                        onMoveDown = viewModel::moveStopDown,
+                        onInsertAfter = {},
+                        onToggleRoundTrip = viewModel::setRoundTrip,
+                        onAddLocation = {},
+                        onUseCurrent = {},
+                        onVerifyDistance = {}
+                    )
+                )
             }
 
-            // Compact itinerary recap.
-            TravelledLocationsCard(
-                stops = uiState.stops,
-                totalDistanceKm = uiState.distanceKm,
-                pricePerKm = uiState.pricePerKm,
-                amount = uiState.reimbursableAmount,
-                isRoundTrip = uiState.isRoundTrip,
-                compact = true,
-                actions = TravelledLocationsActions(
-                    onEdit = {},
-                    onRemove = viewModel::removeStop,
-                    onMoveUp = viewModel::moveStopUp,
-                    onMoveDown = viewModel::moveStopDown,
-                    onInsertAfter = {},
-                    onToggleRoundTrip = viewModel::setRoundTrip,
-                    onAddLocation = {},
-                    onUseCurrent = {},
-                    onVerifyDistance = {}
+            // ── Expense Details tab ───────────────────────────────────────────────
+            if (selectedStep2Tab == "Expense Details") {
+                ExpenseDetailsSection(
+                    selectedService = selectedService,
+                    onServiceSelect = { selectedService = it },
+                    purposeText = purposeText,
+                    onPurposeChange = { purposeText = it },
+                    costCenter = costCenter,
+                    onCostCenterChange = { costCenter = it },
                 )
-            )
+            }
 
-            // Additional Details form.
-            AdditionalDetailsCard(
-                expanded = additionalExpanded,
-                onToggle = { additionalExpanded = !additionalExpanded },
-                invoiceDateText = uiState.invoiceDateMillis?.let { DateUtils.epochToDisplayDate(it) },
-                onPickInvoiceDate = { showInvoiceDatePicker = true },
-                note = uiState.logMilesNote,
-                onNoteChange = viewModel::setLogMilesNote
-            )
+            // ── Additional Details tab ────────────────────────────────────────────
+            if (selectedStep2Tab == "Additional Details") {
+                AdditionalDetailsCard(
+                    expanded = additionalExpanded,
+                    onToggle = { additionalExpanded = !additionalExpanded },
+                    invoiceDateText = uiState.invoiceDateMillis?.let { DateUtils.epochToDisplayDate(it) },
+                    onPickInvoiceDate = { showInvoiceDatePicker = true },
+                    note = uiState.logMilesNote,
+                    onNoteChange = viewModel::setLogMilesNote
+                )
+                TaggedEmployeesCard(
+                    taggedCount = uiState.taggedEmployees.size,
+                    onTap = { showEmployeesDialog = true }
+                )
+            }
 
-            // Tagged Employees.
-            TaggedEmployeesCard(
-                taggedCount = uiState.taggedEmployees.size,
-                onTap = { showEmployeesDialog = true }
-            )
-
-            // Attachments.
-            AttachmentsCard(
-                attachmentCount = uiState.attachmentCount,
-                onAdd = viewModel::addAttachment
-            )
+            // ── Attachments tab ───────────────────────────────────────────────────
+            if (selectedStep2Tab == "Attachments") {
+                AttachmentsCard(
+                    attachmentCount = uiState.attachmentCount,
+                    onAdd = viewModel::addAttachment
+                )
+            }
         }
     }
 
@@ -274,6 +294,121 @@ fun LogMilesStep2Screen(
                     viewModel.dismissViolationDialog()
                     onSubmitted()
                 }
+            )
+        }
+    }
+}
+
+private val SERVICE_OPTIONS = listOf(
+    "Client Visit", "Office Travel", "Training", "Medical", "Other"
+)
+
+@Composable
+private fun ExpenseDetailsSection(
+    selectedService: String,
+    onServiceSelect: (String) -> Unit,
+    purposeText: String,
+    onPurposeChange: (String) -> Unit,
+    costCenter: String,
+    onCostCenterChange: (String) -> Unit,
+) {
+    var serviceExpanded by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier.padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+        ) {
+            Text(
+                "Expense Details",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            // Service picker row.
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = DesignTokens.Shape.roundedMd,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                onClick = { serviceExpanded = true },
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(DesignTokens.Spacing.m),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            "Service Type",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            selectedService,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    Icon(
+                        Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            if (serviceExpanded) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = DesignTokens.Shape.roundedMd,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                ) {
+                    Column {
+                        SERVICE_OPTIONS.forEach { svc ->
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = if (svc == selectedService) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                        else androidx.compose.ui.graphics.Color.Transparent,
+                                onClick = { onServiceSelect(svc); serviceExpanded = false },
+                            ) {
+                                Text(
+                                    svc,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(DesignTokens.Spacing.m),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Purpose text field.
+            OutlinedTextField(
+                value = purposeText,
+                onValueChange = onPurposeChange,
+                label = { Text("Purpose of travel") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = DesignTokens.Shape.roundedMd,
+                singleLine = true,
+            )
+
+            // Cost center row.
+            OutlinedTextField(
+                value = costCenter,
+                onValueChange = onCostCenterChange,
+                label = { Text("Cost Center (optional)") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = DesignTokens.Shape.roundedMd,
+                singleLine = true,
             )
         }
     }
