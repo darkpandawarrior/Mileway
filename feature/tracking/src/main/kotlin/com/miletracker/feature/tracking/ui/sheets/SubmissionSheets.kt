@@ -131,11 +131,11 @@ fun SmartDistanceSheet(
                 .padding(horizontal = DesignTokens.Spacing.l)
                 .padding(bottom = DesignTokens.Spacing.xl),
         ) {
-            // Title row: heading + subtitle on the left, error triangle on the right.
+            // Title row.
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = DesignTokens.Spacing.s),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -146,9 +146,8 @@ fun SmartDistanceSheet(
                     )
                     Text(
                         text = "Review odometer vs tracked distance",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = errorColor,
-                        modifier = Modifier.padding(top = 2.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Icon(
@@ -161,114 +160,51 @@ fun SmartDistanceSheet(
 
             Spacer(Modifier.size(DesignTokens.Spacing.l))
 
-            // Compare card: tracked vs odometer distance.
+            // Three-column distance comparison (ref 50 layout).
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Column(
-                    modifier = Modifier.padding(DesignTokens.Spacing.l),
-                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
-                ) {
-                    CompareRow(
-                        icon = Icons.Filled.Map,
-                        label = "Tracked Distance",
-                        value = "${"%.2f".format(trackedKm)} km",
-                        valueColor = MaterialTheme.colorScheme.onSurface,
-                    )
-                    CompareRow(
-                        icon = Icons.Filled.DirectionsCar,
-                        label = "Odometer Distance",
-                        value = "${"%.2f".format(odometerKm)} km",
-                        valueColor = errorColor,
-                    )
-                }
-            }
-
-            Spacer(Modifier.size(DesignTokens.Spacing.l))
-
-            // Discrepancy banner (always error-tinted here since odometer > tracked).
-            Surface(
-                shape = DesignTokens.Shape.roundedSm,
-                color = errorColor.copy(alpha = 0.10f),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
                 Row(
-                    modifier = Modifier.padding(DesignTokens.Spacing.l),
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                    modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Warning,
-                        contentDescription = null,
-                        tint = errorColor,
-                        modifier = Modifier.size(DesignTokens.IconSize.badge),
+                    DistanceColumn(label = "GPS Tracked", value = "${"%.2f".format(trackedKm)} km", valueColor = MaterialTheme.colorScheme.onSurface)
+                    DistanceColumn(
+                        label = "Difference",
+                        value = "$percentLabel",
+                        valueColor = if (discrepancyPercent > 15) errorColor else MaterialTheme.colorScheme.onSurface
                     )
-                    Column {
-                        Text(
-                            text = "Odometer exceeds tracked distance",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = errorColor,
-                        )
-                        Text(
-                            text = "Your odometer shows $percentLabel more than GPS tracked. " +
-                                "Possible causes: GPS signal loss during trip, tunnel/mall " +
-                                "driving, or device issues.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
+                    DistanceColumn(label = "Odometer", value = "${"%.2f".format(odometerKm)} km", valueColor = MaterialTheme.colorScheme.primary)
                 }
             }
 
-            Spacer(Modifier.size(DesignTokens.Spacing.l))
-
-            // Discrepancy details header + percentage line.
-            Text(
-                text = "Discrepancy Details",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = "$percentLabel Odometer higher",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 2.dp),
-            )
-
-            // "Very Large Discrepancy" red pill, only beyond the threshold.
-            if (isVeryLarge) {
+            // Warning banner shown only when discrepancy > 20%.
+            if (discrepancyPercent > 20.0) {
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
                 Surface(
                     shape = DesignTokens.Shape.roundedSm,
-                    color = errorColor.copy(alpha = 0.12f),
+                    color = errorColor.copy(alpha = 0.10f),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
                         modifier = Modifier.padding(DesignTokens.Spacing.m),
-                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Warning,
-                            contentDescription = null,
-                            tint = errorColor,
-                            modifier = Modifier.size(DesignTokens.IconSize.badge),
-                        )
+                        Icon(Icons.Filled.Warning, contentDescription = null, tint = errorColor, modifier = Modifier.size(DesignTokens.IconSize.badge))
                         Text(
-                            text = "Very Large Discrepancy",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
+                            text = "Large Discrepancy Detected — values differ by $percentLabel",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
                             color = errorColor,
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.size(DesignTokens.Spacing.m))
+            Spacer(Modifier.size(DesignTokens.Spacing.l))
 
             // Verification checkbox.
             Surface(
@@ -285,84 +221,68 @@ fun SmartDistanceSheet(
                 ) {
                     Checkbox(checked = verified, onCheckedChange = onVerifiedChange)
                     Text(
-                        text = "I have verified my readings are correct",
+                        text = "I have verified the readings",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
 
-            Spacer(Modifier.size(DesignTokens.Spacing.l))
-
-            // Optional explanation field.
-            Text(
-                text = "Explanation (optional but recommended)",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(Modifier.size(DesignTokens.Spacing.s))
-            OutlinedTextField(
-                value = explanation,
-                onValueChange = onExplanationChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Explain any discrepancies here…") },
-                shape = DesignTokens.Shape.roundedSm,
-                minLines = 2,
-            )
-
-            Spacer(Modifier.size(DesignTokens.Spacing.l))
-
-            // Tracking quality line (informational, fixed "High" in this demo).
-            Surface(
-                shape = DesignTokens.Shape.roundedSm,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(DesignTokens.Spacing.m),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.CheckCircle,
-                        contentDescription = null,
-                        tint = DesignTokens.StatusColors.success,
-                        modifier = Modifier.size(DesignTokens.IconSize.badge),
-                    )
-                    Text(
-                        text = "Tracking Quality: High",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-
-            Spacer(Modifier.size(DesignTokens.Spacing.l))
-
-            // Primary action: stop tracking.
-            Button(
-                onClick = onStop,
-                modifier = Modifier.fillMaxWidth(),
-                shape = DesignTokens.Shape.roundedSm,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(DesignTokens.IconSize.inline),
+            // Explanation field visible only when checkbox checked.
+            if (verified) {
+                Spacer(Modifier.size(DesignTokens.Spacing.m))
+                OutlinedTextField(
+                    value = explanation,
+                    onValueChange = onExplanationChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Explain the discrepancy") },
+                    shape = DesignTokens.Shape.roundedSm,
+                    minLines = 2,
                 )
-                Spacer(Modifier.size(DesignTokens.Spacing.s))
-                Text("Stop Tracking", fontWeight = FontWeight.SemiBold)
             }
 
-            // Secondary action: continue tracking.
-            TextButton(
-                onClick = onContinue,
+            Spacer(Modifier.size(DesignTokens.Spacing.l))
+
+            // Two-button row: Cancel (outlined) + Confirm Stop (filled, disabled until verified).
+            Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
-                Text("Continue Tracking")
+                OutlinedButton(
+                    onClick = onContinue,
+                    modifier = Modifier.weight(1f),
+                    shape = DesignTokens.Shape.roundedSm,
+                ) {
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = onStop,
+                    enabled = verified,
+                    modifier = Modifier.weight(1f),
+                    shape = DesignTokens.Shape.roundedSm,
+                ) {
+                    Text("Confirm Stop", fontWeight = FontWeight.SemiBold)
+                }
             }
         }
+    }
+}
+
+/** Single column in the three-column distance comparison row (ref 50). */
+@Composable
+private fun DistanceColumn(label: String, value: String, valueColor: androidx.compose.ui.graphics.Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = valueColor,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -570,7 +490,7 @@ fun PolicyViolationSheet(
                 .padding(horizontal = DesignTokens.Spacing.l)
                 .padding(bottom = DesignTokens.Spacing.xl),
         ) {
-            // Header: hex/circular icon + title.
+            // Header: amber warning icon + title.
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = DesignTokens.Spacing.s),
                 verticalAlignment = Alignment.CenterVertically,
@@ -578,24 +498,33 @@ fun PolicyViolationSheet(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(DesignTokens.Shape.roundedSm)
-                        .background(MaterialTheme.colorScheme.onSurface),
+                        .size(40.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(DesignTokens.StatusColors.warning.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.QuestionMark,
+                        imageVector = Icons.Filled.Warning,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.surface,
+                        tint = DesignTokens.StatusColors.warning,
                         modifier = Modifier.size(DesignTokens.IconSize.badge),
                     )
                 }
-                Text(
-                    text = "Policy violation",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                Column {
+                    Text(
+                        text = "Policy Issue Found",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    if (violations.isNotEmpty()) {
+                        Text(
+                            text = "${violations.size} ${if (violations.size == 1) "violation" else "violations"} detected",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.size(DesignTokens.Spacing.l))
@@ -624,61 +553,71 @@ fun PolicyViolationSheet(
 
             Spacer(Modifier.size(DesignTokens.Spacing.l))
 
-            // "Ask Authorities" selectable resolution card.
-            val borderColor = if (askAuthoritiesSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outlineVariant
-            }
+            // Resolution options header.
+            Text(
+                text = "Ask Authorities",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.size(DesignTokens.Spacing.s))
+
+            // Option 1: Submit for Review.
+            val submitForReviewBorder = if (askAuthoritiesSelected)
+                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
-                color = if (askAuthoritiesSelected) {
+                color = if (askAuthoritiesSelected)
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
-                } else {
-                    MaterialTheme.colorScheme.surface
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, borderColor, DesignTokens.Shape.roundedSm),
+                else MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth().border(1.dp, submitForReviewBorder, DesignTokens.Shape.roundedSm),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onToggleAskAuthorities() }
-                        .padding(DesignTokens.Spacing.l),
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                    modifier = Modifier.fillMaxWidth().clickable { if (!askAuthoritiesSelected) onToggleAskAuthorities() }.padding(DesignTokens.Spacing.m),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                 ) {
-                    RadioButton(
-                        selected = askAuthoritiesSelected,
-                        onClick = onToggleAskAuthorities,
-                    )
+                    RadioButton(selected = askAuthoritiesSelected, onClick = { if (!askAuthoritiesSelected) onToggleAskAuthorities() })
                     Column {
-                        Text(
-                            text = "Ask Authorities",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = "Your expense will be submitted with the provided reason " +
-                                "and sent for authority approval under policy violation " +
-                                "condition",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
+                        Text("Submit for Review", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text("Sent for authority approval", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
 
-            // Note field appears once a resolution is selected.
+            Spacer(Modifier.size(DesignTokens.Spacing.s))
+
+            // Option 2: Fix and Resubmit.
+            val fixBorder = if (!askAuthoritiesSelected)
+                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            Surface(
+                shape = DesignTokens.Shape.roundedSm,
+                color = if (!askAuthoritiesSelected)
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
+                else MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth().border(1.dp, fixBorder, DesignTokens.Shape.roundedSm),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable { if (askAuthoritiesSelected) onToggleAskAuthorities() }.padding(DesignTokens.Spacing.m),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+                ) {
+                    RadioButton(selected = !askAuthoritiesSelected, onClick = { if (askAuthoritiesSelected) onToggleAskAuthorities() })
+                    Column {
+                        Text("Fix and Resubmit", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text("Return to fix the violation first", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+
+            // Note field visible only when "Submit for Review" is selected.
             if (askAuthoritiesSelected) {
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
                 OutlinedTextField(
                     value = note,
                     onValueChange = onNoteChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter note") },
+                    placeholder = { Text("Required: note for the reviewer") },
                     shape = DesignTokens.Shape.roundedSm,
                     singleLine = true,
                 )

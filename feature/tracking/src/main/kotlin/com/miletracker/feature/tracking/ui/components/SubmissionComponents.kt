@@ -20,13 +20,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.Canvas
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Apartment
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -62,6 +68,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import com.miletracker.core.ui.components.CollapsibleSectionCard
@@ -1111,6 +1118,139 @@ private fun Modifier.dashedBorder(
 ): Modifier = this.then(
     Modifier.androidx_drawBehindDashed(color, shape, strokeWidth, dashLength, gapLength)
 )
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. Vehicle summary card
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Non-interactive summary card for the selected vehicle: icon, name, and rate per km.
+ * Shown in the submission screen's "Vehicle" section.
+ */
+@Composable
+fun VehicleSummaryCard(
+    vehicleName: String,
+    ratePerKm: Double,
+    modifier: Modifier = Modifier
+) {
+    SectionCard(
+        title = "Vehicle",
+        modifier = modifier,
+        leadingIcon = Icons.Filled.DirectionsCar
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(DesignTokens.Shape.roundedSm)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.DirectionsCar,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(DesignTokens.IconSize.header)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = vehicleName.ifBlank { "Own Vehicle" },
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (ratePerKm > 0.0) {
+                    Text(
+                        text = "₹%.2f / km".format(ratePerKm),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. Static polyline thumbnail (Canvas-based route preview)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Canvas-drawn route thumbnail from a list of (lat, lng) coordinate pairs.
+ * Normalises the bounding box to fill the canvas with some padding.
+ * When the list is empty or has only 1 point, draws a dashed placeholder line.
+ */
+@Composable
+fun StaticPolylineThumbnail(
+    latLngs: List<Pair<Double, Double>>,
+    modifier: Modifier = Modifier,
+    thumbHeight: Dp = 120.dp
+) {
+    val lineColor = MaterialTheme.colorScheme.primary
+    val bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(thumbHeight)
+            .clip(DesignTokens.Shape.roundedSm)
+            .background(bgColor)
+    ) {
+        Canvas(modifier = Modifier.matchParentSize().padding(16.dp)) {
+            if (latLngs.size < 2) {
+                // Dashed placeholder when no route points available.
+                drawLine(
+                    color = lineColor.copy(alpha = 0.3f),
+                    start = Offset(0f, size.height / 2),
+                    end = Offset(size.width, size.height / 2),
+                    strokeWidth = 4.dp.toPx(),
+                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                        floatArrayOf(12f, 8f), 0f
+                    )
+                )
+                return@Canvas
+            }
+            val lats = latLngs.map { it.first }
+            val lngs = latLngs.map { it.second }
+            val minLat = lats.min(); val maxLat = lats.max()
+            val minLng = lngs.min(); val maxLng = lngs.max()
+            val latRange = (maxLat - minLat).coerceAtLeast(0.0001)
+            val lngRange = (maxLng - minLng).coerceAtLeast(0.0001)
+
+            fun toOffset(lat: Double, lng: Double) = Offset(
+                x = ((lng - minLng) / lngRange * size.width).toFloat(),
+                y = size.height - ((lat - minLat) / latRange * size.height).toFloat()
+            )
+
+            val path = androidx.compose.ui.graphics.Path()
+            val first = latLngs.first()
+            path.moveTo(toOffset(first.first, first.second).x, toOffset(first.first, first.second).y)
+            for (i in 1 until latLngs.size) {
+                val o = toOffset(latLngs[i].first, latLngs[i].second)
+                path.lineTo(o.x, o.y)
+            }
+            drawPath(
+                path = path,
+                color = lineColor,
+                style = Stroke(
+                    width = 3.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round
+                )
+            )
+            // Start dot (green) and end dot (red).
+            val startPt = toOffset(latLngs.first().first, latLngs.first().second)
+            val endPt = toOffset(latLngs.last().first, latLngs.last().second)
+            drawCircle(color = androidx.compose.ui.graphics.Color(0xFF22C55E), radius = 6.dp.toPx(), center = startPt)
+            drawCircle(color = androidx.compose.ui.graphics.Color(0xFFEF4444), radius = 6.dp.toPx(), center = endPt)
+        }
+    }
+}
 
 /** Backing draw modifier for [dashedBorder]. */
 private fun Modifier.androidx_drawBehindDashed(

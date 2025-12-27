@@ -7,17 +7,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,8 +40,10 @@ import com.miletracker.feature.tracking.ui.components.MileageDraftBottomBar
 import com.miletracker.feature.tracking.ui.components.OdometerReadingsCard
 import com.miletracker.feature.tracking.ui.components.OfficeEntitySelectRow
 import com.miletracker.feature.tracking.ui.components.PendingDataSyncCard
+import com.miletracker.feature.tracking.ui.components.StaticPolylineThumbnail
 import com.miletracker.feature.tracking.ui.components.SubmissionChecklistHeader
 import com.miletracker.feature.tracking.ui.components.SubmissionTabChips
+import com.miletracker.feature.tracking.ui.components.VehicleSummaryCard
 import com.miletracker.feature.tracking.ui.navigation.SubmissionResult
 import com.miletracker.feature.tracking.ui.sheets.EntityPickerSheet
 import com.miletracker.feature.tracking.ui.sheets.OfficePickerSheet
@@ -55,6 +55,8 @@ import com.miletracker.feature.tracking.viewmodel.SubmissionFieldType
 import com.miletracker.feature.tracking.viewmodel.SubmissionSheet
 import com.miletracker.feature.tracking.viewmodel.SubmissionUiState
 import org.koin.compose.viewmodel.koinViewModel
+
+private val SUBMISSION_TABS = listOf("Journey", "Vehicle", "Odometer", "Forms", "Attachments")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,15 +73,20 @@ fun TrackSubmissionScreen(
     val state by viewModel.state.collectAsState()
     val form by viewModel.form.collectAsState()
 
-    // Local odometer readings (capture simulates an OCR reading).
-    var startOdo by remember { mutableStateOf<Int?>(null) }
-    var endOdo by remember { mutableStateOf<Int?>(null) }
     var selectedTab by remember { mutableStateOf("Journey") }
     var smartDistanceVerified by remember { mutableStateOf(false) }
     var smartDistanceExplanation by remember { mutableStateOf("") }
 
     val durationMs = (endTime - startTime).coerceAtLeast(0L)
-    val odometerDistanceKm = if (startOdo != null && endOdo != null) (endOdo!! - startOdo!!).toDouble() else null
+    val startOdo = form.simulatedStartOdo
+    val endOdo = form.simulatedEndOdo
+    val odometerDistanceKm = if (startOdo != null && endOdo != null)
+        (endOdo - startOdo).toDouble() else null
+
+    // Load start/end addresses and vehicle info from Room on first composition.
+    LaunchedEffect(routeId) {
+        viewModel.loadTrackInfo(routeId, vehicleKey, distanceKm)
+    }
 
     // Trigger SmartDistanceSheet automatically when odometer discrepancy exceeds 15%.
     LaunchedEffect(odometerDistanceKm) {
@@ -97,7 +104,7 @@ fun TrackSubmissionScreen(
                 SubmissionResult(
                     distanceKm = distanceKm,
                     reimbursableAmount = r.reimbursableAmount ?: 0.0,
-                    vehicleName = vehicleKey,
+                    vehicleName = form.vehicleName.ifBlank { vehicleKey },
                     startTime = startTime,
                     endTime = endTime,
                     transactionId = r.transId ?: r.transaction?.id,
@@ -136,85 +143,123 @@ fun TrackSubmissionScreen(
         },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(DesignTokens.Spacing.l),
+            LazyColumn(
+                state = rememberLazyListState(),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(DesignTokens.Spacing.l),
                 verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
             ) {
-                SubmissionChecklistHeader(
-                    remaining = form.remainingRequirements.size,
-                    requirements = form.remainingRequirements,
-                )
+                item {
+                    SubmissionChecklistHeader(
+                        remaining = form.remainingRequirements.size,
+                        requirements = form.remainingRequirements,
+                    )
+                }
 
-                SubmissionTabChips(
-                    tabs = listOf("Journey", "Vehicle", "Odometer", "Forms"),
-                    selected = selectedTab,
-                    onSelect = { selectedTab = it },
-                )
+                item {
+                    SubmissionTabChips(
+                        tabs = SUBMISSION_TABS,
+                        selected = selectedTab,
+                        onSelect = { selectedTab = it },
+                    )
+                }
 
-                PendingDataSyncCard(pendingPoints = 1, totalPoints = 7)
+                item {
+                    PendingDataSyncCard(pendingPoints = 1, totalPoints = 7)
+                }
 
-                JourneySummaryCard(
-                    distanceText = "%.2f km".format(distanceKm),
-                    durationText = formatDuration(durationMs),
-                    maxSpeedText = "—",
-                    avgSpeedText = "—",
-                )
+                // ── Journey section ──────────────────────────────────────────────
+                if (selectedTab == "Journey" || selectedTab == "Vehicle") {
+                    item {
+                        // Route polyline thumbnail using the mock location points.
+                        val demoPoints = buildDemoRoutePoints(distanceKm)
+                        StaticPolylineThumbnail(latLngs = demoPoints)
+                    }
+                }
 
-                LocationDetailsCard(
-                    startAddress = "Trip start point",
-                    endAddress = "Trip end point",
-                    startTime = DateUtils.epochToTime12h(startTime),
-                    endTime = DateUtils.epochToTime12h(endTime),
-                )
+                item {
+                    JourneySummaryCard(
+                        distanceText = "%.2f km".format(distanceKm),
+                        durationText = formatDuration(durationMs),
+                        maxSpeedText = "—",
+                        avgSpeedText = "—",
+                    )
+                }
 
-                OdometerReadingsCard(
-                    startReading = startOdo,
-                    endReading = endOdo,
-                    isManualStart = false,
-                    isManualEnd = false,
-                    odometerDistanceKm = odometerDistanceKm,
-                    onCaptureStart = { startOdo = 45_000 },
-                    onCaptureEnd = { endOdo = 45_000 + distanceKm.toInt().coerceAtLeast(1) },
-                )
+                item {
+                    LocationDetailsCard(
+                        startAddress = form.startAddress.ifEmpty { "Loading address…" },
+                        endAddress = form.endAddress.ifEmpty { "Loading address…" },
+                        startTime = DateUtils.epochToTime12h(startTime),
+                        endTime = DateUtils.epochToTime12h(endTime),
+                    )
+                }
 
-                AdditionalDetailsForm(
-                    fields = form.fields.map { f ->
-                        FormField(
-                            id = f.id,
-                            label = f.label,
-                            type = if (f.type == SubmissionFieldType.DROPDOWN) FormFieldType.DROPDOWN else FormFieldType.TEXT,
-                            value = form.values[f.id].orEmpty(),
-                            required = f.required,
-                            options = f.options,
-                            errorText = if (f.required && form.values[f.id].isNullOrBlank()) "${f.label} is required" else null,
-                        )
-                    },
-                    onValueChange = viewModel::setFormValue,
-                )
+                // ── Vehicle section ──────────────────────────────────────────────
+                item {
+                    VehicleSummaryCard(
+                        vehicleName = form.vehicleName.ifBlank { vehicleKey },
+                        ratePerKm = form.vehicleRatePerKm,
+                    )
+                }
 
-                if (form.officeRequired) {
+                // ── Odometer section ─────────────────────────────────────────────
+                item {
+                    OdometerReadingsCard(
+                        startReading = startOdo,
+                        endReading = endOdo,
+                        isManualStart = form.isManualStartOdo,
+                        isManualEnd = form.isManualEndOdo,
+                        odometerDistanceKm = odometerDistanceKm,
+                        onCaptureStart = { viewModel.simulateCaptureStartOdo(distanceKm) },
+                        onCaptureEnd = { viewModel.simulateCaptureEndOdo(distanceKm) },
+                    )
+                }
+
+                // ── Forms section ────────────────────────────────────────────────
+                item {
+                    AdditionalDetailsForm(
+                        fields = form.fields.map { f ->
+                            FormField(
+                                id = f.id,
+                                label = f.label,
+                                type = if (f.type == SubmissionFieldType.DROPDOWN) FormFieldType.DROPDOWN else FormFieldType.TEXT,
+                                value = form.values[f.id].orEmpty(),
+                                required = f.required,
+                                options = f.options,
+                                errorText = if (f.required && form.values[f.id].isNullOrBlank()) "${f.label} is required" else null,
+                            )
+                        },
+                        onValueChange = viewModel::setFormValue,
+                    )
+                }
+
+                // Always show office/entity rows (demo always has these visible).
+                item {
                     OfficeEntitySelectRow(
                         label = "Office",
                         value = form.selectedOffice?.let { "${it.code} - ${it.name}" },
-                        requiredHint = "Required field",
+                        requiredHint = if (form.officeRequired) "Required field" else "Select office",
                         onClick = viewModel::openOfficePicker,
                     )
+                }
+                item {
                     OfficeEntitySelectRow(
                         label = "Entity",
                         value = form.selectedEntity?.name,
-                        requiredHint = "Required field",
+                        requiredHint = if (form.officeRequired) "Required field" else "Select entity",
                         onClick = viewModel::openEntityPicker,
                     )
                 }
 
-                AttachmentsSection(
-                    attachments = emptyList(),
-                    onAdd = {},
-                    onRemove = {},
-                )
+                // ── Attachments section ──────────────────────────────────────────
+                item {
+                    AttachmentsSection(
+                        attachments = viewModel.pendingReceipts.collectAsState().value,
+                        onAdd = { /* navigate to attachment picker — wired at nav level */ },
+                        onRemove = viewModel::removeReceipt,
+                    )
+                }
             }
 
             if (state is SubmissionUiState.Submitting) {
@@ -278,9 +323,24 @@ fun TrackSubmissionScreen(
     }
 }
 
+/** Builds a simple arc of demo lat/lng points to represent the route in the thumbnail. */
+private fun buildDemoRoutePoints(distanceKm: Double): List<Pair<Double, Double>> {
+    val baseLat = 18.5204
+    val baseLng = 73.8567
+    val steps = 8
+    val latDelta = distanceKm * 0.005
+    return (0..steps).map { i ->
+        val t = i.toDouble() / steps
+        Pair(
+            baseLat + t * latDelta,
+            baseLng + t * latDelta * 0.7 + kotlin.math.sin(t * Math.PI) * 0.01
+        )
+    }
+}
+
 private fun formatDuration(ms: Long): String {
     val totalSec = ms / 1000
     val h = totalSec / 3600
     val m = (totalSec % 3600) / 60
-    return if (h > 0) "${h}h ${m}m" else "${m}m"
+    return if (h > 0) "$h hr $m min" else "$m min"
 }

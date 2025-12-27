@@ -39,9 +39,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Train
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.logging.ui.model.CityCatalog
 import com.miletracker.feature.logging.ui.model.LocationEntry
+import com.miletracker.feature.logging.ui.model.PoiCategory
+import com.miletracker.feature.logging.ui.model.haversineKm
 
 /**
  * Modal location-search sheet backed by the offline [CityCatalog].
@@ -111,28 +118,39 @@ fun LocationSearchSheet(
 
             Spacer(Modifier.size(DesignTokens.Spacing.m))
 
-            // "Current" shortcut — uses a deterministic local coordinate in the demo.
+            // "Use Current Location" row — picks a deterministic demo coordinate.
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedLg,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                onClick = { onPick(CityCatalog.currentLocation); onUseCurrent() },
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(DesignTokens.Shape.roundedLg)
-                        .padding(vertical = DesignTokens.Spacing.m),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.Filled.MyLocation,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                        modifier = Modifier.size(20.dp),
                     )
-                    Spacer(Modifier.size(DesignTokens.Spacing.s))
-                    TextButton(onClick = onUseCurrent) { Text("Recent") }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Your current location",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            CityCatalog.currentLocation.subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
@@ -210,27 +228,35 @@ private fun RecentSection(
 
 @Composable
 private fun LocationRow(entry: LocationEntry, onClick: () -> Unit) {
+    val distKm = haversineKm(
+        CityCatalog.currentLocation.lat, CityCatalog.currentLocation.lng,
+        entry.lat, entry.lng,
+    )
+    val distLabel = when {
+        distKm < 1.0 -> "${(distKm * 1000).toInt()} m"
+        else -> "${"%.1f".format(distKm)} km"
+    }
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
         color = MaterialTheme.colorScheme.surface,
-        onClick = onClick
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(DesignTokens.Spacing.m),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)) {
                 Icon(
-                    Icons.Filled.LocationOn,
+                    imageVector = entry.category.icon(),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(8.dp).size(DesignTokens.IconSize.inline)
+                    modifier = Modifier.padding(8.dp).size(16.dp),
                 )
             }
-            Spacer(Modifier.size(DesignTokens.Spacing.m))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     entry.name,
@@ -238,18 +264,32 @@ private fun LocationRow(entry: LocationEntry, onClick: () -> Unit) {
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     entry.subtitle,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
+            Text(
+                text = distLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
+}
+
+private fun PoiCategory.icon() = when (this) {
+    PoiCategory.OFFICE -> Icons.Filled.Business
+    PoiCategory.CLIENT -> Icons.Filled.DirectionsCar
+    PoiCategory.RESTAURANT -> Icons.Filled.Restaurant
+    PoiCategory.HOME -> Icons.Filled.Home
+    PoiCategory.TRANSIT -> Icons.Filled.Train
+    PoiCategory.LANDMARK, PoiCategory.OTHER -> Icons.Filled.LocationOn
 }
 
 @Composable

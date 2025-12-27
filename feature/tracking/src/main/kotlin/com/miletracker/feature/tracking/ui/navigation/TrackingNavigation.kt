@@ -16,9 +16,12 @@ import com.miletracker.feature.tracking.ui.screens.HardwareEventsLogScreen
 import com.miletracker.feature.tracking.ui.screens.LiveTrackScreen
 import com.miletracker.feature.tracking.ui.screens.LocationMapScreen
 import com.miletracker.feature.tracking.ui.screens.SavedTracksScreen
+import com.miletracker.feature.tracking.ui.screens.SetupGuideScreen
+import com.miletracker.feature.tracking.ui.screens.TrackCustomizationScreen
 import com.miletracker.feature.tracking.ui.screens.TrackDetailScreen
 import com.miletracker.feature.tracking.ui.screens.TrackInsightsScreen
 import com.miletracker.feature.tracking.ui.screens.TrackMilesScreen
+import com.miletracker.feature.tracking.ui.screens.TrackSettingsScreen
 import com.miletracker.feature.tracking.ui.screens.TrackSubmissionScreen
 import com.miletracker.feature.tracking.ui.screens.TrackingSuccessScreen
 
@@ -33,6 +36,9 @@ object TrackingRoutes {
     const val ROUTE_MAP = "route_map/{routeId}"
     const val SUBMIT = "submit/{routeId}?distanceKm={distanceKm}&vehicleKey={vehicleKey}&startTime={startTime}&endTime={endTime}"
     const val CREATE_VOUCHER = "create_voucher"
+    const val TRACK_SETTINGS = "track_settings"
+    const val TRACK_CUSTOMIZATION = "track_customization"
+    const val SETUP_GUIDE = "setup_guide"
     const val SUCCESS = "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleName={vehicleName}" +
         "&startTime={startTime}&endTime={endTime}&transId={transId}&status={status}" +
         "&violationCount={violationCount}&violationMsg={violationMsg}" +
@@ -115,7 +121,8 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     },
                     onOpenMap = { navController.navigate(TrackingRoutes.liveMap(routeId)) },
                     onOpenHwEvents = { navController.navigate(TrackingRoutes.hwEvents(routeId)) },
-                    onOpenCheckInHistory = { navController.navigate(TrackingRoutes.CHECK_IN_HISTORY) }
+                    onOpenCheckInHistory = { navController.navigate(TrackingRoutes.CHECK_IN_HISTORY) },
+                    onOpenSettings = { navController.navigate(TrackingRoutes.TRACK_SETTINGS) },
                 )
             }
 
@@ -244,6 +251,21 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
 
             composable(TrackingRoutes.CREATE_VOUCHER) {
                 CreateVoucherScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(TrackingRoutes.TRACK_SETTINGS) {
+                TrackSettingsScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(TrackingRoutes.TRACK_CUSTOMIZATION) {
+                TrackCustomizationScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(TrackingRoutes.SETUP_GUIDE) {
+                SetupGuideScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenTrackSettings = { navController.navigate(TrackingRoutes.TRACK_SETTINGS) },
+                )
             }
 }
 

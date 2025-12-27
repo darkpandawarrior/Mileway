@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
@@ -98,6 +99,7 @@ private object Qa {
     const val HISTORY = "history"
     const val DATA = "data"
     const val SAVED = "saved"
+    const val SETTINGS = "settings"
     const val DISCARD = "discard"
 }
 
@@ -108,6 +110,7 @@ fun TrackMilesScreen(
     onOpenMap: () -> Unit,
     onOpenHwEvents: () -> Unit,
     onOpenCheckInHistory: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     viewModel: TrackMilesViewModel = koinViewModel(),
     checkInViewModel: CheckInViewModel = koinViewModel()
 ) {
@@ -166,12 +169,19 @@ fun TrackMilesScreen(
                 title = "Track Miles",
                 depth = DesignTokens.NavigationDepth.ROOT,
                 actions = {
-                    if (isActive) {
-                        StatusBadge(
-                            text = if (isPaused) "PAUSED" else "ACTIVE",
-                            color = if (isPaused) Color(0xFFFF9800) else Color(0xFF4CAF50),
-                        )
-                    }
+                    val idleColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    StatusBadge(
+                        text = when {
+                            isPaused -> "⏸ PAUSED"
+                            isActive -> "● ACTIVE"
+                            else -> "● Not Tracking"
+                        },
+                        color = when {
+                            isPaused -> Color(0xFFFF9800)
+                            isActive -> Color(0xFF4CAF50)
+                            else -> idleColor
+                        },
+                    )
                 }
             )
         },
@@ -214,6 +224,11 @@ fun TrackMilesScreen(
                 pauseReason = uiState.pauseReason,
             )
 
+            // Weekly summary pill — shown only when idle, below the hero card.
+            if (!isActive && uiState.weekSummaryText.isNotEmpty()) {
+                WeeklySummaryPill(text = uiState.weekSummaryText)
+            }
+
             // Live system-status chips while active; a calm "All systems OK" banner otherwise.
             if (isActive) {
                 CompactSystemStatusIndicator(chips = uiState.statusChips())
@@ -226,6 +241,20 @@ fun TrackMilesScreen(
                     expanded = statsExpanded,
                     onToggle = { statsExpanded = !statsExpanded },
                 )
+            }
+
+            // Journey Guide text link — tappable hint shown when idle.
+            if (!isActive) {
+                androidx.compose.material3.TextButton(
+                    onClick = viewModel::openJourneyGuide,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "Journey Guide →",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
 
@@ -244,6 +273,7 @@ fun TrackMilesScreen(
                     Qa.CHECK_IN, Qa.MANUAL_CHECK_IN -> checkInViewModel.openManualCheckIn()
                     Qa.CENTERS -> viewModel.openVendorPicker()
                     Qa.SAVED -> onOpenHwEvents()
+                    Qa.SETTINGS -> onOpenSettings()
                     Qa.DISCARD -> viewModel.discardTracking()
                 }
             },
@@ -360,6 +390,7 @@ private val quickActions = listOf(
     QuickAction(Qa.HISTORY, "Journey History", Icons.Filled.History),
     QuickAction(Qa.DATA, "Data", Icons.Filled.DataObject),
     QuickAction(Qa.SAVED, "Saved Journeys", Icons.Filled.Bookmark),
+    QuickAction(Qa.SETTINGS, "Settings", Icons.Filled.Settings),
     QuickAction(Qa.DISCARD, "Discard", Icons.Filled.DeleteOutline, destructive = true),
 )
 
@@ -398,14 +429,17 @@ private fun TrackSignal.toLevel(): StatusLevel = when (this) {
     TrackSignal.POOR -> StatusLevel.BAD
 }
 
-private fun TrackMilesUiState.statItems(): List<StatItem> = listOf(
-    StatItem("Distance", "%.2f km".format(distanceKm), Icons.Filled.Map),
-    StatItem("Duration", formatElapsed(liveElapsedMs(this)), Icons.Filled.Timer),
-    StatItem("Avg Speed", "%.1f km/h".format(avgSpeedKmh), Icons.Filled.Speed),
-    StatItem("Points", pointsLabel.toString(), Icons.Filled.GpsFixed),
-    StatItem("Max Speed", "%.1f km/h".format(maxSpeedKmh), Icons.Filled.Bolt),
-    StatItem("Activity", trackingActivity, Icons.Filled.DirectionsCar),
-)
+private fun TrackMilesUiState.statItems(): List<StatItem> = buildList {
+    add(StatItem("Distance", "%.2f km".format(distanceKm), Icons.Filled.Map))
+    add(StatItem("Duration", formatElapsed(liveElapsedMs(this@statItems)), Icons.Filled.Timer))
+    add(StatItem("Avg Speed", "%.1f km/h".format(avgSpeedKmh), Icons.Filled.Speed))
+    add(StatItem("Points", pointsLabel.toString(), Icons.Filled.GpsFixed))
+    add(StatItem("Max Speed", "%.1f km/h".format(maxSpeedKmh), Icons.Filled.Bolt))
+    add(StatItem("Activity", trackingActivity, Icons.Filled.DirectionsCar))
+    if (pauseReason != null) {
+        add(StatItem("Pause Reason", pauseReason, Icons.Filled.Timer))
+    }
+}
 
 private fun TrackMilesUiState.journeyDisclaimerOrDefault(): String =
     "By starting this journey you confirm the trip details are accurate and consent to " +
@@ -423,6 +457,37 @@ private fun formatElapsed(ms: Long): String {
     val m = (totalSec % 3600) / 60
     val s = totalSec % 60
     return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%02d:%02d".format(m, s)
+}
+
+/** Weekly summary pill shown below the hero card when idle. */
+@Composable
+private fun WeeklySummaryPill(text: String) {
+    androidx.compose.material3.Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.chip,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.padding(
+                horizontal = DesignTokens.Spacing.l,
+                vertical = DesignTokens.Spacing.m,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.History,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+    }
 }
 
 /** The current-location pill shown above the hero card (mirrors the reference layout). */

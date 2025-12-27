@@ -64,7 +64,9 @@ data class SubmissionItem(
     val violationCount: Int,
     val acknowledged: Boolean,
     val isNewTracker: Boolean,
-    val voucherCreated: Boolean
+    val voucherCreated: Boolean,
+    val approvalStatus: String = "Pending Approval",
+    val voucherNumber: String? = null
 ) {
     /** Unclaimed = no voucher raised yet; these are the rows eligible for selection. */
     val isUnclaimed: Boolean get() = !voucherCreated
@@ -157,7 +159,14 @@ private fun TrackDisplayData.toSubmissionItem(): SubmissionItem {
         isNewTracker = hash and 0b100 == 0,
         // A voucher is considered filed when the track was submitted longer ago (older submissions
         // have been processed). Keeps a deterministic mix of unclaimed / filed for the demo.
-        voucherCreated = hash % 4 == 0
+        voucherCreated = hash % 4 == 0,
+        approvalStatus = when ((hash.toLong() and 0x7FFFFFFFL) % 4) {
+            0L -> "Approved"
+            1L -> "Rejected"
+            2L -> "Reimbursed"
+            else -> "Pending Approval"
+        },
+        voucherNumber = if (hash % 4 == 0) "V-%08d".format((hash.toLong() and 0x7FFFFFFFL) % 100_000_000) else null
     )
 }
 

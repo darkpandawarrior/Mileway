@@ -1,5 +1,10 @@
 package com.miletracker.feature.tracking.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,25 +24,36 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +74,7 @@ import com.miletracker.feature.tracking.ui.components.SavedTracksFilterChip
 import com.miletracker.feature.tracking.ui.components.SavedTracksSearchField
 import com.miletracker.feature.tracking.ui.components.SavedTracksSegment
 import com.miletracker.feature.tracking.ui.components.SavedTracksSegmentedToggle
+import com.miletracker.feature.tracking.ui.components.StaticPolylineThumbnail
 import com.miletracker.feature.tracking.ui.components.SubmissionCard
 import com.miletracker.feature.tracking.ui.components.SubmissionCardData
 import com.miletracker.feature.tracking.ui.components.SubmissionDateHeader
@@ -116,7 +133,11 @@ fun SavedTracksScreen(
             }
         ) { padding ->
             Column(modifier = Modifier.fillMaxSize()) {
-                TrackMilesHeader(tracks = uiState.tracks)
+                TrackMilesHeader(
+                    tracks = uiState.tracks,
+                    selectionMode = uiState.selectionMode,
+                    onClearSelection = viewModel::onClearSelection
+                )
                 SavedTracksBody(
                     uiState = uiState,
                     bottomPadding = padding.calculateBottomPadding(),
@@ -135,7 +156,11 @@ fun SavedTracksScreen(
 
 /** Gradient ROOT header with title + summary stats — the screen's anchor ("deeper = calmer"). */
 @Composable
-private fun TrackMilesHeader(tracks: List<TrackDisplayData>) {
+private fun TrackMilesHeader(
+    tracks: List<TrackDisplayData>,
+    selectionMode: Boolean = false,
+    onClearSelection: () -> Unit = {}
+) {
     val totalTrips = tracks.size
     val totalKm = tracks.sumOf { it.distanceKm }
     val totalReimbursable = tracks.filter { it.isSubmitted }.sumOf { it.reimbursableAmount }
@@ -148,17 +173,31 @@ private fun TrackMilesHeader(tracks: List<TrackDisplayData>) {
             .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l)
     ) {
         Column {
-            Text(
-                text = "Saved Tracks",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Text(
-                text = "Track and manage your journeys",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.85f)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (selectionMode) "Select Submissions" else "Saved Tracks",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = if (selectionMode) "Long-press to select more" else "Track and manage your journeys",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f)
+                    )
+                }
+                // VI.3: "X" button exits selection mode
+                if (selectionMode) {
+                    IconButton(onClick = onClearSelection) {
+                        Icon(Icons.Default.Close, contentDescription = "Exit selection", tint = Color.White)
+                    }
+                }
+            }
             Spacer(Modifier.height(DesignTokens.Spacing.l))
             Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
                 HeaderStat(value = totalTrips.toString(), label = "Trips", modifier = Modifier.weight(1f))
@@ -311,60 +350,100 @@ private fun filterJourneys(uiState: SavedTracksUiState): List<TrackDisplayData> 
 
 @Composable
 private fun JourneyCard(track: TrackDisplayData, onClick: () -> Unit) {
+    val score = track.healthScore()
+    val scoreColor = when {
+        score >= 80 -> Color(0xFF4CAF50)
+        score >= 60 -> Color(0xFFFF9800)
+        else -> Color(0xFFF44336)
+    }
+    val routePoints = listOf(
+        track.startLatitude to track.startLongitude,
+        track.endLatitude to track.endLongitude
+    ).filter { (lat, lng) -> lat != 0.0 || lng != 0.0 }
+
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = DesignTokens.Shape.roundedMd,
         elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
     ) {
-        Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column {
+            // VI.1: 64dp route thumbnail with health score badge overlay
+            Box(modifier = Modifier.fillMaxWidth()) {
+                StaticPolylineThumbnail(
+                    latLngs = if (routePoints.size >= 2) routePoints else emptyList(),
+                    thumbHeight = 64.dp
+                )
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(DesignTokens.Spacing.s)
+                        .size(32.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .background(scoreColor),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.DirectionsCar,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(DesignTokens.IconSize.actionTile)
-                    )
-                }
-                Spacer(Modifier.width(DesignTokens.Spacing.m))
-                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = track.name ?: "Journey",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
+                        text = "$score",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
-                    if (track.startTime > 0) {
-                        Text(
-                            text = DateUtils.epochToDisplayDate(track.startTime),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
-                StatusChip(isSubmitted = track.isSubmitted)
             }
 
-            Spacer(Modifier.height(DesignTokens.Spacing.m))
+            Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = track.name ?: "Journey",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                        if (track.startTime > 0) {
+                            Text(
+                                text = DateUtils.epochToDisplayDate(track.startTime),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    StatusChip(isSubmitted = track.isSubmitted)
+                }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
-            ) {
-                Metric(label = "Distance", value = track.getFormattedDistance(), modifier = Modifier.weight(1f))
-                Metric(label = "Duration", value = track.getFormattedDuration(), modifier = Modifier.weight(1f))
-                Metric(
-                    label = "Amount",
-                    value = if (track.reimbursableAmount > 0) "₹%.0f".format(track.reimbursableAmount) else "—",
-                    valueColor = if (track.reimbursableAmount > 0) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
+                Spacer(Modifier.height(DesignTokens.Spacing.m))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+                ) {
+                    Metric(label = "Distance", value = track.getFormattedDistance(), modifier = Modifier.weight(1f))
+                    Metric(label = "Duration", value = track.getFormattedDuration(), modifier = Modifier.weight(1f))
+                    Metric(
+                        label = "Amount",
+                        value = if (track.reimbursableAmount > 0) "₹%.0f".format(track.reimbursableAmount) else "—",
+                        valueColor = if (track.reimbursableAmount > 0) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // VI.1: 4dp quality bar, width proportional to health score
+                Spacer(Modifier.height(DesignTokens.Spacing.s))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(score / 100f)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(scoreColor)
+                    )
+                }
             }
         }
     }
@@ -462,6 +541,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
         }
     }
 
+    // VI.4: Collapsible insights card above the submissions list
+    item {
+        SubmittedInsightsCard(submissions = uiState.allSubmissions)
+    }
+
     // Selection-mode header + Create Voucher CTA.
     if (uiState.selectionMode && uiState.selectedSubmissionIds.isNotEmpty()) {
         item {
@@ -473,7 +557,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
         val voucherCount = uiState.selectedUnclaimedIds.size
         if (voucherCount > 0) {
             item {
-                CreateVoucherButton(count = voucherCount, onClick = viewModel::onCreateVoucher)
+                // VI.3: Crossfade count animation on the Create Voucher CTA
+                AnimatedContent(
+                    targetState = voucherCount,
+                    transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(150)) },
+                    label = "voucherCount"
+                ) { count ->
+                    CreateVoucherButton(count = count, onClick = viewModel::onCreateVoucher)
+                }
             }
         }
     }
@@ -494,6 +585,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
                 SubmissionDateHeader(label = date)
             }
             items(daySubmissions, key = { it.id }) { submission ->
+                val haptic = LocalHapticFeedback.current
                 SubmissionCard(
                     data = submission.toCardData(),
                     isSelected = submission.id in uiState.selectedSubmissionIds,
@@ -502,7 +594,10 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
                         if (uiState.selectionMode) viewModel.onSubmissionTapped(submission.id)
                         else viewModel.onSubmissionSelectionToggled(submission.id)
                     },
-                    onLongClick = { viewModel.onSubmissionLongPressed(submission.id) }
+                    onLongClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.onSubmissionLongPressed(submission.id)
+                    }
                 )
             }
         }
@@ -519,5 +614,98 @@ private fun SubmissionItem.toCardData() = SubmissionCardData(
     violationCount = violationCount,
     acknowledged = acknowledged,
     isNewTracker = isNewTracker,
-    voucherCreated = voucherCreated
+    voucherCreated = voucherCreated,
+    approvalStatus = approvalStatus,
+    voucherNumber = voucherNumber
 )
+
+/** VI.1: Pseudo health score (0–100) for a journey card, derived from available fields. */
+private fun TrackDisplayData.healthScore(): Int {
+    var score = 70
+    val pointDensity = if (distanceKm > 0) locationCount / distanceKm else 0.0
+    score += when {
+        pointDensity >= 20 -> 20
+        pointDensity >= 10 -> 12
+        pointDensity >= 5  -> 5
+        pointDensity >= 2  -> 0
+        else               -> -15
+    }
+    if (locationCount < 5) score -= 20
+    if (locationCount >= 50) score += 10
+    if (distanceKm > 5) score += 5
+    return score.coerceIn(0, 100)
+}
+
+/** VI.4: Collapsible weekly-insights banner above the submissions list. */
+@Composable
+private fun SubmittedInsightsCard(
+    submissions: List<SubmissionItem>,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val weekMs = 7L * 24 * 3_600_000
+    val now = submissions.maxOfOrNull { it.expenseDateMillis } ?: 0L
+    val thisWeek = submissions.filter { it.expenseDateMillis >= now - weekMs }
+    val weekTotal = thisWeek.sumOf { it.amount }
+    val avgPerTrip = if (thisWeek.isNotEmpty()) weekTotal / thisWeek.size else 0.0
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+        tonalElevation = DesignTokens.Elevation.card
+    ) {
+        Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "This week: ${thisWeek.size} submissions • ₹%.0f".format(weekTotal),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                IconButton(onClick = { expanded = !expanded }, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            if (expanded) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = DesignTokens.Spacing.s),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    InsightMetric(label = "Count", value = "${thisWeek.size}", modifier = Modifier.weight(1f))
+                    InsightMetric(label = "Total", value = "₹%.0f".format(weekTotal), modifier = Modifier.weight(1f))
+                    InsightMetric(label = "Avg/trip", value = "₹%.0f".format(avgPerTrip), modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InsightMetric(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            value,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+        )
+    }
+}

@@ -69,7 +69,9 @@ data class TrackMilesUiState(
     val resumeNotes: String = "",
     val centers: List<CheckInLocation> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** "This Week: N trips • X.X km" — loaded once on init and updated as tracks complete. */
+    val weekSummaryText: String = "",
 ) {
     /** History count surfaced as the small chip on the hero card. */
     val pointsLabel: Int get() = totalPoints.toInt()
@@ -97,6 +99,7 @@ class TrackMilesViewModel(
         loadVehicles()
         observeSession()
         restoreActiveTrack()
+        loadWeekSummary()
     }
 
     /**
@@ -221,6 +224,19 @@ class TrackMilesViewModel(
     fun pickVendor(id: String) {
         // Selecting a center is acknowledged; the demo records it implicitly via check-in.
         _uiState.update { it.copy(activeSheet = TrackSheet.NONE, vendorQuery = "") }
+    }
+
+    private fun loadWeekSummary() {
+        trackRepo.completedTracksFlow()
+            .onEach { tracks ->
+                val weekStartMs = System.currentTimeMillis() - 7L * 24 * 3_600_000
+                val thisWeek = tracks.filter { it.endTime >= weekStartMs }
+                val totalKm = thisWeek.sumOf { it.distanceKm }
+                val text = if (thisWeek.isEmpty()) "No journeys this week" else
+                    "This Week: ${thisWeek.size} trip${if (thisWeek.size != 1) "s" else ""} • ${"%.1f".format(totalKm)} km"
+                _uiState.update { it.copy(weekSummaryText = text) }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun loadVehicles() {

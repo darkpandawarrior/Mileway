@@ -33,7 +33,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +53,7 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.logging.ui.components.MapPreviewCard
+import com.miletracker.feature.tracking.ui.components.StaticPolylineThumbnail
 import com.miletracker.feature.logging.ui.components.StepHeaderCard
 import com.miletracker.feature.logging.ui.components.TapFieldRow
 import com.miletracker.feature.logging.ui.components.TravelledLocationsActions
@@ -104,6 +110,9 @@ fun LogMilesScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showVerifyDistance by remember { mutableStateOf(false) }
+    // VIII.1: entrance visibility
+    var contentVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { contentVisible = true }
 
     /** Route a picked entry to the correct VM action based on the active target. */
     fun handlePick(entry: LocationEntry) {
@@ -131,6 +140,11 @@ fun LogMilesScreen(
             )
         }
     ) { padding ->
+        AnimatedVisibility(
+            visible = contentVisible,
+            enter = slideInVertically(initialOffsetY = { it / 6 }, animationSpec = tween(280)) +
+                    fadeIn(animationSpec = tween(280))
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -146,7 +160,13 @@ fun LogMilesScreen(
                 subtitle = "Add travelled locations and basics"
             )
 
-            MapPreviewCard(stopCount = uiState.stops.size)
+            if (uiState.stops.size >= 2) {
+                StaticPolylineThumbnail(
+                    latLngs = uiState.stops.map { it.entry.lat to it.entry.lng }
+                )
+            } else {
+                MapPreviewCard(stopCount = uiState.stops.size)
+            }
 
             TapFieldRow(
                 label = "Journey Date",
@@ -250,6 +270,7 @@ fun LogMilesScreen(
                 )
             }
         }
+        } // AnimatedVisibility
     }
 
     // ── Overlays ───────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 package com.miletracker.feature.tracking.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -50,6 +51,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -299,7 +303,9 @@ data class SubmissionCardData(
     val violationCount: Int,
     val acknowledged: Boolean,
     val isNewTracker: Boolean,
-    val voucherCreated: Boolean
+    val voucherCreated: Boolean,
+    val approvalStatus: String = "Pending Approval",
+    val voucherNumber: String? = null
 )
 
 /**
@@ -329,13 +335,29 @@ fun SubmissionCard(
         if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
     val showCheckbox = data.voucherCreated.not() && (selectionMode || isSelected)
 
+    // VI.3: card springs to 0.97 scale when selection mode is active (ready-to-select feel)
+    val scale by animateFloatAsState(
+        targetValue = if (selectionMode && !isSelected) 0.97f else 1.0f,
+        animationSpec = spring(stiffness = 400f),
+        label = "cardScale"
+    )
+
+    val approvalColor = when (data.approvalStatus) {
+        "Approved" -> DesignTokens.StatusColors.success
+        "Rejected" -> DesignTokens.StatusColors.error
+        "Reimbursed" -> Color(0xFF00897B)
+        else -> Color(0xFFFF9800)
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(if (isSelected) 1.5.dp else 1.dp, borderColor),
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(if (isSelected) 2.dp else 1.dp, borderColor),
         tonalElevation = DesignTokens.Elevation.card
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
@@ -357,10 +379,14 @@ fun SubmissionCard(
                 }
                 Spacer(Modifier.width(DesignTokens.Spacing.m))
                 Column(modifier = Modifier.weight(1f)) {
+                    // Monospace transaction ID (10sp per VI.2)
                     Text(
                         text = "#${data.transId}",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
                     Text(
@@ -387,16 +413,44 @@ fun SubmissionCard(
 
             Spacer(Modifier.height(DesignTokens.Spacing.m))
 
-            // Amount + Track Miles tag.
+            // Amount (18sp SemiBold primary per VI.2) + approval status chip + Track Miles tag.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "₹%.2f".format(data.amount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(Modifier.width(DesignTokens.Spacing.m))
+                ApprovalStatusChip(status = data.approvalStatus, color = approvalColor)
+                Spacer(Modifier.width(DesignTokens.Spacing.s))
                 TrackMilesTag()
+            }
+
+            // Voucher chip (if issued per VI.2)
+            if (data.voucherNumber != null) {
+                Spacer(Modifier.height(DesignTokens.Spacing.s))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
+                    modifier = Modifier
+                        .clip(DesignTokens.Shape.chip)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs)
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ReceiptLong,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(DesignTokens.IconSize.inline)
+                    )
+                    Text(
+                        data.voucherNumber,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
 
             Spacer(Modifier.height(DesignTokens.Spacing.m))
@@ -407,6 +461,25 @@ fun SubmissionCard(
                 FooterField(label = "Expense Id", value = data.transId, modifier = Modifier.weight(1f))
             }
         }
+    }
+}
+
+@Composable
+private fun ApprovalStatusChip(status: String, color: Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
+        modifier = Modifier
+            .clip(DesignTokens.Shape.chip)
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs)
+    ) {
+        Text(
+            status,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = color
+        )
     }
 }
 

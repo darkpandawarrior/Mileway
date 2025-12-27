@@ -2,6 +2,8 @@ package com.miletracker.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -9,6 +11,10 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.ColorFilter
@@ -886,7 +892,13 @@ private fun GlanceCell(cell: GlanceCell, onClick: () -> Unit, modifier: Modifier
             modifier = Modifier.padding(DesignTokens.Spacing.m),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(cell.count.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = cell.color)
+            // VII.3: Animate count from 0 → final value on first composition
+            val animatedCount by animateIntAsState(
+                targetValue = cell.count,
+                animationSpec = tween(durationMillis = 900),
+                label = "glanceCount"
+            )
+            Text(animatedCount.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = cell.color)
             Text(cell.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
         }
     }
@@ -1044,6 +1056,278 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
 @Composable
 private fun TextButton(onClick: () -> Unit, content: @Composable () -> Unit) {
     androidx.compose.material3.TextButton(onClick = onClick) { content() }
+}
+
+// =============================================================================
+// Phase VII — HomeMileageCard (ref 12)
+// =============================================================================
+
+private const val WEEK_KM_GOAL = 300.0
+private const val WEEK_KM_DEMO = 248.0
+private const val WEEK_TRIPS_DEMO = 12
+private const val WEEK_AMOUNT_DEMO = 14820.0
+
+/**
+ * VII.1: Dedicated mileage card with gradient header, Canvas progress ring (120dp), stat row,
+ * and "Track Journey" (primary) / "Log Miles" (outlined) quick-action buttons.
+ */
+@Composable
+fun HomeMileageCard(
+    onTrackJourney: () -> Unit,
+    onLogMiles: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
+    ) {
+        Column {
+            // Gradient header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DesignTokens.topBarGradientBrush())
+                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Mileage",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = "%.0f km total".format(WEEK_KM_DEMO),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White.copy(alpha = 0.9f),
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.padding(DesignTokens.Spacing.l),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
+            ) {
+                // Canvas progress ring (120dp) + centre text
+                Box(
+                    modifier = Modifier.size(120.dp).align(Alignment.CenterHorizontally),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Canvas(modifier = Modifier.matchParentSize()) {
+                        val stroke = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                        val arcSize = Size(size.width - stroke.width, size.height - stroke.width)
+                        val offset = stroke.width / 2
+                        drawArc(
+                            color = surfaceVariant,
+                            startAngle = 135f,
+                            sweepAngle = 270f,
+                            useCenter = false,
+                            topLeft = androidx.compose.ui.geometry.Offset(offset, offset),
+                            size = arcSize,
+                            style = stroke,
+                        )
+                        val progress = (WEEK_KM_DEMO / WEEK_KM_GOAL).coerceIn(0.0, 1.0).toFloat()
+                        drawArc(
+                            color = primaryColor,
+                            startAngle = 135f,
+                            sweepAngle = 270f * progress,
+                            useCenter = false,
+                            topLeft = androidx.compose.ui.geometry.Offset(offset, offset),
+                            size = arcSize,
+                            style = stroke,
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "%.0f".format(WEEK_KM_DEMO),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "/ %.0f km".format(WEEK_KM_GOAL),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                // 3-stat row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    MileageStat(label = "Trips", value = WEEK_TRIPS_DEMO.toString(), modifier = Modifier.weight(1f))
+                    MileageStat(label = "Distance", value = "%.0f km".format(WEEK_KM_DEMO), modifier = Modifier.weight(1f))
+                    MileageStat(label = "Amount", value = "₹%.0f".format(WEEK_AMOUNT_DEMO), modifier = Modifier.weight(1f))
+                }
+
+                // Quick-action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                ) {
+                    Button(
+                        onClick = onTrackJourney,
+                        modifier = Modifier.weight(1f),
+                        shape = DesignTokens.Shape.roundedSm,
+                    ) {
+                        Icon(Icons.Filled.DirectionsCar, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.inline))
+                        Spacer(Modifier.width(DesignTokens.Spacing.xs))
+                        Text("Track Journey", style = MaterialTheme.typography.labelMedium)
+                    }
+                    OutlinedButton(
+                        onClick = onLogMiles,
+                        modifier = Modifier.weight(1f),
+                        shape = DesignTokens.Shape.roundedSm,
+                    ) {
+                        Text("Log Miles", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MileageStat(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+// =============================================================================
+// Phase VII — HomeCheckInCard (ref 11)
+// =============================================================================
+
+private data class DemoCheckIn(val location: String, val time: String, val isIn: Boolean)
+
+private val DEMO_CHECK_INS = listOf(
+    DemoCheckIn("Head Office, Baner", "09:12 AM · Today", isIn = true),
+    DemoCheckIn("Client Site, Koregaon Park", "02:35 PM · Yesterday", isIn = false),
+    DemoCheckIn("Head Office, Baner", "09:05 AM · Yesterday", isIn = true),
+)
+
+/**
+ * VII.2: Check-In card with location pin header, count badge, "Check In at Office" primary
+ * button, and a compact recent-check-ins list (last 3 entries).
+ */
+@Composable
+fun HomeCheckInCard(
+    onCheckIn: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scope = rememberCoroutineScope()
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = DesignTokens.Shape.roundedMd,
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
+    ) {
+        Column(modifier = Modifier.padding(DesignTokens.Spacing.l), verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+            // Header: location pin + title + count badge
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Filled.Navigation,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                    Column {
+                        Text(
+                            "Check In",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            "Office & client locations",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                CountBadge(count = DEMO_CHECK_INS.size, modifier = Modifier)
+            }
+
+            // "Check In at Office" primary button
+            Button(
+                onClick = onCheckIn,
+                modifier = Modifier.fillMaxWidth(),
+                shape = DesignTokens.Shape.roundedSm,
+            ) {
+                Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.inline))
+                Spacer(Modifier.width(DesignTokens.Spacing.xs))
+                Text("Check In at Office", style = MaterialTheme.typography.labelMedium)
+            }
+
+            // Recent check-ins list
+            Text(
+                "Recent",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            DEMO_CHECK_INS.forEach { entry ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(if (entry.isIn) Color(0xFF2E7D32) else Color(0xFFF57C00)),
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(entry.location, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                        Text(entry.time, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(
+                        if (entry.isIn) "IN" else "OUT",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = if (entry.isIn) Color(0xFF2E7D32) else Color(0xFFF57C00),
+                    )
+                }
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
