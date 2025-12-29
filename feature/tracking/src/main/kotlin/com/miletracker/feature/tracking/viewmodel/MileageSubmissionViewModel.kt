@@ -2,6 +2,8 @@ package com.miletracker.feature.tracking.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miletracker.core.data.model.display.OdometerCaptureResult
+import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.data.model.network.ExpenseSubmissionResponse
 import com.miletracker.core.data.model.network.PolicyViolation
 import com.miletracker.core.data.model.network.SubmissionStatus
@@ -63,11 +65,15 @@ data class SubmissionFormUi(
     val endAddress: String = "",
     val vehicleName: String = "",
     val vehicleRatePerKm: Double = 0.0,
-    // Simulated odometer readings stored in VM state (not local `remember`).
+    // Odometer readings stored in VM state (from camera capture or simulation).
     val simulatedStartOdo: Int? = null,
     val simulatedEndOdo: Int? = null,
     val isManualStartOdo: Boolean = false,
     val isManualEndOdo: Boolean = false,
+    val odometerStartImageUri: String? = null,
+    val odometerEndImageUri: String? = null,
+    val odometerStartCaptureMs: Long? = null,
+    val odometerEndCaptureMs: Long? = null,
 ) {
     /** Required items still missing — drives the "N remaining" checklist header. */
     val remainingRequirements: List<String>
@@ -234,6 +240,33 @@ class MileageSubmissionViewModel(
             it.copy(
                 simulatedEndOdo = start + distanceKm.toInt().coerceAtLeast(1),
                 isManualEndOdo = false
+            )
+        }
+    }
+
+    /** Store a real camera capture result for the START odometer. */
+    fun captureOdometerStart(result: OdometerCaptureResult) {
+        _form.update {
+            it.copy(
+                simulatedStartOdo = result.reading,
+                isManualStartOdo = result.isManual,
+                odometerStartImageUri = result.imageUri,
+                odometerStartCaptureMs = result.captureTimeMs,
+            )
+        }
+    }
+
+    /** Store a real camera capture result for the END odometer. Recomputes distance. */
+    fun captureOdometerEnd(result: OdometerCaptureResult) {
+        val startReading = _form.value.simulatedStartOdo ?: 45_000
+        val distKm = (result.reading - startReading).coerceAtLeast(0).toDouble()
+        _form.update {
+            it.copy(
+                simulatedEndOdo = result.reading,
+                isManualEndOdo = result.isManual,
+                odometerEndImageUri = result.imageUri,
+                odometerEndCaptureMs = result.captureTimeMs,
+                smartDistanceOdometerKm = distKm,
             )
         }
     }

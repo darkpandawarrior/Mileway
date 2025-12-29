@@ -68,6 +68,8 @@ fun TrackSubmissionScreen(
     endTime: Long,
     onSuccess: (SubmissionResult) -> Unit,
     onBack: () -> Unit,
+    onNavigateToOdometerStart: () -> Unit = {},
+    onNavigateToOdometerEnd: () -> Unit = {},
     viewModel: MileageSubmissionViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -211,8 +213,10 @@ fun TrackSubmissionScreen(
                         isManualStart = form.isManualStartOdo,
                         isManualEnd = form.isManualEndOdo,
                         odometerDistanceKm = odometerDistanceKm,
-                        onCaptureStart = { viewModel.simulateCaptureStartOdo(distanceKm) },
-                        onCaptureEnd = { viewModel.simulateCaptureEndOdo(distanceKm) },
+                        onCaptureStart = onNavigateToOdometerStart,
+                        onCaptureEnd = onNavigateToOdometerEnd,
+                        startImageUri = form.odometerStartImageUri,
+                        endImageUri = form.odometerEndImageUri,
                     )
                 }
 

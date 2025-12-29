@@ -8,6 +8,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.miletracker.core.data.model.display.OdometerCaptureResult
+import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.ui.AppHost
 import com.miletracker.feature.tracking.ui.screens.CheckInHistoryItem
 import com.miletracker.feature.tracking.ui.screens.CheckInHistoryScreen
@@ -15,6 +19,7 @@ import com.miletracker.feature.tracking.ui.screens.CreateVoucherScreen
 import com.miletracker.feature.tracking.ui.screens.HardwareEventsLogScreen
 import com.miletracker.feature.tracking.ui.screens.LiveTrackScreen
 import com.miletracker.feature.tracking.ui.screens.LocationMapScreen
+import com.miletracker.feature.tracking.ui.screens.OdometerCameraScreen
 import com.miletracker.feature.tracking.ui.screens.SavedTracksScreen
 import com.miletracker.feature.tracking.ui.screens.SetupGuideScreen
 import com.miletracker.feature.tracking.ui.screens.TrackCustomizationScreen
@@ -24,6 +29,8 @@ import com.miletracker.feature.tracking.ui.screens.TrackMilesScreen
 import com.miletracker.feature.tracking.ui.screens.TrackSettingsScreen
 import com.miletracker.feature.tracking.ui.screens.TrackSubmissionScreen
 import com.miletracker.feature.tracking.ui.screens.TrackingSuccessScreen
+import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 object TrackingRoutes {
     const val SAVED_TRACKS = "saved_tracks"
@@ -39,6 +46,7 @@ object TrackingRoutes {
     const val TRACK_SETTINGS = "track_settings"
     const val TRACK_CUSTOMIZATION = "track_customization"
     const val SETUP_GUIDE = "setup_guide"
+    const val ODOMETER_CAMERA = "odometer_camera/{purpose}?distanceKm={distanceKm}&startReading={startReading}"
     const val SUCCESS = "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleName={vehicleName}" +
         "&startTime={startTime}&endTime={endTime}&transId={transId}&status={status}" +
         "&violationCount={violationCount}&violationMsg={violationMsg}" +
@@ -52,6 +60,9 @@ object TrackingRoutes {
     fun routeMap(routeId: String) = "route_map/$routeId"
     fun submit(routeId: String, distanceKm: Double, vehicleKey: String, startTime: Long, endTime: Long) =
         "submit/$routeId?distanceKm=$distanceKm&vehicleKey=$vehicleKey&startTime=$startTime&endTime=$endTime"
+
+    fun odometerCamera(purpose: String, distanceKm: Double = 0.0, startReading: Int = 45_000) =
+        "odometer_camera/$purpose?distanceKm=$distanceKm&startReading=$startReading"
 
     fun success(r: SubmissionResult): String {
         fun enc(s: String) = java.net.URLEncoder.encode(s, "UTF-8")
@@ -193,9 +204,48 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
             ) { backStack ->
                 val args = backStack.arguments!!
                 val routeId = args.getString("routeId")!!
+                val distKm = args.getFloat("distanceKm").toDouble()
+
+                // Shared ViewModel — same instance as TrackSubmissionScreen's koinViewModel()
+                val viewModel: MileageSubmissionViewModel = koinViewModel()
+
+                // Observe backstack results from OdometerCameraScreen
+                val sh = backStack.savedStateHandle
+                val odoStartReading by sh.getStateFlow("odo_start_reading", -1).collectAsState()
+                val odoEndReading by sh.getStateFlow("odo_end_reading", -1).collectAsState()
+
+                androidx.compose.runtime.LaunchedEffect(odoStartReading) {
+                    if (odoStartReading != -1) {
+                        viewModel.captureOdometerStart(
+                            OdometerCaptureResult(
+                                purpose = OdometerPurpose.START,
+                                imageUri = sh.get<String>("odo_start_uri") ?: "",
+                                reading = odoStartReading,
+                                isManual = sh.get<Boolean>("odo_start_manual") ?: false,
+                                captureTimeMs = sh.get<Long>("odo_start_time") ?: 0L,
+                            )
+                        )
+                        sh.remove<Int>("odo_start_reading")
+                    }
+                }
+                androidx.compose.runtime.LaunchedEffect(odoEndReading) {
+                    if (odoEndReading != -1) {
+                        viewModel.captureOdometerEnd(
+                            OdometerCaptureResult(
+                                purpose = OdometerPurpose.END,
+                                imageUri = sh.get<String>("odo_end_uri") ?: "",
+                                reading = odoEndReading,
+                                isManual = sh.get<Boolean>("odo_end_manual") ?: false,
+                                captureTimeMs = sh.get<Long>("odo_end_time") ?: 0L,
+                            )
+                        )
+                        sh.remove<Int>("odo_end_reading")
+                    }
+                }
+
                 TrackSubmissionScreen(
                     routeId = routeId,
-                    distanceKm = args.getFloat("distanceKm").toDouble(),
+                    distanceKm = distKm,
                     vehicleKey = args.getString("vehicleKey") ?: "",
                     startTime = args.getLong("startTime"),
                     endTime = args.getLong("endTime"),
@@ -204,7 +254,52 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                             popUpTo(TrackingRoutes.SAVED_TRACKS)
                         }
                     },
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onNavigateToOdometerStart = {
+                        val startReading = viewModel.form.value.simulatedStartOdo ?: 45_000
+                        navController.navigate(
+                            TrackingRoutes.odometerCamera("START", distKm, startReading)
+                        )
+                    },
+                    onNavigateToOdometerEnd = {
+                        val startReading = viewModel.form.value.simulatedStartOdo ?: 45_000
+                        navController.navigate(
+                            TrackingRoutes.odometerCamera("END", distKm, startReading)
+                        )
+                    },
+                    viewModel = viewModel,
+                )
+            }
+
+            composable(
+                route = TrackingRoutes.ODOMETER_CAMERA,
+                arguments = listOf(
+                    navArgument("purpose") { type = NavType.StringType },
+                    navArgument("distanceKm") { type = NavType.FloatType; defaultValue = 0f },
+                    navArgument("startReading") { type = NavType.IntType; defaultValue = 45_000 },
+                )
+            ) { backStack ->
+                val purpose = OdometerPurpose.valueOf(
+                    backStack.arguments?.getString("purpose") ?: "START"
+                )
+                val distKm = backStack.arguments?.getFloat("distanceKm")?.toDouble() ?: 0.0
+                val startReading = backStack.arguments?.getInt("startReading") ?: 45_000
+                OdometerCameraScreen(
+                    purpose = purpose,
+                    existingReading = startReading,
+                    sessionDistanceKm = distKm,
+                    onResult = { result ->
+                        val submitEntry = navController.previousBackStackEntry
+                        val prefix = if (result.purpose == OdometerPurpose.START) "odo_start" else "odo_end"
+                        submitEntry?.savedStateHandle?.apply {
+                            set("${prefix}_reading", result.reading)
+                            set("${prefix}_uri", result.imageUri)
+                            set("${prefix}_manual", result.isManual)
+                            set("${prefix}_time", result.captureTimeMs)
+                        }
+                        navController.popBackStack()
+                    },
+                    onBack = { navController.popBackStack() },
                 )
             }
 
