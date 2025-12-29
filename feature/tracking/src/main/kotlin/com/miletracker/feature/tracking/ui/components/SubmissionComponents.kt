@@ -68,9 +68,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.KeyboardOptions
+import coil.compose.AsyncImage
 import com.miletracker.core.ui.components.CollapsibleSectionCard
 import com.miletracker.core.ui.components.SectionCard
 import com.miletracker.core.ui.theme.DesignTokens
@@ -549,6 +552,8 @@ fun OdometerReadingsCard(
     odometerDistanceKm: Double?,
     onCaptureStart: () -> Unit,
     onCaptureEnd: () -> Unit,
+    startImageUri: String? = null,
+    endImageUri: String? = null,
     modifier: Modifier = Modifier
 ) {
     CollapsibleSectionCard(
@@ -561,12 +566,14 @@ fun OdometerReadingsCard(
             label = "Start Odometer",
             reading = startReading,
             isManual = isManualStart,
+            imageUri = startImageUri,
             onCapture = onCaptureStart
         )
         OdometerRow(
             label = "End Odometer",
             reading = endReading,
             isManual = isManualEnd,
+            imageUri = endImageUri,
             onCapture = onCaptureEnd
         )
         if (odometerDistanceKm != null) {
@@ -580,32 +587,42 @@ fun OdometerReadingsCard(
     }
 }
 
-/** A single start/end odometer row: thumbnail placeholder, reading, manual chip, capture action. */
+/** A single start/end odometer row: thumbnail, reading, manual chip, capture action. */
 @Composable
 private fun OdometerRow(
     label: String,
     reading: Int?,
     isManual: Boolean,
+    imageUri: String?,
     onCapture: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Thumbnail placeholder for the captured odometer photo.
+        // Thumbnail: actual photo if captured, camera icon placeholder otherwise.
         Box(
             modifier = Modifier
-                .size(44.dp)
+                .size(width = 80.dp, height = 60.dp)
                 .clip(DesignTokens.Shape.roundedSm)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Filled.CameraAlt,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(DesignTokens.IconSize.navigation)
-            )
+            if (imageUri != null) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "$label photo",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.CameraAlt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                )
+            }
         }
 
         Spacer(Modifier.width(DesignTokens.Spacing.m))

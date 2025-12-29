@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,14 +25,17 @@ import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,21 +49,33 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.data.model.network.PolicyViolation
 import com.miletracker.core.data.model.network.ViolationSeverity
 import com.miletracker.core.network.model.BusinessEntity
 import com.miletracker.core.network.model.Office
 import com.miletracker.core.ui.theme.DesignTokens
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Submission → success modal bottom sheets.
@@ -948,5 +965,148 @@ private fun entitySubtitle(entity: BusinessEntity): String {
         "${entity.country} • $currencyPart"
     } else {
         currencyPart
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Odometer reading confirm sheet (Phase X.2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Bottom sheet shown after the user captures an odometer photo. Simulates a 1.2s
+ * OCR processing delay, then presents the detected reading for confirmation.
+ *
+ * @param capturedUri   Local file URI of the captured odometer photo.
+ * @param purpose       START or END — drives the sheet title.
+ * @param baseReading   Start odometer reading (used to derive the END reading).
+ * @param sessionDistanceKm Tracked GPS distance (used to estimate END reading delta).
+ * @param onUseReading  Invoked with the confirmed reading when the user taps "Use This Reading".
+ * @param onRetake      Invoked when the user taps "Retake" — caller re-opens the camera.
+ * @param onDismiss     Invoked when the sheet is dismissed without a result.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OdometerReadingConfirmSheet(
+    capturedUri: String,
+    purpose: OdometerPurpose,
+    baseReading: Int,
+    sessionDistanceKm: Double,
+    onUseReading: (reading: Int, isManual: Boolean) -> Unit,
+    onRetake: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    var isProcessing by remember { mutableStateOf(true) }
+    val detectedReading = remember(purpose, baseReading, sessionDistanceKm) {
+        if (purpose == OdometerPurpose.START) baseReading
+        else baseReading + sessionDistanceKm.toInt().coerceAtLeast(1)
+    }
+    var displayedReading by remember { mutableStateOf(detectedReading) }
+
+    var showManualDialog by remember { mutableStateOf(false) }
+    var manualInput by remember { mutableStateOf(detectedReading.toString()) }
+
+    LaunchedEffect(Unit) {
+        delay(1_200)
+        isProcessing = false
+        displayedReading = detectedReading
+    }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val titleText = if (purpose == OdometerPurpose.START) "Start Odometer" else "End Odometer"
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(titleText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                if (isProcessing) {
+                    Spacer(Modifier.width(DesignTokens.Spacing.s))
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                }
+            }
+            Spacer(Modifier.height(DesignTokens.Spacing.m))
+
+            AsyncImage(
+                model = capturedUri,
+                contentDescription = "Odometer photo",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            Spacer(Modifier.height(DesignTokens.Spacing.l))
+
+            if (!isProcessing) {
+                Text(
+                    text = "OCR Result",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(DesignTokens.Spacing.xs))
+                Text(
+                    text = "%,d km".format(displayedReading),
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontSize = 28.sp,
+                        fontFamily = FontFamily.Monospace
+                    ),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                TextButton(onClick = { showManualDialog = true }) {
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Manual Entry")
+                }
+                Spacer(Modifier.height(DesignTokens.Spacing.m))
+            } else {
+                Spacer(Modifier.height(56.dp))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            ) {
+                OutlinedButton(onClick = onRetake, modifier = Modifier.weight(1f)) { Text("Retake") }
+                Button(
+                    onClick = { onUseReading(displayedReading, false) },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isProcessing
+                ) { Text("Use This Reading") }
+            }
+            Spacer(Modifier.height(DesignTokens.Spacing.l))
+        }
+    }
+
+    if (showManualDialog) {
+        AlertDialog(
+            onDismissRequest = { showManualDialog = false },
+            title = { Text("Enter ${ if (purpose == OdometerPurpose.START) "Start" else "End" } Reading") },
+            text = {
+                OutlinedTextField(
+                    value = manualInput,
+                    onValueChange = { if (it.length <= 7) manualInput = it.filter { c -> c.isDigit() } },
+                    label = { Text("Odometer reading (km)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val parsed = manualInput.toIntOrNull() ?: displayedReading
+                    displayedReading = parsed
+                    showManualDialog = false
+                    onUseReading(parsed, true)
+                }) { Text("Confirm") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showManualDialog = false }) { Text("Cancel") }
+            }
+        )
     }
 }
