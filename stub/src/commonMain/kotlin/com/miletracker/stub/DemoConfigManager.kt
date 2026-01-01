@@ -6,6 +6,7 @@ import com.miletracker.core.data.model.state.ProfileConfig
 import com.miletracker.core.data.model.state.TrackMilesPluginConfig
 import com.miletracker.core.data.result.NetworkResult
 import com.miletracker.core.network.config.ConfigProvider
+import com.miletracker.core.network.model.VendorCenter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -82,4 +83,23 @@ class DemoConfigManager : ConfigProvider {
     override fun getOffices() = PolicyMockData.offices()
     override fun getBusinessEntities() = PolicyMockData.businessEntities()
     override fun isOfficeSelectionRequired(): Boolean = true
+
+    /** Returns the 4 check-in type labels available in the demo. */
+    override fun getCheckInTypes(): List<String> =
+        listOf("Office Check-In", "Client Visit", "Site Inspection", "Meeting Point")
+
+    /** Returns a list of (fieldLabel, fieldHint) pairs for the given check-in type. */
+    override fun getCheckInFormSchema(type: String): List<Pair<String, String>> = when (type) {
+        "Office Check-In" -> listOf("Desk number" to "E.g. D-42", "Floor" to "1–10")
+        "Client Visit"    -> listOf("Contact name" to "Name of the client contact", "Meeting purpose" to "Purpose of visit")
+        "Site Inspection" -> listOf("Site ID" to "E.g. SITE-001", "Safety clearance" to "Yes / No")
+        "Meeting Point"   -> listOf("Reference number" to "E.g. MTG-2024", "Host name" to "Name of the host")
+        else              -> emptyList()
+    }
+
+    override fun getDemoLat(): Double = 12.927923
+    override fun getDemoLng(): Double = 77.627108
+    override fun getDemoAccuracyLabel(): String = "± 8 m (GPS)"
+    override fun getVendorCenters() = VendorMockData.vendorCenters()
+    override fun getGeoCheckInRadiusMeters(): Double = 100.0
 }

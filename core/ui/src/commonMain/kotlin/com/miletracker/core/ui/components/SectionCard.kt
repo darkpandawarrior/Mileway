@@ -44,7 +44,7 @@ import com.miletracker.core.ui.theme.DesignTokens
  */
 @Composable
 fun SectionCard(
-    title: String,
+    title: String = "",
     modifier: Modifier = Modifier,
     titleColor: Color = MaterialTheme.colorScheme.primary,
     containerColor: Color = MaterialTheme.colorScheme.surface,
@@ -64,11 +64,11 @@ fun SectionCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(contentPadding)) {
-            // Header row
-            Row(
+            // Header row — omitted when no title, subtitle, icon, or trailing action
+            if (title.isNotEmpty() || subtitle != null || leadingIcon != null || trailingAction != null) Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = DesignTokens.Spacing.m),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically // Center the action with the text
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     modifier = Modifier.weight(1f),

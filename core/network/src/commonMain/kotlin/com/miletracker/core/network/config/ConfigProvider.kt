@@ -4,6 +4,7 @@ import com.miletracker.core.data.model.state.LogMilesPluginConfig
 import com.miletracker.core.data.model.state.TrackMilesPluginConfig
 import com.miletracker.core.network.model.BusinessEntity
 import com.miletracker.core.network.model.Office
+import com.miletracker.core.network.model.VendorCenter
 
 interface ConfigProvider {
     fun getTrackMilesConfig(): TrackMilesPluginConfig
@@ -29,4 +30,25 @@ interface ConfigProvider {
 
     /** When true, the submission form must collect an office + entity. */
     fun isOfficeSelectionRequired(): Boolean = false
+
+    /** Check-in type labels available in the demo. */
+    fun getCheckInTypes(): List<String> = listOf("Office Check-In", "Client Visit", "Site Inspection", "Meeting Point")
+
+    /** (label, hint) field pairs for a given check-in type. */
+    fun getCheckInFormSchema(type: String): List<Pair<String, String>> = emptyList()
+
+    /** Demo/GPS latitude (for check-in screens that need a reference position). */
+    fun getDemoLat(): Double = 12.927923
+
+    /** Demo/GPS longitude. */
+    fun getDemoLng(): Double = 77.627108
+
+    /** Human-readable accuracy label (e.g. "± 8 m (GPS)"). */
+    fun getDemoAccuracyLabel(): String = "± 8 m (GPS)"
+
+    /** Vendor / partner centers used for geo check-in proximity calculations. */
+    fun getVendorCenters(): List<VendorCenter> = emptyList()
+
+    /** Default geofence radius in metres for geo check-in validation. */
+    fun getGeoCheckInRadiusMeters(): Double = 100.0
 }
