@@ -3,6 +3,7 @@ package com.miletracker.feature.tracking.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.LocationData
+import com.miletracker.core.data.model.db.SavedTrack
 import com.miletracker.core.data.model.db.TripAttachmentEntity
 import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.data.model.display.toDisplayData
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 
 data class TrackDetailUiState(
     val track: TrackDisplayData? = null,
+    val rawTrack: SavedTrack? = null,
     val locations: List<LocationData> = emptyList(),
     val attachments: List<TripAttachmentEntity> = emptyList(),
     val isLoading: Boolean = true,
@@ -38,7 +40,7 @@ class TrackDetailViewModel(
     fun load(routeId: String) {
         viewModelScope.launch {
             val track = trackRepository.getByRouteId(routeId)
-            _uiState.update { it.copy(track = track?.toDisplayData(), isLoading = false) }
+            _uiState.update { it.copy(track = track?.toDisplayData(), rawTrack = track, isLoading = false) }
         }
         locationRepository.locationsForToken(routeId)
             .onEach { locs -> _uiState.update { it.copy(locations = locs) } }
