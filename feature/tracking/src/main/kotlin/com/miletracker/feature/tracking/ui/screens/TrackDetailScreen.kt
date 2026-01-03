@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.History
@@ -79,6 +80,7 @@ fun TrackDetailScreen(
     onOpenInsights: () -> Unit,
     onOpenMap: () -> Unit,
     onOpenHwEvents: () -> Unit,
+    onOpenDataPreview: () -> Unit = {},
     viewModel: TrackDetailViewModel = koinViewModel(),
     exportViewModel: ExportViewModel = koinViewModel()
 ) {
@@ -142,6 +144,9 @@ fun TrackDetailScreen(
                     IconButton(onClick = onOpenHwEvents) {
                         Icon(Icons.Default.History, contentDescription = "Hardware Events")
                     }
+                    IconButton(onClick = onOpenDataPreview) {
+                        Icon(Icons.Default.Analytics, contentDescription = "Data Preview")
+                    }
                 }
             )
         }
@@ -149,13 +154,15 @@ fun TrackDetailScreen(
         if (uiState.isLoading) { LoadingScreen(); return@Scaffold }
 
         val track = uiState.track ?: return@Scaffold
+        val rawTrack = uiState.rawTrack
+        val health = rawTrack?.let { computeHealthLevel(it) }
         val gpsPoints = if (uiState.locations.isNotEmpty()) uiState.locations.size else track.locationCount
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
                 .padding(DesignTokens.Spacing.l),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
         ) {
-            DetailSummaryCard(track = track)
+            DetailSummaryCard(track = track, health = health)
 
             // Metrics grid (2 columns)
             Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
@@ -203,12 +210,16 @@ fun TrackDetailScreen(
                 Icon(Icons.Default.History, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text("Hardware events")
             }
+            FilledTonalButton(onClick = onOpenDataPreview, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Analytics, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Text("Data preview")
+            }
         }
     }
 }
 
 @Composable
-private fun DetailSummaryCard(track: TrackDisplayData) {
+private fun DetailSummaryCard(track: TrackDisplayData, health: HealthLevel? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedLg,
@@ -220,7 +231,37 @@ private fun DetailSummaryCard(track: TrackDisplayData) {
                 .background(DesignTokens.topBarGradientBrush())
                 .padding(DesignTokens.Spacing.xl)
         ) {
-            DetailStatusChip(isSubmitted = track.isSubmitted)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DetailStatusChip(isSubmitted = track.isSubmitted)
+                if (health != null) {
+                    val healthColor = when (health) {
+                        HealthLevel.EXCELLENT -> Color(0xFF2E7D32)
+                        HealthLevel.GOOD -> Color(0xFF558B2F)
+                        HealthLevel.FAIR -> Color(0xFFF9A825)
+                        HealthLevel.POOR -> Color(0xFFE65100)
+                        HealthLevel.CRITICAL -> Color(0xFFC62828)
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(healthColor.copy(alpha = 0.85f))
+                            .padding(horizontal = DesignTokens.Spacing.m, vertical = 4.dp)
+                    ) {
+                        Text(
+                            health.name.lowercase().replaceFirstChar { it.uppercase() },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
             Spacer(Modifier.height(DesignTokens.Spacing.m))
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(

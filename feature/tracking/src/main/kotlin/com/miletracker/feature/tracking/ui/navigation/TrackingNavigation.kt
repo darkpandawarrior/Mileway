@@ -17,8 +17,11 @@ import com.miletracker.feature.tracking.ui.screens.CheckInHistoryItem
 import com.miletracker.feature.tracking.ui.screens.CheckInHistoryScreen
 import com.miletracker.feature.tracking.ui.screens.CreateVoucherScreen
 import com.miletracker.feature.tracking.ui.screens.HardwareEventsLogScreen
+import com.miletracker.feature.tracking.ui.screens.TrackDataPreviewScreen
 import com.miletracker.feature.tracking.ui.screens.LiveTrackScreen
 import com.miletracker.feature.tracking.ui.screens.LocationMapScreen
+import com.miletracker.feature.tracking.ui.screens.GeoCheckInScreen
+import com.miletracker.feature.tracking.ui.screens.ManualCheckInScreen
 import com.miletracker.feature.tracking.ui.screens.OdometerCameraScreen
 import com.miletracker.feature.tracking.ui.screens.SavedTracksScreen
 import com.miletracker.feature.tracking.ui.screens.SetupGuideScreen
@@ -47,6 +50,11 @@ object TrackingRoutes {
     const val TRACK_CUSTOMIZATION = "track_customization"
     const val SETUP_GUIDE = "setup_guide"
     const val ODOMETER_CAMERA = "odometer_camera/{purpose}?distanceKm={distanceKm}&startReading={startReading}"
+    const val GEO_CHECKIN = "geo_checkin"
+    const val MANUAL_CHECKIN = "manual_checkin"
+    const val TRACK_DATA_PREVIEW = "track_data_preview/{routeId}"
+
+    fun trackDataPreview(routeId: String) = "track_data_preview/$routeId"
     const val SUCCESS = "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleName={vehicleName}" +
         "&startTime={startTime}&endTime={endTime}&transId={transId}&status={status}" +
         "&violationCount={violationCount}&violationMsg={violationMsg}" +
@@ -134,6 +142,8 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     onOpenHwEvents = { navController.navigate(TrackingRoutes.hwEvents(routeId)) },
                     onOpenCheckInHistory = { navController.navigate(TrackingRoutes.CHECK_IN_HISTORY) },
                     onOpenSettings = { navController.navigate(TrackingRoutes.TRACK_SETTINGS) },
+                    onNavigateToGeoCheckIn = { navController.navigate(TrackingRoutes.GEO_CHECKIN) },
+                    onNavigateToManualCheckIn = { navController.navigate(TrackingRoutes.MANUAL_CHECKIN) },
                 )
             }
 
@@ -157,7 +167,8 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     onBack = { navController.popBackStack() },
                     onOpenInsights = { navController.navigate(TrackingRoutes.insights(routeId)) },
                     onOpenMap = { navController.navigate(TrackingRoutes.routeMap(routeId)) },
-                    onOpenHwEvents = { navController.navigate(TrackingRoutes.hwEvents(routeId)) }
+                    onOpenHwEvents = { navController.navigate(TrackingRoutes.hwEvents(routeId)) },
+                    onOpenDataPreview = { navController.navigate(TrackingRoutes.trackDataPreview(routeId)) }
                 )
             }
 
@@ -361,6 +372,22 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     onBack = { navController.popBackStack() },
                     onOpenTrackSettings = { navController.navigate(TrackingRoutes.TRACK_SETTINGS) },
                 )
+            }
+
+            composable(TrackingRoutes.GEO_CHECKIN) {
+                GeoCheckInScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(TrackingRoutes.MANUAL_CHECKIN) {
+                ManualCheckInScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(
+                route = TrackingRoutes.TRACK_DATA_PREVIEW,
+                arguments = listOf(navArgument("routeId") { type = NavType.StringType })
+            ) { backStack ->
+                val routeId = backStack.arguments?.getString("routeId") ?: return@composable
+                TrackDataPreviewScreen(routeId = routeId, onBack = { navController.popBackStack() })
             }
 }
 
