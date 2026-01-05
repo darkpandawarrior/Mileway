@@ -25,8 +25,10 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerOff
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,14 +39,22 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -57,7 +67,9 @@ import com.miletracker.core.data.model.db.EventAudience
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
 import com.miletracker.core.data.util.DateUtils
+import com.miletracker.feature.tracking.export.HardwareEventExporter
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,6 +82,11 @@ fun HardwareEventsLogScreen(
     onBack: () -> Unit,
     viewModel: HardwareEventsViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showExportDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(routeId) { viewModel.loadEventsByToken(routeId) }
 
     val events by viewModel.filteredEvents.collectAsState()
@@ -78,7 +95,30 @@ fun HardwareEventsLogScreen(
     val selectedAudiences by viewModel.selectedAudiences.collectAsState()
     val stats by viewModel.eventStats.collectAsState()
 
+    if (showExportDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportDialog = false },
+            title = { Text("Export events") },
+            text = { Text("Choose a format for the ${events.size} visible events:") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    val intent = HardwareEventExporter.shareEvents(context, routeId, events, useCsv = true)
+                    context.startActivity(intent)
+                }) { Text("CSV") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showExportDialog = false
+                    val intent = HardwareEventExporter.shareEvents(context, routeId, events, useCsv = false)
+                    context.startActivity(intent)
+                }) { Text("JSON") }
+            }
+        )
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             DepthAwareTopBar(
                 title = "Hardware Events (${stats.totalCount})",
@@ -86,6 +126,11 @@ fun HardwareEventsLogScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showExportDialog = true }, enabled = events.isNotEmpty()) {
+                        Icon(Icons.Default.FileDownload, contentDescription = "Export events")
                     }
                 }
             )
