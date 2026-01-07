@@ -20,4 +20,5 @@ class DemoSettingsViewModel(
     fun toggleSimulateOffline() = viewModelScope.launch { repository.toggleSimulateOffline() }
     fun toggleBiometricGuard() = viewModelScope.launch { repository.toggleBiometricGuard() }
     fun toggleGpsDrift() = viewModelScope.launch { repository.toggleGpsDrift() }
+    fun toggleAutoDiscard() = viewModelScope.launch { repository.toggleAutoDiscard() }
 }

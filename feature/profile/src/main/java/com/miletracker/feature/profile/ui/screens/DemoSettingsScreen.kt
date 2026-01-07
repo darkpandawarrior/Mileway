@@ -139,6 +139,14 @@ fun DemoSettingsScreen(
                 onToggle = { viewModel.toggleGpsDrift() }
             )
 
+            DemoToggle(
+                title = "Auto-Discard at End of Day",
+                subtitle = "WorkManager discards any active journey at 22:00 — demo of AutoDiscardWorker",
+                checked = settings.autoDiscardEnabled,
+                onToggle = { viewModel.toggleAutoDiscard() },
+                warningColor = Color(0xFFFF8F00)
+            )
+
             Spacer(Modifier.height(24.dp))
 
             Text("Security Tests", style = MaterialTheme.typography.titleMedium)
@@ -217,10 +225,13 @@ private fun DemoToggle(
     title: String,
     subtitle: String,
     checked: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    warningColor: Color? = null
 ) {
     ListItem(
-        headlineContent = { Text(title) },
+        headlineContent = {
+            Text(title, color = if (warningColor != null && checked) warningColor else Color.Unspecified)
+        },
         supportingContent = { Text(subtitle, style = MaterialTheme.typography.bodySmall) },
         trailingContent = {
             Switch(checked = checked, onCheckedChange = { onToggle() })
