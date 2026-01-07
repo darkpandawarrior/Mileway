@@ -22,6 +22,10 @@ import com.miletracker.ui.home.homeModule
 import com.miletracker.debug.WormaCeptorHelper
 import com.miletracker.stub.DemoConfigManager
 import com.miletracker.stub.di.stubModule
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.miletracker.feature.tracking.service.MileageMaintenanceWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,6 +39,7 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import dev.tmapps.konnection.Konnection
 import org.osmdroid.config.Configuration
+import java.util.concurrent.TimeUnit
 
 val appModule = module {
     single { DatabaseSeeder(get(), get()) }
@@ -105,5 +110,17 @@ class MileTrackerApplication : Application(), ImageLoaderFactory {
             )
         }
         appScope.launch { get<DatabaseSeeder>().seedIfEmpty() }
+        scheduleWeeklyMaintenance()
+    }
+
+    private fun scheduleWeeklyMaintenance() {
+        val request = PeriodicWorkRequestBuilder<MileageMaintenanceWorker>(7, TimeUnit.DAYS)
+            .addTag(MileageMaintenanceWorker.TAG)
+            .build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            MileageMaintenanceWorker.TAG,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
     }
 }

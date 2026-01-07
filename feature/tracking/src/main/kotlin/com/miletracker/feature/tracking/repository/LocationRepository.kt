@@ -19,4 +19,6 @@ class LocationRepository(private val dao: LocationDao) {
 
     suspend fun getForToken(token: String): List<LocationData> =
         dao.getLocationsByTokenPaged(token, limit = Int.MAX_VALUE, offset = 0)
+
+    suspend fun deleteForToken(token: String) = dao.deleteLocationsByToken(token)
 }
