@@ -12,7 +12,9 @@ import com.miletracker.feature.tracking.repository.LogMilesSubmissionRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
+import com.miletracker.feature.tracking.repository.VoucherRepository
 import com.miletracker.feature.tracking.debug.DebugMenuComposeViewModel
+import com.miletracker.feature.tracking.viewmodel.CreateVoucherViewModel
 import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
@@ -33,6 +35,7 @@ val trackingModule = module {
     single { CurrentTrackRepository(get()) }
     single { HardwareEventRepository(get()) }
     single { TripAttachmentRepository(get()) }
+    single { VoucherRepository() }
     single { LocationTrackingController(androidContext()) }
 
     // viewModelOf resolves every constructor parameter through Koin — Kotlin default
@@ -48,4 +51,5 @@ val trackingModule = module {
     viewModelOf(::TrackInsightsViewModel)
     viewModelOf(::ExportViewModel)
     viewModelOf(::DebugMenuComposeViewModel)
+    viewModelOf(::CreateVoucherViewModel)
 }
