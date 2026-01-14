@@ -1,5 +1,6 @@
 package com.miletracker.feature.tracking.viewmodel
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.display.TrackDisplayData
@@ -79,6 +80,7 @@ data class SubmissionItem(
  * UI renders — filtered journeys, submissions, selection — is derived from it plus the active
  * filter/search/selection fields, so the screen never holds duplicate mutable state.
  */
+@Stable
 data class SavedTracksUiState(
     val tracks: List<TrackDisplayData> = emptyList(),
     val isLoading: Boolean = true,

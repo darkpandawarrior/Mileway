@@ -1,5 +1,6 @@
 package com.miletracker.feature.tracking.viewmodel
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.display.OdometerCaptureResult
@@ -43,6 +44,7 @@ data class SubmissionField(
 enum class SubmissionSheet { NONE, SUBMIT_CONFIRM, POLICY_VIOLATION, OFFICE_PICKER, ENTITY_PICKER, SMART_DISTANCE }
 
 /** All form + policy + sheet state for the submission screen (single source of truth). */
+@Stable
 data class SubmissionFormUi(
     val offices: List<Office> = emptyList(),
     val entities: List<BusinessEntity> = emptyList(),
