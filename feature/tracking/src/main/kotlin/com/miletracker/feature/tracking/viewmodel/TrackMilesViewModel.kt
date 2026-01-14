@@ -1,6 +1,7 @@
 package com.miletracker.feature.tracking.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.SavedTrack
@@ -34,6 +35,7 @@ enum class HeroGaugeMode { COMPASS, ACTIVITY }
 /** Which bottom sheet (if any) the tracking screen is currently presenting. */
 enum class TrackSheet { NONE, JOURNEY_GUIDE, VEHICLE_PICKER, VENDOR_PICKER, PAUSE, RESUME, CONSENT }
 
+@Stable
 data class TrackMilesUiState(
     val phase: TrackMilesPhase = TrackMilesPhase.IDLE,
     val config: TrackMilesPluginConfig = TrackMilesPluginConfig(),
