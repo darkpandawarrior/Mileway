@@ -111,6 +111,8 @@ fun TrackMilesScreen(
     onOpenHwEvents: () -> Unit,
     onOpenCheckInHistory: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    onNavigateToGeoCheckIn: () -> Unit = {},
+    onNavigateToManualCheckIn: () -> Unit = {},
     viewModel: TrackMilesViewModel = koinViewModel(),
     checkInViewModel: CheckInViewModel = koinViewModel()
 ) {
@@ -270,7 +272,8 @@ fun TrackMilesScreen(
                     Qa.MAP -> onOpenMap()
                     Qa.HISTORY -> onOpenCheckInHistory()
                     Qa.DATA -> onOpenHwEvents()
-                    Qa.CHECK_IN, Qa.MANUAL_CHECK_IN -> checkInViewModel.openManualCheckIn()
+                    Qa.CHECK_IN -> onNavigateToGeoCheckIn()
+                    Qa.MANUAL_CHECK_IN -> onNavigateToManualCheckIn()
                     Qa.CENTERS -> viewModel.openVendorPicker()
                     Qa.SAVED -> onOpenHwEvents()
                     Qa.SETTINGS -> onOpenSettings()
@@ -278,7 +281,7 @@ fun TrackMilesScreen(
                 }
             },
             showGeoCheckIn = isActive && uiState.config.geoCheckInEnabled,
-            onGeoCheckIn = { checkInViewModel.openGeoCheckIn() },
+            onGeoCheckIn = onNavigateToGeoCheckIn,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
         }

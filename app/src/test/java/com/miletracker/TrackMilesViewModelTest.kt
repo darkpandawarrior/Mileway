@@ -242,8 +242,8 @@ class TrackMilesViewModelTest {
  * implemented for real. Everything else delegates to a strict MockK stub, so an
  * unexpected DAO call fails the test loudly instead of silently returning defaults.
  */
-private class FakeSavedTrackDao(
-    unusedSurface: SavedTrackDao = mockk()
+class FakeSavedTrackDao(
+    unusedSurface: SavedTrackDao = mockk(relaxed = true)
 ) : SavedTrackDao by unusedSurface {
 
     private val tracks = MutableStateFlow<Map<String, SavedTrack>>(emptyMap())
