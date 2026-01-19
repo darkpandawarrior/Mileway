@@ -77,7 +77,7 @@ fun HomeScreen(
  * hand-built [HomeUiState] and plain lambdas, independent of Koin and the ViewModel.
  */
 @Composable
-private fun HomeScreenContent(
+internal fun HomeScreenContent(
     state: HomeUiState,
     onStartTracking: () -> Unit,
     onAddExpense: () -> Unit,
