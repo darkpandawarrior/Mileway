@@ -21,19 +21,19 @@ object DateUtils {
             .toLocalDateTime(TimeZone.currentSystemDefault())
         val hour12 = if (local.hour == 0) 12 else if (local.hour > 12) local.hour - 12 else local.hour
         val amPm = if (local.hour < 12) "AM" else "PM"
-        return "%d:%02d %s".format(hour12, local.minute, amPm)
+        return "${hour12}:${local.minute.pad2()} $amPm"
     }
 
     fun epochToTime(epochMs: Long): String {
         val local = Instant.fromEpochMilliseconds(epochMs)
             .toLocalDateTime(TimeZone.currentSystemDefault())
-        return "%02d:%02d".format(local.hour, local.minute)
+        return "${local.hour.pad2()}:${local.minute.pad2()}"
     }
 
     fun epochToTime24h(epochMs: Long): String {
         val local = Instant.fromEpochMilliseconds(epochMs)
             .toLocalDateTime(TimeZone.currentSystemDefault())
-        return "%d:%02d:%02d".format(local.hour, local.minute, local.second)
+        return "${local.hour}:${local.minute.pad2()}:${local.second.pad2()}"
     }
 
     fun epochToDateTime(epochMs: Long): String {
@@ -42,7 +42,7 @@ object DateUtils {
         val monthAbbr = local.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
         val hour12 = if (local.hour == 0) 12 else if (local.hour > 12) local.hour - 12 else local.hour
         val amPm = if (local.hour < 12) "AM" else "PM"
-        return "$monthAbbr ${local.day}, ${local.year} %02d:%02d %s".format(hour12, local.minute, amPm)
+        return "$monthAbbr ${local.day}, ${local.year} ${hour12.pad2()}:${local.minute.pad2()} $amPm"
     }
 
     fun epochToDisplayDateTime(epochMs: Long): String = epochToDateTime(epochMs)
@@ -50,7 +50,7 @@ object DateUtils {
     fun epochToDateSlash(epochMs: Long): String {
         val local = Instant.fromEpochMilliseconds(epochMs)
             .toLocalDateTime(TimeZone.currentSystemDefault())
-        return "%02d/%02d/%d".format(local.day, local.month.number, local.year)
+        return "${local.day.pad2()}/${local.month.number.pad2()}/${local.year}"
     }
 
     fun monthStartMillis(): Long {

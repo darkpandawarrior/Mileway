@@ -40,7 +40,7 @@ data class TripAttachmentEntity(
 
     /** Epoch milliseconds when the photo was captured. */
     @ColumnInfo(name = "created_at")
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
 )
 
 enum class AttachmentType {

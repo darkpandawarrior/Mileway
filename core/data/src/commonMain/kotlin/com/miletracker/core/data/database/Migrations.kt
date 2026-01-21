@@ -1,7 +1,8 @@
 package com.miletracker.core.data.database
 
 import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 
 /**
  * Migration 1 → 2: introduce the trip_attachments table.
@@ -11,8 +12,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * name (TEXT): RECEIPT, ODOMETER_START, ODOMETER_END.
  */
 val MIGRATION_2_3 = object : Migration(2, 3) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `media_library` (
                 `id`        TEXT    NOT NULL PRIMARY KEY,
@@ -28,8 +29,8 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `trip_attachments` (
                 `id`          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -41,10 +42,10 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
             )
             """.trimIndent()
         )
-        db.execSQL(
+        connection.execSQL(
             "CREATE INDEX IF NOT EXISTS `index_trip_attachments_track_token` ON `trip_attachments` (`track_token`)"
         )
-        db.execSQL(
+        connection.execSQL(
             "CREATE INDEX IF NOT EXISTS `index_trip_attachments_track_token_type` ON `trip_attachments` (`track_token`, `type`)"
         )
     }

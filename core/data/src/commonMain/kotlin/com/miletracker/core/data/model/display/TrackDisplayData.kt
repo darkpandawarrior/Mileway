@@ -1,6 +1,7 @@
 package com.miletracker.core.data.model.display
 
 import com.miletracker.core.data.model.db.SavedTrack
+import com.miletracker.core.data.util.fmt2d
 
 data class TrackDisplayData(
     val token: String,
@@ -25,7 +26,7 @@ data class TrackDisplayData(
 ) {
     fun getDurationMs(): Long = when {
         endTime > 0 && startTime > 0 -> endTime - startTime
-        startTime > 0 -> System.currentTimeMillis() - startTime
+        startTime > 0 -> kotlin.time.Clock.System.now().toEpochMilliseconds() - startTime
         else -> 0L
     }
 
@@ -36,7 +37,7 @@ data class TrackDisplayData(
         return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 
-    fun getFormattedDistance(): String = "%.2f km".format(distanceKm)
+    fun getFormattedDistance(): String = "${distanceKm.fmt2d()} km"
 
     fun getTrackingState(): TrackingState = when {
         isTracking && isPaused -> TrackingState.PAUSED

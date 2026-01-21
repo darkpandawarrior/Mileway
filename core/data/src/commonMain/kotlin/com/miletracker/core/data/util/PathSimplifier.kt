@@ -1,5 +1,6 @@
 package com.miletracker.core.data.util
 
+import com.miletracker.core.data.util.fmt1d
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -68,7 +69,7 @@ object PathSimplifier {
         val reductionPercent: Double,
     ) {
         override fun toString(): String =
-            "Simplified: $originalPoints → $simplifiedPoints points ($pointsRemoved removed, ${"%.1f".format(reductionPercent)}% reduction)"
+            "Simplified: $originalPoints → $simplifiedPoints points ($pointsRemoved removed, ${reductionPercent.fmt1d()}% reduction)"
     }
 }
 

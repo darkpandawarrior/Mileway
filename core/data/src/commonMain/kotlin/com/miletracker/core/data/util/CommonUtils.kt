@@ -1,5 +1,6 @@
 package com.miletracker.core.data.util
 
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -10,14 +11,14 @@ import kotlin.math.sqrt
 
 object CommonUtils {
 
-    fun formatDistance(distanceKm: Double): String = "%.1f km".format(distanceKm)
+    fun formatDistance(distanceKm: Double): String = "${distanceKm.fmt1d()} km"
 
     fun formatDuration(durationMs: Long): String {
         val minutes = durationMs / 60_000
         return if (minutes < 60) "${minutes}m" else "${minutes / 60}h ${minutes % 60}m"
     }
 
-    fun formatSpeed(speedKmh: Double): String = "%.1f km/h".format(speedKmh)
+    fun formatSpeed(speedKmh: Double): String = "${speedKmh.fmt1d()} km/h"
 
     fun roundToTwoDecimals(value: Double): Double = (value * 100.0).roundToInt() / 100.0
 
@@ -30,7 +31,7 @@ object CommonUtils {
         if (input.isEmpty()) input else input[0].uppercase() + input.substring(1)
 
     fun formatCurrencyAmount(amount: Double, currencySymbol: String = "₹"): String =
-        "$currencySymbol%.2f".format(amount)
+        "$currencySymbol${amount.fmt2d()}"
 
     fun roundValueUsingFormatter(value: Double, decimalPlaces: Int = 2): Double {
         val factor = 10.0.pow(decimalPlaces)
@@ -39,16 +40,16 @@ object CommonUtils {
 
     fun getDistanceFromLatLonInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val earthRadiusKm = 6371.0
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLon = Math.toRadians(lon2 - lon1)
+        val dLat = (lat2 - lat1) * PI / 180.0
+        val dLon = (lon2 - lon1) * PI / 180.0
         val a = sin(dLat / 2).pow(2) +
-                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(2)
+                cos(lat1 * PI / 180.0) * cos(lat2 * PI / 180.0) * sin(dLon / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return earthRadiusKm * c
     }
 
     fun formatDistanceMeters(meters: Double): String =
-        if (meters < 1000) "${meters.roundToInt()}m" else "%.1f km".format(meters / 1000.0)
+        if (meters < 1000) "${meters.roundToInt()}m" else "${(meters / 1000.0).fmt1d()} km"
 
     fun metersToKm(meters: Double): Double = roundToTwoDecimals(meters / 1000.0)
 
