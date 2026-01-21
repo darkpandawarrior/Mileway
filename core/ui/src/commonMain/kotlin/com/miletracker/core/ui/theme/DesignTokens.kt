@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlin.math.pow
 
 /**
  * Design tokens for Compose UI.
@@ -285,7 +286,7 @@ private fun lerpColor(start: Color, end: Color, fraction: Float): Color {
 private fun Color.luminance(): Float {
     fun channel(c: Float): Float {
         return if (c <= 0.03928f) c / 12.92f
-        else Math.pow(((c + 0.055f) / 1.055f).toDouble(), 2.4).toFloat()
+        else ((c + 0.055f) / 1.055f).toDouble().pow(2.4).toFloat()
     }
     return 0.2126f * channel(this.red) + 0.7152f * channel(this.green) + 0.0722f * channel(this.blue)
 }

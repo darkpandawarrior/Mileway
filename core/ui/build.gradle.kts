@@ -12,6 +12,9 @@ kotlin {
         minSdk = 30
     }
 
+    iosArm64()
+    iosSimulatorArm64()
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)

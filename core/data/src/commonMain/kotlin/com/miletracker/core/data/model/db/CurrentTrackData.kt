@@ -1,5 +1,8 @@
 package com.miletracker.core.data.model.db
 
+import com.miletracker.core.data.util.fmt1d
+import com.miletracker.core.data.util.fmt2d
+
 data class CurrentTrackData(
     val token: String,
     val startLatitude: Double = 0.0,
@@ -40,12 +43,9 @@ data class CurrentTrackData(
 ) {
     fun isEmpty(): Boolean = token.isEmpty()
 
-    fun getFormattedDistance(): String {
-        val km = distance / 1000.0
-        return "%.2f km".format(km)
-    }
+    fun getFormattedDistance(): String = "${(distance / 1000.0).fmt2d()} km"
 
-    fun getFormattedSpeed(): String = "%.1f km/h".format(speed * 3.6)
+    fun getFormattedSpeed(): String = "${(speed * 3.6).fmt1d()} km/h"
 
     companion object {
         fun empty() = CurrentTrackData(token = "")
