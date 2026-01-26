@@ -12,8 +12,13 @@ kotlin {
         minSdk = 30
     }
 
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(iosArm64(), iosSimulatorArm64()).forEach {
+        it.binaries {
+            framework {
+                baseName = "MileTracker"
+            }
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
