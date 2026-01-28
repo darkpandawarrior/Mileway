@@ -67,6 +67,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.data.model.network.PolicyViolation
@@ -74,8 +76,9 @@ import com.miletracker.core.data.model.network.ViolationSeverity
 import com.miletracker.core.network.model.BusinessEntity
 import com.miletracker.core.network.model.Office
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.feature.tracking.ocr.OcrResult
+import com.miletracker.feature.tracking.ocr.OdometerOcrAnalyzer
 import kotlin.math.roundToInt
-import kotlinx.coroutines.delay
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Submission → success modal bottom sheets.
@@ -1007,10 +1010,14 @@ fun OdometerReadingConfirmSheet(
     var showManualDialog by remember { mutableStateOf(false) }
     var manualInput by remember { mutableStateOf(detectedReading.toString()) }
 
-    LaunchedEffect(Unit) {
-        delay(1_200)
+    val context = LocalContext.current
+    val analyzer = remember { OdometerOcrAnalyzer() }
+    LaunchedEffect(capturedUri) {
+        when (val result = analyzer.analyze(Uri.parse(capturedUri), context)) {
+            is OcrResult.Success -> displayedReading = result.reading
+            is OcrResult.Failure -> displayedReading = detectedReading
+        }
         isProcessing = false
-        displayedReading = detectedReading
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
