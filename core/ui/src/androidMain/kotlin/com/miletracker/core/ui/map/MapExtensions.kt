@@ -2,11 +2,18 @@ package com.miletracker.core.ui.map
 
 import android.content.Context
 import android.graphics.Color
-import androidx.compose.ui.graphics.toArgb
+import org.osmdroid.tileprovider.MapTileProviderArray
+import org.osmdroid.tileprovider.MapTileProviderBasic
+import org.osmdroid.tileprovider.modules.MapTileDownloader
+import org.osmdroid.tileprovider.modules.MapTileFileArchiveProvider
+import org.osmdroid.tileprovider.modules.NetworkAvailabliltyCheck
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.tileprovider.util.SimpleRegisterReceiver
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
+import java.io.File
+import java.io.FileOutputStream
 
 fun MapView.configure(context: Context, zoomLevel: Double = 14.0) {
     setTileSource(TileSourceFactory.MAPNIK)
@@ -30,6 +37,44 @@ fun MapView.drawPolyline(points: List<GeoPoint>, color: Int = Color.parseColor("
     overlays.add(line)
     invalidate()
     return line
+}
+
+/**
+ * Switches the map to serve tiles from the bundled demo_region.mbtiles asset,
+ * with the online MAPNIK source as a fallback for tiles not in the archive.
+ *
+ * The MBTiles file is copied to the cache dir on first call (16 KB schema only
+ * in the demo — no actual tile blobs). Tiles missing from the archive fall through
+ * to the download provider transparently.
+ */
+fun MapView.enableOfflineTiles(context: Context) {
+    val assetName = "demo_region.mbtiles"
+    val cacheFile = File(context.cacheDir, assetName)
+    if (!cacheFile.exists()) {
+        try {
+            context.assets.open(assetName).use { ins ->
+                FileOutputStream(cacheFile).use { out -> ins.copyTo(out) }
+            }
+        } catch (e: Exception) {
+            return  // asset unavailable — leave online tiles unchanged
+        }
+    }
+
+    val receiver = SimpleRegisterReceiver(context)
+    val tileSource = TileSourceFactory.MAPNIK
+
+    val archive = OfflineMbTilesSource().also { it.setIgnoreTileSource(true) }
+    archive.init(cacheFile)
+
+    val offlineProvider = MapTileFileArchiveProvider(receiver, tileSource, arrayOf(archive))
+    val onlineProvider = MapTileDownloader(tileSource, null, NetworkAvailabliltyCheck(context))
+
+    setTileProvider(MapTileProviderArray(tileSource, receiver, arrayOf(offlineProvider, onlineProvider)))
+}
+
+/** Restores the default MapTileProviderBasic (MAPNIK online) tile provider. */
+fun MapView.disableOfflineTiles(context: Context) {
+    setTileProvider(MapTileProviderBasic(context, TileSourceFactory.MAPNIK))
 }
 
 fun MapView.fitBounds(points: List<GeoPoint>) {

@@ -139,7 +139,9 @@ import com.miletracker.core.data.model.db.LocationData
 import com.miletracker.core.data.state.UiState
 import com.miletracker.core.ui.map.centerOn
 import com.miletracker.core.ui.map.configure
+import com.miletracker.core.ui.map.disableOfflineTiles
 import com.miletracker.core.ui.map.drawPolyline
+import com.miletracker.core.ui.map.enableOfflineTiles
 import com.miletracker.core.ui.map.fitBounds
 import com.miletracker.feature.tracking.R
 import com.miletracker.feature.tracking.map.MapRouteBuilder
@@ -531,6 +533,13 @@ fun EnhancedLiveTrackingUI(
     var showAccuracy by remember { mutableStateOf(false) }
     var showBattery by remember { mutableStateOf(false) }
     var showIssues by remember { mutableStateOf(false) }
+    var showOfflineTiles by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showOfflineTiles, isMapInitialized) {
+        if (!isMapInitialized) return@LaunchedEffect
+        if (showOfflineTiles) mapView.enableOfflineTiles(context)
+        else mapView.disableOfflineTiles(context)
+    }
 
     // Playback state
     var isPlayingBack by remember { mutableStateOf(false) }
@@ -851,6 +860,7 @@ fun EnhancedLiveTrackingUI(
             showAccuracy = showAccuracy,
             showBattery = showBattery,
             showIssues = showIssues,
+            showOfflineTiles = showOfflineTiles,
             autoCenterEnabled = autoCenterEnabled,
             showGyroscope = showGyroscopeVisualization,
             showBearingConfidence = showBearingConfidence,
@@ -869,6 +879,7 @@ fun EnhancedLiveTrackingUI(
             onToggleAccuracy = { showAccuracy = it },
             onToggleBattery = { showBattery = it },
             onToggleIssues = { showIssues = it },
+            onToggleOfflineTiles = { showOfflineTiles = it },
             onToggleAutoCenter = onToggleAutoCenter,
             onToggleGyroscope = onToggleGyroscope,
             onToggleBearingConfidence = onToggleBearingConfidence,
@@ -1582,6 +1593,7 @@ fun EnhancedLiveControlPanel(
     showAccuracy: Boolean,
     showBattery: Boolean,
     showIssues: Boolean,
+    showOfflineTiles: Boolean,
     autoCenterEnabled: Boolean,
     showGyroscope: Boolean,
     showBearingConfidence: Boolean,
@@ -1600,6 +1612,7 @@ fun EnhancedLiveControlPanel(
     onToggleAccuracy: (Boolean) -> Unit,
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
+    onToggleOfflineTiles: (Boolean) -> Unit,
     onToggleAutoCenter: () -> Unit,
     onToggleGyroscope: () -> Unit,
     onToggleBearingConfidence: () -> Unit,
@@ -1677,7 +1690,7 @@ fun EnhancedLiveControlPanel(
                                 onClick = { onTabChange(id) },
                                 text = {
                                     if (id == 1) {
-                                        val activeCount = listOf(speedHeatmap, showAccuracy, showBattery, showIssues).count { it }
+                                        val activeCount = listOf(speedHeatmap, showAccuracy, showBattery, showIssues, showOfflineTiles).count { it }
                                         BadgedBox(badge = { if (activeCount > 0) Badge { Text(activeCount.toString()) } }) {
                                             Text(label, style = MaterialTheme.typography.labelLarge)
                                         }
@@ -1712,11 +1725,13 @@ fun EnhancedLiveControlPanel(
                             showAccuracy = showAccuracy,
                             showBattery = showBattery,
                             showIssues = showIssues,
+                            showOfflineTiles = showOfflineTiles,
                             markerFilters = markerFilters,
                             onToggleSpeedHeatmap = onToggleSpeedHeatmap,
                             onToggleAccuracy = onToggleAccuracy,
                             onToggleBattery = onToggleBattery,
                             onToggleIssues = onToggleIssues,
+                            onToggleOfflineTiles = onToggleOfflineTiles,
                             onMarkerFiltersChanged = onMarkerFiltersChanged
                         )
                         2 -> EnhancedLiveSettingsTab(
@@ -1904,11 +1919,13 @@ fun LiveLayersTab(
     showAccuracy: Boolean,
     showBattery: Boolean,
     showIssues: Boolean,
+    showOfflineTiles: Boolean,
     markerFilters: MarkerFilters,
     onToggleSpeedHeatmap: (Boolean) -> Unit,
     onToggleAccuracy: (Boolean) -> Unit,
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
+    onToggleOfflineTiles: (Boolean) -> Unit,
     onMarkerFiltersChanged: (MarkerFilters) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1956,11 +1973,13 @@ fun LiveLayersTab(
                     showAccuracy = showAccuracy,
                     showBattery = showBattery,
                     showIssues = showIssues,
+                    showOfflineTiles = showOfflineTiles,
                     markerFilters = markerFilters,
                     onToggleSpeedHeatmap = onToggleSpeedHeatmap,
                     onToggleAccuracy = onToggleAccuracy,
                     onToggleBattery = onToggleBattery,
                     onToggleIssues = onToggleIssues,
+                    onToggleOfflineTiles = onToggleOfflineTiles,
                     onMarkerFiltersChanged = onMarkerFiltersChanged
                 )
             }
@@ -1975,11 +1994,13 @@ private fun LiveLayersInnerContent(
     showAccuracy: Boolean,
     showBattery: Boolean,
     showIssues: Boolean,
+    showOfflineTiles: Boolean,
     markerFilters: MarkerFilters,
     onToggleSpeedHeatmap: (Boolean) -> Unit,
     onToggleAccuracy: (Boolean) -> Unit,
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
+    onToggleOfflineTiles: (Boolean) -> Unit,
     onMarkerFiltersChanged: (MarkerFilters) -> Unit
 ) {
     FlowRow(
@@ -2057,6 +2078,23 @@ private fun LiveLayersInnerContent(
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        )
+
+        FilterChip(
+            selected = showOfflineTiles,
+            onClick = { onToggleOfflineTiles(!showOfflineTiles) },
+            label = { Text("Offline Tiles", style = MaterialTheme.typography.labelLarge) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Layers,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
             )
         )
     }
