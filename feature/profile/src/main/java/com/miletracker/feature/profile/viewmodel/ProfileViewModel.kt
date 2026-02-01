@@ -27,16 +27,23 @@ class ProfileViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        ProfileUiState(
-            header = repository.header(),
-            profile = repository.richProfile(),
-            completion = repository.completion(),
-            sessions = repository.sessions(),
-            accounts = repository.accounts(),
-            analytics = AccountAnalyticsSnapshot.demo(),
-        )
+        repository.accounts().let { acc ->
+            ProfileUiState(
+                header = repository.header(),
+                profile = repository.richProfile(),
+                completion = repository.completion(),
+                sessions = repository.sessions(),
+                accounts = acc,
+                selectedAccountId = acc.firstOrNull()?.id.orEmpty(),
+                analytics = AccountAnalyticsSnapshot.demo(),
+            )
+        }
     )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+
+    fun intentSwitchAccount(id: String) {
+        _uiState.update { it.copy(selectedAccountId = id) }
+    }
 
     /** `null` = follow system, `true` = force dark, `false` = force light. */
     val darkThemeOverride: StateFlow<Boolean?> = themeController.darkThemeOverride
