@@ -1,5 +1,7 @@
 package com.miletracker.feature.profile.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,15 +37,20 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -52,6 +61,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.network.model.DemoAccount
 import com.miletracker.core.network.model.UserSession
 import com.miletracker.core.ui.components.GridProfileTile
 import com.miletracker.core.ui.components.ProfileGridItem
@@ -104,6 +114,21 @@ fun ProfileScreen(
                 header = state.header,
                 role = state.profile.role,
                 gender = state.profile.gender,
+            )
+        }
+
+        item {
+            PersonaSwitcherRow(
+                personas = state.accounts,
+                selectedId = state.selectedAccountId,
+                onSelect = viewModel::intentSwitchAccount,
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
+            )
+        }
+
+        item {
+            DeepLinkDemoCard(
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
 
@@ -613,4 +638,158 @@ private fun SessionsDialog(
             TextButton(onClick = onDismiss) { Text("Close") }
         },
     )
+}
+
+/**
+ * Demo card that shows `miletracker://` deep link buttons. Each button fires a VIEW intent
+ * so the system routes back into the app with the deep link, exercising intent parsing.
+ */
+@Composable
+private fun DeepLinkDemoCard(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val links = listOf(
+        "home" to "miletracker://home",
+        "log" to "miletracker://log",
+        "track" to "miletracker://track",
+        "profile" to "miletracker://profile",
+    )
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(DesignTokens.Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+        ) {
+            Text(
+                text = "Deep Link Demo",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "Fires miletracker:// VIEW intents to exercise deep link routing.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+            ) {
+                links.forEach { (label, url) ->
+                    OutlinedButton(
+                        onClick = {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            )
+                        },
+                        modifier = Modifier.widthIn(min = 72.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Horizontal scrolling row of persona chips. Tapping a chip switches the active account.
+ * The selected chip uses a primary-container highlight; others use surface tones.
+ */
+@Composable
+private fun PersonaSwitcherRow(
+    personas: List<DemoAccount>,
+    selectedId: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (personas.isEmpty()) return
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
+    ) {
+        Text(
+            text = "Switch Persona",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+            contentPadding = PaddingValues(vertical = DesignTokens.Spacing.xs),
+        ) {
+            items(personas, key = { it.id }) { persona ->
+                val isSelected = persona.id == selectedId
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant,
+                    ),
+                    modifier = Modifier
+                        .width(160.dp)
+                        .clickable { onSelect(persona.id) },
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                            Text(
+                                text = if (isSelected) "Active" else "Switch",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            )
+                        }
+                        Text(
+                            text = persona.displayName,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = persona.organization.ifEmpty { persona.employeeCode },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = (if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = 0.7f),
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

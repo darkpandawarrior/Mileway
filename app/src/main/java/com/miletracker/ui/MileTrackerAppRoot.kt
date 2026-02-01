@@ -96,7 +96,10 @@ private data class TabSpec(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
+fun MileTrackerAppRoot(
+    deepLinkRoute: String? = null,
+    themeController: ThemeController = koinInject(),
+) {
     val systemDark = isSystemInDarkTheme()
     val override by themeController.darkThemeOverride.collectAsStateWithLifecycle()
     val palette by themeController.accentPalette.collectAsStateWithLifecycle()
@@ -113,6 +116,17 @@ fun MileTrackerAppRoot(themeController: ThemeController = koinInject()) {
     ) {
         KoffeeHost {
         val navController = rememberNavController()
+
+        // Navigate to a deep-linked graph immediately after the nav graph is ready.
+        androidx.compose.runtime.LaunchedEffect(deepLinkRoute) {
+            if (deepLinkRoute != null) {
+                navController.navigate(deepLinkRoute) {
+                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        }
 
         val tabs = remember {
             listOf(

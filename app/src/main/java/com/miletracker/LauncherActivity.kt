@@ -1,5 +1,7 @@
 package com.miletracker
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
+import com.miletracker.ui.AppGraph
 import com.miletracker.ui.MileTrackerAppRoot
 import com.miletracker.ui.auth.LoginScreen
 import com.miletracker.ui.auth.SplashScreen
@@ -28,18 +31,43 @@ private enum class AppStage { SPLASH, LOGIN, APP }
 /**
  * Single entry point for the app. Plays the splash and fake-login theatre, then hosts the
  * unified bottom-navigation shell ([MileTrackerAppRoot]).
+ *
+ * Handles `miletracker://` deep links by mapping the host segment to a graph route and
+ * forwarding it to [MileTrackerAppRoot] as [initialRoute].
  */
 class LauncherActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { AppEntry() }
+        setContent { AppEntry(initialRoute = intent.deepLinkRoute()) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        setContent { AppEntry(initialRoute = intent.deepLinkRoute()) }
+    }
+}
+
+private fun Intent.deepLinkRoute(): String? {
+    if (action != Intent.ACTION_VIEW) return null
+    val uri: Uri = data ?: return null
+    if (uri.scheme != "miletracker") return null
+    return when (uri.host) {
+        "home" -> AppGraph.HOME
+        "track" -> AppGraph.TRACK
+        "log" -> AppGraph.LOG
+        "profile" -> AppGraph.PROFILE
+        else -> null
     }
 }
 
 @Composable
-private fun AppEntry(themeController: ThemeController = koinInject()) {
+private fun AppEntry(
+    initialRoute: String? = null,
+    themeController: ThemeController = koinInject(),
+) {
     val systemDark = isSystemInDarkTheme()
     val override by themeController.darkThemeOverride.collectAsStateWithLifecycle()
     val palette by themeController.accentPalette.collectAsStateWithLifecycle()
@@ -64,7 +92,7 @@ private fun AppEntry(themeController: ThemeController = koinInject()) {
             when (current) {
                 AppStage.SPLASH -> SplashScreen(onFinished = { stage = AppStage.LOGIN })
                 AppStage.LOGIN -> LoginScreen(onSignedIn = { stage = AppStage.APP })
-                AppStage.APP -> MileTrackerAppRoot()
+                AppStage.APP -> MileTrackerAppRoot(deepLinkRoute = initialRoute)
             }
         }
     }

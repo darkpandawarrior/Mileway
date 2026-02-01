@@ -43,10 +43,18 @@
         <activity
             android:name=".LauncherActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.MileTracker.EdgeToEdge">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Deep-link simulation: miletracker://home|track|log|profile -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="miletracker" />
             </intent-filter>
         </activity>
 
