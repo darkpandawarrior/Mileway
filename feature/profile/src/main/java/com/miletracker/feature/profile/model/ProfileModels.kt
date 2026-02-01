@@ -65,6 +65,7 @@ data class ProfileUiState(
     val completion: ProfileCompletion,
     val sessions: List<UserSession>,
     val accounts: List<DemoAccount>,
+    val selectedAccountId: String = "",
     val analytics: AccountAnalyticsSnapshot,
     val preferences: PreferenceToggles = PreferenceToggles(),
     val showSessionsDialog: Boolean = false,
