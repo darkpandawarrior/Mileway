@@ -1,6 +1,7 @@
 [versions]
 agp = "9.2.1"
 kotlin = "2.3.21"
+wear-tiles = "1.4.1"
 ksp = "2.3.6"
 room = "2.8.4"
 sqlite-bundled = "2.6.2"
@@ -120,6 +121,8 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 turbine = { module = "app.cash.turbine:turbine", version = "1.2.1" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4", version.ref = "koin" }
+wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "wear-tiles" }
+wear-tiles-material = { module = "androidx.wear.tiles:tiles-material", version.ref = "wear-tiles" }
 room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 androidx-test-core = { module = "androidx.test:core-ktx", version = "1.7.0" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
