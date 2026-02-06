@@ -1,5 +1,7 @@
 # MileTracker Demo
 
+![CI](https://github.com/darkpandawarrior/MileTrackerDemo/actions/workflows/ci.yml/badge.svg)
+
 A production-grade standalone offline mileage-tracking and expense-management demo app built with **Compose Multiplatform** — demonstrating the location-engineering, offline-first, and multi-module architecture patterns I use in production apps serving 50k+ MAU.
 
 ## Features
@@ -79,6 +81,16 @@ All screens are fully functional with deterministic mock data — no network cal
 | `:feature:payables` | Android library | Payables hub, create-PR flow, PO detail |
 | `:feature:travel` | Android library | Travel hub, active trip card, upcoming bookings |
 | `:stub` | KMP library | Deterministic mock data for all features (no backend calls) |
+| `:wear` | Android library | Wear OS companion tile (`MileageTileService`, Tiles 1.4.1) |
+
+## V9 Platform Features (PLAN_V9)
+
+- **Real ML Kit OCR** — odometer confirm sheet calls `TextRecognition` on-device; no simulated delay
+- **Offline MBTiles** — bundled `demo_region.mbtiles` asset + `OfflineMbTilesSource` (IArchiveFile); "Offline Tiles" toggle in live map layers panel chains archive + network fallback via `MapTileProviderArray`
+- **Multi-account personas** — 3 demo personas (Field Executive / Team Lead / Finance Admin) switchable from Profile screen; `PersonaSwitcherRow` `LazyRow`
+- **Deep-link simulation** — `miletracker://home|track|log|profile` intent filter; `DeepLinkDemoCard` in Profile for self-serve demo without ADB
+- **GitHub Actions CI** — `.github/workflows/ci.yml` runs `assembleDebug` + `testDebugUnitTest` on every push/PR to `main`
+- **Wear OS companion tile** — `:wear` module with `MileageTileService` showing today's distance + app label; ready to side-load on a Wear OS emulator
 
 ## Screenshots
 
