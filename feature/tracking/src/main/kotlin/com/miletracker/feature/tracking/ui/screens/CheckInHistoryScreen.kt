@@ -1,5 +1,8 @@
 package com.miletracker.feature.tracking.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -54,8 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -537,7 +539,7 @@ private fun ExpandedDetails(
     accent: androidx.compose.ui.graphics.Color,
     modifier: Modifier = Modifier
 ) {
-    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
     val coordinates = formatCoordinates(item.lat, item.lng)
 
     Column(modifier = modifier.padding(top = DesignTokens.Spacing.m)) {
@@ -552,7 +554,10 @@ private fun ExpandedDetails(
         Spacer(Modifier.height(DesignTokens.Spacing.m))
 
         FilledTonalButton(
-            onClick = { clipboard.setText(AnnotatedString(coordinates)) },
+            onClick = {
+                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("coordinates", coordinates))
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(

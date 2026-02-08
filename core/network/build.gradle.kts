@@ -7,7 +7,7 @@ plugins {
 kotlin {
     android {
         namespace = "com.miletracker.core.network"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 30
     }
 

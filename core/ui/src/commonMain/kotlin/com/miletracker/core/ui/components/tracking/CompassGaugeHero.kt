@@ -31,9 +31,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsBike
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PauseCircle
@@ -907,7 +907,7 @@ private fun GaugeModePill(
 // wiring custom vehicle slots without importing them separately. Not rendered here.
 @Suppress("unused")
 private val activityGlyphReferences = listOf(
-    Icons.Filled.DirectionsWalk,
-    Icons.Filled.DirectionsBike,
+    Icons.AutoMirrored.Filled.DirectionsWalk,
+    Icons.AutoMirrored.Filled.DirectionsBike,
     Icons.Filled.DirectionsCar
 )

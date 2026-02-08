@@ -926,7 +926,7 @@ fun EnhancedLiveTrackingUI(
         // Marker info dialog (stub — no-op in demo)
         if (selectedMarker != null) {
             MarkerInfoDialog(
-                marker = selectedMarker!!,
+                marker = selectedMarker,
                 onDismiss = onDismissMarker
             )
         }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
  * Manages state and business logic for debug options.
  * Accepts repositories so the location-export action can reach local storage.
  */
+@OptIn(FlowPreview::class)
 class DebugMenuComposeViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,

@@ -14,7 +14,7 @@ kotlin {
 
 android {
     namespace = "com.miletracker"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.miletracker"
@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.koin.androidx.workmanager)
 
     // Material (needed for Theme.Material3.DayNight.NoActionBar in themes.xml)
-    implementation("com.google.android.material:material:1.12.0")
+    implementation(libs.material)
 
     // Compose
     implementation(platform(libs.compose.bom))

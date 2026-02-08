@@ -8,7 +8,7 @@ plugins {
 kotlin {
     android {
         namespace = "com.miletracker.core.ui"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 30
     }
 
@@ -22,11 +22,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.ui)
+            implementation(libs.material.icons.extended)
 
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)

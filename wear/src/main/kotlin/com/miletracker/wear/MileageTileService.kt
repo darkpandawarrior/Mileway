@@ -22,6 +22,8 @@ class MileageTileService : TileService() {
     ): ListenableFuture<TileBuilders.Tile> =
         Futures.immediateFuture(buildTile())
 
+    @Deprecated("Migrate to onTileResourcesRequest", ReplaceWith("onTileResourcesRequest"))
+    @Suppress("DEPRECATION")
     override fun onResourcesRequest(
         requestParams: RequestBuilders.ResourcesRequest
     ): ListenableFuture<androidx.wear.tiles.ResourceBuilders.Resources> =

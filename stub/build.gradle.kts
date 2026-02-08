@@ -7,7 +7,7 @@ plugins {
 kotlin {
     android {
         namespace = "com.miletracker.stub"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 30
     }
 
@@ -25,11 +25,6 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.datastore.preferences)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.koin.test)
-            implementation(kotlin("test"))
         }
     }
 }

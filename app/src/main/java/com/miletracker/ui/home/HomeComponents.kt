@@ -45,7 +45,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material.icons.filled.Search
@@ -431,7 +431,7 @@ fun quickActions(
     onAddExpense: () -> Unit,
     onIllustrative: () -> Unit,
 ): List<QuickAction> = listOf(
-    QuickAction("Add Expense", Icons.Filled.NoteAdd, onAddExpense),
+    QuickAction("Add Expense", Icons.AutoMirrored.Filled.NoteAdd, onAddExpense),
     QuickAction("Create Voucher", Icons.Filled.CreditCard, onIllustrative),
     QuickAction("Ask Advance", Icons.Filled.RequestQuote, onIllustrative),
     QuickAction("Add Invoice", Icons.Filled.AttachFile, onIllustrative),

@@ -325,7 +325,7 @@ fun TrackingSuccessScreen(
                                 )
                         ) {
                             TransactionCard(
-                                transactionId = transactionId!!,
+                                transactionId = transactionId,
                                 vehicleName = vehicleName,
                                 reimbursableAmount = reimbursableAmount,
                                 dateLine = dateLine,
@@ -364,7 +364,7 @@ fun TrackingSuccessScreen(
                                 )
                         ) {
                             VoucherCard(
-                                voucherNumber = voucherNumber!!,
+                                voucherNumber = voucherNumber,
                                 voucherAmount = voucherAmount,
                                 onCreateVoucher = onCreateVoucher
                             )
