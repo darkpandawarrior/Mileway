@@ -1,15 +1,21 @@
 [versions]
 agp = "9.2.1"
-kotlin = "2.3.21"
-wear-tiles = "1.4.1"
-ksp = "2.3.6"
+foundation = "1.11.1"
+kotlin = "2.4.0"
+material = "1.14.0"
+material3 = "1.9.0"
+materialIconsExtended = "1.7.3"
+runtime = "1.11.1"
+ui = "1.11.1"
+wear-tiles = "1.6.0"
+ksp = "2.3.9"
 room = "2.8.4"
 sqlite-bundled = "2.6.2"
-koin = "4.2.1"
-compose-multiplatform = "1.10.3"
+koin = "4.2.2"
+compose-multiplatform = "1.11.1"
 datastore = "1.2.1"
 materialKolor = "4.1.1"
-colorpicker = "1.1.4"
+colorpicker = "1.2.0"
 lottie = "6.7.1"
 kotlinx-datetime = "0.8.0"
 kotlinx-coroutines = "1.11.0"
@@ -24,8 +30,8 @@ mlkit-text-recognition = "16.0.1"
 play-services-location = "21.3.0"
 coil = "2.7.0"
 exifinterface = "1.4.2"
-core-ktx = "1.18.0"
-camerax = "1.4.2"
+core-ktx = "1.19.0"
+camerax = "1.6.1"
 wormaceptor = "2.2.1"
 koffee = "0.2.1"
 composeMarkdown = "0.5.8"
@@ -34,10 +40,11 @@ picktime_compose = "1.1.4"
 compose_webview = "0.33.6"
 konnection = "1.4.5"
 biometric = "1.1.0"
-roborazzi = "1.27.0"
+roborazzi = "1.64.0"
 
 [libraries]
 # Kotlin
+foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "foundation" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinx-coroutines" }
@@ -45,8 +52,12 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 # Room KMP
+material = { module = "com.google.android.material:material", version.ref = "material" }
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "runtime" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite-bundled" }
 
 # DataStore (KMP)
@@ -71,10 +82,11 @@ lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", versi
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "ui" }
 workmanager-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "workmanager" }
 
 # Compose (via Compose Multiplatform BOM)
-compose-bom = { module = "androidx.compose:compose-bom", version = "2026.05.00" }
+compose-bom = { module = "androidx.compose:compose-bom", version = "2026.05.01" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
@@ -116,7 +128,7 @@ exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref =
 junit = { module = "junit:junit", version = "4.13.2" }
 junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version = "6.0.3" }
 junit5-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version = "6.0.3" }
-mockk = { module = "io.mockk:mockk", version = "1.14.9" }
+mockk = { module = "io.mockk:mockk", version = "1.14.11" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 turbine = { module = "app.cash.turbine:turbine", version = "1.2.1" }
 koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }

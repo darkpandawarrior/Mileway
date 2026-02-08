@@ -28,7 +28,7 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MonetizationOn
@@ -374,7 +374,7 @@ private fun AccountTileGrid(
         )
         TileRow(
             left = accountTile("acc_sessions", "Active Sessions", "Devices", Icons.Default.Devices, purple, onOpenSessions),
-            right = accountTile("acc_about", "About & Support", "Help & info", Icons.Default.HelpOutline, violet, onOpenAboutSupport),
+            right = accountTile("acc_about", "About & Support", "Help & info", Icons.AutoMirrored.Filled.HelpOutline, violet, onOpenAboutSupport),
         )
         TileRow(
             left = accountTile("acc_advance", "My Advances", "Cash advances", Icons.Default.MonetizationOn, teal, onOpenAdvance),

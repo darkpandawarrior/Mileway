@@ -97,12 +97,16 @@ class TrackingNotificationManager(private val context: Context) {
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentIntent(openIntent)
-            .addAction(
-                android.R.drawable.ic_media_pause,
+            .addAction(Notification.Action.Builder(
+                android.graphics.drawable.Icon.createWithResource(context, android.R.drawable.ic_media_pause),
                 if (isPaused) "Resume" else "Pause",
                 pauseResumeIntent
-            )
-            .addAction(android.R.drawable.ic_delete, "Stop", stopIntent)
+            ).build())
+            .addAction(Notification.Action.Builder(
+                android.graphics.drawable.Icon.createWithResource(context, android.R.drawable.ic_delete),
+                "Stop",
+                stopIntent
+            ).build())
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
     }

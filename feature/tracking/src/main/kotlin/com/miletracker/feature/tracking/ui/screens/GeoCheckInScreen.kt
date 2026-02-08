@@ -37,6 +37,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -110,8 +111,6 @@ fun GeoCheckInScreen(
     }
     val selectedVendor = sortedVendors.firstOrNull { it.id == selectedVendorId }
     val vendorDistanceM = selectedVendor?.let { haversineMeters(demoLat, demoLng, it.lat, it.lng) }
-    val outsideRadius = vendorDistanceM != null && vendorDistanceM > checkInRadius
-
     val formSchema = remember(selectedType) {
         selectedType?.let { configManager.getCheckInFormSchema(it) } ?: emptyList()
     }
@@ -167,7 +166,7 @@ fun GeoCheckInScreen(
         },
         bottomBar = {
             Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
-                if (outsideRadius && selectedVendor != null) {
+                if (vendorDistanceM != null && vendorDistanceM > checkInRadius) {
                     SectionCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier.padding(DesignTokens.Spacing.m),
@@ -181,7 +180,7 @@ fun GeoCheckInScreen(
                             )
                             Spacer(Modifier.width(DesignTokens.Spacing.s))
                             Text(
-                                text = "You are ${vendorDistanceM!!.toInt()} m away from ${selectedVendor.name}. " +
+                                text = "You are ${vendorDistanceM.toInt()} m away from ${selectedVendor.name}. " +
                                     "Check-in radius is ${checkInRadius.toInt()} m.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error
@@ -317,7 +316,7 @@ fun GeoCheckInScreen(
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         )
                         ExposedDropdownMenu(
                             expanded = typeExpanded,

@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
@@ -209,7 +210,7 @@ private fun PoCard(po: PurchaseOrder, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
         ) {
             Icon(
-                imageVector = Icons.Filled.Assignment,
+                imageVector = Icons.AutoMirrored.Filled.Assignment,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(28.dp)

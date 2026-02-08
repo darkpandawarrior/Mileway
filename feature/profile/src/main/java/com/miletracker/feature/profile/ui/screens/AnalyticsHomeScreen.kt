@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Lightbulb
@@ -313,7 +314,7 @@ private fun InsightsTab() {
 @Composable
 private fun AiInsightCard(insight: InsightCard) {
     val (icon, accentColor) = when (insight.type) {
-        InsightType.ANOMALY -> Icons.Default.TrendingUp to Color(0xFFE65100)
+        InsightType.ANOMALY -> Icons.AutoMirrored.Filled.TrendingUp to Color(0xFFE65100)
         InsightType.BREACH_RISK -> Icons.Default.Warning to Color(0xFFC62828)
         InsightType.PATTERN -> Icons.Default.Lightbulb to Color(0xFF1565C0)
         InsightType.SAVINGS -> Icons.Default.AutoAwesome to Color(0xFF2E7D32)

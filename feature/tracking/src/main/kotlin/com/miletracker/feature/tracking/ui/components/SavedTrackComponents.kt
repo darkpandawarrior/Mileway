@@ -15,7 +15,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,7 +65,7 @@ fun SavedTrackOverviewCard(track: TrackDisplayData, modifier: Modifier = Modifie
             }
 
             Spacer(Modifier.height(12.dp))
-            Divider()
+            HorizontalDivider()
             Spacer(Modifier.height(12.dp))
 
             Row(
@@ -94,7 +94,7 @@ fun SavedTrackOverviewCard(track: TrackDisplayData, modifier: Modifier = Modifie
 
             if (track.isSubmitted && track.reimbursableAmount > 0) {
                 Spacer(Modifier.height(12.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -226,7 +226,7 @@ fun QualityDetailCard(
             )
             if (qualityResult.scoreFactors.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(Modifier.height(8.dp))
                 Text(
                     "Score Factors",
@@ -315,7 +315,7 @@ fun ActivityBreakdownCard(
             )
             if (activityResult.activityBreakdown.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(Modifier.height(8.dp))
                 Text(
                     "Time Breakdown",
@@ -408,7 +408,7 @@ fun SystemImpactCard(
             }
             systemImpactResult.batteryImpact?.recommendation?.let { rec ->
                 Spacer(Modifier.height(4.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
                 Text(
                     rec,
