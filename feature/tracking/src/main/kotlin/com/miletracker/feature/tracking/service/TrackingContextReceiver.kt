@@ -26,6 +26,7 @@ class TrackingContextReceiver : BroadcastReceiver() {
                 broadcastHardwareEvent(context, if (enabled) "Power Saver Mode Enabled" else "Power Saver Mode Disabled")
             }
 
+            @Suppress("DEPRECATION")
             ConnectivityManager.CONNECTIVITY_ACTION -> {
                 Log.d(TAG, "Network connectivity changed")
             }

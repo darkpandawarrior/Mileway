@@ -27,7 +27,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Apartment
-import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Speed
@@ -43,6 +43,7 @@ import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -483,7 +484,7 @@ fun LocationDetailsCard(
         trailingAction = {
             IconButton(onClick = onOpenInMaps) {
                 Icon(
-                    imageVector = Icons.Outlined.OpenInNew,
+                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
                     contentDescription = "Open in maps",
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -791,7 +792,7 @@ private fun FormDropdownField(
                 placeholder = { Text("Select ${field.label}") },
                 isError = field.errorText != null,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor()
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -868,7 +869,7 @@ fun OfficeEntitySelectRow(
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
-                        imageVector = Icons.Filled.KeyboardArrowRight,
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )

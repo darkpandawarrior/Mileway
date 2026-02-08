@@ -13,7 +13,7 @@ room {
 kotlin {
     android {
         namespace = "com.miletracker.core.data"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 30
     }
 
@@ -35,14 +35,9 @@ kotlin {
             implementation(libs.datastore.preferences)
             implementation(libs.koin.android)
         }
-        val iosMain by creating {
-            dependsOn(commonMain.get())
-            dependencies {
-                implementation(libs.sqlite.bundled)
-            }
+        iosMain.dependencies {
+            implementation(libs.sqlite.bundled)
         }
-        val iosArm64Main by getting { dependsOn(iosMain) }
-        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
     }
 }
 

@@ -33,7 +33,9 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 import org.koin.core.logger.Level
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -90,9 +92,10 @@ class MileTrackerApplication : Application(), ImageLoaderFactory {
         WormaCeptorHelper.init(this)
         // Initialize konnection for KMP network connectivity monitoring.
         Konnection.createInstance(this)
+        if (GlobalContext.getOrNull() != null) stopKoin()
         startKoin {
             androidContext(this@MileTrackerApplication)
-            androidLogger(Level.DEBUG)
+            androidLogger(Level.ERROR)
             modules(
                 coreDataModule,
                 coreUiModule,
@@ -109,8 +112,10 @@ class MileTrackerApplication : Application(), ImageLoaderFactory {
                 appModule
             )
         }
-        appScope.launch { get<DatabaseSeeder>().seedIfEmpty() }
-        scheduleWeeklyMaintenance()
+        appScope.launch {
+            get<DatabaseSeeder>().seedIfEmpty()
+            scheduleWeeklyMaintenance()
+        }
     }
 
     private fun scheduleWeeklyMaintenance() {

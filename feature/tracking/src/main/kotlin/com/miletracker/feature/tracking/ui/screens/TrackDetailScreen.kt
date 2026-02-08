@@ -27,7 +27,7 @@ import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Timer
@@ -378,7 +378,7 @@ private fun AttachmentsCard(attachments: List<TripAttachmentEntity>) {
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             )
                             Icon(
-                                Icons.Default.ReceiptLong,
+                                Icons.AutoMirrored.Filled.ReceiptLong,
                                 contentDescription = null,
                                 tint = Color.White.copy(alpha = 0.8f),
                                 modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(14.dp)
