@@ -41,6 +41,7 @@ object ProfileRoutes {
     const val QR_HOME = "profile/qr"
     const val DEMO_SETTINGS = "profile/demo_settings"
     const val ROOT_GUARD = "profile/root_guard"
+    const val ROOT_GUARD_DETECTED = "profile/root_guard_detected"
     fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
     fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
@@ -163,11 +164,19 @@ fun NavGraphBuilder.profileGraph(
     composable(ProfileRoutes.DEMO_SETTINGS) {
         DemoSettingsScreen(
             onBack = { navController.popBackStack() },
+            onOpenRootGuard = { navController.navigate(ProfileRoutes.ROOT_GUARD) },
+            onOpenRootGuardDetected = { navController.navigate(ProfileRoutes.ROOT_GUARD_DETECTED) },
         )
     }
     composable(ProfileRoutes.ROOT_GUARD) {
         RootGuardScreen(
             onContinue = { navController.popBackStack() },
+        )
+    }
+    composable(ProfileRoutes.ROOT_GUARD_DETECTED) {
+        RootGuardScreen(
+            onContinue = { navController.popBackStack() },
+            signals = listOf("su binary found at /system/xbin/su", "test-keys build", "Magisk detected"),
         )
     }
 }

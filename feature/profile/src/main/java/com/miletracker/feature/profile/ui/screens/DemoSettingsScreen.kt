@@ -53,6 +53,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun DemoSettingsScreen(
     onBack: () -> Unit,
+    onOpenRootGuard: () -> Unit = {},
+    onOpenRootGuardDetected: () -> Unit = {},
     viewModel: DemoSettingsViewModel = koinViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -157,6 +159,24 @@ fun DemoSettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Run Root Detection Check")
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = onOpenRootGuard,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("View Root Guard — Clean Device")
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = onOpenRootGuardDetected,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("View Root Guard — Detected (Demo)")
             }
 
             Spacer(Modifier.height(8.dp))
