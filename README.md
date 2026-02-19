@@ -94,43 +94,37 @@ All screens are fully functional with deterministic mock data — no network cal
 
 ## Screenshots
 
-### Home & Tracking
+### Tracking
 
-| Home | Track Miles | Live GPS Tracking |
+| Saved Trips | Live GPS Tracking | Track Detail |
 |---|---|---|
-| ![Home screen with mileage summary card and quick-action grid](docs/screenshots/home_screen_loaded.png) | ![Track miles idle screen with start-trip button and vehicle selector](docs/screenshots/track_miles_idle_screen.png) | ![Live tracking screen showing real-time GPS path and distance counter](docs/screenshots/02_live_tracking.png) |
-
-### Route & Trip Detail
-
-| Route Map | Track Detail | Saved Tracks |
-|---|---|---|
-| ![Route map with GPS path overlay and tile layer](docs/screenshots/03_route_map.png) | ![Track detail screen with distance, duration, and four-bucket accounting breakdown](docs/screenshots/04_track_detail.png) | ![Saved tracks journeys tab with date-grouped trip cards](docs/screenshots/saved_tracks_journeys_tab.png) |
+| ![Saved tracks journeys tab with date-grouped trip cards and summary strip](docs/screenshots/saved_tracks_journeys_tab.png) | ![Live tracking screen with teal gradient card, distance counter, and action buttons](docs/screenshots/live_tracking.png) | ![Track detail screen with distance, duration, and four-bucket accounting breakdown](docs/screenshots/track_detail.png) |
 
 ### Check-In & Completion
 
 | Geo Check-In | Check-In History | Tracking Success |
 |---|---|---|
-| ![Geo check-in screen with nearby vendor locations and radius indicator](docs/screenshots/geo_check_in_screen.png) | ![Check-in history timeline with timestamps and location names](docs/screenshots/check_in_history_screen.png) | ![Tracking success screen with journey summary and reimbursement amount](docs/screenshots/tracking_success_screen.png) |
+| ![Geo check-in screen with map overlay and radius indicator](docs/screenshots/geo_check_in.png) | ![Check-in history timeline with date groups and filter chips](docs/screenshots/check_in_history.png) | ![Tracking success screen with confetti, journey summary, and reimbursement amount](docs/screenshots/tracking_success.png) |
 
 ### Insights & Logging
 
-| Trip Insights | Track Insights | Log Miles |
+| Track Insights | Log Miles | Route Map |
 |---|---|---|
-| ![Trip insights dashboard with Canvas charts and category breakdown](docs/screenshots/05_insights.png) | ![Track insights screen with speed, distance, and route analysis](docs/screenshots/track_insights_screen.png) | ![Manual log miles step 1 with location search and distance verification](docs/screenshots/log_miles_step1_screen.png) |
+| ![Track insights screen with quality score ring, speed and activity breakdown](docs/screenshots/track_insights.png) | ![Manual log miles step 1 with location search and route preview](docs/screenshots/log_miles_step1.png) | ![Route map with GPS path overlay and tile layer](docs/screenshots/route_map.png) |
 
 ### Platform Features
 
 | Odometer OCR | Hardware Events | Approvals Queue |
 |---|---|---|
-| ![Odometer confirm sheet with ML Kit OCR reading highlighted on camera frame](docs/screenshots/06_ocr.png) | ![Hardware events log showing accelerometer and GPS sensor snapshots](docs/screenshots/hardware_events_log_screen.png) | ![Approvals screen pending tab with policy-violation badges and action buttons](docs/screenshots/approvals_screen_pending_tab.png) |
+| ![Odometer confirm sheet with ML Kit OCR reading and confidence score](docs/screenshots/ocr.png) | ![Hardware events log with tracking lifecycle events and audience filter chips](docs/screenshots/hardware_events.png) | ![Approvals screen pending tab with policy-violation badges and action buttons](docs/screenshots/approvals_pending.png) |
 
 ### Security
 
 | Root Guard — signals detected | Root Guard — clean device |
 |---|---|
-| ![Root guard screen showing detected root signals highlighted in red](docs/screenshots/root_guard_screen.png) | ![Root guard screen confirming a clean unrooted device](docs/screenshots/root_guard_screen_clean.png) |
+| ![Root guard screen showing detected root signals highlighted in red](docs/screenshots/root_guard_detected.png) | ![Root guard screen confirming a clean, secure device with green shield](docs/screenshots/root_guard_clean.png) |
 
-18 screenshots. Roborazzi baseline PNGs are in `app/src/test/snapshots/` — regenerate with `./gradlew recordRoborazziDebug` (no emulator needed).
+> Screenshots taken on Pixel 7a emulator (API 35). Regenerate Roborazzi baselines with `./gradlew recordRoborazziDebug` (no emulator needed).
 
 ## Running the App
 
