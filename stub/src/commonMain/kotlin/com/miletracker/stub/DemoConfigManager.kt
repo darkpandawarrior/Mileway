@@ -82,7 +82,7 @@ class DemoConfigManager : ConfigProvider {
 
     override fun getOffices() = PolicyMockData.offices()
     override fun getBusinessEntities() = PolicyMockData.businessEntities()
-    override fun isOfficeSelectionRequired(): Boolean = true
+    override fun isOfficeSelectionRequired(): Boolean = false
 
     /** Returns the 4 check-in type labels available in the demo. */
     override fun getCheckInTypes(): List<String> =

@@ -54,7 +54,7 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 
-private val BASE_MS = 1_700_000_000_000L
+private val BASE_MS = 1_781_654_400_000L
 private val MIN_MS = 60_000L
 private val H_MS = 3_600_000L
 private val DAY_MS = 86_400_000L

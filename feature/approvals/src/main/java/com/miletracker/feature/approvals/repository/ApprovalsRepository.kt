@@ -5,7 +5,7 @@ import com.miletracker.feature.approvals.model.ApprovalStatus
 import com.miletracker.feature.approvals.model.ApprovalType
 import com.miletracker.feature.approvals.model.ClarificationMessage
 
-private val BASE_MS = 1_718_200_000_000L
+private val BASE_MS = 1_781_654_400_000L
 private val H = 3_600_000L
 private val DAY = 86_400_000L
 

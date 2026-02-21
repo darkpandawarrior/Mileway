@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GppBad
+import androidx.compose.material.icons.filled.GppGood
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -34,18 +35,21 @@ fun RootGuardScreen(
     onContinue: () -> Unit,
     signals: List<String> = RootDetector.check().signals,
 ) {
+    val isClean = signals.isEmpty()
+    val bgColor = if (isClean) Color(0xFF1B5E20) else Color(0xFFB71C1C)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFB71C1C))
+            .background(bgColor)
             .verticalScroll(rememberScrollState())
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            imageVector = Icons.Default.GppBad,
-            contentDescription = "Root detected",
+            imageVector = if (isClean) Icons.Default.GppGood else Icons.Default.GppBad,
+            contentDescription = if (isClean) "Device secure" else "Root detected",
             tint = Color.White,
             modifier = Modifier.size(96.dp),
         )
@@ -53,7 +57,7 @@ fun RootGuardScreen(
         Spacer(Modifier.height(24.dp))
 
         Text(
-            text = "Root Detected",
+            text = if (isClean) "Device Secure" else "Root Detected",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -63,14 +67,18 @@ fun RootGuardScreen(
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = "This device appears to be rooted or running in an insecure environment. " +
-                    "The app may not function correctly.",
+            text = if (isClean) {
+                "No root signals detected. This device appears to be running in a standard, secure environment."
+            } else {
+                "This device appears to be rooted or running in an insecure environment. " +
+                    "The app may not function correctly."
+            },
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White.copy(alpha = 0.87f),
             textAlign = TextAlign.Center,
         )
 
-        if (signals.isNotEmpty()) {
+        if (!isClean) {
             Spacer(Modifier.height(24.dp))
             Text(
                 text = "Signals detected:",
@@ -95,10 +103,13 @@ fun RootGuardScreen(
             onClick = onContinue,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,
-                contentColor = Color(0xFFB71C1C),
+                contentColor = bgColor,
             ),
         ) {
-            Text("Continue Anyway (Demo)", fontWeight = FontWeight.SemiBold)
+            Text(
+                text = if (isClean) "Continue" else "Continue Anyway (Demo)",
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }

@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.EventAudience
+import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,27 @@ class HardwareEventsViewModel(
     private val eventRepo: HardwareEventRepository
 ) : ViewModel() {
 
-    companion object { private const val TAG = "HardwareEventsVM" }
+    companion object {
+        private const val TAG = "HardwareEventsVM"
+
+        private fun demoEvents(token: String): List<HardwareEvent> {
+            val base = 1_781_654_400_000L
+            val min = 60_000L
+            return listOf(
+                HardwareEvent(id = 1, token = token, eventType = EventType.TRACKING_STARTED, event = "Tracking started — FC Road, Pune", time = base, audience = EventAudience.USER, battery = 87.0, activity = "IN_VEHICLE"),
+                HardwareEvent(id = 2, token = token, eventType = EventType.ODOMETER_START_CAPTURED, event = "Odometer start captured: 045782 km", time = base + min, audience = EventAudience.USER, battery = 86.5),
+                HardwareEvent(id = 3, token = token, eventType = EventType.GPS_REGAINED, event = "GPS signal strong — accuracy 6 m", time = base + 2 * min, audience = EventAudience.USER, lat = 18.5204, lng = 73.8567, speed = 0f),
+                HardwareEvent(id = 4, token = token, eventType = EventType.BATTERY_OPTIMIZATION_ON, event = "Battery optimisation ON — tracking may be interrupted", time = base + 5 * min, audience = EventAudience.USER, battery = 85.0),
+                HardwareEvent(id = 5, token = token, eventType = EventType.MOCK_LOCATION, event = "Mock location signal detected — flagged, not discarded", time = base + 8 * min, audience = EventAudience.DEBUG, lat = 18.5280, lng = 73.8600),
+                HardwareEvent(id = 6, token = token, eventType = EventType.GPS_LOST, event = "GPS lost — tunnelling under Baner flyover", time = base + 12 * min, audience = EventAudience.USER, lat = 18.5420, lng = 73.8012),
+                HardwareEvent(id = 7, token = token, eventType = EventType.GPS_REGAINED, event = "GPS regained — accuracy 9 m", time = base + 14 * min, audience = EventAudience.USER, lat = 18.5501, lng = 73.8150, speed = 28f),
+                HardwareEvent(id = 8, token = token, eventType = EventType.CHECK_IN, event = "Geo check-in confirmed — Hinjewadi IT Park", time = base + 28 * min, audience = EventAudience.USER, lat = 18.5904, lng = 73.7394),
+                HardwareEvent(id = 9, token = token, eventType = EventType.ODOMETER_END_CAPTURED, event = "Odometer end captured: 045794 km", time = base + 44 * min, audience = EventAudience.USER, battery = 78.0),
+                HardwareEvent(id = 10, token = token, eventType = EventType.TRACKING_STOPPED, event = "Tracking stopped — Viman Nagar, Pune", time = base + 45 * min, audience = EventAudience.USER, lat = 18.5679, lng = 73.9143, speed = 0f, battery = 77.5),
+                HardwareEvent(id = 11, token = token, eventType = EventType.JOURNEY_SUMMARY, event = "Journey summary: 12.4 km · 45 min · quality score 90", time = base + 45 * min + 2000, audience = EventAudience.SUMMARY, activity = "IN_VEHICLE"),
+            )
+        }
+    }
 
     private val _events = MutableStateFlow<List<HardwareEvent>>(emptyList())
     val events = _events.asStateFlow()
@@ -69,8 +90,13 @@ class HardwareEventsViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             eventRepo.getEventsForRoute(token).fold(
-                onSuccess = { _events.value = it },
-                onFailure = { Log.e(TAG, "Error loading events: ${it.message}") }
+                onSuccess = { loaded ->
+                    _events.value = loaded.ifEmpty { demoEvents(token) }
+                },
+                onFailure = {
+                    Log.e(TAG, "Error loading events: ${it.message}")
+                    _events.value = demoEvents(token)
+                }
             )
             _isLoading.value = false
         }
