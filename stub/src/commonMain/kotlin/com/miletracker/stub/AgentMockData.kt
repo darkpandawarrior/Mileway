@@ -1,6 +1,6 @@
 package com.miletracker.stub
 
-private const val AGENT_BASE_MS = 1_700_000_000_000L
+private const val AGENT_BASE_MS = 1_781_654_400_000L
 private const val AGENT_DAY_MS = 86_400_000L
 private const val AGENT_HR_MS = 3_600_000L
 

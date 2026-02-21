@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -222,24 +224,21 @@ private fun SearchField(
     )
 }
 
-/** Horizontal row of single-select time-window chips. */
+/** Horizontally scrollable single-select time-window chips. */
 @Composable
 private fun TimeFilterChips(
     selected: TimeFilter,
     onSelect: (TimeFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = DesignTokens.Spacing.screenHorizontal,
-                vertical = DesignTokens.Spacing.xs
-            ),
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = DesignTokens.Spacing.xs),
+        contentPadding = PaddingValues(horizontal = DesignTokens.Spacing.screenHorizontal),
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
     ) {
-        TimeFilter.entries.forEach { filter ->
+        items(TimeFilter.entries) { filter ->
             FilterChip(
                 selected = selected == filter,
                 onClick = { onSelect(filter) },
