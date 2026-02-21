@@ -394,7 +394,7 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
 private object DemoCheckInHistory {
     private const val DAY_MS = 86_400_000L
     private const val HOUR_MS = 3_600_000L
-    private const val BASE = 1_718_200_000_000L
+    private const val BASE = 1_781_654_400_000L
 
     val items = listOf(
         CheckInHistoryItem("CI-001", "Speedline Transport Co.", "Client visit – Q2 review", BASE, 18.5204, 73.8567, "Client visit", false),

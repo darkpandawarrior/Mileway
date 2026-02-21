@@ -4,7 +4,7 @@ import com.miletracker.feature.travel.model.BookingRecord
 import com.miletracker.feature.travel.model.TransportMode
 import com.miletracker.feature.travel.model.TripStatus
 
-private val BASE_MS = 1_700_000_000_000L
+private val BASE_MS = 1_781_654_400_000L
 private val DAY_MS = 86_400_000L
 
 class TravelRepository {
