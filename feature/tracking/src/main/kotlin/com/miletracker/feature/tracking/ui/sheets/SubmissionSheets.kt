@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.data.model.network.PolicyViolation
 import com.miletracker.core.data.model.network.ViolationSeverity

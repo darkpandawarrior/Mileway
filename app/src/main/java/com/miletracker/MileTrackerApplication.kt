@@ -1,10 +1,11 @@
 package com.miletracker
 
 import android.app.Application
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.GifDecoder
-import coil.decode.SvgDecoder
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.gif.GifDecoder
+import coil3.svg.SvgDecoder
 import com.miletracker.core.data.di.coreDataModule
 import com.miletracker.core.ui.di.coreUiModule
 import com.miletracker.feature.agent.di.agentModule
@@ -72,9 +73,10 @@ val appModule = module {
     }
 }
 
-class MileTrackerApplication : Application(), ImageLoaderFactory {
+class MileTrackerApplication : Application(), SingletonImageLoader.Factory {
 
-    override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
+    // Coil 3: SingletonImageLoader.Factory#newImageLoader now receives a PlatformContext.
+    override fun newImageLoader(context: PlatformContext): ImageLoader = ImageLoader.Builder(context)
         .components {
             add(GifDecoder.Factory())
             add(SvgDecoder.Factory())
