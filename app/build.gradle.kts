@@ -93,10 +93,10 @@ dependencies {
     implementation(libs.konnection)
 
     // Coil — image loading (world map header background, profile avatars)
-    implementation(libs.coil.compose)
-    // Coil decoders — GIF animations and SVG assets
-    implementation(libs.coil.gif)
-    implementation(libs.coil.svg)
+    implementation(libs.coil3.compose)
+    // Coil 3 decoders — GIF animations and SVG assets
+    implementation(libs.coil3.gif)
+    implementation(libs.coil3.svg)
 
     // Koffee — lifecycle-aware in-app toasts
     implementation(libs.koffee)
@@ -104,7 +104,7 @@ dependencies {
     // Accompanist permissions — Compose-native permission request wrapper
     implementation(libs.accompanist.permissions)
 
-    // WormaCeptor — HTTP traffic inspector, debug builds only
+    // WormaCeptor — HTTP traffic inspector, DEBUG builds only (never in release; Android-only).
     debugImplementation(libs.wormaceptor.api)
     debugImplementation(libs.wormaceptor.impl)
 

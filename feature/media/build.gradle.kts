@@ -38,7 +38,7 @@ dependencies {
     implementation(libs.mlkit.text.recognition)
 
     // Image
-    implementation(libs.coil.compose)
+    implementation(libs.coil3.compose)
     implementation(libs.exifinterface)
 
     // CameraX
