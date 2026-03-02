@@ -74,7 +74,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.KeyboardOptions
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.miletracker.core.ui.components.CollapsibleSectionCard
 import com.miletracker.core.ui.components.SectionCard
 import com.miletracker.core.ui.theme.DesignTokens
