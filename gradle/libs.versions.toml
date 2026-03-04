@@ -16,7 +16,6 @@ compose-multiplatform = "1.11.1"
 datastore = "1.2.1"
 materialKolor = "4.1.1"
 colorpicker = "1.2.0"
-lottie = "6.7.1"
 kotlinx-datetime = "0.8.0"
 kotlinx-coroutines = "1.11.0"
 kotlinx-serialization = "1.11.0"
@@ -43,7 +42,6 @@ biometric = "1.1.0"
 roborazzi = "1.64.0"
 # V11 KMP/CMP migration (verified coords in .ralph/kmp-migration-map.md)
 coil3 = "3.5.0"
-compottie = "2.2.3"
 markdownRenderer = "0.41.0"
 webviewMultiplatform = "2.0.3"
 mokoPermissions = "0.20.1"
@@ -80,7 +78,6 @@ datastore-preferences = { module = "androidx.datastore:datastore-preferences", v
 datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
 materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 colorpicker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
-lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 
 # Koin (KMP)
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
@@ -164,10 +161,6 @@ coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3
 coil3-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
 coil3-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil3" }
 coil3-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil3" }
-# Lottie (Compottie, multiplatform pure-Skia)
-compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
-compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
-compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
 # Markdown (multiplatform)
 markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdownRenderer" }
 markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }

@@ -45,7 +45,6 @@ dependencies {
     implementation(libs.mlkit.document.scanner)
     implementation(libs.mlkit.text.recognition)
     implementation(libs.coil3.compose)
-    implementation(libs.lottie.compose)
     implementation(libs.exifinterface)
 
     implementation(project(":core:data"))
