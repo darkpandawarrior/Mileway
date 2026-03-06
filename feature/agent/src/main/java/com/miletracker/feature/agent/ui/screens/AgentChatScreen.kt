@@ -64,7 +64,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import dev.jeziellago.compose.markdowntext.MarkdownText
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -440,9 +442,13 @@ private fun MessageBubble(message: AgentMessage, onFeedback: () -> Unit) {
                     .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp))
                     .padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
-                MarkdownText(
-                    markdown = message.text,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                Markdown(
+                    content = message.text,
+                    colors = markdownColor(text = Color.White),
+                    typography = markdownTypography(
+                        text = MaterialTheme.typography.bodyMedium,
+                        paragraph = MaterialTheme.typography.bodyMedium,
+                    ),
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
