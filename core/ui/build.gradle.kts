@@ -50,7 +50,7 @@ kotlin {
             implementation(libs.coil3.compose)
             implementation(libs.exifinterface)
             implementation(libs.picktime.compose)
-            implementation(libs.compose.webview)
+            implementation(libs.webview.multiplatform)
             implementation(libs.koffee)
         }
     }
