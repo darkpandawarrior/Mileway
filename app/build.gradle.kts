@@ -7,7 +7,6 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll(
             "-opt-in=ke.don.koffee.ExperimentalKoffeeApi",
-            "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi",
         )
     }
 }
@@ -101,8 +100,6 @@ dependencies {
     // Koffee — lifecycle-aware in-app toasts
     implementation(libs.koffee)
 
-    // Accompanist permissions — Compose-native permission request wrapper
-    implementation(libs.accompanist.permissions)
 
     // WormaCeptor — HTTP traffic inspector, DEBUG builds only (never in release; Android-only).
     debugImplementation(libs.wormaceptor.api)
