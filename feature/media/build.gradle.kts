@@ -39,7 +39,6 @@ dependencies {
 
     // Image
     implementation(libs.coil3.compose)
-    implementation(libs.exifinterface)
 
     // CameraX
     implementation(libs.camera.core)

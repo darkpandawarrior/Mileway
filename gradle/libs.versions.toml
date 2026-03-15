@@ -28,7 +28,6 @@ mlkit-document-scanner = "16.0.0"
 mlkit-text-recognition = "16.0.1"
 play-services-location = "21.3.0"
 coil = "2.7.0"
-exifinterface = "1.4.2"
 core-ktx = "1.19.0"
 camerax = "1.6.1"
 wormaceptor = "2.2.1"
@@ -44,7 +43,6 @@ webviewMultiplatform = "2.0.3"
 mokoPermissions = "0.20.1"
 maplibreCompose = "0.13.0"
 compass = "3.0.2"
-kim = "0.26.2"
 ktor = "3.5.0"
 peekaboo = "0.5.2"
 jbNavigationCompose = "2.9.2"
@@ -128,7 +126,6 @@ picktime-compose = { module = "com.github.anhaki:PickTime-Compose", version.ref 
 konnection = { group = "dev.tmapps", name = "konnection", version.ref = "konnection" }
 wormaceptor-api = { module = "com.github.azikar24.WormaCeptor:api-client", version.ref = "wormaceptor" }
 wormaceptor-impl = { module = "com.github.azikar24.WormaCeptor:api-impl-persistence", version.ref = "wormaceptor" }
-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 
 # Testing
 junit = { module = "junit:junit", version = "4.13.2" }
@@ -168,8 +165,6 @@ maplibre-compose = { module = "org.maplibre.compose:maplibre-compose", version.r
 # Location (Compass foreground; background via expect/actual CoreLocation)
 compass-geolocation = { module = "dev.jordond.compass:geolocation", version.ref = "compass" }
 compass-geolocation-mobile = { module = "dev.jordond.compass:geolocation-mobile", version.ref = "compass" }
-# EXIF (kim, pure-Kotlin multiplatform)
-kim = { module = "com.ashampoo:kim", version.ref = "kim" }
 # Ktor (multiplatform networking + Logging plugin; replaces WormaCeptor)
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }

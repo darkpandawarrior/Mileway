@@ -48,7 +48,6 @@ kotlin {
             implementation(libs.datastore.preferences)
             implementation(libs.osmdroid)
             implementation(libs.coil3.compose)
-            implementation(libs.exifinterface)
             implementation(libs.picktime.compose)
             implementation(libs.webview.multiplatform)
             implementation(libs.koffee)
