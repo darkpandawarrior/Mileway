@@ -47,7 +47,7 @@ dependencies {
     implementation(libs.camera.view)
 
     // Navigation + Material icons
-    implementation(libs.navigation.compose)
+    implementation(libs.jb.navigation.compose)
     implementation(libs.compose.material.icons.extended)
 
     // Compose

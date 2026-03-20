@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.navigation.compose)
+    implementation(libs.jb.navigation.compose)
 
     // Koin
     implementation(libs.koin.android)
