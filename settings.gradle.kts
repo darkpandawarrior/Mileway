@@ -29,6 +29,7 @@ rootProject.name = "MileTrackerDemo"
 
 include(":app")
 include(":core:ui")
+include(":core:platform")
 include(":core:data")
 include(":core:network")
 include(":core:security")
