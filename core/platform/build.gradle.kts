@@ -22,6 +22,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.core.ktx)
+            // LocationTracker (Android): fused location + Task.await()
+            implementation(libs.play.services.location)
+            implementation(libs.kotlinx.coroutines.play.services)
         }
     }
 }
