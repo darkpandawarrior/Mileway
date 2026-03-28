@@ -61,6 +61,15 @@ interface BiometricAuthenticator {
     suspend fun authenticate(reason: String): BiometricResult
 }
 
+/**
+ * A unit of periodic background work. Register an implementation in Koin under a *named* qualifier whose
+ * name matches the `uniqueName` passed to [BackgroundScheduler.schedulePeriodic]; the platform worker
+ * resolves and runs it. Keeps [BackgroundScheduler] decoupled from any concrete worker class.
+ */
+interface BackgroundTask {
+    suspend fun run()
+}
+
 /** Background/periodic work. Android: WorkManager; iOS: BGTaskScheduler. */
 interface BackgroundScheduler {
     fun schedulePeriodic(uniqueName: String, intervalMinutes: Long)
