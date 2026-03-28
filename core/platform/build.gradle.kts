@@ -28,6 +28,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.play.services)
             // TextRecognizer (Android): ML Kit on-device OCR
             implementation(libs.mlkit.text.recognition)
+            // BackgroundScheduler (Android): WorkManager
+            implementation(libs.workmanager.runtime)
         }
     }
 }
