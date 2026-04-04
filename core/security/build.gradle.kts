@@ -1,22 +1,26 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidKmpLibrary)
 }
 
-android {
-    namespace = "com.miletracker.core.security"
-    compileSdk = 37
-    defaultConfig { minSdk = 30 }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+kotlin {
+    android {
+        namespace = "com.miletracker.core.security"
+        compileSdk = 37
+        minSdk = 30
     }
 
-}
+    iosArm64()
+    iosSimulatorArm64()
 
-dependencies {
-    implementation(libs.core.ktx)
-    implementation(libs.biometric)
-    implementation(libs.kotlinx.coroutines.android)
-    testImplementation(libs.junit)
-    testImplementation(kotlin("test"))
+    sourceSets {
+        androidMain.dependencies {
+            implementation(libs.core.ktx)
+            implementation(libs.biometric)
+            implementation(libs.kotlinx.coroutines.android)
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+    }
 }

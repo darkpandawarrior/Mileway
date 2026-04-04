@@ -6,6 +6,11 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 
+/**
+ * Android biometric prompt helper. Android-only (BiometricPrompt requires a FragmentActivity).
+ * The cross-platform [com.miletracker.core.platform.BiometricAuthenticator] abstraction is wired in
+ * Phase 3.4 (feature:profile); this remains the Android implementation detail.
+ */
 object BiometricGuard {
 
     enum class Availability { Available, NoHardware, NoneEnrolled, Unavailable }
@@ -25,7 +30,7 @@ object BiometricGuard {
         title: String,
         subtitle: String,
         onSuccess: () -> Unit,
-        onFailure: (String) -> Unit
+        onFailure: (String) -> Unit,
     ) {
         val executor = ContextCompat.getMainExecutor(activity)
         val prompt = BiometricPrompt(
@@ -41,7 +46,7 @@ object BiometricGuard {
                 override fun onAuthenticationFailed() {
                     onFailure("Authentication failed — try again.")
                 }
-            }
+            },
         )
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
