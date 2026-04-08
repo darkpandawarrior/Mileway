@@ -1,0 +1,106 @@
+package com.miletracker.core.ui.toast
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+
+/** Icon + accent colour for each [ToastType]. */
+private fun ToastType.iconAndTint(): Pair<ImageVector, Color> = when (this) {
+    ToastType.Success -> Icons.Filled.CheckCircle to Color(0xFF2E7D32)
+    ToastType.Error -> Icons.Filled.Error to Color(0xFFC62828)
+    ToastType.Info -> Icons.Filled.Info to Color(0xFF1565C0)
+    ToastType.Warning -> Icons.Filled.Warning to Color(0xFFEF6C00)
+}
+
+/**
+ * Rich toast card — icon + title + description + optional actions. Multiplatform (Android + iOS),
+ * replaces the former koffee `AppToast`. Rendered by [AppToastHost].
+ */
+@Composable
+fun AppToast(
+    data: ToastData,
+    onDismiss: () -> Unit,
+    onPrimary: () -> Unit,
+    onSecondary: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val (icon, tint) = data.type.iconAndTint()
+    Card(
+        modifier = modifier.fillMaxWidth().padding(16.dp),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(28.dp).padding(end = 12.dp),
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = data.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (data.description.isNotBlank()) {
+                        Text(
+                            text = data.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+            if (data.primaryAction != null || data.secondaryAction != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    data.secondaryAction?.let {
+                        TextButton(onClick = { it.onClick(); onSecondary() }) { Text(it.label) }
+                    }
+                    data.primaryAction?.let {
+                        TextButton(onClick = { it.onClick(); onPrimary() }) { Text(it.label) }
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Dismiss") }
+                }
+            }
+        }
+    }
+}

@@ -50,7 +50,6 @@ kotlin {
             implementation(libs.coil3.compose)
             implementation(libs.picktime.compose)
             implementation(libs.webview.multiplatform)
-            implementation(libs.koffee)
         }
     }
 }
