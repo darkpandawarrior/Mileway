@@ -58,7 +58,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.miletracker.R
 import com.miletracker.core.ui.components.bottombar.BubbleBottomBar
-import com.miletracker.ui.KoffeeHost
+import com.miletracker.core.ui.toast.AppToastHost
 import com.miletracker.core.ui.components.bottombar.BubbleNavItem
 import com.miletracker.core.ui.components.bottombar.CollapsedBottomPuck
 import com.miletracker.core.ui.theme.MileTrackerTheme
@@ -114,7 +114,7 @@ fun MileTrackerAppRoot(
         useSystemColors = useSystemColors,
         paletteStyle = paletteStyle,
     ) {
-        KoffeeHost {
+        AppToastHost {
         val navController = rememberNavController()
 
         // Navigate to a deep-linked graph immediately after the nav graph is ready.
@@ -332,7 +332,7 @@ fun MileTrackerAppRoot(
             }
         }
 
-        } // KoffeeHost
+        } // AppToastHost
 
     }
 }

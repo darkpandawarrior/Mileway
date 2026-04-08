@@ -3,14 +3,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll(
-            "-opt-in=ke.don.koffee.ExperimentalKoffeeApi",
-        )
-    }
-}
-
 android {
     namespace = "com.miletracker"
     compileSdk = 37
@@ -97,8 +89,6 @@ dependencies {
     implementation(libs.coil3.gif)
     implementation(libs.coil3.svg)
 
-    // Koffee — lifecycle-aware in-app toasts
-    implementation(libs.koffee)
 
 
     // WormaCeptor — HTTP traffic inspector, DEBUG builds only (never in release; Android-only).
