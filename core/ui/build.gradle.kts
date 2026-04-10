@@ -27,6 +27,8 @@ kotlin {
             implementation(libs.material3)
             implementation(libs.ui)
             implementation(libs.material.icons.extended)
+            // Unified @Preview in commonMain (CMP 1.11.1) — enables platform-agnostic previews (Phase 9)
+            implementation(libs.ui.tooling.preview.mp)
 
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
