@@ -7,6 +7,8 @@ group = "com.miletracker.buildlogic"
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.compose.gradlePlugin)
+    compileOnly(libs.composeCompiler.gradlePlugin)
 }
 
 gradlePlugin {
@@ -14,6 +16,10 @@ gradlePlugin {
         register("kmpLibrary") {
             id = "miletracker.kmp.library"
             implementationClass = "MileTrackerKmpLibraryConventionPlugin"
+        }
+        register("kmpCompose") {
+            id = "miletracker.kmp.compose"
+            implementationClass = "MileTrackerKmpComposeConventionPlugin"
         }
     }
 }
