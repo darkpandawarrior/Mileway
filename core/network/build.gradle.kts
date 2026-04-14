@@ -1,6 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidKmpLibrary)
+    id("miletracker.kmp.library")
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -10,9 +9,6 @@ kotlin {
         compileSdk = 37
         minSdk = 30
     }
-
-    iosArm64()
-    iosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {
