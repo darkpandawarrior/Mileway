@@ -1,17 +1,9 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.composeCompiler)
+    id("miletracker.android.library")
 }
 
 android {
     namespace = "com.miletracker.feature.approvals"
-    compileSdk = 37
-    defaultConfig { minSdk = 30 }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures { compose = true }
 }
 
 dependencies {
