@@ -21,5 +21,9 @@ gradlePlugin {
             id = "miletracker.kmp.compose"
             implementationClass = "MileTrackerKmpComposeConventionPlugin"
         }
+        register("androidLibrary") {
+            id = "miletracker.android.library"
+            implementationClass = "MileTrackerAndroidLibraryConventionPlugin"
+        }
     }
 }

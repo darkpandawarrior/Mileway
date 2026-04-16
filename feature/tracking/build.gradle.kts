@@ -1,18 +1,10 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.composeCompiler)
+    id("miletracker.android.library")
     alias(libs.plugins.kotlinSerialization)
 }
 
 android {
     namespace = "com.miletracker.feature.tracking"
-    compileSdk = 37
-    defaultConfig { minSdk = 30 }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures { compose = true }
 }
 
 dependencies {
@@ -24,6 +16,9 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
 
+    // Material Components — provides the Theme.Material3.DayNight.NoActionBar parent
+    // for Theme.MileTracker (res/values/themes.xml). api() so dependents resolve it.
+    api(libs.material)
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.jb.navigation.compose)
