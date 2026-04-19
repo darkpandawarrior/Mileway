@@ -1,11 +1,9 @@
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.composeCompiler)
+    id("miletracker.android.application")
 }
 
 android {
     namespace = "com.miletracker"
-    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.miletracker"
@@ -21,13 +19,6 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    buildFeatures { compose = true }
 
     testOptions {
         unitTests {
