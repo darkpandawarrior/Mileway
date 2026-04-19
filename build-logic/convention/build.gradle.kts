@@ -25,5 +25,9 @@ gradlePlugin {
             id = "miletracker.android.library"
             implementationClass = "MileTrackerAndroidLibraryConventionPlugin"
         }
+        register("androidApplication") {
+            id = "miletracker.android.application"
+            implementationClass = "MileTrackerAndroidApplicationConventionPlugin"
+        }
     }
 }
