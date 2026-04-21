@@ -34,6 +34,7 @@ picktime_compose = "1.1.4"
 konnection = "1.4.5"
 biometric = "1.1.0"
 roborazzi = "1.64.0"
+datetimeWheelPicker = "1.3.2"
 # V11 KMP/CMP migration (verified coords in .ralph/kmp-migration-map.md)
 coil3 = "3.5.0"
 markdownRenderer = "0.41.0"
@@ -177,6 +178,8 @@ jb-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation
 # compose-nav-graph (visualization spike; rides navigation3 NavKey)
 navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 compose-nav-graph-annotations = { module = "com.github.skydoves:compose-nav-graph-annotations", version.ref = "navgraph" }
+# Multiplatform WHEEL date/time picker (replaces Android-only PickTime; preserves the wheel UX) — Phase 2.4b
+datetime-wheel-picker = { module = "io.github.darkokoa:datetime-wheel-picker", version.ref = "datetimeWheelPicker" }
 
 # Gradle-plugin artifacts for build-logic convention plugins (Phase 11)
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
