@@ -30,7 +30,6 @@ coil = "2.7.0"
 core-ktx = "1.19.0"
 camerax = "1.6.1"
 wormaceptor = "2.2.1"
-picktime_compose = "1.1.4"
 konnection = "1.4.5"
 biometric = "1.1.0"
 roborazzi = "1.64.0"
@@ -120,7 +119,6 @@ camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" 
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coil" }
 coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
-picktime-compose = { module = "com.github.anhaki:PickTime-Compose", version.ref = "picktime_compose" }
 konnection = { group = "dev.tmapps", name = "konnection", version.ref = "konnection" }
 wormaceptor-api = { module = "com.github.azikar24.WormaCeptor:api-client", version.ref = "wormaceptor" }
 wormaceptor-impl = { module = "com.github.azikar24.WormaCeptor:api-impl-persistence", version.ref = "wormaceptor" }
