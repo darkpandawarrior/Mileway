@@ -58,11 +58,3 @@ fun AppToastHost(content: @Composable () -> Unit) {
         }
     }
 }
-
-/**
- * Temporary compatibility shim for content rendered inside ModalBottomSheets (formerly `SheetKoffeeHost`).
- * Toasts emit to the process-wide [ToastController], so the root [AppToastHost] renders them — no separate
- * in-sheet host is needed. Pass-through only; removed when `WheelPickers` is rewritten in Phase 2.4b.
- */
-@Composable
-fun SheetKoffeeHost(content: @Composable () -> Unit) = content()
