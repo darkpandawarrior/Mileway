@@ -19,8 +19,6 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,9 +28,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -49,6 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.data.util.DateUtils
+import com.miletracker.core.ui.components.pickers.WheelDatePickerDialog
+import com.miletracker.core.ui.components.pickers.WheelTimePickerDialog
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
@@ -300,37 +297,26 @@ fun LogMilesScreen(
     }
 
     if (showDatePicker) {
-        val dpState = rememberDatePickerState(initialSelectedDateMillis = uiState.journeyDateMillis)
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setJourneyDate(dpState.selectedDateMillis)
-                    showDatePicker = false
-                }) { Text("OK") }
+        WheelDatePickerDialog(
+            initialDateMillis = uiState.journeyDateMillis,
+            title = "Journey Date",
+            onConfirm = {
+                viewModel.setJourneyDate(it)
+                showDatePicker = false
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }
-        ) { DatePicker(state = dpState) }
+            onDismiss = { showDatePicker = false },
+        )
     }
 
     if (showTimePicker) {
-        val initial = uiState.journeyTimeMinutes ?: 9 * 60
-        val timeState = rememberTimePickerState(
-            initialHour = initial / 60,
-            initialMinute = initial % 60,
-            is24Hour = false
-        )
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            title = { Text("Journey Completion Time") },
-            text = { TimePicker(state = timeState) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setJourneyTime(timeState.hour, timeState.minute)
-                    showTimePicker = false
-                }) { Text("OK") }
+        WheelTimePickerDialog(
+            initialMinutes = uiState.journeyTimeMinutes ?: 9 * 60,
+            title = "Journey Completion Time",
+            onConfirm = { hour, minute ->
+                viewModel.setJourneyTime(hour, minute)
+                showTimePicker = false
             },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } }
+            onDismiss = { showTimePicker = false },
         )
     }
 
