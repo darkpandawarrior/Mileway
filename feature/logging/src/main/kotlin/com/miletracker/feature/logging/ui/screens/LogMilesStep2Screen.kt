@@ -27,8 +27,6 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,7 +38,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.data.util.DateUtils
+import com.miletracker.core.ui.components.pickers.WheelDatePickerDialog
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
@@ -261,17 +259,15 @@ fun LogMilesStep2Screen(
     // ── Overlays ───────────────────────────────────────────────────────────────
 
     if (showInvoiceDatePicker) {
-        val dpState = rememberDatePickerState(initialSelectedDateMillis = uiState.invoiceDateMillis)
-        DatePickerDialog(
-            onDismissRequest = { showInvoiceDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setInvoiceDate(dpState.selectedDateMillis)
-                    showInvoiceDatePicker = false
-                }) { Text("OK") }
+        WheelDatePickerDialog(
+            initialDateMillis = uiState.invoiceDateMillis,
+            title = "Invoice Date",
+            onConfirm = {
+                viewModel.setInvoiceDate(it)
+                showInvoiceDatePicker = false
             },
-            dismissButton = { TextButton(onClick = { showInvoiceDatePicker = false }) { Text("Cancel") } }
-        ) { DatePicker(state = dpState) }
+            onDismiss = { showInvoiceDatePicker = false },
+        )
     }
 
     if (showEmployeesDialog) {
