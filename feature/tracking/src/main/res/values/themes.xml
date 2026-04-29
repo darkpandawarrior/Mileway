@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared app theme for activities declared in feature library manifests
+  (tracking's activity and, transitively, :feature:logging's LoggingActivity).
+  It lives here rather than in :core:ui because :core:ui is a KMP Android
+  Library (com.android.kotlin.multiplatform.library), which does not consume
+  src/androidMain/res. :feature:logging depends on :feature:tracking, so it
+  resolves @style/Theme.MileTracker transitively. :app overrides this with its
+  own identical definition (plus the EdgeToEdge variant) during resource merge.
+-->
+<resources>
+    <style name="Theme.MileTracker" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>
