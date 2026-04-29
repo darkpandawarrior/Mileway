@@ -35,6 +35,7 @@ kotlin {
             // Multiplatform wheel date/time picker (Phase 2.4b — replaces Android-only PickTime)
             implementation(libs.datetime.wheel.picker)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.webview.multiplatform)
             implementation(project(":core:common"))
             implementation(project(":core:data"))
         }
@@ -51,7 +52,6 @@ kotlin {
             implementation(libs.datastore.preferences)
             implementation(libs.osmdroid)
             implementation(libs.coil3.compose)
-            implementation(libs.webview.multiplatform)
         }
     }
 }
