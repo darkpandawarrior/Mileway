@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tile gallery preview for MileageTileService (androidx.wear.tiles.PREVIEW meta-data).
+  Static rendering of the round Wear tile: brand-blue face, the MileTracker compass
+  mark, and a readout bar standing in for the "0.0 km" / "MileTracker" text the live
+  tile draws. Mirrors the app brand colour #1976D2 and ic_logo_mark.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="400dp"
+    android:height="400dp"
+    android:viewportWidth="400"
+    android:viewportHeight="400">
+
+    <!-- Round watch-tile face -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M200,0 A200,200 0 1 1 199.99,0 Z" />
+
+    <!-- Subtle inner ring for depth -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeAlpha="0.18"
+        android:fillColor="#00000000"
+        android:pathData="M200,28 A172,172 0 1 1 199.99,28 Z" />
+
+    <!-- Compass / navigation needle (matches ic_logo_mark) -->
+    <group
+        android:scaleX="7"
+        android:scaleY="7"
+        android:translateX="116"
+        android:translateY="92">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M12,2.5 L15.5,12 L12,10.4 L8.5,12 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillAlpha="0.55"
+            android:pathData="M12,21.5 L8.5,12 L12,13.6 L15.5,12 Z" />
+    </group>
+
+    <!-- Distance readout bar (stands in for "0.0 km") -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.92"
+        android:pathData="M132,278 h136 a12,12 0 0 1 12,12 v0 a12,12 0 0 1 -12,12 h-136 a12,12 0 0 1 -12,-12 v0 a12,12 0 0 1 12,-12 Z" />
+
+    <!-- App label bar (stands in for "MileTracker") -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.45"
+        android:pathData="M156,318 h88 a8,8 0 0 1 8,8 v0 a8,8 0 0 1 -8,8 h-88 a8,8 0 0 1 -8,-8 v0 a8,8 0 0 1 8,-8 Z" />
+</vector>
