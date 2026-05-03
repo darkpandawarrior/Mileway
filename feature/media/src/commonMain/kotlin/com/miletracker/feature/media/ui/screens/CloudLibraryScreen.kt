@@ -43,7 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import coil3.compose.AsyncImage
 import com.miletracker.core.data.library.MediaLibraryEntry
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
@@ -58,7 +58,7 @@ fun CloudLibraryScreen(
     onSelectUri: ((String) -> Unit)? = null,
     viewModel: CloudLibraryViewModel = koinViewModel()
 ) {
-    val entries by viewModel.entries.collectAsStateWithLifecycle()
+    val entries by viewModel.entries.collectAsState()
     val selectedIds = remember { mutableStateSetOf<String>() }
     var selectionMode by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
