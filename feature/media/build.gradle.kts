@@ -1,52 +1,53 @@
 plugins {
-    id("miletracker.android.library")
+    id("miletracker.kmp.compose")
 }
 
-android {
-    namespace = "com.miletracker.feature.media"
-}
+kotlin {
+    android {
+        namespace = "com.miletracker.feature.media"
+        compileSdk = 37
+        minSdk = 30
+    }
 
-dependencies {
-    implementation(project(":core:ui"))
-    implementation(project(":core:data"))
-    implementation(project(":stub"))
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.runtime)
+            implementation(libs.ui)
+            implementation(libs.material3)
+            implementation(libs.foundation)
+            implementation(libs.material.icons.extended)
+            implementation(libs.ui.tooling.preview.mp)
 
-    implementation(libs.core.ktx)
-    implementation(libs.activity.compose)
-    implementation(libs.lifecycle.viewmodel)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.koin.android)
-    implementation(libs.koin.compose)
-    implementation(libs.koin.compose.viewmodel)
-    implementation(libs.kotlinx.coroutines.android)
-    // Coroutines bridge for Google Tasks API (provides .await() on Task<T>)
-    implementation(libs.kotlinx.coroutines.play.services)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.lifecycle.viewmodel)
+            implementation(libs.jb.navigation.compose)
+            // Coil 3 is fully multiplatform (Android, JVM, iOS, JS)
+            implementation(libs.coil3.compose)
 
-    // ML Kit document scanner
-    implementation(libs.mlkit.document.scanner)
+            implementation(project(":core:common"))
+            implementation(project(":core:data"))
+            implementation(project(":core:ui"))
+        }
+        androidMain.dependencies {
+            implementation(libs.core.ktx)
+            implementation(libs.activity.compose)
+            implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.koin.android)
+            implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.kotlinx.coroutines.play.services)
 
-    // ML Kit on-device text recognition (bundled Latin model — fully offline, no Play download)
-    implementation(libs.mlkit.text.recognition)
+            implementation(libs.mlkit.document.scanner)
+            implementation(libs.mlkit.text.recognition)
 
-    // Image
-    implementation(libs.coil3.compose)
+            implementation(libs.camera.core)
+            implementation(libs.camera.camera2)
+            implementation(libs.camera.lifecycle)
+            implementation(libs.camera.view)
 
-    // CameraX
-    implementation(libs.camera.core)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
-
-    // Navigation + Material icons
-    implementation(libs.jb.navigation.compose)
-    implementation(libs.compose.material.icons.extended)
-
-    // Compose
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.ui.tooling.preview)
-    debugImplementation(libs.compose.ui.tooling)
+            implementation(project(":stub"))
+        }
+    }
 }

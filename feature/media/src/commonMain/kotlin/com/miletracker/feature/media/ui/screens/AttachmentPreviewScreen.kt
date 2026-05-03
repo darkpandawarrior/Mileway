@@ -44,7 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import com.miletracker.core.ui.components.ZoomImageViewer
@@ -75,7 +75,7 @@ fun AttachmentPreviewScreen(
     modifier: Modifier = Modifier,
     onAddMore: () -> Unit = {}
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsState()
     val batch = state.pendingBatch
     val pending = state.pendingItem
     val isMulti = batch.size > 1
