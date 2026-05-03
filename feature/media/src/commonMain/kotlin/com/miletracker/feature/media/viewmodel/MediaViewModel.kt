@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
+import kotlin.time.Clock
+import kotlin.random.Random
 
 /**
  * Single immutable UI state for the whole media-capture flow. Shared across the
@@ -72,10 +73,10 @@ class MediaViewModel(
      */
     fun onCaptured(uri: String) {
         val item = AttachmentItem(
-            id = UUID.randomUUID().toString(),
+            id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
             uri = uri,
             source = AttachmentSource.CAMERA,
-            capturedAtMillis = System.currentTimeMillis()
+            capturedAtMillis = Clock.System.now().toEpochMilliseconds()
         )
         _uiState.update {
             it.copy(
@@ -90,10 +91,10 @@ class MediaViewModel(
     fun onPickedFromGallery(uri: String) {
         _uiState.update {
             val item = AttachmentItem(
-                id = UUID.randomUUID().toString(),
+                id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
                 uri = uri,
                 source = it.selectedSource ?: AttachmentSource.GALLERY,
-                capturedAtMillis = System.currentTimeMillis()
+                capturedAtMillis = Clock.System.now().toEpochMilliseconds()
             )
             it.copy(
                 pendingItem = item,
