@@ -1,34 +1,43 @@
 plugins {
-    id("miletracker.android.library")
+    id("miletracker.kmp.compose")
 }
 
-android {
-    namespace = "com.miletracker.feature.logging"
-}
+kotlin {
+    android {
+        namespace = "com.miletracker.feature.logging"
+        compileSdk = 37
+        minSdk = 30
+    }
 
-dependencies {
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.material.icons.extended)
-    implementation(libs.compose.ui.tooling.preview)
-    debugImplementation(libs.compose.ui.tooling)
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.runtime)
+            implementation(libs.ui)
+            implementation(libs.material3)
+            implementation(libs.foundation)
+            implementation(libs.material.icons.extended)
+            implementation(libs.ui.tooling.preview.mp)
 
-    implementation(libs.core.ktx)
-    implementation(libs.activity.compose)
-    implementation(libs.jb.navigation.compose)
-    implementation(libs.lifecycle.viewmodel)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.koin.android)
-    implementation(libs.koin.compose)
-    implementation(libs.koin.compose.viewmodel)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.datetime)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.lifecycle.viewmodel)
+            implementation(libs.jb.navigation.compose)
+            implementation(libs.kotlinx.datetime)
 
-    implementation(project(":core:data"))
-    implementation(project(":core:network"))
-    implementation(project(":core:ui"))
-    implementation(project(":feature:tracking"))
+            implementation(project(":core:common"))
+            implementation(project(":core:data"))
+            implementation(project(":core:network"))
+            implementation(project(":core:ui"))
+            implementation(project(":feature:tracking"))
+        }
+        androidMain.dependencies {
+            implementation(libs.core.ktx)
+            implementation(libs.activity.compose)
+            implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.koin.android)
+            implementation(libs.kotlinx.coroutines.android)
+        }
+    }
 }
