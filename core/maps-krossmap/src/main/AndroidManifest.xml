@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Google Maps requires an API key in the gms product flavor.
+         Set MAPS_API_KEY in app/build.gradle.kts productFlavors { gms { ... } }
+         or in local.properties (never in VCS). -->
+    <application>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+    </application>
+</manifest>

@@ -16,6 +16,27 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Usage strings required by platform features used in this app -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MileTracker uses your location to track mileage during trips.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>MileTracker uses background location to auto-start trip tracking.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>MileTracker uses the camera to capture odometer readings.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MileTracker reads photos to attach receipts to expense entries.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>MileTracker uses Face ID to protect sensitive account data.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.miletracker.sync</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>location</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations~iphone</key>
