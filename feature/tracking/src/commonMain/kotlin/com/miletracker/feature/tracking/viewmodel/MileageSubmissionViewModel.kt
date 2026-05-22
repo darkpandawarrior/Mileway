@@ -16,6 +16,7 @@ import com.miletracker.feature.tracking.manager.TrackingConfigManager
 import com.miletracker.feature.tracking.repository.OfflinePlacesRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
+import com.miletracker.core.platform.NotificationScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -95,6 +96,7 @@ class MileageSubmissionViewModel(
     private val trackRepository: SavedTrackRepository,
     private val attachmentRepository: TripAttachmentRepository,
     private val configManager: TrackingConfigManager,
+    private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<SubmissionUiState>(SubmissionUiState.Idle)
@@ -333,6 +335,11 @@ class MileageSubmissionViewModel(
         viewModelScope.launch {
             val transId = response.transId ?: "DEMO-${Clock.System.now().toEpochMilliseconds()}"
             trackRepository.markSubmitted(routeId, transId, response.reimbursableAmount ?: 0.0)
+            notificationScheduler.notify(
+                id = routeId.hashCode(),
+                title = "Trip submitted",
+                body = "₹${(response.reimbursableAmount ?: 0.0).toLong()} pending reimbursement"
+            )
             _state.update { SubmissionUiState.Success(response) }
         }
     }
