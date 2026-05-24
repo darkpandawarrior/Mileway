@@ -50,7 +50,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
 
             implementation(libs.datastore.preferences)
-            implementation(libs.osmdroid)
             implementation(libs.coil3.compose)
         }
     }

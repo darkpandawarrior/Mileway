@@ -30,6 +30,9 @@ rootProject.name = "MileTrackerDemo"
 
 include(":app")
 include(":core:ui")
+include(":core:maps")
+include(":core:maps-krossmap")
+include(":core:maps-maplibre")
 include(":core:common")
 include(":core:platform")
 include(":core:data")

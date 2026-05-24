@@ -1,5 +1,8 @@
 plugins {
     id("miletracker.android.application")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.navgraph)
 }
 
 android {
@@ -11,6 +14,23 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
+        // Default placeholder; override in gms flavor with your real key or via local.properties.
+        manifestPlaceholders["MAPS_API_KEY"] = ""
+    }
+
+    // Maps flavor dimension:
+    //   gms   → KrossMap (Google Maps on Android, MapKit on iOS) — requires API key
+    //   noGms → MapLibre (open-source tiles, no API key, offline MBTiles capable)
+    flavorDimensions += "maps"
+    productFlavors {
+        create("gms") {
+            dimension = "maps"
+            // Set your Google Maps API key here or load from local.properties:
+            // manifestPlaceholders["MAPS_API_KEY"] = project.properties["MAPS_API_KEY"] ?: ""
+        }
+        create("noGms") {
+            dimension = "maps"
+        }
     }
 
     buildTypes {
@@ -26,6 +46,15 @@ android {
             isReturnDefaultValues = true
         }
     }
+}
+
+navgraph {
+    // Flavored app — pin to the gms debug variant so KSP picks the right classpath.
+    variant.set("gmsDebug")
+}
+
+ksp {
+    arg("navgraph.annotatedOnly", "true")
 }
 
 dependencies {
@@ -68,8 +97,9 @@ dependencies {
     // WorkManager
     implementation(libs.workmanager.runtime)
 
-    // osmdroid — needed for Configuration init in Application class
-    implementation(libs.osmdroid)
+    // Map implementations — selected by flavor
+    "gmsImplementation"(project(":core:maps-krossmap"))
+    "noGmsImplementation"(project(":core:maps-maplibre"))
 
     // Konnection — KMP network connectivity monitor (init in Application)
     implementation(libs.konnection)
@@ -95,7 +125,13 @@ dependencies {
     testImplementation(libs.koin.test.junit4)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(project(":core:platform"))
     testImplementation(libs.room.testing)
+
+    // compose-nav-graph — navigation graph visualization (Phase 8)
+    implementation(libs.navigation3.runtime)
+    implementation(libs.compose.nav.graph.annotations)
+    ksp(libs.compose.nav.graph.annotations)
 
     // Roborazzi — JVM screenshot tests (no device needed)
     testImplementation(libs.roborazzi.core)
