@@ -131,28 +131,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import com.miletracker.core.data.model.db.CurrentTrackData
 import com.miletracker.core.data.model.db.LocationData
 import com.miletracker.core.data.state.UiState
-import com.miletracker.core.ui.map.centerOn
-import com.miletracker.core.ui.map.configure
-import com.miletracker.core.ui.map.disableOfflineTiles
-import com.miletracker.core.ui.map.drawPolyline
-import com.miletracker.core.ui.map.enableOfflineTiles
-import com.miletracker.core.ui.map.fitBounds
+import com.miletracker.core.maps.MapCoordinate
+import com.miletracker.core.maps.MapSurface
 import com.miletracker.feature.tracking.map.MapRouteBuilder
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -502,43 +495,17 @@ fun EnhancedLiveTrackingUI(
     onMarkerClick: (MapMarkerData) -> Unit,
     onDismissMarker: () -> Unit,
     onMarkerFiltersChanged: (MarkerFilters) -> Unit,
-    onNavigateBack: (() -> Unit)?
+    onNavigateBack: (() -> Unit)?,
+    mapSurface: MapSurface = koinInject(),
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // OSMdroid MapView retained across recompositions
-    val mapView = remember {
-        MapView(context).apply {
-            configure(context, zoomLevel = 17.0)
-            setMultiTouchControls(true)
-        }
-    }
-
-    // Named overlay references so we can add/remove them precisely.
-    var directionMarker by remember { mutableStateOf<Marker?>(null) }
-    var startMarker by remember { mutableStateOf<Marker?>(null) }
-    var endMarker by remember { mutableStateOf<Marker?>(null) }
-    // Mutable lists kept in state so we can clear previous sets before re-adding.
-    val filteredMarkers = remember { mutableListOf<Marker>() }
-    val abnormalMarkers = remember { mutableListOf<Marker>() }
-    // Playback position marker (shown during replay).
-    var playbackMarker by remember { mutableStateOf<Marker?>(null) }
-
-    var isMapInitialized by remember { mutableStateOf(false) }
-
-    // Layer toggles
+    // Layer toggles (UI-only state; MapSurface implementations may expose these in future)
     var speedHeatmap by remember { mutableStateOf(false) }
     var showAccuracy by remember { mutableStateOf(false) }
     var showBattery by remember { mutableStateOf(false) }
     var showIssues by remember { mutableStateOf(false) }
     var showOfflineTiles by remember { mutableStateOf(false) }
-
-    LaunchedEffect(showOfflineTiles, isMapInitialized) {
-        if (!isMapInitialized) return@LaunchedEffect
-        if (showOfflineTiles) mapView.enableOfflineTiles(context)
-        else mapView.disableOfflineTiles(context)
-    }
 
     // Playback state
     var isPlayingBack by remember { mutableStateOf(false) }
@@ -550,30 +517,7 @@ fun EnhancedLiveTrackingUI(
 
     // Bearing calculations
     val currentBearing = currentLocation.bearing.takeIf { it != 0f } ?: azimuth
-    val rotationOffset = -45f
-    val adjustedBearing = (-currentBearing + rotationOffset + 360f) % 360f
-
     val deviceOrientation = detectDeviceOrientation(currentLocation)
-
-    // Initialize map
-    LaunchedEffect(Unit) {
-        mapView.controller.setCenter(GeoPoint(currentLocation.lat, currentLocation.lng))
-        mapView.controller.setZoom(17.0)
-        isMapInitialized = true
-    }
-
-    // Auto-center map
-    LaunchedEffect(currentLocation, autoCenterEnabled, isTracking, isPlayingBack) {
-        if (autoCenterEnabled && (isTracking || isPlayingBack) && isMapInitialized) {
-            val target = if (isPlayingBack && playbackIndex < locationPoints.size) {
-                val pt = locationPoints[playbackIndex]
-                GeoPoint(pt.lat, pt.lng)
-            } else {
-                GeoPoint(currentLocation.lat, currentLocation.lng)
-            }
-            mapView.controller.animateTo(target)
-        }
-    }
 
     // Live duration ticker
     LaunchedEffect(isTracking, activeTrack) {
@@ -585,168 +529,37 @@ fun EnhancedLiveTrackingUI(
         }
     }
 
-    // Playback animation — advance index every tick, move playback marker on real map.
+    // Playback animation — advance playback index on each tick.
     LaunchedEffect(isPlayingBack, playbackSpeed, playbackIndex) {
         if (isPlayingBack && locationPoints.isNotEmpty() && playbackIndex < locationPoints.size) {
-            // Move the playback position marker to the current playback point.
-            if (isMapInitialized) {
-                val pt = locationPoints[playbackIndex]
-                val pos = GeoPoint(pt.lat, pt.lng)
-                if (playbackMarker == null) {
-                    playbackMarker = Marker(mapView).apply {
-                        title = "Playback Position"
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        mapView.overlays.add(this)
-                    }
-                }
-                playbackMarker?.position = pos
-                mapView.invalidate()
-            }
             delay((500 / playbackSpeed).toLong())
-            if (playbackIndex < locationPoints.size - 1) {
-                playbackIndex++
-            } else {
-                isPlayingBack = false
-                playbackIndex = 0
-            }
-        }
-        // Hide the playback marker when not playing.
-        if (!isPlayingBack) {
-            playbackMarker?.let { marker ->
-                mapView.overlays.remove(marker)
-                mapView.invalidate()
-            }
-            playbackMarker = null
+            if (playbackIndex < locationPoints.size - 1) playbackIndex++
+            else { isPlayingBack = false; playbackIndex = 0 }
         }
     }
 
-    // Rebuild route overlays whenever location points or issue-toggle changes.
-    LaunchedEffect(locationPoints, isMapInitialized, showIssues) {
-        if (!isMapInitialized) return@LaunchedEffect
-
-        // Build the route data with the pure-Kotlin helper.
-        val routeData = MapRouteBuilder.build(locationPoints)
-
-        // ---------------------------------------------------------------
-        // 1. Main route polyline (normal / clean points — blue)
-        // ---------------------------------------------------------------
-        mapView.overlays.removeAll { it is org.osmdroid.views.overlay.Polyline }
-        if (routeData.routeCoords.isNotEmpty()) {
-            val geoPoints = routeData.routeCoords.map { GeoPoint(it.lat, it.lng) }
-            mapView.drawPolyline(geoPoints)
-        } else if (locationPoints.isNotEmpty()) {
-            // Fallback: if all points were filtered/abnormal, draw everything so the
-            // screen is never blank.
-            val geoPoints = locationPoints.map { GeoPoint(it.lat, it.lng) }
-            mapView.drawPolyline(geoPoints, android.graphics.Color.parseColor("#B0BEC5"))
-        }
-
-        // ---------------------------------------------------------------
-        // 2. Start marker (green)
-        // ---------------------------------------------------------------
-        startMarker?.let { mapView.overlays.remove(it) }
-        startMarker = null
-        routeData.startCoord?.let { coord ->
-            startMarker = Marker(mapView).apply {
-                position = GeoPoint(coord.lat, coord.lng)
-                title = "Start"
-                snippet = "Trip start point"
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                // osmdroid default marker is fine; set a tint via the icon's color
-                // filter for a visual distinction.
-                mapView.overlays.add(this)
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // 3. End marker (red-ish — use osmdroid default which is blue pin;
-        //    title distinguishes it in the snippet callout).
-        // ---------------------------------------------------------------
-        endMarker?.let { mapView.overlays.remove(it) }
-        endMarker = null
-        routeData.endCoord?.let { coord ->
-            // Only draw the end marker if there is more than one point, so start
-            // and end are not the same dot.
-            if (locationPoints.size > 1) {
-                endMarker = Marker(mapView).apply {
-                    position = GeoPoint(coord.lat, coord.lng)
-                    title = "End"
-                    snippet = "Trip end point"
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    mapView.overlays.add(this)
-                }
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // 4. Filtered markers (mock / paused — orange) — shown when showIssues
-        // ---------------------------------------------------------------
-        filteredMarkers.forEach { mapView.overlays.remove(it) }
-        filteredMarkers.clear()
-        if (showIssues) {
-            routeData.filteredCoords.forEach { coord ->
-                val m = Marker(mapView).apply {
-                    position = GeoPoint(coord.lat, coord.lng)
-                    title = "Filtered point"
-                    snippet = "Mock or paused location"
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                }
-                filteredMarkers.add(m)
-                mapView.overlays.add(m)
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // 5. Abnormal markers (GPS spike — red) — shown when showIssues
-        // ---------------------------------------------------------------
-        abnormalMarkers.forEach { mapView.overlays.remove(it) }
-        abnormalMarkers.clear()
-        if (showIssues) {
-            routeData.abnormalCoords.forEach { coord ->
-                val m = Marker(mapView).apply {
-                    position = GeoPoint(coord.lat, coord.lng)
-                    title = "Abnormal point"
-                    snippet = "GPS spike detected"
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                }
-                abnormalMarkers.add(m)
-                mapView.overlays.add(m)
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // 6. Auto-fit bounding box when not live-tracking (track review mode).
-        // ---------------------------------------------------------------
-        if (!isTracking && locationPoints.isNotEmpty() && !routeData.bounds.isEmpty) {
-            val allGeo = locationPoints.map { GeoPoint(it.lat, it.lng) }
-            mapView.fitBounds(allGeo)
-        }
-
-        mapView.invalidate()
-    }
-
-    // Update direction marker
-    LaunchedEffect(currentLocation, adjustedBearing, isMapInitialized) {
-        if (isMapInitialized) {
-            val position = GeoPoint(currentLocation.lat, currentLocation.lng)
-            if (directionMarker == null) {
-                directionMarker = Marker(mapView).apply {
-                    mapView.overlays.add(this)
-                }
-            }
-            directionMarker?.apply {
-                this.position = position
-                this.rotation = adjustedBearing
-            }
-            mapView.invalidate()
-        }
-    }
+    // Derive route data from location points (pure Kotlin, no map dependency)
+    val routeData = remember(locationPoints) { MapRouteBuilder.build(locationPoints) }
+    val playbackCoord = if (isPlayingBack && playbackIndex < locationPoints.size) {
+        locationPoints[playbackIndex].let { MapCoordinate(it.lat, it.lng) }
+    } else null
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Map
-        AndroidView(
-            factory = { mapView },
-            modifier = Modifier.fillMaxSize()
+        // Map — rendered by the active flavor's MapSurface implementation
+        mapSurface.LiveTrackMap(
+            routeCoords = routeData.routeCoords.map { MapCoordinate(it.lat, it.lng) },
+            filteredCoords = routeData.filteredCoords.map { MapCoordinate(it.lat, it.lng) },
+            abnormalCoords = routeData.abnormalCoords.map { MapCoordinate(it.lat, it.lng) },
+            startCoord = routeData.startCoord?.let { MapCoordinate(it.lat, it.lng) },
+            endCoord = routeData.endCoord?.takeIf { locationPoints.size > 1 }
+                ?.let { MapCoordinate(it.lat, it.lng) },
+            currentLat = currentLocation.lat,
+            currentLng = currentLocation.lng,
+            bearing = currentBearing,
+            autoCenterEnabled = autoCenterEnabled && (isTracking || isPlayingBack),
+            playbackCoord = playbackCoord,
+            showIssueMarkers = showIssues,
+            modifier = Modifier.fillMaxSize(),
         )
 
         // Live indicator badge (top-center)
@@ -798,19 +611,9 @@ fun EnhancedLiveTrackingUI(
                 .zIndex(16f)
         ) {
             LiveMapControlCluster(
-                onCenterMap = {
-                    if (isMapInitialized) {
-                        val target = if (isPlayingBack && playbackIndex < locationPoints.size) {
-                            val pt = locationPoints[playbackIndex]
-                            GeoPoint(pt.lat, pt.lng)
-                        } else {
-                            GeoPoint(currentLocation.lat, currentLocation.lng)
-                        }
-                        mapView.controller.animateTo(target)
-                    }
-                },
-                onZoomIn = { mapView.controller.zoomIn() },
-                onZoomOut = { mapView.controller.zoomOut() }
+                onCenterMap = { onToggleAutoCenter() },
+                onZoomIn = {},
+                onZoomOut = {}
             )
         }
 

@@ -35,16 +35,11 @@ class KrossMapSurface : MapSurface {
             zoom = 15f,
             cameraFollow = false,
         )
+        // KrossMapProperties positional order (v1.3 bytecode):
+        // showTraffic, showCompass, showBuildings, showPointOfInterest,
+        // enableRotationGesture, enableTiltGesture, enableScrollGesture
         val staticProps = remember {
-            KrossMapProperties(
-                showTraffic = false,
-                showBuildings = false,
-                showCompass = false,
-                enableRotationGesture = false,
-                enableTiltGesture = false,
-                enableScrollGesture = false,
-                showPointOfInterest = false,
-            )
+            KrossMapProperties(false, false, false, false, false, false, false)
         }
 
         LaunchedEffect(latitude, longitude) {
@@ -184,15 +179,8 @@ class KrossMapSurface : MapSurface {
             modifier = modifier,
             mapState = mapState,
             cameraPositionState = cameraState,
-            properties = KrossMapProperties(
-                showTraffic = false,
-                showBuildings = false,
-                showCompass = true,
-                enableRotationGesture = true,
-                enableTiltGesture = true,
-                enableScrollGesture = true,
-                showPointOfInterest = false,
-            ),
+            // showTraffic=F, showCompass=T, showBuildings=F, showPOI=F, rotation=T, tilt=T, scroll=T
+        properties = KrossMapProperties(false, true, false, false, true, true, true),
         )
     }
 }
