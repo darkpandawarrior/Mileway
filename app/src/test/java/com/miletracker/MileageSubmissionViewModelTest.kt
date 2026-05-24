@@ -14,6 +14,7 @@ import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import com.miletracker.feature.tracking.viewmodel.SubmissionSheet
 import com.miletracker.feature.tracking.viewmodel.SubmissionUiState
+import com.miletracker.core.platform.NotificationScheduler
 import com.miletracker.stub.DemoConfigManager
 import com.miletracker.stub.FakeTrackingNetworkApi
 import io.mockk.mockk
@@ -47,12 +48,19 @@ class MileageSubmissionViewModelTest {
     private val attachmentRepo: TripAttachmentRepository = mockk(relaxed = true)
     private val configManager = TrackingConfigManager(DemoConfigManager())
 
+    private val noOpNotifier = object : NotificationScheduler {
+        override suspend fun ensurePermission(): Boolean = true
+        override fun notify(id: Int, title: String, body: String) = Unit
+        override fun cancel(id: Int) = Unit
+    }
+
     private fun viewModel(api: MileTrackerNetworkApi = FakeTrackingNetworkApi()) =
         MileageSubmissionViewModel(
             api = api,
             trackRepository = trackRepo,
             attachmentRepository = attachmentRepo,
             configManager = configManager,
+            notificationScheduler = noOpNotifier,
         )
 
     // ── Initial form state ────────────────────────────────────────────────────

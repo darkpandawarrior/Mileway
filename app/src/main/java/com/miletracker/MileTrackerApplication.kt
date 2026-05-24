@@ -41,7 +41,6 @@ import org.koin.core.logger.Level
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import dev.tmapps.konnection.Konnection
-import org.osmdroid.config.Configuration
 import java.util.concurrent.TimeUnit
 
 val appModule = module {
@@ -87,9 +86,6 @@ class MileTrackerApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize osmdroid with the app's package name as the user-agent string.
-        // Must happen before any MapView is inflated.
-        Configuration.getInstance().userAgentValue = packageName
         // Initialize WormaCeptor for HTTP inspection in debug builds (no-op in release).
         WormaCeptorHelper.init(this)
         // Initialize konnection for KMP network connectivity monitoring.
@@ -99,6 +95,7 @@ class MileTrackerApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@MileTrackerApplication)
             androidLogger(Level.ERROR)
             modules(
+                mapsKoinModule(),
                 coreDataModule,
                 coreUiModule,
                 stubModule,

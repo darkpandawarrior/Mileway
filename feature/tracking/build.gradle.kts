@@ -32,6 +32,7 @@ kotlin {
             implementation(project(":core:network"))
             implementation(project(":core:ui"))
             implementation(project(":core:platform"))
+            implementation(project(":core:maps"))
         }
         androidMain.dependencies {
             // Material Components — provides the Theme.Material3.DayNight.NoActionBar parent
@@ -48,7 +49,6 @@ kotlin {
 
             implementation(libs.play.services.location)
             implementation(libs.workmanager.runtime)
-            implementation(libs.osmdroid)
             implementation(libs.mlkit.document.scanner)
             implementation(libs.mlkit.text.recognition)
             implementation(libs.coil3.compose)

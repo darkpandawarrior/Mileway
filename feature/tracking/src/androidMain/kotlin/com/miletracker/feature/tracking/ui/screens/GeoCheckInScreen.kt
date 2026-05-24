@@ -60,13 +60,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 import androidx.compose.ui.text.font.FontWeight
+import com.miletracker.core.maps.MapSurface
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
@@ -94,6 +89,7 @@ fun GeoCheckInScreen(
     onBack: () -> Unit,
     configManager: TrackingConfigManager = koinInject(),
     hardwareEventRepository: HardwareEventRepository = koinInject(),
+    mapSurface: MapSurface = koinInject(),
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -252,27 +248,14 @@ fun GeoCheckInScreen(
                         )
                     }
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
-                    // Live map preview centred on the demo check-in location
-                    AndroidView(
+                    // Map preview centred on the demo check-in location (provider = active flavor)
+                    mapSurface.LocationPinMap(
+                        latitude = demoLat,
+                        longitude = demoLng,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp)
                             .clip(RoundedCornerShape(8.dp)),
-                        factory = { ctx ->
-                            Configuration.getInstance()
-                                .load(ctx, ctx.getSharedPreferences("osm_prefs", 0))
-                            MapView(ctx).apply {
-                                setTileSource(TileSourceFactory.MAPNIK)
-                                setMultiTouchControls(false)
-                                isClickable = false
-                                controller.setZoom(15.0)
-                                controller.setCenter(GeoPoint(demoLat, demoLng))
-                                val marker = Marker(this)
-                                marker.position = GeoPoint(demoLat, demoLng)
-                                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                                overlays.add(marker)
-                            }
-                        }
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     Text(
