@@ -48,7 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
@@ -70,7 +70,7 @@ fun CardDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel()
 ) {
-    val state by viewModel.cardsState.collectAsStateWithLifecycle()
+    val state by viewModel.cardsState.collectAsState()
     val card = state.cards.find { it.id == cardId }
     val transactions = remember(cardId) { viewModel.getTransactionsForCard(cardId) }
     val snackbarHostState = remember { SnackbarHostState() }

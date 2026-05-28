@@ -65,7 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.profile.model.CorporateCard
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
@@ -122,7 +122,7 @@ fun QrHomeScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
-    val state by viewModel.cardsState.collectAsStateWithLifecycle()
+    val state by viewModel.cardsState.collectAsState()
     var showRequestSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
