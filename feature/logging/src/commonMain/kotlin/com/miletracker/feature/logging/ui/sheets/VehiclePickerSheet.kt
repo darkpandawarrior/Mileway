@@ -64,31 +64,36 @@ private fun vehicleIcon(name: String?): ImageVector {
 fun VehiclePickerSheet(
     vehicles: List<ApprovedVehicle>,
     onSelect: (ApprovedVehicle) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var query by remember { mutableStateOf("") }
-    val filtered = remember(query, vehicles) {
-        if (query.isBlank()) vehicles
-        else vehicles.filter { it.vehicleName?.contains(query, ignoreCase = true) == true }
-    }
+    val filtered =
+        remember(query, vehicles) {
+            if (query.isBlank()) {
+                vehicles
+            } else {
+                vehicles.filter { it.vehicleName?.contains(query, ignoreCase = true) == true }
+            }
+        }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        shape = DesignTokens.Shape.sheet
+        shape = DesignTokens.Shape.sheet,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.l)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.l),
         ) {
             Text(
                 text = "Choose Vehicle Type",
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             Spacer(Modifier.size(DesignTokens.Spacing.m))
@@ -100,7 +105,7 @@ fun VehiclePickerSheet(
                 placeholder = { Text("Search vehicles...") },
                 singleLine = true,
                 shape = DesignTokens.Shape.roundedMd,
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             )
 
             Spacer(Modifier.size(DesignTokens.Spacing.l))
@@ -109,7 +114,7 @@ fun VehiclePickerSheet(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.heightIn(max = 420.dp),
                 horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 items(filtered, key = { it.vehicleKey ?: it.hashCode().toString() }) { vehicle ->
                     VehicleTile(vehicle = vehicle, onClick = { onSelect(vehicle) })
@@ -120,27 +125,32 @@ fun VehiclePickerSheet(
 }
 
 @Composable
-private fun VehicleTile(vehicle: ApprovedVehicle, onClick: () -> Unit) {
+private fun VehicleTile(
+    vehicle: ApprovedVehicle,
+    onClick: () -> Unit,
+) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1.2f),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.2f),
         shape = DesignTokens.Shape.roundedMd,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-        onClick = onClick
+        onClick = onClick,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.m),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.m),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Icon(
                 imageVector = vehicleIcon(vehicle.vehicleName),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(DesignTokens.IconSize.header)
+                modifier = Modifier.size(DesignTokens.IconSize.header),
             )
             Spacer(Modifier.size(DesignTokens.Spacing.s))
             Text(
@@ -149,13 +159,13 @@ private fun VehicleTile(vehicle: ApprovedVehicle, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             vehicle.vehiclePricing?.let { rate ->
                 Text(
                     text = "₹${rate.formatDecimal(1)}/km",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

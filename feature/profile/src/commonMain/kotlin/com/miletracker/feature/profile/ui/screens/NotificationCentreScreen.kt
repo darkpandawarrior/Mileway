@@ -20,10 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Approval
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoneyOff
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -72,33 +70,105 @@ private data class NotifItem(
     val iconColor: Color,
 )
 
-private val NOTIFICATIONS = listOf(
-    NotifItem("N001", "Approval Required", "Priya Sharma's mileage claim needs your review", "2 min ago", true, NotifCategory.APPROVALS, Icons.Filled.Approval, Color(0xFF6366F1)),
-    NotifItem("N002", "Advance Approved", "Your advance ADV-001 of ₹8,000 was approved", "1 hr ago", true, NotifCategory.ALL, Icons.Filled.Receipt, Color(0xFF10B981)),
-    NotifItem("N003", "Expense Rejected", "EXP-003 rejected — receipt unclear", "3 hrs ago", true, NotifCategory.ALL, Icons.Filled.MoneyOff, Color(0xFFEF4444)),
-    NotifItem("N004", "Policy Alert", "3 claims exceed the ₹10/km daily cap this week", "Yesterday", true, NotifCategory.ALL, Icons.Filled.Policy, Color(0xFFF59E0B)),
-    NotifItem("N005", "Card Blocked", "CARD-002 was blocked at your request", "Yesterday", false, NotifCategory.ALL, Icons.Filled.CreditCard, Color(0xFF6B7280)),
-    NotifItem("N006", "Payables Update", "PO-2024-002 approved by finance", "2 days ago", false, NotifCategory.ALL, Icons.Filled.Receipt, Color(0xFF3B82F6)),
-    NotifItem("N007", "App Update", "Version 2.4.1 available — improved GPS accuracy", "3 days ago", false, NotifCategory.SYSTEM, Icons.Filled.SystemUpdate, Color(0xFF8B5CF6)),
-    NotifItem("N008", "System", "Scheduled maintenance: Sun 02:00–04:00 IST", "4 days ago", false, NotifCategory.SYSTEM, Icons.Filled.Info, Color(0xFF6B7280)),
-)
+private val NOTIFICATIONS =
+    listOf(
+        NotifItem(
+            "N001",
+            "Approval Required",
+            "Priya Sharma's mileage claim needs your review",
+            "2 min ago",
+            true,
+            NotifCategory.APPROVALS,
+            Icons.Filled.Approval,
+            Color(0xFF6366F1),
+        ),
+        NotifItem(
+            "N002",
+            "Advance Approved",
+            "Your advance ADV-001 of ₹8,000 was approved",
+            "1 hr ago",
+            true,
+            NotifCategory.ALL,
+            Icons.Filled.Receipt,
+            Color(0xFF10B981),
+        ),
+        NotifItem(
+            "N003",
+            "Expense Rejected",
+            "EXP-003 rejected — receipt unclear",
+            "3 hrs ago",
+            true,
+            NotifCategory.ALL,
+            Icons.Filled.MoneyOff,
+            Color(0xFFEF4444),
+        ),
+        NotifItem(
+            "N004",
+            "Policy Alert",
+            "3 claims exceed the ₹10/km daily cap this week",
+            "Yesterday",
+            true,
+            NotifCategory.ALL,
+            Icons.Filled.Policy,
+            Color(0xFFF59E0B),
+        ),
+        NotifItem(
+            "N005",
+            "Card Blocked",
+            "CARD-002 was blocked at your request",
+            "Yesterday",
+            false,
+            NotifCategory.ALL,
+            Icons.Filled.CreditCard,
+            Color(0xFF6B7280),
+        ),
+        NotifItem(
+            "N006",
+            "Payables Update",
+            "PO-2024-002 approved by finance",
+            "2 days ago",
+            false,
+            NotifCategory.ALL,
+            Icons.Filled.Receipt,
+            Color(0xFF3B82F6),
+        ),
+        NotifItem(
+            "N007",
+            "App Update",
+            "Version 2.4.1 available — improved GPS accuracy",
+            "3 days ago",
+            false,
+            NotifCategory.SYSTEM,
+            Icons.Filled.SystemUpdate,
+            Color(0xFF8B5CF6),
+        ),
+        NotifItem(
+            "N008",
+            "System",
+            "Scheduled maintenance: Sun 02:00–04:00 IST",
+            "4 days ago",
+            false,
+            NotifCategory.SYSTEM,
+            Icons.Filled.Info,
+            Color(0xFF6B7280),
+        ),
+    )
 
 private val FILTER_LABELS = listOf("ALL", "UNREAD", "APPROVALS", "SYSTEM")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationCentreScreen(
-    onBack: () -> Unit
-) {
+fun NotificationCentreScreen(onBack: () -> Unit) {
     var selectedFilter by remember { mutableStateOf("ALL") }
     var notifications by remember { mutableStateOf(NOTIFICATIONS) }
 
-    val filtered = when (selectedFilter) {
-        "UNREAD" -> notifications.filter { it.isUnread }
-        "APPROVALS" -> notifications.filter { it.category == NotifCategory.APPROVALS }
-        "SYSTEM" -> notifications.filter { it.category == NotifCategory.SYSTEM }
-        else -> notifications
-    }
+    val filtered =
+        when (selectedFilter) {
+            "UNREAD" -> notifications.filter { it.isUnread }
+            "APPROVALS" -> notifications.filter { it.category == NotifCategory.APPROVALS }
+            "SYSTEM" -> notifications.filter { it.category == NotifCategory.SYSTEM }
+            else -> notifications
+        }
 
     Scaffold(
         topBar = {
@@ -117,36 +187,39 @@ fun NotificationCentreScreen(
                     }) {
                         Text("Mark all read")
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.s),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.s),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 items(FILTER_LABELS) { label ->
                     FilterChip(
                         selected = selectedFilter == label,
                         onClick = { selectedFilter = label },
-                        label = { Text(label) }
+                        label = { Text(label) },
                     )
                 }
             }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    horizontal = DesignTokens.Spacing.l,
-                    vertical = DesignTokens.Spacing.s
-                )
+                contentPadding =
+                    androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = DesignTokens.Spacing.l,
+                        vertical = DesignTokens.Spacing.s,
+                    ),
             ) {
                 items(filtered, key = { it.id }) { notif ->
                     NotificationCard(notif = notif)
@@ -161,39 +234,44 @@ private fun NotificationCard(notif: NotifItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        colors = CardDefaults.cardColors(
-            containerColor = if (notif.isUnread)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (notif.isUnread) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+            ),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(notif.iconColor.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(notif.iconColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = notif.icon,
                     contentDescription = null,
                     tint = notif.iconColor,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = notif.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (notif.isUnread) FontWeight.SemiBold else FontWeight.Normal
+                    fontWeight = if (notif.isUnread) FontWeight.SemiBold else FontWeight.Normal,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -201,23 +279,24 @@ private fun NotificationCard(notif: NotifItem) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = notif.relativeTime,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 )
             }
             if (notif.isUnread) {
                 Spacer(Modifier.width(DesignTokens.Spacing.xs))
                 Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .align(Alignment.CenterVertically)
+                    modifier =
+                        Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .align(Alignment.CenterVertically),
                 )
             }
         }

@@ -13,10 +13,8 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import com.miletracker.feature.tracking.TrackMilesActivity
-import org.koin.android.ext.android.inject
 
 class FloatingBubbleService : Service() {
-
     companion object {
         private const val TAG = "FloatingBubbleService"
         private const val CHANNEL_ID = "miletracker_bubble"
@@ -37,20 +35,24 @@ class FloatingBubbleService : Service() {
 
     private lateinit var bubbleManager: FloatingBubbleManager
 
-    private val trackingStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                LocationTrackingConstants.ACTION_TRACKING_STOPPED -> {
-                    Log.d(TAG, "Tracking stopped — dismissing bubble")
-                    bubbleManager.dismiss { stopSelf() }
+    private val trackingStateReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(
+                context: Context,
+                intent: Intent,
+            ) {
+                when (intent.action) {
+                    LocationTrackingConstants.ACTION_TRACKING_STOPPED -> {
+                        Log.d(TAG, "Tracking stopped — dismissing bubble")
+                        bubbleManager.dismiss { stopSelf() }
+                    }
+                    LocationTrackingConstants.ACTION_TRACKING_PAUSED ->
+                        bubbleManager.updateTrackingState(isTracking = false)
+                    LocationTrackingConstants.ACTION_TRACKING_RESUMED ->
+                        bubbleManager.updateTrackingState(isTracking = true)
                 }
-                LocationTrackingConstants.ACTION_TRACKING_PAUSED ->
-                    bubbleManager.updateTrackingState(isTracking = false)
-                LocationTrackingConstants.ACTION_TRACKING_RESUMED ->
-                    bubbleManager.updateTrackingState(isTracking = true)
             }
         }
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -58,7 +60,11 @@ class FloatingBubbleService : Service() {
         registerTrackingReceiver()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         if (!enterForeground()) return START_NOT_STICKY
 
         if (!Settings.canDrawOverlays(this)) {
@@ -71,29 +77,33 @@ class FloatingBubbleService : Service() {
             isTracking = true,
             savedX = 16,
             savedY = 300,
-            onTap = { openTrackingActivity() }
+            onTap = { openTrackingActivity() },
         )
 
         return START_STICKY
     }
 
     /** Calls startForeground defensively. Returns false (and stops self) on failure. */
-    private fun enterForeground(): Boolean = try {
-        startForeground(
-            NOTIF_ID,
-            buildSilentNotification(),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-        )
-        true
-    } catch (e: Exception) {
-        Log.w(TAG, "startForeground failed", e)
-        stopSelf()
-        false
-    }
+    private fun enterForeground(): Boolean =
+        try {
+            startForeground(
+                NOTIF_ID,
+                buildSilentNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            )
+            true
+        } catch (e: Exception) {
+            Log.w(TAG, "startForeground failed", e)
+            stopSelf()
+            false
+        }
 
     override fun onDestroy() {
         bubbleManager.forceRemove()
-        try { unregisterReceiver(trackingStateReceiver) } catch (_: Exception) {}
+        try {
+            unregisterReceiver(trackingStateReceiver)
+        } catch (_: Exception) {
+        }
         super.onDestroy()
     }
 
@@ -104,16 +114,17 @@ class FloatingBubbleService : Service() {
         startActivity(
             Intent(this, TrackMilesActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
+            },
         )
     }
 
     private fun registerTrackingReceiver() {
-        val filter = IntentFilter().apply {
-            addAction(LocationTrackingConstants.ACTION_TRACKING_STOPPED)
-            addAction(LocationTrackingConstants.ACTION_TRACKING_PAUSED)
-            addAction(LocationTrackingConstants.ACTION_TRACKING_RESUMED)
-        }
+        val filter =
+            IntentFilter().apply {
+                addAction(LocationTrackingConstants.ACTION_TRACKING_STOPPED)
+                addAction(LocationTrackingConstants.ACTION_TRACKING_PAUSED)
+                addAction(LocationTrackingConstants.ACTION_TRACKING_RESUMED)
+            }
         registerReceiver(trackingStateReceiver, filter, RECEIVER_NOT_EXPORTED)
     }
 
@@ -121,7 +132,7 @@ class FloatingBubbleService : Service() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL_ID, "Floating Bubble", NotificationManager.IMPORTANCE_MIN)
-                .apply { setShowBadge(false) }
+                .apply { setShowBadge(false) },
         )
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("MileTracker")

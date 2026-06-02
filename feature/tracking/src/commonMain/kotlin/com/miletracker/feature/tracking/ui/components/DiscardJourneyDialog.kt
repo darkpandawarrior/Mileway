@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 fun DiscardJourneyDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    isTracking: Boolean = true
+    isTracking: Boolean = true,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -38,7 +38,7 @@ fun DiscardJourneyDialog(
                 imageVector = Icons.Default.Warning,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(32.dp),
             )
         },
         title = {
@@ -46,36 +46,37 @@ fun DiscardJourneyDialog(
                 text = "Discard Journey?",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         },
         text = {
             Column {
                 Text(
-                    text = if (isTracking) {
-                        "Are you sure you want to discard this journey? All tracking data will be lost."
-                    } else {
-                        "Are you sure you want to discard this journey setup? Your odometer readings will be removed."
-                    },
-                    style = MaterialTheme.typography.bodyMedium
+                    text =
+                        if (isTracking) {
+                            "Are you sure you want to discard this journey? All tracking data will be lost."
+                        } else {
+                            "Are you sure you want to discard this journey setup? Your odometer readings will be removed."
+                        },
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                     Text(
                         text = "This action cannot be undone",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(start = 4.dp)
+                        modifier = Modifier.padding(start = 4.dp),
                     )
                 }
             }
@@ -83,11 +84,11 @@ fun DiscardJourneyDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
             ) { Text("Discard", color = Color.Red) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
+        },
     )
 }

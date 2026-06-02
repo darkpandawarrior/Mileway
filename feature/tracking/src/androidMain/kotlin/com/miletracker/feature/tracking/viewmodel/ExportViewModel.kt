@@ -19,15 +19,14 @@ import kotlinx.coroutines.launch
 data class ExportUiState(
     val isExporting: Boolean = false,
     val shareIntent: Intent? = null,
-    val error: String? = null
+    val error: String? = null,
 )
 
 class ExportViewModel(
     private val trackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,
-    private val hardwareEventRepository: HardwareEventRepository
+    private val hardwareEventRepository: HardwareEventRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ExportUiState())
     val uiState: StateFlow<ExportUiState> = _uiState.asStateFlow()
 
@@ -35,14 +34,15 @@ class ExportViewModel(
         context: Context,
         routeId: String,
         format: ExportFormat,
-        filter: LocationDataFilter
+        filter: LocationDataFilter,
     ) {
         _uiState.update { it.copy(isExporting = true, error = null, shareIntent = null) }
 
         viewModelScope.launch {
             try {
-                val track = trackRepository.getByRouteId(routeId)
-                    ?: error("Track not found: $routeId")
+                val track =
+                    trackRepository.getByRouteId(routeId)
+                        ?: error("Track not found: $routeId")
 
                 var locations = locationRepository.getForToken(routeId)
 

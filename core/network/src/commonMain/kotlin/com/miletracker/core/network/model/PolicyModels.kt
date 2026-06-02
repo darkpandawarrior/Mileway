@@ -1,15 +1,8 @@
 package com.miletracker.core.network.model
 
-/**
- * Policy / submission-outcome models for the network API surface.
- *
- * The concrete types are declared in `core:data`
- * (`com.miletracker.core.data.model.network`) because
- * [com.miletracker.core.data.model.network.ExpenseSubmissionResponse] embeds them and the
- * module graph points core:network -> core:data. This file re-exports them under the
- * network model package so API consumers can import policy types from the network layer
- * without depending on where they physically live.
- */
+// Policy / submission-outcome models for the network API surface.
+// Concrete types are declared in core:data; this file re-exports them under the network model
+// package so API consumers can import policy types without depending on core:data directly.
 
 /** Overall outcome of a mileage submission: SUCCESS, NEEDS_APPROVAL, REIMBURSABLE_ADJUSTED, POLICY_VIOLATION or HARD_STOP. */
 typealias SubmissionStatus = com.miletracker.core.data.model.network.SubmissionStatus

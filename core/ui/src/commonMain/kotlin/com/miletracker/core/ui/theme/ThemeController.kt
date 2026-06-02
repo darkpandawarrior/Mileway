@@ -122,11 +122,12 @@ class ThemeController(
         prefs?.let { store ->
             scope.launch {
                 // A corrupt or unavailable store must never crash the app — fall back to defaults.
-                val snap = try {
-                    store.data.first()
-                } catch (_: Throwable) {
-                    return@launch
-                }
+                val snap =
+                    try {
+                        store.data.first()
+                    } catch (_: Throwable) {
+                        return@launch
+                    }
                 snap[ThemePreferenceKeys.USE_DARK_THEME]?.let { _darkThemeOverride.value = it }
                 snap[ThemePreferenceKeys.ACCENT_PALETTE]?.let { name ->
                     AccentPalette.entries.firstOrNull { it.name == name }
@@ -160,8 +161,11 @@ class ThemeController(
     fun set(dark: Boolean?) {
         _darkThemeOverride.value = dark
         persist { p ->
-            if (dark == null) p.remove(ThemePreferenceKeys.USE_DARK_THEME)
-            else p[ThemePreferenceKeys.USE_DARK_THEME] = dark
+            if (dark == null) {
+                p.remove(ThemePreferenceKeys.USE_DARK_THEME)
+            } else {
+                p[ThemePreferenceKeys.USE_DARK_THEME] = dark
+            }
         }
     }
 

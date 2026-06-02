@@ -46,17 +46,18 @@ data class TrackInsightData(
     val systemImpactResult: SystemImpactResult? = null,
     val distanceQualityResult: DistanceQualityResult? = null,
     // --- recommendations (unchanged) --------------------------------------
-    val recommendations: List<String> = emptyList()
+    val recommendations: List<String> = emptyList(),
 )
 
 class TrackInsightsViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,
     private val hardwareEventRepository: HardwareEventRepository,
-    private val routeAnalyzer: RouteAnalyzer = RouteAnalyzer()
+    private val routeAnalyzer: RouteAnalyzer = RouteAnalyzer(),
 ) : ViewModel() {
-
-    companion object { private const val TAG = "TrackInsightsVM" }
+    companion object {
+        private const val TAG = "TrackInsightsVM"
+    }
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -75,17 +76,18 @@ class TrackInsightsViewModel(
             _isLoading.value = true
             _error.value = null
             try {
-                val track = savedTrackRepository.getByRouteId(routeId) ?: run {
-                    _error.value = "Track not found"
-                    _isLoading.value = false
-                    return@launch
-                }
+                val track =
+                    savedTrackRepository.getByRouteId(routeId) ?: run {
+                        _error.value = "Track not found"
+                        _isLoading.value = false
+                        return@launch
+                    }
                 _track.value = track
 
                 val locations = locationRepository.getForToken(routeId)
-                val events    = hardwareEventRepository.getEventsForRoute(routeId).getOrDefault(emptyList())
+                val events = hardwareEventRepository.getEventsForRoute(routeId).getOrDefault(emptyList())
 
-                val analysis  = routeAnalyzer.analyze(track, locations, events)
+                val analysis = routeAnalyzer.analyze(track, locations, events)
                 _insights.value = buildInsightData(track, locations, analysis)
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading insights", e)
@@ -99,52 +101,53 @@ class TrackInsightsViewModel(
     private fun buildInsightData(
         track: SavedTrack,
         locations: List<LocationData>,
-        analysis: RouteAnalysisResult
+        analysis: RouteAnalysisResult,
     ): TrackInsightData {
-        val mockCount     = locations.count { it.isMock }
+        val mockCount = locations.count { it.isMock }
         val abnormalCount = locations.count { it.isAbnormal }
-        val pauseCount    = locations.count { it.isPaused }
+        val pauseCount = locations.count { it.isPaused }
 
         val qualityScore = analysis.quality.qualityScore
-        val qualityLabel = when {
-            qualityScore >= 90 -> "Excellent"
-            qualityScore >= 75 -> "Good"
-            qualityScore >= 55 -> "Fair"
-            qualityScore >= 35 -> "Poor"
-            else               -> "Critical"
-        }
+        val qualityLabel =
+            when {
+                qualityScore >= 90 -> "Excellent"
+                qualityScore >= 75 -> "Good"
+                qualityScore >= 55 -> "Fair"
+                qualityScore >= 35 -> "Poor"
+                else -> "Critical"
+            }
 
         return TrackInsightData(
-            avgSpeedKmh           = if (track.avgSpeed > 0) track.avgSpeed * 3.6 else 0.0,
-            maxSpeedKmh           = if (track.maxSpeed > 0) track.maxSpeed * 3.6 else 0.0,
-            distanceKm            = track.distance / 1000.0,
-            durationMs            = max(0L, track.endTime - track.startTime),
-            locationCount         = locations.size,
-            mockLocationCount     = mockCount,
+            avgSpeedKmh = if (track.avgSpeed > 0) track.avgSpeed * 3.6 else 0.0,
+            maxSpeedKmh = if (track.maxSpeed > 0) track.maxSpeed * 3.6 else 0.0,
+            distanceKm = track.distance / 1000.0,
+            durationMs = max(0L, track.endTime - track.startTime),
+            locationCount = locations.size,
+            mockLocationCount = mockCount,
             abnormalLocationCount = abnormalCount,
-            pauseCount            = pauseCount,
-            qualityScore          = qualityScore,
-            qualityLabel          = qualityLabel,
-            qualityResult         = analysis.quality,
-            activityResult        = analysis.activity,
-            systemImpactResult    = analysis.systemImpact,
+            pauseCount = pauseCount,
+            qualityScore = qualityScore,
+            qualityLabel = qualityLabel,
+            qualityResult = analysis.quality,
+            activityResult = analysis.activity,
+            systemImpactResult = analysis.systemImpact,
             distanceQualityResult = analysis.distanceQuality,
-            recommendations       = buildRecommendations(track, mockCount, abnormalCount)
+            recommendations = buildRecommendations(track, mockCount, abnormalCount),
         )
     }
 
     private fun buildRecommendations(
         track: SavedTrack,
         mockCount: Int,
-        abnormalCount: Int
+        abnormalCount: Int,
     ): List<String> {
         val recs = mutableListOf<String>()
-        if (mockCount > 0)                       recs += "Disable mock location apps for accurate distance tracking."
-        if (abnormalCount > 5)                   recs += "Keep the device in an open area for better GPS signal."
+        if (mockCount > 0) recs += "Disable mock location apps for accurate distance tracking."
+        if (abnormalCount > 5) recs += "Keep the device in an open area for better GPS signal."
         if (track.wasBatteryOptimizationEnabled) recs += "Disable battery optimisation for MileTracker to avoid interruptions."
-        if (track.wasPowerSaverEnabled)          recs += "Turn off power saver mode while tracking for best accuracy."
-        if (track.wasAppKilled)                  recs += "Avoid closing the app while tracking — use the pause button instead."
-        if (recs.isEmpty())                      recs += "Great tracking session! GPS accuracy was consistent throughout."
+        if (track.wasPowerSaverEnabled) recs += "Turn off power saver mode while tracking for best accuracy."
+        if (track.wasAppKilled) recs += "Avoid closing the app while tracking — use the pause button instead."
+        if (recs.isEmpty()) recs += "Great tracking session! GPS accuracy was consistent throughout."
         return recs
     }
 }

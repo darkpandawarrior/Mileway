@@ -10,8 +10,10 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class OdometerOcrAnalyzer {
-
-    suspend fun analyze(imageUri: Uri, context: Context): OcrResult =
+    suspend fun analyze(
+        imageUri: Uri,
+        context: Context,
+    ): OcrResult =
         withContext(Dispatchers.Default) {
             try {
                 val inputImage = InputImage.fromFilePath(context, imageUri)
@@ -41,5 +43,6 @@ class OdometerOcrAnalyzer {
 
 sealed interface OcrResult {
     data class Success(val reading: Int, val rawText: String) : OcrResult
+
     data class Failure(val reason: String) : OcrResult
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.navgraph)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -109,8 +110,6 @@ dependencies {
     // Coil 3 decoders — GIF animations and SVG assets
     implementation(libs.coil3.gif)
     implementation(libs.coil3.svg)
-
-
 
     // WormaCeptor — HTTP traffic inspector, DEBUG builds only (never in release; Android-only).
     debugImplementation(libs.wormaceptor.api)

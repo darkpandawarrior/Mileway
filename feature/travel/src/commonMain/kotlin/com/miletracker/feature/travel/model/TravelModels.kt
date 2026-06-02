@@ -1,6 +1,7 @@
 package com.miletracker.feature.travel.model
 
 enum class TripStatus { ACTIVE, UPCOMING, COMPLETED }
+
 enum class TransportMode { FLIGHT, TRAIN, BUS, CAB }
 
 data class BookingRecord(
@@ -14,5 +15,5 @@ data class BookingRecord(
     val amountRupees: Double,
     val status: TripStatus,
     val gate: String? = null,
-    val boardingTime: String? = null
+    val boardingTime: String? = null,
 )

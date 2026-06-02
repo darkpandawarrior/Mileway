@@ -1,6 +1,7 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.ui.screens
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
@@ -27,7 +29,6 @@ import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Timer
@@ -82,7 +83,7 @@ fun TrackDetailScreen(
     onOpenHwEvents: () -> Unit,
     onOpenDataPreview: () -> Unit = {},
     viewModel: TrackDetailViewModel = koinViewModel(),
-    exportViewModel: ExportViewModel = koinViewModel()
+    exportViewModel: ExportViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val exportState by exportViewModel.uiState.collectAsState()
@@ -116,7 +117,7 @@ fun TrackDetailScreen(
                 showExportDialog = false
                 exportViewModel.export(context, routeId, format, filter)
             },
-            trackName = uiState.track?.name
+            trackName = uiState.track?.name,
         )
     }
 
@@ -147,20 +148,24 @@ fun TrackDetailScreen(
                     IconButton(onClick = onOpenDataPreview) {
                         Icon(Icons.Default.Analytics, contentDescription = "Data Preview")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
-        if (uiState.isLoading) { LoadingScreen(); return@Scaffold }
+        if (uiState.isLoading) {
+            LoadingScreen()
+            return@Scaffold
+        }
 
         val track = uiState.track ?: return@Scaffold
         val rawTrack = uiState.rawTrack
         val health = rawTrack?.let { computeHealthLevel(it) }
         val gpsPoints = if (uiState.locations.isNotEmpty()) uiState.locations.size else track.locationCount
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             DetailSummaryCard(track = track, health = health)
 
@@ -176,14 +181,16 @@ fun TrackDetailScreen(
             if (track.reimbursableAmount > 0 || track.selectedVehicleType.isNotBlank()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
                     MetricTile(
-                        Icons.Default.CheckCircle, "Amount",
+                        Icons.Default.CheckCircle,
+                        "Amount",
                         if (track.reimbursableAmount > 0) "₹%.0f".format(track.reimbursableAmount) else "—",
-                        Modifier.weight(1f)
+                        Modifier.weight(1f),
                     )
                     MetricTile(
-                        Icons.Default.Map, "Vehicle",
+                        Icons.Default.Map,
+                        "Vehicle",
                         humanizeVehicle(track.selectedVehicleType),
-                        Modifier.weight(1f)
+                        Modifier.weight(1f),
                     )
                 }
             }
@@ -195,23 +202,28 @@ fun TrackDetailScreen(
 
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
             FilledTonalButton(onClick = { showExportDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Download, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Icon(Icons.Default.Download, null, Modifier.size(18.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text(if (exportState.isExporting) "Exporting…" else "Export track data")
             }
             FilledTonalButton(onClick = onOpenMap, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Map, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Icon(Icons.Default.Map, null, Modifier.size(18.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text("View route map")
             }
             FilledTonalButton(onClick = onOpenInsights, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Insights, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Icon(Icons.Default.Insights, null, Modifier.size(18.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text("Trip insights")
             }
             FilledTonalButton(onClick = onOpenHwEvents, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.History, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Icon(Icons.Default.History, null, Modifier.size(18.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text("Hardware events")
             }
             FilledTonalButton(onClick = onOpenDataPreview, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Analytics, null, Modifier.size(18.dp)); Spacer(Modifier.size(DesignTokens.Spacing.s))
+                Icon(Icons.Default.Analytics, null, Modifier.size(18.dp))
+                Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text("Data preview")
             }
         }
@@ -219,45 +231,51 @@ fun TrackDetailScreen(
 }
 
 @Composable
-private fun DetailSummaryCard(track: TrackDisplayData, health: HealthLevel? = null) {
+private fun DetailSummaryCard(
+    track: TrackDisplayData,
+    health: HealthLevel? = null,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedLg,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.raised)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.raised),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(DesignTokens.topBarGradientBrush())
-                .padding(DesignTokens.Spacing.xl)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(DesignTokens.topBarGradientBrush())
+                    .padding(DesignTokens.Spacing.xl),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 DetailStatusChip(isSubmitted = track.isSubmitted)
                 if (health != null) {
-                    val healthColor = when (health) {
-                        HealthLevel.EXCELLENT -> Color(0xFF2E7D32)
-                        HealthLevel.GOOD -> Color(0xFF558B2F)
-                        HealthLevel.FAIR -> Color(0xFFF9A825)
-                        HealthLevel.POOR -> Color(0xFFE65100)
-                        HealthLevel.CRITICAL -> Color(0xFFC62828)
-                    }
+                    val healthColor =
+                        when (health) {
+                            HealthLevel.EXCELLENT -> Color(0xFF2E7D32)
+                            HealthLevel.GOOD -> Color(0xFF558B2F)
+                            HealthLevel.FAIR -> Color(0xFFF9A825)
+                            HealthLevel.POOR -> Color(0xFFE65100)
+                            HealthLevel.CRITICAL -> Color(0xFFC62828)
+                        }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(healthColor.copy(alpha = 0.85f))
-                            .padding(horizontal = DesignTokens.Spacing.m, vertical = 4.dp)
+                        modifier =
+                            Modifier
+                                .clip(CircleShape)
+                                .background(healthColor.copy(alpha = 0.85f))
+                                .padding(horizontal = DesignTokens.Spacing.m, vertical = 4.dp),
                     ) {
                         Text(
                             health.name.lowercase().replaceFirstChar { it.uppercase() },
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
@@ -268,14 +286,14 @@ private fun DetailSummaryCard(track: TrackDisplayData, health: HealthLevel? = nu
                     text = track.getFormattedDistance(),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
                 )
             }
             if (track.startTime > 0) {
                 Text(
                     text = DateUtils.epochToDisplayDate(track.startTime),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = Color.White.copy(alpha = 0.85f),
                 )
             }
         }
@@ -283,19 +301,31 @@ private fun DetailSummaryCard(track: TrackDisplayData, health: HealthLevel? = nu
 }
 
 @Composable
-private fun MetricTile(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
+private fun MetricTile(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Card(
         modifier = modifier,
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(DesignTokens.IconSize.actionTile))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(DesignTokens.IconSize.actionTile),
+            )
             Spacer(Modifier.height(DesignTokens.Spacing.s))
             Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(label, style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -306,10 +336,11 @@ private fun DetailStatusChip(isSubmitted: Boolean) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.2f))
-            .padding(horizontal = DesignTokens.Spacing.m, vertical = 4.dp)
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.2f))
+                .padding(horizontal = DesignTokens.Spacing.m, vertical = 4.dp),
     ) {
         if (isSubmitted) {
             Icon(Icons.Default.CheckCircle, null, tint = Color.White, modifier = Modifier.size(DesignTokens.IconSize.inline))
@@ -331,23 +362,34 @@ private fun AttachmentsCard(attachments: List<TripAttachmentEntity>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
-        Column(modifier = Modifier.padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
-
+        Column(
+            modifier = Modifier.padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Photo, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Icon(
+                    Icons.Default.Photo,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
-                Text("Attachments", style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Attachments",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
 
             // Odometer proofs
             if (odoStart != null || odoEnd != null) {
-                Text("Odometer proofs", style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Odometer proofs",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
                     odoStart?.let { a ->
                         OdometerProofTile(label = "Start", uri = a.uri, ocrText = a.ocrText)
@@ -360,11 +402,14 @@ private fun AttachmentsCard(attachments: List<TripAttachmentEntity>) {
 
             // Receipt thumbnails
             if (receipts.isNotEmpty()) {
-                Text("Receipts (${receipts.size})", style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Receipts (${receipts.size})",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 ) {
                     receipts.forEach { a ->
                         Box(modifier = Modifier.size(80.dp)) {
@@ -372,16 +417,17 @@ private fun AttachmentsCard(attachments: List<TripAttachmentEntity>) {
                                 model = a.uri,
                                 contentDescription = "Receipt photo",
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                             )
                             Icon(
                                 Icons.AutoMirrored.Filled.ReceiptLong,
                                 contentDescription = null,
                                 tint = Color.White.copy(alpha = 0.8f),
-                                modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(14.dp)
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(14.dp),
                             )
                         }
                     }
@@ -392,28 +438,36 @@ private fun AttachmentsCard(attachments: List<TripAttachmentEntity>) {
 }
 
 @Composable
-private fun OdometerProofTile(label: String, uri: String, ocrText: String?) {
+private fun OdometerProofTile(
+    label: String,
+    uri: String,
+    ocrText: String?,
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
     ) {
-        Text(label, style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         AsyncImage(
             model = uri,
             contentDescription = "$label odometer proof",
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+            modifier =
+                Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
         )
         if (!ocrText.isNullOrBlank()) {
             Text(
                 ocrText,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.secondary,
             )
         }
     }

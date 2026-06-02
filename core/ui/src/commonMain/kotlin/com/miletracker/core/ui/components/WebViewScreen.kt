@@ -48,8 +48,11 @@ fun EmbeddedWebViewScreen(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = {
-                        if (navigator.canGoBack) navigator.navigateBack()
-                        else onBack()
+                        if (navigator.canGoBack) {
+                            navigator.navigateBack()
+                        } else {
+                            onBack()
+                        }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }

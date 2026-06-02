@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
@@ -43,7 +44,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import coil3.compose.AsyncImage
 import com.miletracker.core.data.library.MediaLibraryEntry
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
@@ -56,7 +56,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun CloudLibraryScreen(
     onNavigateBack: () -> Unit,
     onSelectUri: ((String) -> Unit)? = null,
-    viewModel: CloudLibraryViewModel = koinViewModel()
+    viewModel: CloudLibraryViewModel = koinViewModel(),
 ) {
     val entries by viewModel.entries.collectAsState()
     val selectedIds = remember { mutableStateSetOf<String>() }
@@ -73,7 +73,7 @@ fun CloudLibraryScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -83,50 +83,52 @@ fun CloudLibraryScreen(
                     icon = { Icon(Icons.Default.Delete, contentDescription = null) },
                     text = { Text("Delete (${selectedIds.size})") },
                     containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 )
             }
-        }
+        },
     ) { innerPadding ->
         if (entries.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         Icons.Default.CloudOff,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.outlineVariant
+                        tint = MaterialTheme.colorScheme.outlineVariant,
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
                         "No media saved yet.",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "Attachments you capture will appear here.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
+                        color = MaterialTheme.colorScheme.outline,
                     )
                 }
             }
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
-                contentPadding = PaddingValues(
-                    start = 4.dp,
-                    end = 4.dp,
-                    top = innerPadding.calculateTopPadding() + 4.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 4.dp
-                ),
+                contentPadding =
+                    PaddingValues(
+                        start = 4.dp,
+                        end = 4.dp,
+                        top = innerPadding.calculateTopPadding() + 4.dp,
+                        bottom = innerPadding.calculateBottomPadding() + 4.dp,
+                    ),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 items(entries, key = { it.id }) { entry ->
                     LibraryThumbnail(
@@ -134,8 +136,11 @@ fun CloudLibraryScreen(
                         isSelected = entry.id in selectedIds,
                         onTap = {
                             if (selectionMode) {
-                                if (entry.id in selectedIds) selectedIds.remove(entry.id)
-                                else selectedIds.add(entry.id)
+                                if (entry.id in selectedIds) {
+                                    selectedIds.remove(entry.id)
+                                } else {
+                                    selectedIds.add(entry.id)
+                                }
                                 if (selectedIds.isEmpty()) selectionMode = false
                             } else if (onSelectUri != null) {
                                 onSelectUri(entry.uri)
@@ -144,7 +149,7 @@ fun CloudLibraryScreen(
                         onLongPress = {
                             selectionMode = true
                             selectedIds.add(entry.id)
-                        }
+                        },
                     )
                 }
             }
@@ -167,7 +172,7 @@ fun CloudLibraryScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
-            }
+            },
         )
     }
 }
@@ -177,31 +182,36 @@ private fun LibraryThumbnail(
     entry: MediaLibraryEntry,
     isSelected: Boolean,
     onTap: () -> Unit,
-    onLongPress: () -> Unit
+    onLongPress: () -> Unit,
 ) {
     val shape = RoundedCornerShape(4.dp)
     Box(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .combinedClickable(onClick = onTap, onLongClick = onLongPress)
-            .then(
-                if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape)
-                else Modifier
-            )
+        modifier =
+            Modifier
+                .aspectRatio(1f)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .combinedClickable(onClick = onTap, onLongClick = onLongPress)
+                .then(
+                    if (isSelected) {
+                        Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape)
+                    } else {
+                        Modifier
+                    },
+                ),
     ) {
         AsyncImage(
             model = entry.uri,
             contentDescription = entry.label,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
         if (isSelected) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF6367FA).copy(alpha = 0.35f))
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF6367FA).copy(alpha = 0.35f)),
             )
         }
     }

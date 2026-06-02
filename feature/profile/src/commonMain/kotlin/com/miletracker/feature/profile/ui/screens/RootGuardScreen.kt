@@ -2,9 +2,6 @@ package com.miletracker.feature.profile.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.tooling.preview.Preview
-import com.miletracker.core.ui.theme.MileTrackerTheme
-import com.miletracker.feature.profile.ui.previews.LightDarkPreview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.security.RootDetector
+import com.miletracker.core.ui.theme.MileTrackerTheme
+import com.miletracker.feature.profile.ui.previews.LightDarkPreview
 
 @Composable
 fun RootGuardScreen(
@@ -39,11 +39,12 @@ fun RootGuardScreen(
     val bgColor = if (isClean) Color(0xFF1B5E20) else Color(0xFFB71C1C)
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(bgColor)
-            .verticalScroll(rememberScrollState())
-            .padding(32.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(bgColor)
+                .verticalScroll(rememberScrollState())
+                .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -67,12 +68,13 @@ fun RootGuardScreen(
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = if (isClean) {
-                "No root signals detected. This device appears to be running in a standard, secure environment."
-            } else {
-                "This device appears to be rooted or running in an insecure environment. " +
-                    "The app may not function correctly."
-            },
+            text =
+                if (isClean) {
+                    "No root signals detected. This device appears to be running in a standard, secure environment."
+                } else {
+                    "This device appears to be rooted or running in an insecure environment. " +
+                        "The app may not function correctly."
+                },
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White.copy(alpha = 0.87f),
             textAlign = TextAlign.Center,
@@ -101,10 +103,11 @@ fun RootGuardScreen(
 
         Button(
             onClick = onContinue,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = bgColor,
-            ),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = bgColor,
+                ),
         ) {
             Text(
                 text = if (isClean) "Continue" else "Continue Anyway (Demo)",

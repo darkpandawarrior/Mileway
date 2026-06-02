@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 package com.miletracker.feature.profile.ui.screens
 
 import androidx.compose.foundation.background
@@ -24,8 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.TrendingUp
@@ -56,44 +58,46 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.stub.AnalyticsMockData
+import com.miletracker.stub.RecentActivityItem
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import com.miletracker.stub.RecentActivityItem
 
 @OptIn(ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsHomeScreen(
     onBack: () -> Unit,
     onOpenDetail: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val data = AnalyticsMockData
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             Box(
-                modifier = Modifier
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF0F4C75), Color(0xFF1B6CA8))))
-                    .windowInsetsPadding(WindowInsets.statusBars)
+                modifier =
+                    Modifier
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF0F4C75), Color(0xFF1B6CA8))))
+                        .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -130,16 +134,21 @@ fun AnalyticsHomeScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MySpendTab(data: AnalyticsMockData, onOpenDetail: (String) -> Unit) {
+private fun MySpendTab(
+    data: AnalyticsMockData,
+    onOpenDetail: (String) -> Unit,
+) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            horizontal = DesignTokens.Spacing.l,
-            vertical = DesignTokens.Spacing.l
-        ),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
+        contentPadding =
+            androidx.compose.foundation.layout.PaddingValues(
+                horizontal = DesignTokens.Spacing.l,
+                vertical = DesignTokens.Spacing.l,
+            ),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
     ) {
         item { SpendingOverviewCard(data) }
         item { CategoryBreakdownCard(data, onOpenDetail) }
@@ -157,13 +166,13 @@ private fun MySpendTab(data: AnalyticsMockData, onOpenDetail: (String) -> Unit) 
                 data.quickInsights.forEach { insight ->
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = DesignTokens.Shape.chip
+                        shape = DesignTokens.Shape.chip,
                     ) {
                         Text(
                             insight,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.s)
+                            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.s),
                         )
                     }
                 }
@@ -175,13 +184,14 @@ private fun MySpendTab(data: AnalyticsMockData, onOpenDetail: (String) -> Unit) 
 
 private data class TeamMember(val name: String, val amountRupees: Double, val claimCount: Int, val topCategory: String)
 
-private val TEAM_MEMBERS = listOf(
-    TeamMember("Aisha Khan", 15_600.0, 8, "Travel"),
-    TeamMember("Priya Sharma", 12_400.0, 6, "Expense"),
-    TeamMember("Neha Patel", 9_800.0, 5, "Mileage"),
-    TeamMember("Rahul Mehra", 8_900.0, 4, "Expense"),
-    TeamMember("Vikram Nair", 6_200.0, 3, "Advance"),
-)
+private val TEAM_MEMBERS =
+    listOf(
+        TeamMember("Aisha Khan", 15_600.0, 8, "Travel"),
+        TeamMember("Priya Sharma", 12_400.0, 6, "Expense"),
+        TeamMember("Neha Patel", 9_800.0, 5, "Mileage"),
+        TeamMember("Rahul Mehra", 8_900.0, 4, "Expense"),
+        TeamMember("Vikram Nair", 6_200.0, 3, "Advance"),
+    )
 
 private val TEAM_TOTAL = TEAM_MEMBERS.sumOf { it.amountRupees }
 
@@ -205,7 +215,12 @@ private fun TeamTab() {
                             Text("5 members · June 2026", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("₹${TEAM_TOTAL.toLong()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                "₹${TEAM_TOTAL.toLong()}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
                             Text("total", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
@@ -237,14 +252,18 @@ private fun TeamTab() {
 }
 
 @Composable
-private fun TeamMemberRow(member: TeamMember, teamTotal: Double) {
+private fun TeamMemberRow(
+    member: TeamMember,
+    teamTotal: Double,
+) {
     val fraction = (member.amountRupees / teamTotal).toFloat()
-    val categoryColor = when (member.topCategory) {
-        "Travel" -> Color(0xFF9C27B0)
-        "Expense" -> Color(0xFF2196F3)
-        "Mileage" -> Color(0xFF4CAF50)
-        else -> Color(0xFFFF9800)
-    }
+    val categoryColor =
+        when (member.topCategory) {
+            "Travel" -> Color(0xFF9C27B0)
+            "Expense" -> Color(0xFF2196F3)
+            "Mileage" -> Color(0xFF4CAF50)
+            else -> Color(0xFFFF9800)
+        }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
@@ -266,7 +285,11 @@ private fun TeamMemberRow(member: TeamMember, teamTotal: Double) {
                 Box(modifier = Modifier.fillMaxWidth(fraction).height(4.dp).clip(RoundedCornerShape(2.dp)).background(categoryColor))
             }
             Spacer(Modifier.height(2.dp))
-            Text("${member.claimCount} claims · ${member.topCategory}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "${member.claimCount} claims · ${member.topCategory}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -280,12 +303,18 @@ private data class InsightCard(
 
 private enum class InsightType { ANOMALY, BREACH_RISK, PATTERN, SAVINGS }
 
-private val AI_INSIGHTS = listOf(
-    InsightCard("I001", "Unusual Travel Spend", "Aisha Khan's travel spend is 2.3× above the team average this month.", InsightType.ANOMALY),
-    InsightCard("I002", "SLA Breach Risk", "3 claims have been pending approval for over 5 days — expected SLA breach by Friday.", InsightType.BREACH_RISK),
-    InsightCard("I003", "Submission Pattern", "Mileage submissions spike every Monday. Consider scheduling batch review reminders.", InsightType.PATTERN),
-    InsightCard("I004", "Savings Identified", "Policy-compliant hotel selections saved ₹4,200 this quarter compared to category average.", InsightType.SAVINGS),
-)
+private val AI_INSIGHTS =
+    listOf(
+        InsightCard("I001", "Unusual Travel Spend", "Aisha Khan's travel spend is 2.3× above the team average this month.", InsightType.ANOMALY),
+        InsightCard("I002", "SLA Breach Risk", "3 claims have been pending approval for over 5 days — expected SLA breach by Friday.", InsightType.BREACH_RISK),
+        InsightCard("I003", "Submission Pattern", "Mileage submissions spike every Monday. Consider scheduling batch review reminders.", InsightType.PATTERN),
+        InsightCard(
+            "I004",
+            "Savings Identified",
+            "Policy-compliant hotel selections saved ₹4,200 this quarter compared to category average.",
+            InsightType.SAVINGS,
+        ),
+    )
 
 @Composable
 private fun InsightsTab() {
@@ -313,12 +342,13 @@ private fun InsightsTab() {
 
 @Composable
 private fun AiInsightCard(insight: InsightCard) {
-    val (icon, accentColor) = when (insight.type) {
-        InsightType.ANOMALY -> Icons.AutoMirrored.Filled.TrendingUp to Color(0xFFE65100)
-        InsightType.BREACH_RISK -> Icons.Default.Warning to Color(0xFFC62828)
-        InsightType.PATTERN -> Icons.Default.Lightbulb to Color(0xFF1565C0)
-        InsightType.SAVINGS -> Icons.Default.AutoAwesome to Color(0xFF2E7D32)
-    }
+    val (icon, accentColor) =
+        when (insight.type) {
+            InsightType.ANOMALY -> Icons.AutoMirrored.Filled.TrendingUp to Color(0xFFE65100)
+            InsightType.BREACH_RISK -> Icons.Default.Warning to Color(0xFFC62828)
+            InsightType.PATTERN -> Icons.Default.Lightbulb to Color(0xFF1565C0)
+            InsightType.SAVINGS -> Icons.Default.AutoAwesome to Color(0xFF2E7D32)
+        }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
@@ -349,17 +379,22 @@ private fun SpendingOverviewCard(data: AnalyticsMockData) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("7-Day Spending", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), shape = RoundedCornerShape(6.dp)) {
-                    Text("vs last week +12%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                    Text(
+                        "vs last week +12%",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    )
                 }
             }
             Spacer(Modifier.height(DesignTokens.Spacing.m))
@@ -368,7 +403,7 @@ private fun SpendingOverviewCard(data: AnalyticsMockData) {
             val series = data.weeklySeries
             val maxAmount = series.maxOf { it.amountRupees }
             androidx.compose.foundation.Canvas(
-                modifier = Modifier.fillMaxWidth().height(100.dp)
+                modifier = Modifier.fillMaxWidth().height(100.dp),
             ) {
                 val barCount = series.size
                 val totalWidth = size.width
@@ -385,7 +420,7 @@ private fun SpendingOverviewCard(data: AnalyticsMockData) {
                         color = primaryColor,
                         topLeft = Offset(x, y),
                         size = Size(barWidth, barHeight),
-                        cornerRadius = CornerRadius(6f, 6f)
+                        cornerRadius = CornerRadius(6f, 6f),
                     )
                 }
             }
@@ -401,18 +436,22 @@ private fun SpendingOverviewCard(data: AnalyticsMockData) {
 }
 
 @Composable
-private fun CategoryBreakdownCard(data: AnalyticsMockData, onOpenDetail: (String) -> Unit) {
-    val categoryColors = mapOf(
-        "Mileage" to Color(0xFF2563EB),
-        "Expense" to Color(0xFF7C3AED),
-        "Travel" to Color(0xFFEA580C),
-        "Advance" to Color(0xFF0F766E)
-    )
+private fun CategoryBreakdownCard(
+    data: AnalyticsMockData,
+    onOpenDetail: (String) -> Unit,
+) {
+    val categoryColors =
+        mapOf(
+            "Mileage" to Color(0xFF2563EB),
+            "Expense" to Color(0xFF7C3AED),
+            "Travel" to Color(0xFFEA580C),
+            "Advance" to Color(0xFF0F766E),
+        )
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l)) {
             Text("Category Breakdown", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -421,7 +460,7 @@ private fun CategoryBreakdownCard(data: AnalyticsMockData, onOpenDetail: (String
             val total = data.categoryTotals.values.sum()
             // Horizontal stacked bar
             Row(
-                modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp))
+                modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp)),
             ) {
                 data.categoryTotals.entries.forEach { (category, amount) ->
                     val fraction = (amount / total).toFloat()
@@ -436,7 +475,7 @@ private fun CategoryBreakdownCard(data: AnalyticsMockData, onOpenDetail: (String
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { onOpenDetail(category) }.padding(vertical = DesignTokens.Spacing.xs),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 ) {
                     Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
                     Text(category, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
@@ -455,12 +494,12 @@ private fun PolicyHealthCard(data: AnalyticsMockData) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.size(80.dp)) {
@@ -471,21 +510,21 @@ private fun PolicyHealthCard(data: AnalyticsMockData) {
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
-                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                     )
                     drawArc(
                         color = primaryColor,
                         startAngle = -90f,
                         sweepAngle = sweep,
                         useCenter = false,
-                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                     )
                 }
                 Text(
                     "${data.compliancePercent}%",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
 
@@ -502,7 +541,11 @@ private fun PolicyHealthCard(data: AnalyticsMockData) {
 }
 
 @Composable
-private fun PolicyStat(label: String, value: String, color: Color) {
+private fun PolicyStat(
+    label: String,
+    value: String,
+    color: Color,
+) {
     Column {
         Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -511,26 +554,33 @@ private fun PolicyStat(label: String, value: String, color: Color) {
 
 @Composable
 private fun RecentActivityRow(item: RecentActivityItem) {
-    val MONTHS = arrayOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    val MONTHS = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = DesignTokens.Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         Box(
             modifier = Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 item.category.first().toString(),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(item.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-            Text("${item.subtitle} · ${Instant.fromEpochMilliseconds(item.dateMs).toLocalDateTime(TimeZone.currentSystemDefault()).let { ldt -> "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]}" }}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "${item.subtitle} · ${Instant.fromEpochMilliseconds(item.dateMs).toLocalDateTime(TimeZone.currentSystemDefault()).let {
+                        ldt ->
+                    "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]}"
+                }}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Text("₹${item.amountRupees.toLong()}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
     }

@@ -10,6 +10,8 @@ class IosLocationTracker : LocationTracker {
     override val updates: Flow<GeoPoint> = _updates.asSharedFlow()
 
     override suspend fun current(): GeoPoint? = null
+
     override fun start() {}
+
     override fun stop() {}
 }

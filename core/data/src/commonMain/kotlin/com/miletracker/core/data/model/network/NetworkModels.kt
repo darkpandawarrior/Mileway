@@ -9,12 +9,12 @@ import kotlinx.serialization.Serializable
 data class CoordsV2(
     @SerialName("lat") val lat: Double? = null,
     @SerialName("lng") val lng: Double? = null,
-    @SerialName("name") val name: String? = null
+    @SerialName("name") val name: String? = null,
 )
 
 @Serializable
 data class CoordsPayload(
-    @SerialName("coords") val coords: List<CoordsV2>? = null
+    @SerialName("coords") val coords: List<CoordsV2>? = null,
 )
 
 // ── Vehicles ──────────────────────────────────────────────────────────────────
@@ -23,17 +23,17 @@ data class CoordsPayload(
 data class ApprovedVehicle(
     @SerialName("key") val vehicleKey: String? = null,
     @SerialName("value") val vehicleName: String? = null,
-    @SerialName("pricing") val vehiclePricing: Double? = null
+    @SerialName("pricing") val vehiclePricing: Double? = null,
 )
 
 @Serializable
 data class PolicyApprovedVehiclesResponse(
-    @SerialName("items") val vehicles: List<ApprovedVehicle> = emptyList()
+    @SerialName("items") val vehicles: List<ApprovedVehicle> = emptyList(),
 )
 
 @Serializable
 data class ApprovedVehiclePricingResponse(
-    @SerialName("data") val data: Map<String, Double> = emptyMap()
+    @SerialName("data") val data: Map<String, Double> = emptyMap(),
 )
 
 // ── Submission response ───────────────────────────────────────────────────────
@@ -53,18 +53,20 @@ data class ExpenseSubmissionResponse(
     @SerialName("submissionStatus") val submissionStatus: SubmissionStatus = SubmissionStatus.SUCCESS,
     @SerialName("violations") val violations: List<PolicyViolation> = emptyList(),
     @SerialName("issuedVoucher") val issuedVoucher: Voucher? = null,
-    @SerialName("transaction") val transaction: TransactionRef? = null
+    @SerialName("transaction") val transaction: TransactionRef? = null,
 )
 
 @Serializable
-data class PolicyViolationItem(@SerialName("error") val error: String? = null)
+data class PolicyViolationItem(
+    @SerialName("error") val error: String? = null,
+)
 
 @Serializable
 data class VoucherInfo(
     @SerialName("transId") val transId: String? = null,
     @SerialName("id") val id: Long? = null,
     @SerialName("purpose") val purpose: String? = null,
-    @SerialName("title") val title: String? = null
+    @SerialName("title") val title: String? = null,
 )
 
 // ── Submission policy outcome ─────────────────────────────────────────────────
@@ -81,7 +83,7 @@ enum class SubmissionStatus {
     NEEDS_APPROVAL,
     REIMBURSABLE_ADJUSTED,
     POLICY_VIOLATION,
-    HARD_STOP
+    HARD_STOP,
 }
 
 /** Severity of a single policy violation attached to a submission. */
@@ -89,7 +91,7 @@ enum class SubmissionStatus {
 enum class ViolationSeverity {
     REIMBURSABLE,
     VIOLATION,
-    HARDSTOP
+    HARDSTOP,
 }
 
 @Serializable
@@ -97,21 +99,21 @@ data class PolicyViolation(
     @SerialName("id") val id: String = "",
     @SerialName("title") val title: String = "",
     @SerialName("message") val message: String = "",
-    @SerialName("severity") val severity: ViolationSeverity = ViolationSeverity.VIOLATION
+    @SerialName("severity") val severity: ViolationSeverity = ViolationSeverity.VIOLATION,
 )
 
 /** Declaration text the user must acknowledge before a voucher can be filed. */
 @Serializable
 data class VoucherDeclaration(
     @SerialName("text") val text: String = "",
-    @SerialName("requiresAcknowledgement") val requiresAcknowledgement: Boolean = true
+    @SerialName("requiresAcknowledgement") val requiresAcknowledgement: Boolean = true,
 )
 
 @Serializable
 enum class VoucherStatus {
     UNCLAIMED,
     FILED,
-    CREATED
+    CREATED,
 }
 
 @Serializable
@@ -119,7 +121,7 @@ data class Voucher(
     @SerialName("id") val id: Long = 0L,
     @SerialName("number") val number: String = "",
     @SerialName("amount") val amount: Double = 0.0,
-    @SerialName("status") val status: VoucherStatus = VoucherStatus.UNCLAIMED
+    @SerialName("status") val status: VoucherStatus = VoucherStatus.UNCLAIMED,
 )
 
 /** Reference to the ledger transaction created for a submission. */
@@ -128,7 +130,7 @@ data class TransactionRef(
     @SerialName("id") val id: String = "",
     @SerialName("createdAtMillis") val createdAtMillis: Long = 0L,
     @SerialName("amount") val amount: Double = 0.0,
-    @SerialName("serviceTag") val serviceTag: String = ""
+    @SerialName("serviceTag") val serviceTag: String = "",
 )
 
 // ── Track status ──────────────────────────────────────────────────────────────
@@ -136,10 +138,12 @@ data class TransactionRef(
 @Serializable
 data class TrackMileageStatusResponse(
     @SerialName("statusCode") val statusCode: Int = 0,
-    @SerialName("description") val description: String = ""
+    @SerialName("description") val description: String = "",
 ) {
     fun isActive(): Boolean = statusCode == 200
+
     fun isCancelledDueToConfig(): Boolean = statusCode == 505
+
     fun isDeactivatedByUser(): Boolean = statusCode == 504
 }
 
@@ -147,38 +151,40 @@ data class TrackMileageStatusResponse(
 
 @Serializable
 data class LogMilesServicesResponse(
-    @SerialName("services") val services: List<LogMilesServiceDto>? = null
+    @SerialName("services") val services: List<LogMilesServiceDto>? = null,
 )
 
 @Serializable
 data class LogMilesServiceDto(
     @SerialName("id") val id: Long? = null,
     @SerialName("name") val name: String? = null,
-    @SerialName("glCode") val glCode: String? = null
+    @SerialName("glCode") val glCode: String? = null,
 )
 
 // ── Log Miles routes ──────────────────────────────────────────────────────────
 
 @Serializable
 data class LogMilesRoutesResponse(
-    @SerialName("location") val locations: List<LogMilesRouteGroup> = emptyList()
+    @SerialName("location") val locations: List<LogMilesRouteGroup> = emptyList(),
 )
 
 @Serializable
 data class LogMilesRouteGroup(
     @SerialName("coords") val coords: List<CoordsV2> = emptyList(),
-    @SerialName("count") val count: Int = 0
+    @SerialName("count") val count: Int = 0,
 )
 
 // ── Distance ──────────────────────────────────────────────────────────────────
 
 @Serializable
-data class DistanceRequestV2(@SerialName("coords") val coords: List<CoordsV2>)
+data class DistanceRequestV2(
+    @SerialName("coords") val coords: List<CoordsV2>,
+)
 
 @Serializable
 data class DistanceResponseV2(
     @SerialName("distance") val distance: Double = 0.0,
-    @SerialName("unit") val unit: String = "km"
+    @SerialName("unit") val unit: String = "km",
 )
 
 // ── User config ───────────────────────────────────────────────────────────────
@@ -196,13 +202,13 @@ data class UserConfigResponseV2(
     @SerialName("trackMilesV2") val trackMilesV2: Boolean = true,
     @SerialName("draftTrackMiles") val draftTrackMiles: Boolean = true,
     @SerialName("multiServiceLogMiles") val multiServiceLogMiles: Boolean = false,
-    @SerialName("profile") val profile: UserProfile? = null
+    @SerialName("profile") val profile: UserProfile? = null,
 )
 
 @Serializable
 data class MileageConfig(
     @SerialName("time") val time: Int = 10,
-    @SerialName("distance") val distance: Double = 0.0
+    @SerialName("distance") val distance: Double = 0.0,
 )
 
 @Serializable
@@ -211,7 +217,7 @@ data class UserProfile(
     @SerialName("name") val name: String = "",
     @SerialName("email") val email: String = "",
     @SerialName("tenant") val tenant: String = "",
-    @SerialName("currency") val currency: String = "INR"
+    @SerialName("currency") val currency: String = "INR",
 )
 
 // ── Domain models ─────────────────────────────────────────────────────────────
@@ -219,7 +225,7 @@ data class UserProfile(
 data class LogMilesService(
     val id: Long,
     val name: String,
-    val glCode: String
+    val glCode: String,
 ) {
     fun getDisplayString(): String = "$name ($glCode)"
 }

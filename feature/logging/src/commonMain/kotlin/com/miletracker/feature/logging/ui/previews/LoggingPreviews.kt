@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -28,9 +27,6 @@ import com.miletracker.core.ui.previews.PreviewMatrix
 import com.miletracker.core.ui.previews.PreviewSurface
 import com.miletracker.core.ui.previews.SampleData
 import com.miletracker.core.ui.theme.DesignTokens
-import com.miletracker.feature.logging.model.ExpenseCategory
-import com.miletracker.feature.logging.model.ExpenseRecord
-import com.miletracker.feature.logging.model.ExpenseStatus
 import com.miletracker.feature.logging.ui.components.StepHeaderCard
 import com.miletracker.feature.logging.ui.components.TapFieldRow
 // ---------------------------------------------------------------------------
@@ -52,13 +48,13 @@ private fun TapFieldRowEmptyPreview() {
     PreviewSurface {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             TapFieldRow(
                 label = "Journey Date",
                 value = "Select date",
                 onClick = {},
-                isPlaceholder = true
+                isPlaceholder = true,
             )
         }
     }
@@ -70,14 +66,14 @@ private fun TapFieldRowFilledPreview() {
     PreviewSurface {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             TapFieldRow(
                 label = "Journey Date",
                 value = "19 Jun 2026",
                 onClick = {},
                 leadingIcon = Icons.Filled.DirectionsCar,
-                isPlaceholder = false
+                isPlaceholder = false,
             )
         }
     }
@@ -94,7 +90,7 @@ private fun StepHeaderCardPreview() {
         Column(modifier = Modifier.padding(16.dp)) {
             StepHeaderCard(
                 title = "Step 1 of 2",
-                subtitle = "Enter your journey details — start location, stops, and vehicle type."
+                subtitle = "Enter your journey details — start location, stops, and vehicle type.",
             )
         }
     }
@@ -107,7 +103,7 @@ private fun StepHeaderCardMatrixPreview() {
         Column(modifier = Modifier.padding(16.dp)) {
             StepHeaderCard(
                 title = "Step 2 of 2",
-                subtitle = "Review distance, reimbursement rate, and submit your mileage claim."
+                subtitle = "Review distance, reimbursement rate, and submit your mileage claim.",
             )
         }
     }
@@ -123,76 +119,78 @@ private fun StepHeaderCardMatrixPreview() {
 private fun LogMilesSuccessContentPreview() {
     PreviewSurface {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 24.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Surface(
                 shape = androidx.compose.foundation.shape.CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             ) {
                 Icon(
                     Icons.Filled.CheckCircle,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(DesignTokens.Spacing.l)
-                        .size(72.dp)
+                    modifier =
+                        Modifier
+                            .padding(DesignTokens.Spacing.l)
+                            .size(72.dp),
                 )
             }
             Spacer(Modifier.size(DesignTokens.Spacing.l))
             Text(
                 "Miles Logged!",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.size(DesignTokens.Spacing.s))
             Text(
                 "Your mileage expense has been submitted successfully.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.size(DesignTokens.Spacing.xl))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedMd,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ) {
                 Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             "Reimbursable amount",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             "₹${SampleData.Trip.reimbursableAmount}",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                     Spacer(Modifier.size(DesignTokens.Spacing.m))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             "Transaction id",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             SampleData.Trip.routeId,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                 }
@@ -212,7 +210,7 @@ private fun ExpenseHistoryEmptyStatePreview() {
     PreviewSurface {
         EmptyState(
             title = "No expenses found",
-            subtitle = "Add your first expense using the + button."
+            subtitle = "Add your first expense using the + button.",
         )
     }
 }
@@ -226,20 +224,21 @@ private fun ExpenseHistoryEmptyStatePreview() {
 private fun LoggingStatCardsPreview() {
     PreviewSurface {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             StatCard(
                 label = "Total Distance",
                 value = "${SampleData.Trip.distanceKm} km",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             StatCard(
                 label = "Reimbursable",
                 value = "₹${SampleData.Trip.reimbursableAmount}",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }

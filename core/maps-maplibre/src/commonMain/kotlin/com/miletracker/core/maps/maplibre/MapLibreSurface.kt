@@ -26,28 +26,29 @@ import org.maplibre.spatialk.geojson.Position
 private const val STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
 class MapLibreSurface : MapSurface {
-
     @Composable
     override fun LocationPinMap(
         latitude: Double,
         longitude: Double,
         modifier: Modifier,
     ) {
-        val cameraState = rememberCameraState(
-            CameraPosition(
-                target = Position(longitude, latitude),
-                zoom = 15.0,
+        val cameraState =
+            rememberCameraState(
+                CameraPosition(
+                    target = Position(longitude, latitude),
+                    zoom = 15.0,
+                ),
             )
-        )
 
         MaplibreMap(
             modifier = modifier,
             baseStyle = BaseStyle.Uri(STYLE_URL),
             cameraState = cameraState,
         ) {
-            val pinJson = remember(latitude, longitude) {
-                MapCoordinate(latitude, longitude).toPointJson()
-            }
+            val pinJson =
+                remember(latitude, longitude) {
+                    MapCoordinate(latitude, longitude).toPointJson()
+                }
             val pinSource = rememberGeoJsonSource(GeoJsonData.JsonString(pinJson))
             CircleLayer(
                 id = "location-pin",
@@ -75,12 +76,13 @@ class MapLibreSurface : MapSurface {
         showIssueMarkers: Boolean,
         modifier: Modifier,
     ) {
-        val cameraState = rememberCameraState(
-            CameraPosition(
-                target = Position(currentLng, currentLat),
-                zoom = 17.0,
+        val cameraState =
+            rememberCameraState(
+                CameraPosition(
+                    target = Position(currentLng, currentLat),
+                    zoom = 17.0,
+                ),
             )
-        )
 
         LaunchedEffect(currentLat, currentLng, autoCenterEnabled) {
             if (autoCenterEnabled) {
@@ -89,7 +91,7 @@ class MapLibreSurface : MapSurface {
                         target = Position(currentLng, currentLat),
                         zoom = 17.0,
                         bearing = bearing.toDouble(),
-                    )
+                    ),
                 )
             }
         }
@@ -102,10 +104,11 @@ class MapLibreSurface : MapSurface {
             // Main route polyline (blue)
             if (routeCoords.isNotEmpty()) {
                 val routeJson = remember(routeCoords.size) { routeCoords.toLineStringJson() }
-                val routeSource = rememberGeoJsonSource(
-                    GeoJsonData.JsonString(routeJson),
-                    options = GeoJsonOptions(synchronousUpdate = true),
-                )
+                val routeSource =
+                    rememberGeoJsonSource(
+                        GeoJsonData.JsonString(routeJson),
+                        options = GeoJsonOptions(synchronousUpdate = true),
+                    )
                 LineLayer(
                     id = "route",
                     source = routeSource,
@@ -173,13 +176,15 @@ class MapLibreSurface : MapSurface {
             }
 
             // Current position — pulsing ring outer
-            val currentJson = remember(currentLat, currentLng) {
-                MapCoordinate(currentLat, currentLng).toPointJson()
-            }
-            val currentSource = rememberGeoJsonSource(
-                GeoJsonData.JsonString(currentJson),
-                options = GeoJsonOptions(synchronousUpdate = true),
-            )
+            val currentJson =
+                remember(currentLat, currentLng) {
+                    MapCoordinate(currentLat, currentLng).toPointJson()
+                }
+            val currentSource =
+                rememberGeoJsonSource(
+                    GeoJsonData.JsonString(currentJson),
+                    options = GeoJsonOptions(synchronousUpdate = true),
+                )
             CircleLayer(
                 id = "current-pos-ring",
                 source = currentSource,

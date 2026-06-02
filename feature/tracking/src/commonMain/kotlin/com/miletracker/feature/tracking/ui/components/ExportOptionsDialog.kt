@@ -49,38 +49,38 @@ enum class ExportFormat(
     val displayName: String,
     val fileExtension: String,
     val mimeType: String,
-    val description: String
+    val description: String,
 ) {
     CSV(
         displayName = "CSV (Spreadsheet)",
         fileExtension = "csv",
         mimeType = "text/csv",
-        description = "Comma-separated values, suitable for Excel and data analysis"
+        description = "Comma-separated values, suitable for Excel and data analysis",
     ),
     JSON(
         displayName = "JSON (Structured)",
         fileExtension = "json",
         mimeType = "application/json",
-        description = "JavaScript Object Notation, ideal for technical analysis and APIs"
+        description = "JavaScript Object Notation, ideal for technical analysis and APIs",
     ),
     GPX(
         displayName = "GPX (GPS Exchange)",
         fileExtension = "gpx",
         mimeType = "application/gpx+xml",
-        description = "Standard GPS format, compatible with most mapping and fitness apps"
+        description = "Standard GPS format, compatible with most mapping and fitness apps",
     ),
     KML(
         displayName = "KML (Google Earth)",
         fileExtension = "kml",
         mimeType = "application/vnd.google-earth.kml+xml",
-        description = "Keyhole Markup Language, for Google Earth and Google Maps"
+        description = "Keyhole Markup Language, for Google Earth and Google Maps",
     ),
     GEOJSON(
         displayName = "GeoJSON (Geographic)",
         fileExtension = "geojson",
         mimeType = "application/geo+json",
-        description = "Geographic JSON format, widely supported by mapping libraries"
-    )
+        description = "Geographic JSON format, widely supported by mapping libraries",
+    ),
 }
 
 /**
@@ -96,7 +96,7 @@ data class LocationDataFilter(
     val startDate: Long? = null,
     val endDate: Long? = null,
     val minBatteryLevel: Double? = null,
-    val specificProviders: List<String>? = null
+    val specificProviders: List<String>? = null,
 )
 
 // ---------------------------------------------------------------------------
@@ -110,7 +110,7 @@ fun ExportOptionsDialog(
     onDismiss: () -> Unit,
     onExport: (ExportFormat, LocationDataFilter) -> Unit,
     trackName: String? = null,
-    isMultipleTrackExport: Boolean = false
+    isMultipleTrackExport: Boolean = false,
 ) {
     var selectedFormat by remember { mutableStateOf(ExportFormat.CSV) }
 
@@ -130,37 +130,39 @@ fun ExportOptionsDialog(
         title = {
             Text(
                 text = if (isMultipleTrackExport) "Export Multiple Tracks" else "Export Track Data",
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
         },
         text = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
             ) {
                 // Track info
                 trackName?.let {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                        colors =
+                            CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            ),
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
                                 Icons.Default.Info,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Exporting: $it",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
                     }
@@ -171,40 +173,41 @@ fun ExportOptionsDialog(
                 Text(
                     text = "Export Format",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Column(
-                    modifier = Modifier.selectableGroup()
+                    modifier = Modifier.selectableGroup(),
                 ) {
                     ExportFormat.values().forEach { format ->
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = selectedFormat == format,
-                                    onClick = { selectedFormat = format },
-                                    role = Role.RadioButton
-                                )
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .selectable(
+                                        selected = selectedFormat == format,
+                                        onClick = { selectedFormat = format },
+                                        role = Role.RadioButton,
+                                    )
+                                    .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RadioButton(
                                 selected = selectedFormat == format,
-                                onClick = null
+                                onClick = null,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
                                     text = format.displayName,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
                                 )
                                 Text(
                                     text = format.description,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -217,7 +220,7 @@ fun ExportOptionsDialog(
                 Text(
                     text = "Data Quality Filters",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -226,47 +229,48 @@ fun ExportOptionsDialog(
                     checked = excludeMock,
                     onCheckedChange = { excludeMock = it },
                     text = "Exclude Mock Locations",
-                    description = "Filter out simulated/fake GPS points"
+                    description = "Filter out simulated/fake GPS points",
                 )
 
                 FilterCheckbox(
                     checked = excludeAbnormal,
                     onCheckedChange = { excludeAbnormal = it },
                     text = "Exclude Abnormal Points",
-                    description = "Remove points flagged as abnormal"
+                    description = "Remove points flagged as abnormal",
                 )
 
                 FilterCheckbox(
                     checked = excludePaused,
                     onCheckedChange = { excludePaused = it },
                     text = "Exclude Paused Points",
-                    description = "Remove points recorded when tracking was paused"
+                    description = "Remove points recorded when tracking was paused",
                 )
 
                 FilterCheckbox(
                     checked = onlyCheckpoints,
                     onCheckedChange = { onlyCheckpoints = it },
                     text = "Only Checkpoints",
-                    description = "Export only manually marked checkpoint locations"
+                    description = "Export only manually marked checkpoint locations",
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Advanced filters toggle
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "Advanced Filters",
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.titleSmall,
                     )
                     Switch(
                         checked = showAdvancedFilters,
-                        onCheckedChange = { showAdvancedFilters = it }
+                        onCheckedChange = { showAdvancedFilters = it },
                     )
                 }
 
@@ -276,7 +280,7 @@ fun ExportOptionsDialog(
                     // Accuracy filters
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         OutlinedTextField(
                             value = if (minAccuracy > 0) minAccuracy.toString() else "",
@@ -285,7 +289,7 @@ fun ExportOptionsDialog(
                             },
                             label = { Text("Min Accuracy (m)") },
                             modifier = Modifier.weight(1f),
-                            singleLine = true
+                            singleLine = true,
                         )
 
                         OutlinedTextField(
@@ -295,7 +299,7 @@ fun ExportOptionsDialog(
                             },
                             label = { Text("Max Accuracy (m)") },
                             modifier = Modifier.weight(1f),
-                            singleLine = true
+                            singleLine = true,
                         )
                     }
 
@@ -308,7 +312,7 @@ fun ExportOptionsDialog(
                         label = { Text("Min Battery Level (%)") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        placeholder = { Text("e.g. 20") }
+                        placeholder = { Text("e.g. 20") },
                     )
                 }
             }
@@ -316,23 +320,24 @@ fun ExportOptionsDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val filter = LocationDataFilter(
-                        minAccuracy = if (minAccuracy > 0) minAccuracy else null,
-                        maxAccuracy = if (maxAccuracy > 0) maxAccuracy else null,
-                        excludePaused = excludePaused,
-                        excludeMock = excludeMock,
-                        excludeAbnormal = excludeAbnormal,
-                        onlyCheckpoints = onlyCheckpoints,
-                        minBatteryLevel = minBatteryText.toDoubleOrNull()
-                    )
+                    val filter =
+                        LocationDataFilter(
+                            minAccuracy = if (minAccuracy > 0) minAccuracy else null,
+                            maxAccuracy = if (maxAccuracy > 0) maxAccuracy else null,
+                            excludePaused = excludePaused,
+                            excludeMock = excludeMock,
+                            excludeAbnormal = excludeAbnormal,
+                            onlyCheckpoints = onlyCheckpoints,
+                            minBatteryLevel = minBatteryText.toDoubleOrNull(),
+                        )
                     onExport(selectedFormat, filter)
-                }
+                },
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.CheckCircle,
                         contentDescription = null,
-                        modifier = Modifier.padding(end = 4.dp)
+                        modifier = Modifier.padding(end = 4.dp),
                     )
                     Text("Export")
                 }
@@ -342,7 +347,7 @@ fun ExportOptionsDialog(
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
             }
-        }
+        },
     )
 }
 
@@ -351,28 +356,29 @@ private fun FilterCheckbox(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     text: String,
-    description: String
+    description: String,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

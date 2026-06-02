@@ -67,7 +67,7 @@ data class SubmissionItem(
     val isNewTracker: Boolean,
     val voucherCreated: Boolean,
     val approvalStatus: String = "Pending Approval",
-    val voucherNumber: String? = null
+    val voucherNumber: String? = null,
 ) {
     /** Unclaimed = no voucher raised yet; these are the rows eligible for selection. */
     val isUnclaimed: Boolean get() = !voucherCreated
@@ -97,34 +97,36 @@ data class SavedTracksUiState(
     val selectionMode: Boolean = false,
     val selectedSubmissionIds: Set<String> = emptySet(),
     /** One-shot flag set when a voucher is "created"; the screen consumes it to celebrate. */
-    val voucherCreatedAck: Boolean = false
+    val voucherCreatedAck: Boolean = false,
 ) {
     /** All submissions derived from submitted tracks, newest first. */
-    val allSubmissions: List<SubmissionItem> = tracks
-        .filter { it.isSubmitted }
-        .map { it.toSubmissionItem() }
-        .sortedByDescending { it.expenseDateMillis }
+    val allSubmissions: List<SubmissionItem> =
+        tracks
+            .filter { it.isSubmitted }
+            .map { it.toSubmissionItem() }
+            .sortedByDescending { it.expenseDateMillis }
 
     /** Submissions remaining after the active primary/source/search filters are applied. */
-    val filteredSubmissions: List<SubmissionItem> = allSubmissions
-        .filter { item ->
-            when (submissionFilter) {
-                SubmissionFilter.ALL -> true
-                SubmissionFilter.UNCLAIMED -> item.isUnclaimed
-                SubmissionFilter.FILED -> item.voucherCreated
+    val filteredSubmissions: List<SubmissionItem> =
+        allSubmissions
+            .filter { item ->
+                when (submissionFilter) {
+                    SubmissionFilter.ALL -> true
+                    SubmissionFilter.UNCLAIMED -> item.isUnclaimed
+                    SubmissionFilter.FILED -> item.voucherCreated
+                }
             }
-        }
-        .filter { item ->
-            when (submissionSource) {
-                SubmissionSource.ALL -> true
-                SubmissionSource.NEW_TRACKER -> item.isNewTracker
-                SubmissionSource.OTHER -> !item.isNewTracker
+            .filter { item ->
+                when (submissionSource) {
+                    SubmissionSource.ALL -> true
+                    SubmissionSource.NEW_TRACKER -> item.isNewTracker
+                    SubmissionSource.OTHER -> !item.isNewTracker
+                }
             }
-        }
-        .filter { item ->
-            submissionSearch.isBlank() ||
-                item.transId.contains(submissionSearch, ignoreCase = true)
-        }
+            .filter { item ->
+                submissionSearch.isBlank() ||
+                    item.transId.contains(submissionSearch, ignoreCase = true)
+            }
 
     val submissionCount: Int get() = allSubmissions.size
     val unclaimedCount: Int get() = allSubmissions.count { it.isUnclaimed }
@@ -135,9 +137,10 @@ data class SavedTracksUiState(
 
     /** Currently selected, still-unclaimed submission ids (the ones a voucher can be raised for). */
     val selectedUnclaimedIds: Set<String>
-        get() = selectedSubmissionIds.intersect(
-            allSubmissions.filter { it.isUnclaimed }.map { it.id }.toSet()
-        )
+        get() =
+            selectedSubmissionIds.intersect(
+                allSubmissions.filter { it.isUnclaimed }.map { it.id }.toSet(),
+            )
 }
 
 /**
@@ -162,13 +165,14 @@ private fun TrackDisplayData.toSubmissionItem(): SubmissionItem {
         // A voucher is considered filed when the track was submitted longer ago (older submissions
         // have been processed). Keeps a deterministic mix of unclaimed / filed for the demo.
         voucherCreated = hash % 4 == 0,
-        approvalStatus = when ((hash.toLong() and 0x7FFFFFFFL) % 4) {
-            0L -> "Approved"
-            1L -> "Rejected"
-            2L -> "Reimbursed"
-            else -> "Pending Approval"
-        },
-        voucherNumber = if (hash % 4 == 0) "V-${((hash.toLong() and 0x7FFFFFFFL) % 100_000_000).toString().padStart(8, '0')}" else null
+        approvalStatus =
+            when ((hash.toLong() and 0x7FFFFFFFL) % 4) {
+                0L -> "Approved"
+                1L -> "Rejected"
+                2L -> "Reimbursed"
+                else -> "Pending Approval"
+            },
+        voucherNumber = if (hash % 4 == 0) "V-${((hash.toLong() and 0x7FFFFFFFL) % 100_000_000).toString().padStart(8, '0')}" else null,
     )
 }
 
@@ -180,9 +184,8 @@ private fun TrackDisplayData.toSubmissionItem(): SubmissionItem {
  * forwards user actions, keeping a clean unidirectional data flow.
  */
 class SavedTracksViewModel(
-    private val repository: SavedTrackRepository
+    private val repository: SavedTrackRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(SavedTracksUiState())
     val uiState: StateFlow<SavedTracksUiState> = _uiState.asStateFlow()
 
@@ -198,7 +201,7 @@ class SavedTracksViewModel(
                         isLoading = false,
                         error = null,
                         selectedSubmissionIds = prunedSelection,
-                        selectionMode = current.selectionMode && prunedSelection.isNotEmpty()
+                        selectionMode = current.selectionMode && prunedSelection.isNotEmpty(),
                     )
                 }
             }
@@ -213,8 +216,11 @@ class SavedTracksViewModel(
     /** Switch the top-level tab. Clears any active selection so it does not leak across tabs. */
     fun onTabSelected(tab: SavedTracksTab) {
         _uiState.update {
-            if (it.tab == tab) it
-            else it.copy(tab = tab, selectionMode = false, selectedSubmissionIds = emptySet())
+            if (it.tab == tab) {
+                it
+            } else {
+                it.copy(tab = tab, selectionMode = false, selectedSubmissionIds = emptySet())
+            }
         }
     }
 
@@ -245,8 +251,11 @@ class SavedTracksViewModel(
     /** Long-press entry point: enters selection mode and selects the given submission. */
     fun onSubmissionLongPressed(id: String) {
         _uiState.update { state ->
-            if (!state.canSelect(id)) state
-            else state.copy(selectionMode = true, selectedSubmissionIds = state.selectedSubmissionIds + id)
+            if (!state.canSelect(id)) {
+                state
+            } else {
+                state.copy(selectionMode = true, selectedSubmissionIds = state.selectedSubmissionIds + id)
+            }
         }
     }
 
@@ -254,14 +263,15 @@ class SavedTracksViewModel(
     fun onSubmissionSelectionToggled(id: String) {
         _uiState.update { state ->
             if (!state.canSelect(id)) return@update state
-            val newSelection = if (id in state.selectedSubmissionIds) {
-                state.selectedSubmissionIds - id
-            } else {
-                state.selectedSubmissionIds + id
-            }
+            val newSelection =
+                if (id in state.selectedSubmissionIds) {
+                    state.selectedSubmissionIds - id
+                } else {
+                    state.selectedSubmissionIds + id
+                }
             state.copy(
                 selectedSubmissionIds = newSelection,
-                selectionMode = newSelection.isNotEmpty()
+                selectionMode = newSelection.isNotEmpty(),
             )
         }
     }
@@ -289,6 +299,5 @@ class SavedTracksViewModel(
     }
 
     /** Only still-unclaimed submissions participate in selection / voucher creation. */
-    private fun SavedTracksUiState.canSelect(id: String): Boolean =
-        allSubmissions.any { it.id == id && it.isUnclaimed }
+    private fun SavedTracksUiState.canSelect(id: String): Boolean = allSubmissions.any { it.id == id && it.isUnclaimed }
 }

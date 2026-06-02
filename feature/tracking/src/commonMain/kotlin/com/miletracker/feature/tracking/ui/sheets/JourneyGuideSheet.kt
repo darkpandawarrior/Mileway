@@ -19,9 +19,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -169,10 +169,11 @@ fun JourneyGuideSheet(
 
             // Scrollable content region.
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 VehicleSelectionCard(
@@ -259,14 +260,18 @@ private fun JourneyGuideHeader(state: JourneyGuideState) {
 
 /** A single Quick Start Checklist line: a circle (empty) or a filled check + label. */
 @Composable
-private fun ChecklistRow(title: String, isComplete: Boolean) {
+private fun ChecklistRow(
+    title: String,
+    isComplete: Boolean,
+) {
     Surface(
         shape = RoundedCornerShape(10.dp),
-        color = if (isComplete) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-        } else {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-        },
+        color =
+            if (isComplete) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            } else {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+            },
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -306,17 +311,19 @@ private fun ChecklistRow(title: String, isComplete: Boolean) {
 
 @Composable
 private fun JourneyStepper(step: JourneyGuideStep) {
-    val steps = listOf(
-        JourneyGuideStep.PERMISSIONS,
-        JourneyGuideStep.VEHICLE,
-        JourneyGuideStep.TRACKING,
-    )
+    val steps =
+        listOf(
+            JourneyGuideStep.PERMISSIONS,
+            JourneyGuideStep.VEHICLE,
+            JourneyGuideStep.TRACKING,
+        )
     val currentIndex = steps.indexOf(step)
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -326,11 +333,12 @@ private fun JourneyStepper(step: JourneyGuideStep) {
 
             Surface(
                 shape = CircleShape,
-                color = when {
-                    isCurrent -> MaterialTheme.colorScheme.primary
-                    isCompleted -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                    else -> MaterialTheme.colorScheme.surfaceVariant
-                },
+                color =
+                    when {
+                        isCurrent -> MaterialTheme.colorScheme.primary
+                        isCompleted -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        else -> MaterialTheme.colorScheme.surfaceVariant
+                    },
                 modifier = Modifier.size(StepCircleSize),
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -345,11 +353,12 @@ private fun JourneyStepper(step: JourneyGuideStep) {
                         Text(
                             text = (index + 1).toString(),
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (isCurrent) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
+                            color =
+                                if (isCurrent) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                     }
                 }
@@ -358,16 +367,17 @@ private fun JourneyStepper(step: JourneyGuideStep) {
             if (index < steps.size - 1) {
                 val connectorComplete = index < currentIndex
                 Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(StepConnectorHeight)
-                        .background(
-                            if (connectorComplete) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            },
-                        ),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(StepConnectorHeight)
+                            .background(
+                                if (connectorComplete) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                },
+                            ),
                 )
             }
         }
@@ -386,9 +396,10 @@ private fun VehicleSelectionCard(
         Surface(
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick),
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -413,11 +424,12 @@ private fun VehicleSelectionCard(
                         text = vehicleName ?: "Select a vehicle",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (vehicleName != null) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+                        color =
+                            if (vehicleName != null) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                     )
                     if (vehicleName != null && ratePerKm != null) {
                         Spacer(Modifier.height(2.dp))
@@ -472,11 +484,12 @@ private fun StartOdometerRow(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = if (reading != null) {
-                        "Captured · tap camera to retake"
-                    } else {
-                        "Tap camera icon to capture"
-                    },
+                    text =
+                        if (reading != null) {
+                            "Captured · tap camera to retake"
+                        } else {
+                            "Tap camera icon to capture"
+                        },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -485,10 +498,11 @@ private fun StartOdometerRow(
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                modifier = Modifier
-                    .size(44.dp)
-                    .clickable(onClick = onCapture)
-                    .semantics { contentDescription = "Capture start odometer" },
+                modifier =
+                    Modifier
+                        .size(44.dp)
+                        .clickable(onClick = onCapture)
+                        .semantics { contentDescription = "Capture start odometer" },
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -515,9 +529,10 @@ private fun DraftModeCard(
         subtitle = "Enable this to save your journey when you stop.",
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -553,9 +568,10 @@ private fun JourneyGuideBottomBar(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding(),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -567,9 +583,10 @@ private fun JourneyGuideBottomBar(
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.semantics {
-                        contentDescription = "Current step: ${stepChipLabel(step)}"
-                    },
+                    modifier =
+                        Modifier.semantics {
+                            contentDescription = "Current step: ${stepChipLabel(step)}"
+                        },
                 ) {
                     Text(
                         text = stepChipLabel(step),
@@ -582,15 +599,17 @@ private fun JourneyGuideBottomBar(
                 // Start Tracking CTA.
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = if (canStart) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(CtaHeight)
-                        .clickable(enabled = canStart, onClick = onStartTracking),
+                    color =
+                        if (canStart) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .height(CtaHeight)
+                            .clickable(enabled = canStart, onClick = onStartTracking),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -600,22 +619,24 @@ private fun JourneyGuideBottomBar(
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = null,
-                            tint = if (canStart) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
+                            tint =
+                                if (canStart) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = "Start Tracking",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (canStart) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
+                            color =
+                                if (canStart) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                     }
                 }
@@ -672,12 +693,13 @@ fun JourneyConsentSheet(
         dragHandle = { JourneyDragHandle() },
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
+                    .verticalScroll(rememberScrollState()),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -685,12 +707,13 @@ fun JourneyConsentSheet(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(14.dp),
-                        ),
+                    modifier =
+                        Modifier
+                            .size(56.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = RoundedCornerShape(14.dp),
+                            ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
@@ -727,10 +750,11 @@ fun JourneyConsentSheet(
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(CtaHeight)
-                    .clickable(onClick = onAccept),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(CtaHeight)
+                        .clickable(onClick = onAccept),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
@@ -750,19 +774,21 @@ fun JourneyConsentSheet(
 @Composable
 private fun ConsentPersonaChip(label: String) {
     Row(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
-                shape = CircleShape,
-            )
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier =
+            Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
+                    shape = CircleShape,
+                )
+                .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Box(
-            modifier = Modifier
-                .size(6.dp)
-                .background(MaterialTheme.colorScheme.primary, CircleShape),
+            modifier =
+                Modifier
+                    .size(6.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
         )
         Text(
             text = label,
@@ -778,37 +804,41 @@ private fun ConsentPersonaChip(label: String) {
 @Composable
 private fun JourneyDragHandle() {
     Box(
-        modifier = Modifier
-            .padding(vertical = 12.dp)
-            .width(DragHandleWidth)
-            .height(DragHandleHeight)
-            .background(
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-                RoundedCornerShape(100),
-            ),
+        modifier =
+            Modifier
+                .padding(vertical = 12.dp)
+                .width(DragHandleWidth)
+                .height(DragHandleHeight)
+                .background(
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                    RoundedCornerShape(100),
+                ),
     )
 }
 
 private data class ChecklistItem(val title: String, val complete: Boolean)
 
 /** Builds the Quick Start Checklist rows from the current state. */
-private fun checklistItems(state: JourneyGuideState): List<ChecklistItem> = buildList {
-    add(ChecklistItem("Select Vehicle", state.vehicleSelected))
-    if (state.requiresOdometer) {
-        add(ChecklistItem("Capture Start Odometer", state.odometerCaptured))
+private fun checklistItems(state: JourneyGuideState): List<ChecklistItem> =
+    buildList {
+        add(ChecklistItem("Select Vehicle", state.vehicleSelected))
+        if (state.requiresOdometer) {
+            add(ChecklistItem("Capture Start Odometer", state.odometerCaptured))
+        }
     }
-}
 
 /** Subtitle under the header, per step. */
-private fun stepSubtitle(step: JourneyGuideStep): String = when (step) {
-    JourneyGuideStep.PERMISSIONS -> "Grant the permissions needed to track"
-    JourneyGuideStep.VEHICLE -> "Choose your vehicle and (if required) capture start odometer"
-    JourneyGuideStep.TRACKING -> "Tracking in progress"
-}
+private fun stepSubtitle(step: JourneyGuideStep): String =
+    when (step) {
+        JourneyGuideStep.PERMISSIONS -> "Grant the permissions needed to track"
+        JourneyGuideStep.VEHICLE -> "Choose your vehicle and (if required) capture start odometer"
+        JourneyGuideStep.TRACKING -> "Tracking in progress"
+    }
 
 /** Short chip label shown in the bottom bar, per step. */
-private fun stepChipLabel(step: JourneyGuideStep): String = when (step) {
-    JourneyGuideStep.PERMISSIONS -> "Step 1"
-    JourneyGuideStep.VEHICLE -> "Step 2"
-    JourneyGuideStep.TRACKING -> "Step 3"
-}
+private fun stepChipLabel(step: JourneyGuideStep): String =
+    when (step) {
+        JourneyGuideStep.PERMISSIONS -> "Step 1"
+        JourneyGuideStep.VEHICLE -> "Step 2"
+        JourneyGuideStep.TRACKING -> "Step 3"
+    }

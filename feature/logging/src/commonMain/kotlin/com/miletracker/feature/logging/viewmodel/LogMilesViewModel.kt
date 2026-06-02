@@ -34,7 +34,7 @@ data class LogMilesDraftUi(
     val stopCount: Int,
     val distanceKm: Double,
     val vehicleName: String?,
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
 )
 
 /**
@@ -50,7 +50,6 @@ data class LogMilesUiState(
     val selectedService: LogMilesService? = null,
     val isLoadingVehicles: Boolean = true,
     val isLoadingServices: Boolean = true,
-
     // ── Step 1: itinerary ─────────────────────────────────────────────────────
     val stops: List<LocationStop> = emptyList(),
     val isRoundTrip: Boolean = false,
@@ -64,22 +63,19 @@ data class LogMilesUiState(
     val journeyTimeMinutes: Int? = null,
     val saveAsDraft: Boolean = false,
     val recentLocations: List<LocationEntry> = emptyList(),
-
     // ── Step 2: expense details ───────────────────────────────────────────────
     val invoiceDateMillis: Long? = null,
     val logMilesNote: String = "",
     val taggedEmployees: List<String> = emptyList(),
     val attachmentCount: Int = 0,
-
     // ── Submission ────────────────────────────────────────────────────────────
     val isSubmitting: Boolean = false,
     val submissionResult: ExpenseSubmissionResponse? = null,
     val showViolationDialog: Boolean = false,
     val error: String? = null,
-
     // ── History ───────────────────────────────────────────────────────────────
     val drafts: List<LogMilesDraftUi> = emptyList(),
-    val submitted: List<SubmittedVoucher> = SubmittedVoucherSamples.sample(kotlin.time.Clock.System.now().toEpochMilliseconds())
+    val submitted: List<SubmittedVoucher> = SubmittedVoucherSamples.sample(kotlin.time.Clock.System.now().toEpochMilliseconds()),
 ) {
     /** Step 1 → Step 2 gate: at least two stops and a chosen vehicle. */
     val canProceedToStep2: Boolean get() = stops.size >= 2 && selectedVehicle != null
@@ -104,9 +100,8 @@ class LogMilesViewModel(
     private val vehicleRepo: VehiclePricingRepository,
     private val serviceRepo: LogMilesServiceRepository,
     private val draftRepo: LogMilesDraftRepository,
-    private val api: MileTrackerNetworkApi
+    private val api: MileTrackerNetworkApi,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(LogMilesUiState())
     val uiState: StateFlow<LogMilesUiState> = _uiState.asStateFlow()
 
@@ -155,7 +150,10 @@ class LogMilesViewModel(
         _uiState.update { it.copy(journeyDateMillis = millis) }
     }
 
-    fun setJourneyTime(hour: Int, minute: Int) {
+    fun setJourneyTime(
+        hour: Int,
+        minute: Int,
+    ) {
         _uiState.update { it.copy(journeyTimeMinutes = hour * 60 + minute) }
     }
 
@@ -176,14 +174,17 @@ class LogMilesViewModel(
         _uiState.update { state ->
             state.copy(
                 stops = state.stops + stop,
-                recentLocations = (listOf(entry) + state.recentLocations).distinctBy { it.name }.take(8)
+                recentLocations = (listOf(entry) + state.recentLocations).distinctBy { it.name }.take(8),
             )
         }
         recomputeDistance()
     }
 
     /** Insert a stop immediately after the stop at [afterIndex]. */
-    fun insertStopAfter(afterIndex: Int, entry: LocationEntry) {
+    fun insertStopAfter(
+        afterIndex: Int,
+        entry: LocationEntry,
+    ) {
         val stop = LocationStop(id = stopIdCounter++, entry = entry)
         _uiState.update { state ->
             val list = state.stops.toMutableList()
@@ -191,14 +192,17 @@ class LogMilesViewModel(
             list.add(target, stop)
             state.copy(
                 stops = list,
-                recentLocations = (listOf(entry) + state.recentLocations).distinctBy { it.name }.take(8)
+                recentLocations = (listOf(entry) + state.recentLocations).distinctBy { it.name }.take(8),
             )
         }
         recomputeDistance()
     }
 
     /** Replace the place backing the stop with [stopId] (the Edit chip). */
-    fun editStop(stopId: Long, entry: LocationEntry) {
+    fun editStop(
+        stopId: Long,
+        entry: LocationEntry,
+    ) {
         _uiState.update { state ->
             state.copy(stops = state.stops.map { if (it.id == stopId) it.copy(entry = entry) else it })
         }
@@ -216,7 +220,10 @@ class LogMilesViewModel(
     /** Move a stop one position down (toward the end). No-op at the bottom. */
     fun moveStopDown(index: Int) = reorder(index, index + 1)
 
-    private fun reorder(from: Int, to: Int) {
+    private fun reorder(
+        from: Int,
+        to: Int,
+    ) {
         _uiState.update { state ->
             if (from !in state.stops.indices || to !in state.stops.indices) return@update state
             val list = state.stops.toMutableList()
@@ -244,7 +251,7 @@ class LogMilesViewModel(
             state.copy(
                 calculatedDistanceKm = calc,
                 distanceKm = calc,
-                isDistanceOverridden = false
+                isDistanceOverridden = false,
             )
         }
         recomputePricing()
@@ -288,14 +295,15 @@ class LogMilesViewModel(
     fun saveDraft() {
         val s = _uiState.value
         if (s.stops.isEmpty()) return
-        val draft = LogMilesDraftUi(
-            id = "draft-${kotlin.time.Clock.System.now().toEpochMilliseconds()}",
-            title = s.stops.firstOrNull()?.entry?.name?.substringBefore(",") ?: "Log Miles draft",
-            stopCount = s.stops.size,
-            distanceKm = s.distanceKm,
-            vehicleName = s.selectedVehicle?.vehicleName,
-            updatedAtMillis = kotlin.time.Clock.System.now().toEpochMilliseconds()
-        )
+        val draft =
+            LogMilesDraftUi(
+                id = "draft-${kotlin.time.Clock.System.now().toEpochMilliseconds()}",
+                title = s.stops.firstOrNull()?.entry?.name?.substringBefore(",") ?: "Log Miles draft",
+                stopCount = s.stops.size,
+                distanceKm = s.distanceKm,
+                vehicleName = s.selectedVehicle?.vehicleName,
+                updatedAtMillis = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+            )
         _uiState.update { it.copy(drafts = listOf(draft) + it.drafts) }
     }
 
@@ -324,18 +332,19 @@ class LogMilesViewModel(
                         roundTrip = s.isRoundTrip,
                         date = s.journeyDateMillis,
                         origin = s.stops.first().entry.let { CoordsV2(it.lat, it.lng, it.name) },
-                        destination = s.stops.last().entry.let { CoordsV2(it.lat, it.lng, it.name) }
-                    )
+                        destination = s.stops.last().entry.let { CoordsV2(it.lat, it.lng, it.name) },
+                    ),
                 )
             }.onSuccess { resp ->
-                val hasViolations = resp.submissionStatus == SubmissionStatus.POLICY_VIOLATION ||
-                    resp.violations.isNotEmpty() ||
-                    !resp.policyViolations.isNullOrEmpty()
+                val hasViolations =
+                    resp.submissionStatus == SubmissionStatus.POLICY_VIOLATION ||
+                        resp.violations.isNotEmpty() ||
+                        !resp.policyViolations.isNullOrEmpty()
                 _uiState.update {
                     it.copy(
                         isSubmitting = false,
                         submissionResult = resp,
-                        showViolationDialog = hasViolations
+                        showViolationDialog = hasViolations,
                     )
                 }
             }.onFailure { e ->
@@ -361,7 +370,7 @@ class LogMilesViewModel(
                 isLoadingServices = false,
                 drafts = state.drafts,
                 submitted = state.submitted,
-                recentLocations = state.recentLocations
+                recentLocations = state.recentLocations,
             )
         }
     }

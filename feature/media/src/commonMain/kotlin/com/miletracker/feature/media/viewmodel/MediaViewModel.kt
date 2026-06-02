@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 import kotlin.random.Random
+import kotlin.time.Clock
 
 /**
  * Single immutable UI state for the whole media-capture flow. Shared across the
@@ -38,14 +38,13 @@ data class MediaUiState(
     val pendingBatch: List<AttachmentItem> = emptyList(),
     val flashMode: FlashMode = FlashMode.AUTO,
     val ocrSheetVisible: Boolean = false,
-    val isProcessing: Boolean = false
+    val isProcessing: Boolean = false,
 )
 
 class MediaViewModel(
     private val repository: MediaRepository,
-    private val libraryRepository: MediaLibraryRepository
+    private val libraryRepository: MediaLibraryRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(MediaUiState())
     val uiState: StateFlow<MediaUiState> = _uiState.asStateFlow()
 
@@ -57,11 +56,12 @@ class MediaViewModel(
     /** Cycle the camera flash mode AUTO -> ON -> OFF -> AUTO. */
     fun cycleFlashMode() {
         _uiState.update {
-            val next = when (it.flashMode) {
-                FlashMode.AUTO -> FlashMode.ON
-                FlashMode.ON -> FlashMode.OFF
-                FlashMode.OFF -> FlashMode.AUTO
-            }
+            val next =
+                when (it.flashMode) {
+                    FlashMode.AUTO -> FlashMode.ON
+                    FlashMode.ON -> FlashMode.OFF
+                    FlashMode.OFF -> FlashMode.AUTO
+                }
             it.copy(flashMode = next)
         }
     }
@@ -72,17 +72,18 @@ class MediaViewModel(
      * can offer a "review / use N photos" grid before any are committed.
      */
     fun onCaptured(uri: String) {
-        val item = AttachmentItem(
-            id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
-            uri = uri,
-            source = AttachmentSource.CAMERA,
-            capturedAtMillis = Clock.System.now().toEpochMilliseconds()
-        )
+        val item =
+            AttachmentItem(
+                id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
+                uri = uri,
+                source = AttachmentSource.CAMERA,
+                capturedAtMillis = Clock.System.now().toEpochMilliseconds(),
+            )
         _uiState.update {
             it.copy(
                 pendingItem = item,
                 pendingBatch = it.pendingBatch + item,
-                ocrSheetVisible = false
+                ocrSheetVisible = false,
             )
         }
     }
@@ -90,16 +91,17 @@ class MediaViewModel(
     /** An image was picked from the gallery (or files). */
     fun onPickedFromGallery(uri: String) {
         _uiState.update {
-            val item = AttachmentItem(
-                id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
-                uri = uri,
-                source = it.selectedSource ?: AttachmentSource.GALLERY,
-                capturedAtMillis = Clock.System.now().toEpochMilliseconds()
-            )
+            val item =
+                AttachmentItem(
+                    id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
+                    uri = uri,
+                    source = it.selectedSource ?: AttachmentSource.GALLERY,
+                    capturedAtMillis = Clock.System.now().toEpochMilliseconds(),
+                )
             it.copy(
                 pendingItem = item,
                 pendingBatch = it.pendingBatch + item,
-                ocrSheetVisible = false
+                ocrSheetVisible = false,
             )
         }
     }
@@ -114,12 +116,13 @@ class MediaViewModel(
             val batch = state.pendingBatch.filterNot { it.id == id }
             state.copy(
                 pendingBatch = batch,
-                pendingItem = when {
-                    batch.isEmpty() -> null
-                    state.pendingItem?.id == id -> batch.last()
-                    else -> state.pendingItem
-                },
-                ocrSheetVisible = state.ocrSheetVisible && batch.isNotEmpty()
+                pendingItem =
+                    when {
+                        batch.isEmpty() -> null
+                        state.pendingItem?.id == id -> batch.last()
+                        else -> state.pendingItem
+                    },
+                ocrSheetVisible = state.ocrSheetVisible && batch.isNotEmpty(),
             )
         }
     }
@@ -136,11 +139,12 @@ class MediaViewModel(
                     pendingItem = updated,
                     // Keep the matching batch entry in sync so the OCR result rides along
                     // when the whole batch is committed.
-                    pendingBatch = state.pendingBatch.map {
-                        if (updated != null && it.id == updated.id) updated else it
-                    },
+                    pendingBatch =
+                        state.pendingBatch.map {
+                            if (updated != null && it.id == updated.id) updated else it
+                        },
                     ocrSheetVisible = true,
-                    isProcessing = false
+                    isProcessing = false,
                 )
             }
         }
@@ -157,11 +161,12 @@ class MediaViewModel(
         if (toUpload.isEmpty()) return
         _uiState.update { it.copy(isProcessing = true) }
         viewModelScope.launch {
-            val finished = toUpload.map { item ->
-                val uploading = item.copy(uploadState = UploadState.Uploading)
-                val done: UploadState = repository.upload(uploading)
-                uploading.copy(uploadState = done)
-            }
+            val finished =
+                toUpload.map { item ->
+                    val uploading = item.copy(uploadState = UploadState.Uploading)
+                    val done: UploadState = repository.upload(uploading)
+                    uploading.copy(uploadState = done)
+                }
             finished.forEach { libraryRepository.save(it) }
             _uiState.update { current ->
                 current.copy(
@@ -170,7 +175,7 @@ class MediaViewModel(
                     pendingBatch = emptyList(),
                     ocrSheetVisible = false,
                     selectedSource = null,
-                    isProcessing = false
+                    isProcessing = false,
                 )
             }
         }

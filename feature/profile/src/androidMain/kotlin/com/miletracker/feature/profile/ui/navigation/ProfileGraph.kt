@@ -15,11 +15,11 @@ import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
 import com.miletracker.feature.profile.ui.screens.DelegationScreen
 import com.miletracker.feature.profile.ui.screens.DemoSettingsScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
-import com.miletracker.feature.profile.ui.screens.QrHomeScreen
 import com.miletracker.feature.profile.ui.screens.NotificationCentreScreen
 import com.miletracker.feature.profile.ui.screens.PreferencesScreen
 import com.miletracker.feature.profile.ui.screens.ProfileDetailsScreen
 import com.miletracker.feature.profile.ui.screens.ProfileScreen
+import com.miletracker.feature.profile.ui.screens.QrHomeScreen
 import com.miletracker.feature.profile.ui.screens.RootGuardScreen
 import com.miletracker.feature.profile.ui.screens.SettingsScreen
 
@@ -42,7 +42,9 @@ object ProfileRoutes {
     const val DEMO_SETTINGS = "profile/demo_settings"
     const val ROOT_GUARD = "profile/root_guard"
     const val ROOT_GUARD_DETECTED = "profile/root_guard_detected"
+
     fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
+
     fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
 
@@ -127,7 +129,7 @@ fun NavGraphBuilder.profileGraph(
     }
     composable(
         route = ProfileRoutes.CARD_DETAIL,
-        arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+        arguments = listOf(navArgument("cardId") { type = NavType.StringType }),
     ) { backStackEntry ->
         val cardId = backStackEntry.arguments?.getString("cardId") ?: return@composable
         CardDetailScreen(
@@ -143,7 +145,7 @@ fun NavGraphBuilder.profileGraph(
     }
     composable(
         route = ProfileRoutes.ANALYTICS_DETAIL,
-        arguments = listOf(navArgument("category") { type = NavType.StringType })
+        arguments = listOf(navArgument("category") { type = NavType.StringType }),
     ) { backStackEntry ->
         val category = backStackEntry.arguments?.getString("category") ?: return@composable
         AnalyticsDetailScreen(

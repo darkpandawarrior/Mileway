@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:property-naming")
+
 package com.miletracker.core.ui.previews
 
 /**
@@ -5,7 +7,6 @@ package com.miletracker.core.ui.previews
  * Hardcoded so no Koin/Hilt context is required during preview rendering.
  */
 object SampleData {
-
     object Trip {
         const val routeId = "DEMO-20260619-001"
         const val vehicleLabel = "Car"
@@ -13,8 +14,8 @@ object SampleData {
         const val reimbursableAmount = 148.80
         const val startAddress = "MG Road, Pune"
         const val endAddress = "Hinjewadi Phase 1, Pune"
-        const val startTimeMs = 1750348800000L  // 2026-06-19 09:00 IST
-        const val endTimeMs   = 1750352400000L  // 2026-06-19 10:00 IST
+        const val startTimeMs = 1750348800000L // 2026-06-19 09:00 IST
+        const val endTimeMs = 1750352400000L // 2026-06-19 10:00 IST
     }
 
     object Profile {

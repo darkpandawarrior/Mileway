@@ -1,5 +1,8 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.ui.sheets
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,11 +27,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -60,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -67,8 +69,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.net.Uri
-import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
 import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.data.model.network.PolicyViolation
@@ -135,21 +135,23 @@ fun SmartDistanceSheet(
 ) {
     // Percentage by which the odometer exceeds the tracked distance. Guard against a
     // zero/negative tracked distance so we never divide by zero.
-    val discrepancyPercent: Double = if (trackedKm > 0.0) {
-        ((odometerKm - trackedKm) / trackedKm) * 100.0
-    } else {
-        0.0
-    }
+    val discrepancyPercent: Double =
+        if (trackedKm > 0.0) {
+            ((odometerKm - trackedKm) / trackedKm) * 100.0
+        } else {
+            0.0
+        }
     val isVeryLarge = discrepancyPercent > VERY_LARGE_DISCREPANCY_PERCENT
     val percentLabel = "${discrepancyPercent.roundToInt()}%"
     val errorColor = MaterialTheme.colorScheme.error
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
         ) {
             // Title row.
             Row(
@@ -194,7 +196,7 @@ fun SmartDistanceSheet(
                     DistanceColumn(
                         label = "Difference",
                         value = "$percentLabel",
-                        valueColor = if (discrepancyPercent > 15) errorColor else MaterialTheme.colorScheme.onSurface
+                        valueColor = if (discrepancyPercent > 15) errorColor else MaterialTheme.colorScheme.onSurface,
                     )
                     DistanceColumn(label = "Odometer", value = "${"%.2f".format(odometerKm)} km", valueColor = MaterialTheme.colorScheme.primary)
                 }
@@ -233,10 +235,11 @@ fun SmartDistanceSheet(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onVerifiedChange(!verified) }
-                        .padding(end = DesignTokens.Spacing.m),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onVerifiedChange(!verified) }
+                            .padding(end = DesignTokens.Spacing.m),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Checkbox(checked = verified, onCheckedChange = onVerifiedChange)
@@ -290,7 +293,11 @@ fun SmartDistanceSheet(
 
 /** Single column in the three-column distance comparison row (ref 50). */
 @Composable
-private fun DistanceColumn(label: String, value: String, valueColor: androidx.compose.ui.graphics.Color) {
+private fun DistanceColumn(
+    label: String,
+    value: String,
+    valueColor: androidx.compose.ui.graphics.Color,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
@@ -363,19 +370,21 @@ fun SubmitConfirmSheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Circular info badge.
             Box(
-                modifier = Modifier
-                    .padding(top = DesignTokens.Spacing.s)
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                modifier =
+                    Modifier
+                        .padding(top = DesignTokens.Spacing.s)
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -422,8 +431,9 @@ fun SubmitConfirmSheet(
                         modifier = Modifier.size(DesignTokens.IconSize.badge),
                     )
                     Text(
-                        text = "Once submitted, this journey will be processed for expense " +
-                            "reimbursement",
+                        text =
+                            "Once submitted, this journey will be processed for expense " +
+                                "reimbursement",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -437,10 +447,11 @@ fun SubmitConfirmSheet(
                 onClick = onConfirm,
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedSm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
-                    contentColor = MaterialTheme.colorScheme.primary,
-                ),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -505,10 +516,11 @@ fun PolicyViolationSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
         ) {
             // Header: amber warning icon + title.
             Row(
@@ -517,10 +529,11 @@ fun PolicyViolationSheet(
                 horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(DesignTokens.StatusColors.warning.copy(alpha = 0.15f)),
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(DesignTokens.StatusColors.warning.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
@@ -583,13 +596,20 @@ fun PolicyViolationSheet(
             Spacer(Modifier.size(DesignTokens.Spacing.s))
 
             // Option 1: Submit for Review.
-            val submitForReviewBorder = if (askAuthoritiesSelected)
-                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            val submitForReviewBorder =
+                if (askAuthoritiesSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.outlineVariant
+                }
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
-                color = if (askAuthoritiesSelected)
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
-                else MaterialTheme.colorScheme.surface,
+                color =
+                    if (askAuthoritiesSelected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
                 modifier = Modifier.fillMaxWidth().border(1.dp, submitForReviewBorder, DesignTokens.Shape.roundedSm),
             ) {
                 Row(
@@ -608,13 +628,20 @@ fun PolicyViolationSheet(
             Spacer(Modifier.size(DesignTokens.Spacing.s))
 
             // Option 2: Fix and Resubmit.
-            val fixBorder = if (!askAuthoritiesSelected)
-                MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            val fixBorder =
+                if (!askAuthoritiesSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.outlineVariant
+                }
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
-                color = if (!askAuthoritiesSelected)
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
-                else MaterialTheme.colorScheme.surface,
+                color =
+                    if (!askAuthoritiesSelected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
                 modifier = Modifier.fillMaxWidth().border(1.dp, fixBorder, DesignTokens.Shape.roundedSm),
             ) {
                 Row(
@@ -625,7 +652,11 @@ fun PolicyViolationSheet(
                     RadioButton(selected = !askAuthoritiesSelected, onClick = { if (askAuthoritiesSelected) onToggleAskAuthorities() })
                     Column {
                         Text("Fix and Resubmit", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                        Text("Return to fix the violation first", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "Return to fix the violation first",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
@@ -660,13 +691,17 @@ fun PolicyViolationSheet(
 
 /** A single violation line (warning icon + message) inside the red violations card. */
 @Composable
-private fun ViolationRow(violation: PolicyViolation, errorColor: Color) {
+private fun ViolationRow(
+    violation: PolicyViolation,
+    errorColor: Color,
+) {
     // Hard stops use the strongest error tint; reimbursable/standard use a warning amber.
-    val iconTint = when (violation.severity) {
-        ViolationSeverity.HARDSTOP -> errorColor
-        ViolationSeverity.VIOLATION -> errorColor
-        ViolationSeverity.REIMBURSABLE -> DesignTokens.StatusColors.warning
-    }
+    val iconTint =
+        when (violation.severity) {
+            ViolationSeverity.HARDSTOP -> errorColor
+            ViolationSeverity.VIOLATION -> errorColor
+            ViolationSeverity.REIMBURSABLE -> DesignTokens.StatusColors.warning
+        }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
@@ -717,17 +752,19 @@ fun OfficePickerSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
-    val filtered = offices.filter {
-        it.name.contains(query, ignoreCase = true) ||
-            it.code.contains(query, ignoreCase = true) ||
-            it.address.contains(query, ignoreCase = true)
-    }
+    val filtered =
+        offices.filter {
+            it.name.contains(query, ignoreCase = true) ||
+                it.code.contains(query, ignoreCase = true) ||
+                it.address.contains(query, ignoreCase = true)
+        }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
         ) {
             Text(
                 text = "Select Office (Required)",
@@ -782,25 +819,30 @@ fun OfficePickerSheet(
 }
 
 @Composable
-private fun OfficeRow(office: Office, onClick: () -> Unit) {
+private fun OfficeRow(
+    office: Office,
+    onClick: () -> Unit,
+) {
     Surface(
         shape = DesignTokens.Shape.roundedSm,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(DesignTokens.Shape.roundedSm)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(DesignTokens.Shape.roundedSm)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -868,10 +910,11 @@ fun EntityPickerSheet(
     val filtered = entities.filter { it.name.contains(query, ignoreCase = true) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
         ) {
             Text(
                 text = "Select Entity",
@@ -911,25 +954,30 @@ fun EntityPickerSheet(
 }
 
 @Composable
-private fun EntityRow(entity: BusinessEntity, onClick: () -> Unit) {
+private fun EntityRow(
+    entity: BusinessEntity,
+    onClick: () -> Unit,
+) {
     Surface(
         shape = DesignTokens.Shape.roundedSm,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                modifier =
+                    Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -1001,10 +1049,14 @@ fun OdometerReadingConfirmSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var isProcessing by remember { mutableStateOf(true) }
-    val detectedReading = remember(purpose, baseReading, sessionDistanceKm) {
-        if (purpose == OdometerPurpose.START) baseReading
-        else baseReading + sessionDistanceKm.toInt().coerceAtLeast(1)
-    }
+    val detectedReading =
+        remember(purpose, baseReading, sessionDistanceKm) {
+            if (purpose == OdometerPurpose.START) {
+                baseReading
+            } else {
+                baseReading + sessionDistanceKm.toInt().coerceAtLeast(1)
+            }
+        }
     var displayedReading by remember { mutableStateOf(detectedReading) }
 
     var showManualDialog by remember { mutableStateOf(false) }
@@ -1022,10 +1074,11 @@ fun OdometerReadingConfirmSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val titleText = if (purpose == OdometerPurpose.START) "Start Odometer" else "End Odometer"
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1041,11 +1094,12 @@ fun OdometerReadingConfirmSheet(
                 model = capturedUri,
                 contentDescription = "Odometer photo",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
             )
             Spacer(Modifier.height(DesignTokens.Spacing.l))
 
@@ -1053,17 +1107,18 @@ fun OdometerReadingConfirmSheet(
                 Text(
                     text = "OCR Result",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(DesignTokens.Spacing.xs))
                 Text(
                     text = "%,d km".format(displayedReading),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = 28.sp,
-                        fontFamily = FontFamily.Monospace
-                    ),
+                    style =
+                        MaterialTheme.typography.headlineMedium.copy(
+                            fontSize = 28.sp,
+                            fontFamily = FontFamily.Monospace,
+                        ),
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 TextButton(onClick = { showManualDialog = true }) {
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -1077,13 +1132,13 @@ fun OdometerReadingConfirmSheet(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 OutlinedButton(onClick = onRetake, modifier = Modifier.weight(1f)) { Text("Retake") }
                 Button(
                     onClick = { onUseReading(displayedReading, false) },
                     modifier = Modifier.weight(1f),
-                    enabled = !isProcessing
+                    enabled = !isProcessing,
                 ) { Text("Use This Reading") }
             }
             Spacer(Modifier.height(DesignTokens.Spacing.l))
@@ -1113,7 +1168,7 @@ fun OdometerReadingConfirmSheet(
             },
             dismissButton = {
                 TextButton(onClick = { showManualDialog = false }) { Text("Cancel") }
-            }
+            },
         )
     }
 }

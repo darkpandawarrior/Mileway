@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 fun buildMileTrackerDatabase(context: Context): MileTrackerDatabase =
     Room.databaseBuilder<MileTrackerDatabase>(
         context = context.applicationContext,
-        name = "miletracker.db"
+        name = "miletracker.db",
     )
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)

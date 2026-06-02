@@ -65,9 +65,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val TealGradient = Brush.horizontalGradient(
-    colors = listOf(Color(0xFF00695C), Color(0xFF00BCD4))
-)
+private val TealGradient =
+    Brush.horizontalGradient(
+        colors = listOf(Color(0xFF00695C), Color(0xFF00BCD4)),
+    )
 
 // ==========================================
 // Itinerary mock data (Phase P)
@@ -84,37 +85,42 @@ private data class ItineraryItem(
 
 private data class ItineraryDay(val label: String, val items: List<ItineraryItem>)
 
-private val ITINERARY = listOf(
-    ItineraryDay(
-        label = "Day 1 — Pune (22 Nov)",
-        items = listOf(
-            ItineraryItem(Icons.Filled.AirplanemodeActive, "Depart PNQ 14:30", "IndiGo 6E-401 · Arrive BOM 15:45", ItineraryType.FLIGHT),
-            ItineraryItem(Icons.Filled.MeetingRoom, "Check-in: Trident BKC", "Confirmation BK001", ItineraryType.HOTEL),
-            ItineraryItem(Icons.Filled.MeetingRoom, "Client meeting", "Whitefield office · 18:00", ItineraryType.MEETING),
-        )
-    ),
-    ItineraryDay(
-        label = "Day 2 — Mumbai (23 Nov)",
-        items = listOf(
-            ItineraryItem(Icons.Filled.MeetingRoom, "Conference Day 1", "BKC Convention Centre · 09:00–18:00", ItineraryType.MEETING),
-            ItineraryItem(Icons.Filled.Restaurant, "Team dinner", "Bayroute Juhu · 20:00", ItineraryType.DINING),
-        )
-    ),
-    ItineraryDay(
-        label = "Day 3 — Mumbai (24 Nov)",
-        items = listOf(
-            ItineraryItem(Icons.Filled.MeetingRoom, "Conference Day 2 — wrap up", "09:00–14:00", ItineraryType.MEETING),
-            ItineraryItem(Icons.Filled.AirplanemodeActive, "Return: BOM 17:30", "IndiGo 6E-208 · Arrive PNQ 18:45", ItineraryType.FLIGHT),
-        )
-    ),
-)
+private val ITINERARY =
+    listOf(
+        ItineraryDay(
+            label = "Day 1 — Pune (22 Nov)",
+            items =
+                listOf(
+                    ItineraryItem(Icons.Filled.AirplanemodeActive, "Depart PNQ 14:30", "IndiGo 6E-401 · Arrive BOM 15:45", ItineraryType.FLIGHT),
+                    ItineraryItem(Icons.Filled.MeetingRoom, "Check-in: Trident BKC", "Confirmation BK001", ItineraryType.HOTEL),
+                    ItineraryItem(Icons.Filled.MeetingRoom, "Client meeting", "Whitefield office · 18:00", ItineraryType.MEETING),
+                ),
+        ),
+        ItineraryDay(
+            label = "Day 2 — Mumbai (23 Nov)",
+            items =
+                listOf(
+                    ItineraryItem(Icons.Filled.MeetingRoom, "Conference Day 1", "BKC Convention Centre · 09:00–18:00", ItineraryType.MEETING),
+                    ItineraryItem(Icons.Filled.Restaurant, "Team dinner", "Bayroute Juhu · 20:00", ItineraryType.DINING),
+                ),
+        ),
+        ItineraryDay(
+            label = "Day 3 — Mumbai (24 Nov)",
+            items =
+                listOf(
+                    ItineraryItem(Icons.Filled.MeetingRoom, "Conference Day 2 — wrap up", "09:00–14:00", ItineraryType.MEETING),
+                    ItineraryItem(Icons.Filled.AirplanemodeActive, "Return: BOM 17:30", "IndiGo 6E-208 · Arrive PNQ 18:45", ItineraryType.FLIGHT),
+                ),
+        ),
+    )
 
-private fun itineraryTypeColor(type: ItineraryType): Color = when (type) {
-    ItineraryType.FLIGHT -> Color(0xFF1565C0)
-    ItineraryType.HOTEL -> Color(0xFF6A1B9A)
-    ItineraryType.MEETING -> Color(0xFF00695C)
-    ItineraryType.DINING -> Color(0xFFE65100)
-}
+private fun itineraryTypeColor(type: ItineraryType): Color =
+    when (type) {
+        ItineraryType.FLIGHT -> Color(0xFF1565C0)
+        ItineraryType.HOTEL -> Color(0xFF6A1B9A)
+        ItineraryType.MEETING -> Color(0xFF00695C)
+        ItineraryType.DINING -> Color(0xFFE65100)
+    }
 
 // ==========================================
 // Screen
@@ -122,9 +128,7 @@ private fun itineraryTypeColor(type: ItineraryType): Color = when (type) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TravelHomeScreen(
-    repository: TravelRepository = koinInject()
-) {
+fun TravelHomeScreen(repository: TravelRepository = koinInject()) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -134,34 +138,36 @@ fun TravelHomeScreen(
     val totalSpend = AnalyticsMockData.categoryTotals["Travel"] ?: 0.0
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             TravelHeader()
             SummaryStrip(
                 activeTripCount = if (activeBooking != null) 1 else 0,
                 upcomingCount = upcoming.size,
-                totalSpend = totalSpend
+                totalSpend = totalSpend,
             )
             PrimaryTabRow(selectedTabIndex = selectedTab) {
                 listOf("BOOKINGS", "ITINERARY").forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
-                        text = { Text(title, style = MaterialTheme.typography.labelMedium) }
+                        text = { Text(title, style = MaterialTheme.typography.labelMedium) },
                     )
                 }
             }
             when (selectedTab) {
-                0 -> BookingsTab(
-                    activeBooking = activeBooking,
-                    upcoming = upcoming,
-                    onSnackbar = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } }
-                )
+                0 ->
+                    BookingsTab(
+                        activeBooking = activeBooking,
+                        upcoming = upcoming,
+                        onSnackbar = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } },
+                    )
                 1 -> ItineraryTab()
             }
         }
@@ -175,10 +181,11 @@ private fun BookingsTab(
     onSnackbar: (String) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         if (activeBooking != null) {
             item {
@@ -186,7 +193,7 @@ private fun BookingsTab(
                 ActiveTripCard(
                     booking = activeBooking,
                     onViewBoardingPass = { onSnackbar("Boarding pass not available in demo") },
-                    modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l)
+                    modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l),
                 )
             }
         }
@@ -196,14 +203,14 @@ private fun BookingsTab(
                 text = "Upcoming Bookings",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l)
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l),
             )
             Spacer(Modifier.height(DesignTokens.Spacing.s))
         }
         items(upcoming.size) { index ->
             UpcomingBookingCard(
                 booking = upcoming[index],
-                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l)
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l),
             )
             if (index < upcoming.size - 1) {
                 Spacer(Modifier.height(DesignTokens.Spacing.s))
@@ -214,7 +221,7 @@ private fun BookingsTab(
             QuickActionsRow(
                 onBookFlight = { onSnackbar("Booking is illustrative.") },
                 onBookTrain = { onSnackbar("Booking is illustrative.") },
-                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l)
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l),
             )
         }
         item {
@@ -228,14 +235,16 @@ private fun BookingsTab(
 @Composable
 private fun ItineraryTab() {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            horizontal = DesignTokens.Spacing.l,
-            vertical = DesignTokens.Spacing.m
-        ),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
+        contentPadding =
+            androidx.compose.foundation.layout.PaddingValues(
+                horizontal = DesignTokens.Spacing.l,
+                vertical = DesignTokens.Spacing.m,
+            ),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         ITINERARY.forEach { day ->
             item {
@@ -243,7 +252,7 @@ private fun ItineraryTab() {
                     modifier = Modifier.fillMaxWidth(),
                     shape = DesignTokens.Shape.roundedMd,
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
                 ) {
                     Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
                         Text(
@@ -258,7 +267,7 @@ private fun ItineraryTab() {
                             if (idx < day.items.lastIndex) {
                                 HorizontalDivider(
                                     modifier = Modifier.padding(top = DesignTokens.Spacing.s, bottom = DesignTokens.Spacing.s, start = 36.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                                 )
                             }
                         }
@@ -276,24 +285,26 @@ private fun ItineraryItemRow(item: ItineraryItem) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         Box(
-            modifier = Modifier
-                .size(width = 3.dp, height = 44.dp)
-                .background(typeColor, RoundedCornerShape(2.dp))
+            modifier =
+                Modifier
+                    .size(width = 3.dp, height = 44.dp)
+                    .background(typeColor, RoundedCornerShape(2.dp)),
         )
         Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(typeColor.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(32.dp)
+                    .background(typeColor.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = item.icon,
                 contentDescription = null,
                 tint = typeColor,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(18.dp),
             )
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -310,23 +321,24 @@ private fun ItineraryItemRow(item: ItineraryItem) {
 @Composable
 private fun TravelHeader() {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(TealGradient)
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.xl)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(TealGradient)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.xl),
     ) {
         Column {
             Text(
                 text = "Travel",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
             )
             Text(
                 text = "Bookings & trips",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.85f)
+                color = Color.White.copy(alpha = 0.85f),
             )
         }
     }
@@ -336,17 +348,18 @@ private fun TravelHeader() {
 private fun SummaryStrip(
     activeTripCount: Int,
     upcomingCount: Int,
-    totalSpend: Double
+    totalSpend: Double,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = DesignTokens.Spacing.m),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = DesignTokens.Spacing.m),
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             MetricItem(label = "Active Trips", value = activeTripCount.toString())
             VerticalDivider()
@@ -358,18 +371,21 @@ private fun SummaryStrip(
 }
 
 @Composable
-private fun MetricItem(label: String, value: String) {
+private fun MetricItem(
+    label: String,
+    value: String,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -378,7 +394,7 @@ private fun MetricItem(label: String, value: String) {
 private fun VerticalDivider() {
     HorizontalDivider(
         modifier = Modifier.size(width = 1.dp, height = 36.dp),
-        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
     )
 }
 
@@ -386,23 +402,23 @@ private fun VerticalDivider() {
 private fun ActiveTripCard(
     booking: BookingRecord,
     onViewBoardingPass: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = DesignTokens.Shape.roundedMd
+        shape = DesignTokens.Shape.roundedMd,
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "Active Trip",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                 )
                 SuggestionChip(
                     onClick = {},
@@ -410,14 +426,15 @@ private fun ActiveTripCard(
                         Text(
                             text = "ON TIME",
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
                     },
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = Color(0xFF4CAF50),
-                        labelColor = Color.White
-                    ),
-                    border = null
+                    colors =
+                        SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = Color(0xFF4CAF50),
+                            labelColor = Color.White,
+                        ),
+                    border = null,
                 )
             }
             Spacer(Modifier.height(DesignTokens.Spacing.s))
@@ -426,28 +443,29 @@ private fun ActiveTripCard(
                     imageVector = transportIcon(booking.mode),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Text(
                     text = "${booking.origin} → ${booking.destination}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
             Text(
-                text = "${booking.carrier} ${booking.flightOrTrainNumber}" +
+                text =
+                    "${booking.carrier} ${booking.flightOrTrainNumber}" +
                         (if (booking.boardingTime != null) " · Boarding ${booking.boardingTime}" else "") +
                         (if (booking.gate != null) " · Gate ${booking.gate}" else ""),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
             )
             Spacer(Modifier.height(DesignTokens.Spacing.l))
             OutlinedButton(
                 onClick = onViewBoardingPass,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("View Boarding Pass")
             }
@@ -458,58 +476,60 @@ private fun ActiveTripCard(
 @Composable
 private fun UpcomingBookingCard(
     booking: BookingRecord,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val dateFormatter = remember { SimpleDateFormat("d MMM", Locale.getDefault()) }
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = DesignTokens.Shape.roundedMd
+        shape = DesignTokens.Shape.roundedMd,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        MaterialTheme.colorScheme.secondaryContainer,
-                        RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer,
+                            RoundedCornerShape(8.dp),
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = transportIcon(booking.mode),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${booking.origin} → ${booking.destination}",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     text = "${booking.carrier} · ${dateFormatter.format(Date(booking.departureMs))}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Surface(
                 color = MaterialTheme.colorScheme.tertiaryContainer,
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(6.dp),
             ) {
                 Text(
                     text = "₹${"%.0f".format(booking.amountRupees)}",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 )
             }
         }
@@ -520,11 +540,11 @@ private fun UpcomingBookingCard(
 private fun QuickActionsRow(
     onBookFlight: () -> Unit,
     onBookTrain: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         OutlinedButton(onClick = onBookFlight, modifier = Modifier.weight(1f)) {
             Icon(Icons.Filled.AirplanemodeActive, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -544,31 +564,32 @@ private fun TravelPolicyCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = DesignTokens.Shape.roundedMd
+        shape = DesignTokens.Shape.roundedMd,
     ) {
         Row(
             modifier = Modifier.padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
         ) {
             Icon(
                 imageVector = Icons.Filled.Info,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Text(
                 text = "Bookings > ₹10,000 require pre-approval. Submit via the Approvals tab.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
-private fun transportIcon(mode: TransportMode): ImageVector = when (mode) {
-    TransportMode.FLIGHT -> Icons.Filled.AirplanemodeActive
-    TransportMode.TRAIN -> Icons.Filled.DirectionsRailway
-    TransportMode.BUS -> Icons.Filled.DirectionsBus
-    TransportMode.CAB -> Icons.Filled.DirectionsBus
-}
+private fun transportIcon(mode: TransportMode): ImageVector =
+    when (mode) {
+        TransportMode.FLIGHT -> Icons.Filled.AirplanemodeActive
+        TransportMode.TRAIN -> Icons.Filled.DirectionsRailway
+        TransportMode.BUS -> Icons.Filled.DirectionsBus
+        TransportMode.CAB -> Icons.Filled.DirectionsBus
+    }

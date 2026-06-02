@@ -5,9 +5,7 @@ import com.miletracker.core.data.model.db.LocationData
 import kotlinx.coroutines.flow.Flow
 
 class LocationRepository(private val dao: LocationDao) {
-
-    fun locationsForToken(token: String): Flow<List<LocationData>> =
-        dao.getLocationsByToken(token)
+    fun locationsForToken(token: String): Flow<List<LocationData>> = dao.getLocationsByToken(token)
 
     suspend fun insertBatch(locations: List<LocationData>) = dao.insertLocations(locations)
 
@@ -17,8 +15,7 @@ class LocationRepository(private val dao: LocationDao) {
 
     suspend fun countForToken(token: String): Int = dao.countLocationsByToken(token)
 
-    suspend fun getForToken(token: String): List<LocationData> =
-        dao.getLocationsByTokenPaged(token, limit = Int.MAX_VALUE, offset = 0)
+    suspend fun getForToken(token: String): List<LocationData> = dao.getLocationsByTokenPaged(token, limit = Int.MAX_VALUE, offset = 0)
 
     suspend fun deleteForToken(token: String) = dao.deleteLocationsByToken(token)
 }

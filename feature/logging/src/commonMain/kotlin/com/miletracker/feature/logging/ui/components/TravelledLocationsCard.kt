@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.logging.ui.components
 
 import androidx.compose.foundation.background
@@ -50,7 +52,7 @@ data class TravelledLocationsActions(
     val onToggleRoundTrip: (Boolean) -> Unit,
     val onAddLocation: () -> Unit,
     val onUseCurrent: () -> Unit,
-    val onVerifyDistance: () -> Unit
+    val onVerifyDistance: () -> Unit,
 )
 
 /**
@@ -79,38 +81,38 @@ fun TravelledLocationsCard(
     isRoundTrip: Boolean,
     actions: TravelledLocationsActions,
     modifier: Modifier = Modifier,
-    compact: Boolean = false
+    compact: Boolean = false,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             // Header with edit pencil.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Travelled locations",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         "Add locations as per your travelled journey.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Icon(
                     Icons.Filled.Edit,
                     contentDescription = "Edit locations",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                    modifier = Modifier.size(DesignTokens.IconSize.navigation),
                 )
             }
 
@@ -120,21 +122,25 @@ fun TravelledLocationsCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Total distance",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "${totalDistanceKm.formatDecimal(2)} km",
-                            style = if (compact) MaterialTheme.typography.headlineSmall
-                            else MaterialTheme.typography.displaySmall,
+                            style =
+                                if (compact) {
+                                    MaterialTheme.typography.headlineSmall
+                                } else {
+                                    MaterialTheme.typography.displaySmall
+                                },
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         if (stops.size >= 2) {
                             Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -144,21 +150,22 @@ fun TravelledLocationsCard(
                 }
                 Surface(
                     shape = DesignTokens.Shape.roundedSm,
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 ) {
                     Row(
-                        modifier = Modifier.padding(
-                            horizontal = DesignTokens.Spacing.m,
-                            vertical = DesignTokens.Spacing.s
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier =
+                            Modifier.padding(
+                                horizontal = DesignTokens.Spacing.m,
+                                vertical = DesignTokens.Spacing.s,
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column {
                             Text("Round trip", style = MaterialTheme.typography.labelLarge)
                             Text(
                                 "Return to start",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -175,26 +182,26 @@ fun TravelledLocationsCard(
                     Text(
                         "Pricing",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         "₹${pricePerKm.formatDecimal(1)}/km",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Amount",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         "₹${amount.formatDecimal(2)}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -206,13 +213,13 @@ fun TravelledLocationsCard(
                     "Start adding locations to create your itinerary",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = DesignTokens.Spacing.s)
+                    modifier = Modifier.padding(vertical = DesignTokens.Spacing.s),
                 )
             } else {
                 Text(
                     "Tip: use the arrows to reorder stops",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.s))
                 stops.forEachIndexed { index, stop ->
@@ -221,7 +228,7 @@ fun TravelledLocationsCard(
                         stop = stop,
                         isFirst = index == 0,
                         isLast = index == stops.lastIndex,
-                        actions = actions
+                        actions = actions,
                     )
                     // "Add stop here" insertion affordance between stops.
                     if (index < stops.lastIndex) {
@@ -235,12 +242,12 @@ fun TravelledLocationsCard(
             // Add location + Current buttons.
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 OutlinedButton(
                     onClick = actions.onAddLocation,
                     modifier = Modifier.weight(1f),
-                    shape = DesignTokens.Shape.roundedMd
+                    shape = DesignTokens.Shape.roundedMd,
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.inline))
                     Spacer(Modifier.size(DesignTokens.Spacing.xs))
@@ -249,7 +256,7 @@ fun TravelledLocationsCard(
                 OutlinedButton(
                     onClick = actions.onUseCurrent,
                     modifier = Modifier.weight(1f),
-                    shape = DesignTokens.Shape.roundedMd
+                    shape = DesignTokens.Shape.roundedMd,
                 ) {
                     Icon(Icons.Filled.MyLocation, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.inline))
                     Spacer(Modifier.size(DesignTokens.Spacing.xs))
@@ -266,27 +273,29 @@ private fun StopRow(
     stop: LocationStop,
     isFirst: Boolean,
     isLast: Boolean,
-    actions: TravelledLocationsActions
+    actions: TravelledLocationsActions,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = DesignTokens.Spacing.xs),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = DesignTokens.Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Numbered index badge.
         Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 "${index + 1}",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         }
         Spacer(Modifier.size(DesignTokens.Spacing.m))
@@ -298,21 +307,21 @@ private fun StopRow(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             Row {
                 EditableChip(
                     label = "Edit",
                     icon = Icons.Filled.Edit,
                     tint = MaterialTheme.colorScheme.primary,
-                    onClick = { actions.onEdit(stop.id) }
+                    onClick = { actions.onEdit(stop.id) },
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
                 EditableChip(
                     label = "Remove",
                     icon = Icons.Filled.Delete,
                     tint = MaterialTheme.colorScheme.error,
-                    onClick = { actions.onRemove(stop.id) }
+                    onClick = { actions.onRemove(stop.id) },
                 )
             }
         }
@@ -322,23 +331,23 @@ private fun StopRow(
             IconButton(
                 onClick = { actions.onMoveUp(index) },
                 enabled = !isFirst,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             ) {
                 Icon(
                     Icons.Filled.ArrowUpward,
                     contentDescription = "Move up",
-                    modifier = Modifier.size(DesignTokens.IconSize.inline)
+                    modifier = Modifier.size(DesignTokens.IconSize.inline),
                 )
             }
             IconButton(
                 onClick = { actions.onMoveDown(index) },
                 enabled = !isLast,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             ) {
                 Icon(
                     Icons.Filled.ArrowDownward,
                     contentDescription = "Move down",
-                    modifier = Modifier.size(DesignTokens.IconSize.inline)
+                    modifier = Modifier.size(DesignTokens.IconSize.inline),
                 )
             }
         }
@@ -350,16 +359,16 @@ private fun EditableChip(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     tint: androidx.compose.ui.graphics.Color,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Surface(
         shape = DesignTokens.Shape.chip,
         color = tint.copy(alpha = 0.10f),
-        onClick = onClick
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(14.dp))
             Spacer(Modifier.size(DesignTokens.Spacing.xs))
@@ -371,10 +380,11 @@ private fun EditableChip(
 @Composable
 private fun InsertAffordance(onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 40.dp, top = 2.dp, bottom = 2.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 40.dp, top = 2.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         TextButton(onClick = onClick) {
             Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(14.dp))
@@ -386,25 +396,41 @@ private fun InsertAffordance(onClick: () -> Unit) {
 
 /** Tiny legend chip used by the Step 2 checklist header (Locations/Vehicle/...). */
 @Composable
-fun ChecklistChip(label: String, satisfied: Boolean, modifier: Modifier = Modifier) {
-    val container = if (satisfied) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-    val content = if (satisfied) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.onSurfaceVariant
+fun ChecklistChip(
+    label: String,
+    satisfied: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val container =
+        if (satisfied) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        }
+    val content =
+        if (satisfied) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
     Surface(modifier = modifier, shape = DesignTokens.Shape.chip, color = container) {
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
             color = content,
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.s)
+            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.s),
         )
     }
 }
 
 /** Compact origin→destination summary row reused on Step 2's recap header. */
 @Composable
-fun RouteSummaryRow(originName: String, destinationName: String, modifier: Modifier = Modifier) {
+fun RouteSummaryRow(
+    originName: String,
+    destinationName: String,
+    modifier: Modifier = Modifier,
+) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
             originName,
@@ -412,13 +438,13 @@ fun RouteSummaryRow(originName: String, destinationName: String, modifier: Modif
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         Icon(
             Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = "to",
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(DesignTokens.IconSize.inline)
+            modifier = Modifier.size(DesignTokens.IconSize.inline),
         )
         Text(
             destinationName,
@@ -426,7 +452,7 @@ fun RouteSummaryRow(originName: String, destinationName: String, modifier: Modif
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
     }
 }

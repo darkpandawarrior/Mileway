@@ -60,14 +60,16 @@ fun ColorWheelDialog(
         onDismissRequest = onDismiss,
     ) {
         Card(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-        ) {
-            Column(
-                modifier = Modifier
+            modifier =
+                modifier
                     .fillMaxWidth()
                     .padding(16.dp),
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
@@ -78,10 +80,11 @@ fun ColorWheelDialog(
 
                 // HSV colour picker wheel
                 HsvColorPicker(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .padding(10.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .padding(10.dp),
                     controller = controller,
                     initialColor = selectedColor,
                     onColorChanged = { colorEnvelope: ColorEnvelope ->
@@ -99,26 +102,28 @@ fun ColorWheelDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(60.dp, 40.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(currentColor)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline,
-                                shape = RoundedCornerShape(8.dp),
-                            ),
+                        modifier =
+                            Modifier
+                                .size(60.dp, 40.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(currentColor)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    shape = RoundedCornerShape(8.dp),
+                                ),
                     )
 
                     if (showHexcode) {
                         Spacer(modifier = Modifier.width(16.dp))
 
                         Text(
-                            text = if (currentHexCode.length >= 2) {
-                                "#${currentHexCode.substring(2)}"
-                            } else {
-                                currentHexCode
-                            },
+                            text =
+                                if (currentHexCode.length >= 2) {
+                                    "#${currentHexCode.substring(2)}"
+                                } else {
+                                    currentHexCode
+                                },
                             style = MaterialTheme.typography.bodyLarge,
                             fontFamily = FontFamily.Monospace,
                         )
@@ -140,11 +145,12 @@ fun ColorWheelDialog(
                     Button(
                         onClick = {
                             // hexCode arrives as AARRGGBB — normalise to #RRGGBB
-                            val hex = if (currentHexCode.length >= 8) {
-                                "#${currentHexCode.takeLast(6)}"
-                            } else {
-                                "#$currentHexCode"
-                            }
+                            val hex =
+                                if (currentHexCode.length >= 8) {
+                                    "#${currentHexCode.takeLast(6)}"
+                                } else {
+                                    "#$currentHexCode"
+                                }
                             onColorSelected(currentColor, hex)
                         },
                         modifier = Modifier.weight(1f),

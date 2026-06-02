@@ -18,17 +18,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MonetizationOn
@@ -37,7 +38,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,7 +50,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -58,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -185,34 +185,37 @@ private fun ProfileHeaderSection(
         Box(modifier = Modifier.fillMaxWidth()) {
             // Soft gradient wash behind the avatar, fading into the surface.
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(AvatarSize / 2)
-                    .background(DesignTokens.topBarGradientBrush()),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(AvatarSize / 2)
+                        .background(DesignTokens.topBarGradientBrush()),
             )
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = DesignTokens.Spacing.screenHorizontal,
-                        vertical = DesignTokens.Spacing.l,
-                    ),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = DesignTokens.Spacing.screenHorizontal,
+                            vertical = DesignTokens.Spacing.l,
+                        ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 // Avatar + edit pencil badge
                 Box(contentAlignment = Alignment.BottomEnd) {
                     Box(
-                        modifier = Modifier
-                            .size(AvatarSize)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                            .border(
-                                width = 3.dp,
-                                color = MaterialTheme.colorScheme.surface,
-                                shape = CircleShape,
-                            ),
+                        modifier =
+                            Modifier
+                                .size(AvatarSize)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .border(
+                                    width = 3.dp,
+                                    color = MaterialTheme.colorScheme.surface,
+                                    shape = CircleShape,
+                                ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -223,11 +226,12 @@ private fun ProfileHeaderSection(
                         )
                     }
                     Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                        modifier =
+                            Modifier
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -251,10 +255,11 @@ private fun ProfileHeaderSection(
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                        modifier =
+                            Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -289,10 +294,11 @@ private fun IdentityChip(text: String) {
             text = text,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(
-                horizontal = DesignTokens.Spacing.l,
-                vertical = DesignTokens.Spacing.s,
-            ),
+            modifier =
+                Modifier.padding(
+                    horizontal = DesignTokens.Spacing.l,
+                    vertical = DesignTokens.Spacing.s,
+                ),
         )
     }
 }
@@ -306,9 +312,10 @@ private fun EmployeeCodeField(code: String) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -363,10 +370,16 @@ private fun AccountTileGrid(
     ) {
         TileRow(
             left = accountTile("acc_details", "Details", "Personal info", Icons.Default.Person, blue, onOpenDetails),
-            right = accountTile(
-                "acc_notifications", "Notifications", "Stay updated",
-                Icons.Default.Notifications, red, onOpenNotifications, badgeCount = notificationBadge,
-            ),
+            right =
+                accountTile(
+                    "acc_notifications",
+                    "Notifications",
+                    "Stay updated",
+                    Icons.Default.Notifications,
+                    red,
+                    onOpenNotifications,
+                    badgeCount = notificationBadge,
+                ),
         )
         TileRow(
             left = accountTile("acc_settings", "Settings", "App settings", Icons.Default.Settings, green, onOpenSettings),
@@ -392,7 +405,10 @@ private fun AccountTileGrid(
 }
 
 @Composable
-private fun TileRow(left: ProfileGridItem, right: ProfileGridItem) {
+private fun TileRow(
+    left: ProfileGridItem,
+    right: ProfileGridItem,
+) {
     Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
         GridProfileTile(item = left, modifier = Modifier.weight(1f), compact = true)
         GridProfileTile(item = right, modifier = Modifier.weight(1f), compact = true)
@@ -407,17 +423,18 @@ private fun accountTile(
     accent: Color,
     action: () -> Unit,
     badgeCount: Int? = null,
-): ProfileGridItem = ProfileGridItem(
-    id = id,
-    title = title,
-    subtitle = subtitle,
-    icon = icon,
-    status = ProfileItemStatus.COMPLETE,
-    badgeCount = badgeCount,
-    customContainerColor = accent.copy(alpha = 0.10f),
-    customContentColor = accent,
-    action = action,
-)
+): ProfileGridItem =
+    ProfileGridItem(
+        id = id,
+        title = title,
+        subtitle = subtitle,
+        icon = icon,
+        status = ProfileItemStatus.COMPLETE,
+        badgeCount = badgeCount,
+        customContainerColor = accent.copy(alpha = 0.10f),
+        customContentColor = accent,
+        action = action,
+    )
 
 /**
  * "Analytics / Live · last 7 days" snapshot card: total spend, transaction count, and a tiny
@@ -472,10 +489,11 @@ private fun AnalyticsCard(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(DesignTokens.StatusColors.success),
+                        modifier =
+                            Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(DesignTokens.StatusColors.success),
                     )
                     Spacer(Modifier.width(DesignTokens.Spacing.xs))
                     Text(
@@ -509,10 +527,11 @@ private fun AnalyticsCard(
 
                 Sparkline(
                     points = analytics.sparkline,
-                    modifier = Modifier
-                        .padding(horizontal = DesignTokens.Spacing.m)
-                        .weight(1f)
-                        .height(40.dp),
+                    modifier =
+                        Modifier
+                            .padding(horizontal = DesignTokens.Spacing.m)
+                            .weight(1f)
+                            .height(40.dp),
                 )
 
                 Column(horizontalAlignment = Alignment.End) {
@@ -551,10 +570,11 @@ private fun Sparkline(
         if (points.size < 2) return@Canvas
         val maxX = (points.size - 1).toFloat()
         val stepX = size.width / maxX
-        val mapped = points.mapIndexed { index, value ->
-            val clamped = value.coerceIn(0f, 1f)
-            Offset(x = index * stepX, y = size.height * (1f - clamped))
-        }
+        val mapped =
+            points.mapIndexed { index, value ->
+                val clamped = value.coerceIn(0f, 1f)
+                Offset(x = index * stepX, y = size.height * (1f - clamped))
+            }
         for (i in 0 until mapped.size - 1) {
             drawLine(
                 color = lineColor,
@@ -592,10 +612,11 @@ private fun SessionsDialog(
                         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                     ) {
                         Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                            modifier =
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
@@ -647,12 +668,13 @@ private fun SessionsDialog(
 @Composable
 private fun DeepLinkDemoCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val links = listOf(
-        "home" to "miletracker://home",
-        "log" to "miletracker://log",
-        "track" to "miletracker://track",
-        "profile" to "miletracker://profile",
-    )
+    val links =
+        listOf(
+            "home" to "miletracker://home",
+            "log" to "miletracker://log",
+            "track" to "miletracker://track",
+            "profile" to "miletracker://profile",
+        )
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -682,7 +704,7 @@ private fun DeepLinkDemoCard(modifier: Modifier = Modifier) {
                         onClick = {
                             context.startActivity(
                                 Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
                             )
                         },
                         modifier = Modifier.widthIn(min = 72.dp),
@@ -728,15 +750,19 @@ private fun PersonaSwitcherRow(
                 val isSelected = persona.id == selectedId
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected)
-                            MaterialTheme.colorScheme.primaryContainer
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                    modifier = Modifier
-                        .width(160.dp)
-                        .clickable { onSelect(persona.id) },
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                },
+                        ),
+                    modifier =
+                        Modifier
+                            .width(160.dp)
+                            .clickable { onSelect(persona.id) },
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
@@ -747,28 +773,40 @@ private fun PersonaSwitcherRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)
-                                    ),
+                                modifier =
+                                    Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isSelected) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)
+                                            },
+                                        ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Person,
                                     contentDescription = null,
-                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    tint =
+                                        if (isSelected) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
                                     modifier = Modifier.size(18.dp),
                                 )
                             }
                             Text(
                                 text = if (isSelected) "Active" else "Switch",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color =
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             )
                         }
@@ -776,15 +814,25 @@ private fun PersonaSwitcherRow(
                             text = persona.displayName,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color =
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                             maxLines = 1,
                         )
                         Text(
                             text = persona.organization.ifEmpty { persona.employeeCode },
                             style = MaterialTheme.typography.labelSmall,
-                            color = (if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant).copy(alpha = 0.7f),
+                            color =
+                                (
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                ).copy(alpha = 0.7f),
                             maxLines = 1,
                         )
                     }

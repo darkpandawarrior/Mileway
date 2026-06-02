@@ -24,7 +24,7 @@ import com.miletracker.feature.tracking.ui.screens.TrackingSuccessScreen
 fun PreviewTrackLoadingDefault() {
     PreviewSurface {
         TrackLoadingScreen(
-            message = "Working on your request…"
+            message = "Working on your request…",
         )
     }
 }
@@ -35,7 +35,7 @@ fun PreviewTrackLoadingCustomMessage() {
     PreviewSurface {
         TrackLoadingScreen(
             message = "Submitting your mileage expense…",
-            subStatuses = listOf("Uploading route…", "Calculating reimbursement…", "Done!")
+            subStatuses = listOf("Uploading route…", "Calculating reimbursement…", "Done!"),
         )
     }
 }

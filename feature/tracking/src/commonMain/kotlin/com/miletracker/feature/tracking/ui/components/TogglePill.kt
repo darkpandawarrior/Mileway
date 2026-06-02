@@ -17,7 +17,7 @@ fun TogglePill(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    outlined: Boolean = false
+    outlined: Boolean = false,
 ) {
     if (outlined) {
         val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -26,16 +26,17 @@ fun TogglePill(
         OutlinedButton(
             onClick = onClick,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor, containerColor = containerColor),
-            border = BorderStroke(1.dp, borderColor)
+            border = BorderStroke(1.dp, borderColor),
         ) { Text(label) }
     } else {
         Button(
             onClick = onClick,
             modifier = Modifier.height(36.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (selected) Color(0xFF2196F3) else Color(0xFFE0E0E0),
-                contentColor = if (selected) Color.White else Color(0xFF212121)
-            )
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = if (selected) Color(0xFF2196F3) else Color(0xFFE0E0E0),
+                    contentColor = if (selected) Color.White else Color(0xFF212121),
+                ),
         ) { Text(label, style = MaterialTheme.typography.bodySmall) }
     }
 }

@@ -9,5 +9,5 @@ data class LogMilesFrequentRouteEntity(
     val locationsJson: String,
     val distanceKm: Double,
     val useCount: Int,
-    val lastUsedAt: Long
+    val lastUsedAt: Long,
 )

@@ -106,13 +106,14 @@ fun DepthAwareTopBar(
     showSearchAction: Boolean = false,
     onSearchClick: () -> Unit = {},
     actionSpacing: Dp = DesignTokens.Spacing.s,
-    actions: @Composable () -> Unit = {}
+    actions: @Composable () -> Unit = {},
 ) {
     val config = DesignTokens.topBarConfig(depth)
     val colorScheme = MaterialTheme.colorScheme
 
-    val fraction = (collapsedFraction ?: scrollBehavior?.state?.collapsedFraction ?: 0f)
-        .coerceIn(0f, 1f)
+    val fraction =
+        (collapsedFraction ?: scrollBehavior?.state?.collapsedFraction ?: 0f)
+            .coerceIn(0f, 1f)
     val isCollapsed = fraction > collapseThreshold
 
     // Collapsed: plain surface + on-surface content. Expanded: depth-aware styling.
@@ -122,69 +123,77 @@ fun DepthAwareTopBar(
     val iconColor = if (isCollapsed) colorScheme.onSurface else config.textColors.iconColor
     val containerColor = if (isCollapsed) colorScheme.surface else Color.Transparent
 
-    val backgroundModifier = if (isCollapsed) {
-        Modifier
-    } else if (config.useGradient && config.gradientBrush != null) {
-        Modifier.background(config.gradientBrush)
-    } else {
-        Modifier.background(config.containerColor)
-    }
+    val backgroundModifier =
+        if (isCollapsed) {
+            Modifier
+        } else if (config.useGradient && config.gradientBrush != null) {
+            Modifier.background(config.gradientBrush)
+        } else {
+            Modifier.background(config.containerColor)
+        }
 
     // Title shrinks 22sp -> 16sp tracking the collapse fraction.
-    val titleFontSize = (
-        TitleExpandedFontSize.value +
-            (TitleCollapsedFontSize.value - TitleExpandedFontSize.value) * fraction
+    val titleFontSize =
+        (
+            TitleExpandedFontSize.value +
+                (TitleCollapsedFontSize.value - TitleExpandedFontSize.value) * fraction
         ).sp
 
     // Pulsing title icon: scale 1.0 -> 1.08, 1800ms ease-in-out, reversing forever.
-    val titleIconScale = if (titleIcon != null && animateTitleIcon) {
-        val transition = rememberInfiniteTransition(label = "topBarIcon")
-        transition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.08f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "topBarIconScale"
-        ).value
-    } else {
-        1f
-    }
+    val titleIconScale =
+        if (titleIcon != null && animateTitleIcon) {
+            val transition = rememberInfiniteTransition(label = "topBarIcon")
+            transition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.08f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse,
+                    ),
+                label = "topBarIconScale",
+            ).value
+        } else {
+            1f
+        }
 
     // Whether the bar currently sits on a strong accent background (gradient or solid accent),
     // which calls for a translucent white search container instead of a surface tint.
-    val onAccentBackground = !isCollapsed &&
-        (depth == NavigationDepth.ROOT || depth == NavigationDepth.LEVEL_1)
+    val onAccentBackground =
+        !isCollapsed &&
+            (depth == NavigationDepth.ROOT || depth == NavigationDepth.LEVEL_1)
 
     TopAppBar(
         modifier = modifier.then(backgroundModifier),
         scrollBehavior = scrollBehavior,
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = containerColor,
-            scrolledContainerColor = containerColor,
-            navigationIconContentColor = iconColor,
-            titleContentColor = titleColor,
-            actionIconContentColor = iconColor
-        ),
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = containerColor,
+                scrolledContainerColor = containerColor,
+                navigationIconContentColor = iconColor,
+                titleContentColor = titleColor,
+                actionIconContentColor = iconColor,
+            ),
         navigationIcon = navigationIcon,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = if (titleMaxWidth != null) {
-                    Modifier.sizeIn(maxWidth = titleMaxWidth)
-                } else {
-                    Modifier
-                }
+                modifier =
+                    if (titleMaxWidth != null) {
+                        Modifier.sizeIn(maxWidth = titleMaxWidth)
+                    } else {
+                        Modifier
+                    },
             ) {
                 titleIcon?.let { icon ->
                     Icon(
                         imageVector = icon,
                         contentDescription = titleIconContentDescription,
                         tint = titleColor,
-                        modifier = Modifier
-                            .size(DesignTokens.IconSize.actionTile)
-                            .scale(titleIconScale)
+                        modifier =
+                            Modifier
+                                .size(DesignTokens.IconSize.actionTile)
+                                .scale(titleIconScale),
                     )
                     Spacer(modifier = Modifier.width(DesignTokens.Spacing.s))
                 }
@@ -196,14 +205,14 @@ fun DepthAwareTopBar(
                         fontWeight = FontWeight.SemiBold,
                         color = titleColor,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                     if (subtitle != null) {
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = subtitleColor,
-                            maxLines = 2
+                            maxLines = 2,
                         )
                     }
                 }
@@ -213,24 +222,25 @@ fun DepthAwareTopBar(
             Box(modifier = Modifier.padding(end = DesignTokens.Spacing.xs)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(actionSpacing),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (showSearchAction) {
                         AnimatedSearchAction(
                             onClick = onSearchClick,
                             tint = iconColor,
-                            containerColor = if (onAccentBackground) {
-                                Color.White.copy(alpha = 0.2f)
-                            } else {
-                                colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                            },
-                            showGlow = !isCollapsed
+                            containerColor =
+                                if (onAccentBackground) {
+                                    Color.White.copy(alpha = 0.2f)
+                                } else {
+                                    colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                                },
+                            showGlow = !isCollapsed,
                         )
                     }
                     actions()
                 }
             }
-        }
+        },
     )
 }
 
@@ -249,7 +259,7 @@ private fun AnimatedSearchAction(
     modifier: Modifier = Modifier,
     tint: Color = MaterialTheme.colorScheme.onSurface,
     containerColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-    showGlow: Boolean = true
+    showGlow: Boolean = true,
 ) {
     val haptic = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -260,86 +270,94 @@ private fun AnimatedSearchAction(
     val breathingScale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "breathingScale"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "breathingScale",
     )
 
     // Glow opacity animation.
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glowAlpha"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 1500, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "glowAlpha",
     )
 
     // Press scale animation.
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.88f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "pressScale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "pressScale",
     )
 
     // Press rotation animation (subtle tilt).
     val rotation by animateFloatAsState(
         targetValue = if (isPressed) -8f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "pressRotation"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "pressRotation",
     )
 
     Box(
-        modifier = modifier
-            .size(48.dp)
-            .scale(scale)
-            .rotate(rotation),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .size(48.dp)
+                .scale(scale)
+                .rotate(rotation),
+        contentAlignment = Alignment.Center,
     ) {
         // Glow layer (blurred circle behind the container).
         if (showGlow) {
             Box(
-                modifier = Modifier
-                    .size(42.dp * breathingScale)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha * 0.25f),
-                        shape = CircleShape
-                    )
-                    .blur(12.dp)
+                modifier =
+                    Modifier
+                        .size(42.dp * breathingScale)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha * 0.25f),
+                            shape = CircleShape,
+                        )
+                        .blur(12.dp),
             )
         }
 
         // Main circular container.
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(color = containerColor, shape = CircleShape)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null
-                ) {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onClick()
-                },
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(40.dp)
+                    .background(color = containerColor, shape = CircleShape)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                    ) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onClick()
+                    },
+            contentAlignment = Alignment.Center,
         ) {
             // Search glyph with the breathing pulse (paused while pressed).
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search",
                 tint = tint,
-                modifier = Modifier
-                    .size(DesignTokens.IconSize.actionTile)
-                    .scale(if (!isPressed) breathingScale else 1f)
+                modifier =
+                    Modifier
+                        .size(DesignTokens.IconSize.actionTile)
+                        .scale(if (!isPressed) breathingScale else 1f),
             )
         }
     }

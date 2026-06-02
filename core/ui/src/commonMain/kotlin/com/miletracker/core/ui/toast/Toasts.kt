@@ -22,6 +22,7 @@ data class ToastData(
 internal object ToastController {
     private val _events = MutableSharedFlow<ToastData>(extraBufferCapacity = 8)
     val events = _events.asSharedFlow()
+
     fun emit(data: ToastData) {
         _events.tryEmit(data)
     }
@@ -33,7 +34,6 @@ internal object ToastController {
  * The public API is unchanged so existing call sites keep working.
  */
 object Toasts {
-
     enum class ToastScenario { Gps, Battery, Permissions, Success, Error, Info, Warning }
 
     fun show(
@@ -54,10 +54,11 @@ object Toasts {
         ToastController.emit(ToastData(title, description, type, primaryAction, secondaryAction))
     }
 
-    private fun typeFor(scenario: ToastScenario): ToastType = when (scenario) {
-        ToastScenario.Gps, ToastScenario.Battery, ToastScenario.Warning -> ToastType.Warning
-        ToastScenario.Permissions, ToastScenario.Error -> ToastType.Error
-        ToastScenario.Success -> ToastType.Success
-        ToastScenario.Info -> ToastType.Info
-    }
+    private fun typeFor(scenario: ToastScenario): ToastType =
+        when (scenario) {
+            ToastScenario.Gps, ToastScenario.Battery, ToastScenario.Warning -> ToastType.Warning
+            ToastScenario.Permissions, ToastScenario.Error -> ToastType.Error
+            ToastScenario.Success -> ToastType.Success
+            ToastScenario.Info -> ToastType.Info
+        }
 }

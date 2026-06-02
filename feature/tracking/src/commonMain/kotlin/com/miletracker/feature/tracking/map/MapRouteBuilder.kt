@@ -8,7 +8,6 @@ import com.miletracker.core.data.model.db.LocationData
  * on the JVM.
  */
 object MapRouteBuilder {
-
     // -------------------------------------------------------------------
     // Output types
     // -------------------------------------------------------------------
@@ -25,7 +24,7 @@ object MapRouteBuilder {
         val minLat: Double,
         val maxLat: Double,
         val minLng: Double,
-        val maxLng: Double
+        val maxLng: Double,
     ) {
         val isEmpty: Boolean
             get() = minLat.isNaN()
@@ -51,7 +50,7 @@ object MapRouteBuilder {
         val endCoord: LatLng?,
         val filteredCoords: List<LatLng>,
         val abnormalCoords: List<LatLng>,
-        val bounds: RouteBounds
+        val bounds: RouteBounds,
     )
 
     // -------------------------------------------------------------------
@@ -79,7 +78,7 @@ object MapRouteBuilder {
                 endCoord = null,
                 filteredCoords = emptyList(),
                 abnormalCoords = emptyList(),
-                bounds = RouteBounds.EMPTY
+                bounds = RouteBounds.EMPTY,
             )
         }
 
@@ -97,17 +96,20 @@ object MapRouteBuilder {
         }
 
         // Start/end from the main route; fall back to full list if route is empty.
-        val startCoord = routeCoords.firstOrNull()
-            ?: points.first().let { LatLng(it.lat, it.lng) }
-        val endCoord = routeCoords.lastOrNull()
-            ?: points.last().let { LatLng(it.lat, it.lng) }
+        val startCoord =
+            routeCoords.firstOrNull()
+                ?: points.first().let { LatLng(it.lat, it.lng) }
+        val endCoord =
+            routeCoords.lastOrNull()
+                ?: points.last().let { LatLng(it.lat, it.lng) }
 
         // Bounding box across ALL points so the viewport always covers everything.
-        val allCoords: List<LatLng> = buildList {
-            addAll(routeCoords)
-            addAll(filteredCoords)
-            addAll(abnormalCoords)
-        }
+        val allCoords: List<LatLng> =
+            buildList {
+                addAll(routeCoords)
+                addAll(filteredCoords)
+                addAll(abnormalCoords)
+            }
         val bounds = computeBounds(allCoords)
 
         return RouteMapData(
@@ -116,7 +118,7 @@ object MapRouteBuilder {
             endCoord = endCoord,
             filteredCoords = filteredCoords,
             abnormalCoords = abnormalCoords,
-            bounds = bounds
+            bounds = bounds,
         )
     }
 

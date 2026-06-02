@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
@@ -49,7 +50,6 @@ import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.logging.model.ExpenseRecord
 import com.miletracker.feature.logging.model.ExpenseStatus
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
-import com.miletracker.core.common.formatDecimal
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -61,7 +61,7 @@ fun ExpenseDetailScreen(
     expenseId: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ExpenseViewModel = koinViewModel()
+    viewModel: ExpenseViewModel = koinViewModel(),
 ) {
     val expense = viewModel.getExpense(expenseId)
 
@@ -74,29 +74,31 @@ fun ExpenseDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         if (expense == null) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                contentAlignment = Alignment.Center,
             ) {
                 Text("Expense not found", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = DesignTokens.Spacing.l)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+                modifier =
+                    modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = DesignTokens.Spacing.l)
+                        .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
             ) {
                 Spacer(Modifier.height(DesignTokens.Spacing.s))
 
@@ -109,13 +111,14 @@ fun ExpenseDetailScreen(
                 if (expense.note.isNotBlank()) {
                     Card(
                         shape = DesignTokens.Shape.roundedMd,
-                        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+                        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
                     ) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(DesignTokens.Spacing.l),
-                            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(DesignTokens.Spacing.l),
+                            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                         ) {
                             Text("Note", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(expense.note, style = MaterialTheme.typography.bodyMedium)
@@ -125,7 +128,7 @@ fun ExpenseDetailScreen(
 
                 OutlinedButton(
                     onClick = {},
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Filled.Info, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -143,61 +146,64 @@ private fun ReceiptPlaceholder(expense: ExpenseRecord) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(
-                        MaterialTheme.colorScheme.secondaryContainer,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(60.dp)
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer,
+                            CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = expense.category.icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(30.dp),
                 )
             }
             Text(
                 text = expense.merchantName,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Text(
                 text = "₹${expense.amountRupees.formatDecimal(2)}",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = formatFullDate(expense.dateMs),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (expense.requiresApproval) {
                 Surface(
                     color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = RoundedCornerShape(6.dp)
+                    shape = RoundedCornerShape(6.dp),
                 ) {
                     Text(
                         text = "Approval Required",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                 }
             }
@@ -212,27 +218,33 @@ private fun LineItemsCard(expense: ExpenseRecord) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
         ) {
             Text(
                 text = "Line Items",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Description", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                Text(
+                    "Description",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
                 Text("Qty", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.size(DesignTokens.Spacing.l))
                 Text("Amount", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -243,7 +255,7 @@ private fun LineItemsCard(expense: ExpenseRecord) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(item.description, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                     Text("${item.qty}", style = MaterialTheme.typography.bodySmall)
@@ -255,7 +267,7 @@ private fun LineItemsCard(expense: ExpenseRecord) {
             HorizontalDivider()
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text("Total", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 Text("₹${expense.amountRupees.formatDecimal(2)}", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
@@ -271,19 +283,20 @@ private fun ApprovalTimelineCard(expense: ExpenseRecord) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Text(
                 text = "Approval Timeline",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             steps.forEach { step ->
                 TimelineRow(step = step)
@@ -296,22 +309,23 @@ private fun ApprovalTimelineCard(expense: ExpenseRecord) {
 private fun TimelineRow(step: TimelineStep) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(
-                    if (step.active) step.color.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
-                    CircleShape
-                ),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(32.dp)
+                    .background(
+                        if (step.active) step.color.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape,
+                    ),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = step.icon,
                 contentDescription = null,
                 tint = if (step.active) step.color else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
             )
         }
         Column {
@@ -319,13 +333,13 @@ private fun TimelineRow(step: TimelineStep) {
                 text = step.label,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (step.active) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (step.active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                color = if (step.active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             )
             if (step.timestamp.isNotBlank()) {
                 Text(
                     text = step.timestamp,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -337,46 +351,52 @@ private data class TimelineStep(
     val icon: ImageVector,
     val color: Color,
     val active: Boolean,
-    val timestamp: String = ""
+    val timestamp: String = "",
 )
 
 private fun buildTimelineSteps(expense: ExpenseRecord): List<TimelineStep> {
-    val submitted = TimelineStep(
-        label = "Submitted",
-        icon = Icons.Filled.Receipt,
-        color = StatusColors.info,
-        active = true,
-        timestamp = formatFullDate(expense.dateMs)
-    )
-    val underReview = TimelineStep(
-        label = "Under Review",
-        icon = Icons.Filled.HourglassBottom,
-        color = StatusColors.warning,
-        active = expense.status != ExpenseStatus.DRAFT,
-        timestamp = if (expense.status != ExpenseStatus.DRAFT) "Sent to manager" else ""
-    )
-    val terminal = when (expense.status) {
-        ExpenseStatus.APPROVED -> TimelineStep(
-            label = "Approved",
-            icon = Icons.Filled.CheckCircle,
-            color = StatusColors.success,
+    val submitted =
+        TimelineStep(
+            label = "Submitted",
+            icon = Icons.Filled.Receipt,
+            color = StatusColors.info,
             active = true,
-            timestamp = "Reimbursement in progress"
+            timestamp = formatFullDate(expense.dateMs),
         )
-        ExpenseStatus.REJECTED -> TimelineStep(
-            label = "Rejected",
-            icon = Icons.Filled.Error,
-            color = StatusColors.error,
-            active = true,
-            timestamp = "Contact your manager"
-        )
-        else -> TimelineStep(
-            label = "Awaiting Decision",
+    val underReview =
+        TimelineStep(
+            label = "Under Review",
             icon = Icons.Filled.HourglassBottom,
-            color = StatusColors.neutral,
-            active = false
+            color = StatusColors.warning,
+            active = expense.status != ExpenseStatus.DRAFT,
+            timestamp = if (expense.status != ExpenseStatus.DRAFT) "Sent to manager" else "",
         )
-    }
+    val terminal =
+        when (expense.status) {
+            ExpenseStatus.APPROVED ->
+                TimelineStep(
+                    label = "Approved",
+                    icon = Icons.Filled.CheckCircle,
+                    color = StatusColors.success,
+                    active = true,
+                    timestamp = "Reimbursement in progress",
+                )
+            ExpenseStatus.REJECTED ->
+                TimelineStep(
+                    label = "Rejected",
+                    icon = Icons.Filled.Error,
+                    color = StatusColors.error,
+                    active = true,
+                    timestamp = "Contact your manager",
+                )
+            else ->
+                TimelineStep(
+                    label = "Awaiting Decision",
+                    icon = Icons.Filled.HourglassBottom,
+                    color = StatusColors.neutral,
+                    active = false,
+                )
+        }
     return listOf(submitted, underReview, terminal)
 }
 
@@ -385,28 +405,33 @@ private data class LineItem(val description: String, val qty: Int, val amount: D
 private fun mockLineItems(expense: ExpenseRecord): List<LineItem> {
     val total = expense.amountRupees
     return when (expense.category) {
-        com.miletracker.feature.logging.model.ExpenseCategory.FOOD -> listOf(
-            LineItem("Food & Beverages", 1, total * 0.9),
-            LineItem("GST (5%)", 1, total * 0.1)
-        )
-        com.miletracker.feature.logging.model.ExpenseCategory.TRAVEL -> listOf(
-            LineItem("Transportation", 1, total * 0.85),
-            LineItem("Toll / Parking", 1, total * 0.1),
-            LineItem("Service Fee", 1, total * 0.05)
-        )
-        com.miletracker.feature.logging.model.ExpenseCategory.ACCOMMODATION -> listOf(
-            LineItem("Room Rent", 1, total * 0.80),
-            LineItem("GST (12%)", 1, total * 0.12),
-            LineItem("Service Charge", 1, total * 0.08)
-        )
-        else -> listOf(
-            LineItem(expense.category.label, 1, total * 0.88),
-            LineItem("Tax & Charges", 1, total * 0.12)
-        )
+        com.miletracker.feature.logging.model.ExpenseCategory.FOOD ->
+            listOf(
+                LineItem("Food & Beverages", 1, total * 0.9),
+                LineItem("GST (5%)", 1, total * 0.1),
+            )
+        com.miletracker.feature.logging.model.ExpenseCategory.TRAVEL ->
+            listOf(
+                LineItem("Transportation", 1, total * 0.85),
+                LineItem("Toll / Parking", 1, total * 0.1),
+                LineItem("Service Fee", 1, total * 0.05),
+            )
+        com.miletracker.feature.logging.model.ExpenseCategory.ACCOMMODATION ->
+            listOf(
+                LineItem("Room Rent", 1, total * 0.80),
+                LineItem("GST (12%)", 1, total * 0.12),
+                LineItem("Service Charge", 1, total * 0.08),
+            )
+        else ->
+            listOf(
+                LineItem(expense.category.label, 1, total * 0.88),
+                LineItem("Tax & Charges", 1, total * 0.12),
+            )
     }
 }
 
-private val MONTHS = arrayOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+private val MONTHS = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
 private fun formatFullDate(ms: Long): String {
     val ldt = Instant.fromEpochMilliseconds(ms).toLocalDateTime(TimeZone.currentSystemDefault())
     val amPm = if (ldt.hour < 12) "AM" else "PM"

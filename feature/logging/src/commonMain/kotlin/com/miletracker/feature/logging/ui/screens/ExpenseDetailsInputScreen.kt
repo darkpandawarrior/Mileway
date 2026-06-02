@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
@@ -48,7 +48,7 @@ fun ExpenseDetailsInputScreen(
     onBack: () -> Unit,
     onSubmitted: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ExpenseViewModel = koinViewModel()
+    viewModel: ExpenseViewModel = koinViewModel(),
 ) {
     val form by viewModel.formState.collectAsState()
 
@@ -62,16 +62,17 @@ fun ExpenseDetailsInputScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
             Surface(shadowElevation = 8.dp) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
                 ) {
                     Button(
                         onClick = {
@@ -79,42 +80,43 @@ fun ExpenseDetailsInputScreen(
                             onSubmitted()
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = form.amountText.isNotBlank() && form.merchantName.isNotBlank()
+                        enabled = form.amountText.isNotBlank() && form.merchantName.isNotBlank(),
                     ) {
                         Text("Submit Expense")
                     }
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .imePadding(),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .imePadding(),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Spacer(Modifier.height(DesignTokens.Spacing.s))
 
             form.category?.let { cat ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                 ) {
                     Icon(
                         imageVector = cat.icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                     Text(
                         text = cat.label,
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
             }
@@ -127,7 +129,7 @@ fun ExpenseDetailsInputScreen(
                 prefix = { Text("₹") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
@@ -137,7 +139,7 @@ fun ExpenseDetailsInputScreen(
                 placeholder = { Text("e.g. Swiggy, Ola Cabs") },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
@@ -148,19 +150,19 @@ fun ExpenseDetailsInputScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 minLines = 3,
                 maxLines = 5,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             if ((form.amountText.toDoubleOrNull() ?: 0.0) > 5000.0) {
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer,
-                    shape = DesignTokens.Shape.roundedSm
+                    shape = DesignTokens.Shape.roundedSm,
                 ) {
                     Text(
                         text = "⚠ Expenses above ₹5,000 require manager approval before reimbursement.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(DesignTokens.Spacing.m)
+                        modifier = Modifier.padding(DesignTokens.Spacing.m),
                     )
                 }
             }

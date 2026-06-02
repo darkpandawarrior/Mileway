@@ -24,44 +24,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.common.formatDecimal
+import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.feature.tracking.insights.ActivityResult
-import com.miletracker.feature.tracking.insights.ActivityType
 import com.miletracker.feature.tracking.insights.DistanceQualityResult
 import com.miletracker.feature.tracking.insights.QualityResult
 import com.miletracker.feature.tracking.insights.SystemImpactResult
 import com.miletracker.feature.tracking.insights.SystemImpactType
 
 @Composable
-fun SavedTrackOverviewCard(track: TrackDisplayData, modifier: Modifier = Modifier) {
+fun SavedTrackOverviewCard(
+    track: TrackDisplayData,
+    modifier: Modifier = Modifier,
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         track.name ?: "Track Miles",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
                         DateUtils.epochToDisplayDate(track.startTime),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 StatusBadge(
                     text = if (track.isSubmitted) "Submitted" else "Draft",
-                    color = if (track.isSubmitted) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                    color = if (track.isSubmitted) Color(0xFF4CAF50) else Color(0xFFFF9800),
                 )
             }
 
@@ -71,25 +73,25 @@ fun SavedTrackOverviewCard(track: TrackDisplayData, modifier: Modifier = Modifie
 
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 StatItem(
                     icon = Icons.Default.Place,
                     label = "Distance",
                     value = track.getFormattedDistance(),
-                    modifier = Modifier.weight(1f).padding(end = 4.dp)
+                    modifier = Modifier.weight(1f).padding(end = 4.dp),
                 )
                 StatItem(
                     icon = Icons.Default.Schedule,
                     label = "Duration",
                     value = track.getFormattedDuration(),
-                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                    modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
                 )
                 StatItem(
                     icon = Icons.Default.Speed,
                     label = "Avg Speed",
                     value = "${track.avgSpeedKmh.formatDecimal(1)} km/h",
-                    modifier = Modifier.weight(1f).padding(start = 4.dp)
+                    modifier = Modifier.weight(1f).padding(start = 4.dp),
                 )
             }
 
@@ -100,14 +102,14 @@ fun SavedTrackOverviewCard(track: TrackDisplayData, modifier: Modifier = Modifie
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         androidx.compose.material3.Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = null,
                             tint = Color(0xFF4CAF50),
-                            modifier = Modifier.padding(end = 4.dp)
+                            modifier = Modifier.padding(end = 4.dp),
                         )
                         Text("Reimbursable", style = MaterialTheme.typography.bodyMedium)
                     }
@@ -115,7 +117,7 @@ fun SavedTrackOverviewCard(track: TrackDisplayData, modifier: Modifier = Modifie
                         "₹${track.reimbursableAmount.formatDecimal(2)}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4CAF50)
+                        color = Color(0xFF4CAF50),
                     )
                 }
             }
@@ -129,18 +131,18 @@ fun DataQualityReportCard(
     locationCount: Int,
     mockCount: Int,
     abnormalCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Data Quality", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -149,7 +151,7 @@ fun DataQualityReportCard(
                         " $qualityScore%",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = qualityColor(qualityScore)
+                        color = qualityColor(qualityScore),
                     )
                 }
             }
@@ -158,12 +160,12 @@ fun DataQualityReportCard(
             DataQualityItem(
                 label = "Mock Locations",
                 value = "$mockCount",
-                trend = if (mockCount == 0) TrendDirection.STABLE else TrendDirection.DOWN
+                trend = if (mockCount == 0) TrendDirection.STABLE else TrendDirection.DOWN,
             )
             DataQualityItem(
                 label = "Abnormal Points",
                 value = "$abnormalCount",
-                trend = if (abnormalCount < 5) TrendDirection.STABLE else TrendDirection.DOWN
+                trend = if (abnormalCount < 5) TrendDirection.STABLE else TrendDirection.DOWN,
             )
         }
     }
@@ -180,23 +182,23 @@ fun DataQualityReportCard(
 @Composable
 fun QualityDetailCard(
     qualityResult: QualityResult,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "Quality Analysis",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     QualityDot(qualityResult.qualityScore)
@@ -204,7 +206,7 @@ fun QualityDetailCard(
                         " ${qualityResult.qualityScore}",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = qualityColor(qualityResult.qualityScore)
+                        color = qualityColor(qualityResult.qualityScore),
                     )
                 }
             }
@@ -212,18 +214,20 @@ fun QualityDetailCard(
             DataQualityItem(
                 label = "Data Completeness",
                 value = "${(qualityResult.dataCompleteness * 100).formatDecimal(0)}%",
-                trend = when {
-                    qualityResult.dataCompleteness >= 0.8 -> TrendDirection.STABLE
-                    else -> TrendDirection.DOWN
-                }
+                trend =
+                    when {
+                        qualityResult.dataCompleteness >= 0.8 -> TrendDirection.STABLE
+                        else -> TrendDirection.DOWN
+                    },
             )
             DataQualityItem(
                 label = "Reliability",
                 value = "${qualityResult.reliabilityScore}",
-                trend = when {
-                    qualityResult.reliabilityScore >= 75 -> TrendDirection.STABLE
-                    else -> TrendDirection.DOWN
-                }
+                trend =
+                    when {
+                        qualityResult.reliabilityScore >= 75 -> TrendDirection.STABLE
+                        else -> TrendDirection.DOWN
+                    },
             )
             if (qualityResult.scoreFactors.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
@@ -232,25 +236,25 @@ fun QualityDetailCard(
                 Text(
                     "Score Factors",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(4.dp))
                 qualityResult.scoreFactors.forEach { factor ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
                             factor.label,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         Text(
                             "−${factor.deduction}",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFF44336)
+                            color = Color(0xFFF44336),
                         )
                     }
                 }
@@ -266,53 +270,55 @@ fun QualityDetailCard(
 @Composable
 fun ActivityBreakdownCard(
     activityResult: ActivityResult,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "Activity Analysis",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
                     activityResult.dominantActivity.name,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
             Spacer(Modifier.height(8.dp))
             DataQualityItem(
                 label = "Speed Consistency",
                 value = "${(activityResult.speedConsistency * 100).formatDecimal(0)}%",
-                trend = when {
-                    activityResult.speedConsistency >= 0.7 -> TrendDirection.STABLE
-                    else -> TrendDirection.DOWN
-                }
+                trend =
+                    when {
+                        activityResult.speedConsistency >= 0.7 -> TrendDirection.STABLE
+                        else -> TrendDirection.DOWN
+                    },
             )
             DataQualityItem(
                 label = "Driving Style",
                 value = activityResult.accelerationProfile.dominantLabel,
-                trend = when (activityResult.accelerationProfile.dominantLabel) {
-                    "SMOOTH" -> TrendDirection.STABLE
-                    "MODERATE" -> TrendDirection.STABLE
-                    else -> TrendDirection.DOWN
-                }
+                trend =
+                    when (activityResult.accelerationProfile.dominantLabel) {
+                        "SMOOTH" -> TrendDirection.STABLE
+                        "MODERATE" -> TrendDirection.STABLE
+                        else -> TrendDirection.DOWN
+                    },
             )
             DataQualityItem(
                 label = "Harsh Events",
                 value = "${activityResult.accelerationProfile.harshEvents.size}",
-                trend = if (activityResult.accelerationProfile.harshEvents.isEmpty()) TrendDirection.STABLE else TrendDirection.DOWN
+                trend = if (activityResult.accelerationProfile.harshEvents.isEmpty()) TrendDirection.STABLE else TrendDirection.DOWN,
             )
             if (activityResult.activityBreakdown.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
@@ -321,7 +327,7 @@ fun ActivityBreakdownCard(
                 Text(
                     "Time Breakdown",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(4.dp))
                 activityResult.activityBreakdown.entries
@@ -330,17 +336,17 @@ fun ActivityBreakdownCard(
                     .forEach { (type, pct) ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
                                 type.name.lowercase().replaceFirstChar { it.uppercase() },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 "${pct.formatDecimal(0)}%",
                                 style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
                             )
                         }
                     }
@@ -356,52 +362,52 @@ fun ActivityBreakdownCard(
 @Composable
 fun SystemImpactCard(
     systemImpactResult: SystemImpactResult,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (systemImpactResult.impacts.isEmpty() && systemImpactResult.batteryImpact == null) return
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 "System Impact",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(8.dp))
             if (systemImpactResult.impacts.isEmpty()) {
                 Text(
                     "No system issues detected",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF4CAF50)
+                    color = Color(0xFF4CAF50),
                 )
             } else {
                 systemImpactResult.impacts.forEach { impact ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.Top,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 impact.type.displayName(),
                                 style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
                             )
                             Text(
                                 impact.description,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Text(
                             "~${impact.estimatedImpactPct.formatDecimal(0)}%",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
-                            color = impactColor(impact.estimatedImpactPct)
+                            color = impactColor(impact.estimatedImpactPct),
                         )
                     }
                     Spacer(Modifier.height(4.dp))
@@ -414,7 +420,7 @@ fun SystemImpactCard(
                 Text(
                     rec,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -427,23 +433,23 @@ fun SystemImpactCard(
 @Composable
 fun DistanceQualityCard(
     distanceQualityResult: DistanceQualityResult,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     "Distance Quality",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     QualityDot(distanceQualityResult.score)
@@ -451,7 +457,7 @@ fun DistanceQualityCard(
                         " ${distanceQualityResult.score}",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = qualityColor(distanceQualityResult.score)
+                        color = qualityColor(distanceQualityResult.score),
                     )
                 }
             }
@@ -459,23 +465,23 @@ fun DistanceQualityCard(
             Text(
                 distanceQualityResult.assessment,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(8.dp))
             DataQualityItem(
                 label = "Cleaned Distance Ratio",
                 value = "${(distanceQualityResult.cleanedDistanceRatio * 100).formatDecimal(0)}%",
-                trend = if (distanceQualityResult.cleanedDistanceRatio >= 0.8) TrendDirection.STABLE else TrendDirection.DOWN
+                trend = if (distanceQualityResult.cleanedDistanceRatio >= 0.8) TrendDirection.STABLE else TrendDirection.DOWN,
             )
             DataQualityItem(
                 label = "Mock Distance",
                 value = "${distanceQualityResult.mockPct.formatDecimal(1)}%",
-                trend = if (distanceQualityResult.mockPct < 1.0) TrendDirection.STABLE else TrendDirection.DOWN
+                trend = if (distanceQualityResult.mockPct < 1.0) TrendDirection.STABLE else TrendDirection.DOWN,
             )
             DataQualityItem(
                 label = "Abnormal Distance",
                 value = "${distanceQualityResult.abnormalPct.formatDecimal(1)}%",
-                trend = if (distanceQualityResult.abnormalPct < 5.0) TrendDirection.STABLE else TrendDirection.DOWN
+                trend = if (distanceQualityResult.abnormalPct < 5.0) TrendDirection.STABLE else TrendDirection.DOWN,
             )
             if (distanceQualityResult.isReliableForBusiness) {
                 Spacer(Modifier.height(4.dp))
@@ -483,25 +489,27 @@ fun DistanceQualityCard(
                     "Reliable for business/tax reporting",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFF4CAF50),
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
     }
 }
 
-private fun SystemImpactType.displayName(): String = when (this) {
-    SystemImpactType.BATTERY_OPTIMIZATION -> "Battery Optimisation"
-    SystemImpactType.POWER_SAVER          -> "Power Saver Mode"
-    SystemImpactType.APP_KILLED           -> "App Killed"
-    SystemImpactType.PHONE_RESTART        -> "Device Restarted"
-    SystemImpactType.MOCK_LOCATION        -> "Mock Location"
-    SystemImpactType.POOR_GPS_ACCURACY    -> "Poor GPS Accuracy"
-    SystemImpactType.NETWORK_ISSUES       -> "Network Issues"
-}
+private fun SystemImpactType.displayName(): String =
+    when (this) {
+        SystemImpactType.BATTERY_OPTIMIZATION -> "Battery Optimisation"
+        SystemImpactType.POWER_SAVER -> "Power Saver Mode"
+        SystemImpactType.APP_KILLED -> "App Killed"
+        SystemImpactType.PHONE_RESTART -> "Device Restarted"
+        SystemImpactType.MOCK_LOCATION -> "Mock Location"
+        SystemImpactType.POOR_GPS_ACCURACY -> "Poor GPS Accuracy"
+        SystemImpactType.NETWORK_ISSUES -> "Network Issues"
+    }
 
-private fun impactColor(pct: Double): Color = when {
-    pct >= 30.0 -> Color(0xFFF44336)
-    pct >= 15.0 -> Color(0xFFFF9800)
-    else        -> Color(0xFFFFC107)
-}
+private fun impactColor(pct: Double): Color =
+    when {
+        pct >= 30.0 -> Color(0xFFF44336)
+        pct >= 15.0 -> Color(0xFFFF9800)
+        else -> Color(0xFFFFC107)
+    }

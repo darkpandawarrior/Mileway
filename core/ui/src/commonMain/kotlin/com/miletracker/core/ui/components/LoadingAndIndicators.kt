@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.core.ui.components
 
 import androidx.compose.animation.animateColorAsState
@@ -63,9 +65,9 @@ import androidx.compose.ui.unit.sp
  */
 object ShimmerSpecs {
     const val CARD_WIDTH = 280
-    const val COMPACT_HEIGHT = 120      // For simple cards (approvals, simple lists)
-    const val STANDARD_HEIGHT = 160     // For most carousel cards (transactions, vouchers)
-    const val LARGE_HEIGHT = 200        // For complex cards with images (trips, bookings)
+    const val COMPACT_HEIGHT = 120 // For simple cards (approvals, simple lists)
+    const val STANDARD_HEIGHT = 160 // For most carousel cards (transactions, vouchers)
+    const val LARGE_HEIGHT = 200 // For complex cards with images (trips, bookings)
     const val HORIZONTAL_SPACING = 12
     const val CARD_COUNT = 3
     const val CORNER_RADIUS = 12
@@ -77,7 +79,7 @@ object ShimmerSpecs {
 data class SectionError(
     val message: String,
     val canRetry: Boolean = true,
-    val errorCode: String? = null
+    val errorCode: String? = null,
 )
 
 /**
@@ -86,7 +88,7 @@ data class SectionError(
 data class SectionLoadState<T>(
     val data: List<T> = emptyList(),
     val isLoading: Boolean = false,
-    val error: SectionError? = null
+    val error: SectionError? = null,
 )
 
 /**
@@ -97,40 +99,45 @@ data class SectionLoadState<T>(
 fun ShimmerBar(
     height: Int = 14,
     widthFraction: Float = 1f,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
-    val colors = remember(surfaceVariant) {
-        listOf(
-            surfaceVariant.copy(alpha = 0.6f),
-            surfaceVariant.copy(alpha = 0.3f),
-            surfaceVariant.copy(alpha = 0.6f)
-        )
-    }
+    val colors =
+        remember(surfaceVariant) {
+            listOf(
+                surfaceVariant.copy(alpha = 0.6f),
+                surfaceVariant.copy(alpha = 0.3f),
+                surfaceVariant.copy(alpha = 0.6f),
+            )
+        }
 
     val transition = rememberInfiniteTransition(label = "shimmer")
-    val xShimmer = transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = FastOutLinearInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "x"
-    )
+    val xShimmer =
+        transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1000f,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = 1200, easing = FastOutLinearInEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+            label = "x",
+        )
 
-    val brush = Brush.linearGradient(
-        colors = colors,
-        start = Offset.Zero,
-        end = Offset(xShimmer.value, xShimmer.value)
-    )
+    val brush =
+        Brush.linearGradient(
+            colors = colors,
+            start = Offset.Zero,
+            end = Offset(xShimmer.value, xShimmer.value),
+        )
 
     Box(
-        modifier = modifier
-            .fillMaxWidth(widthFraction)
-            .height(height.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(brush)
+        modifier =
+            modifier
+                .fillMaxWidth(widthFraction)
+                .height(height.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(brush),
     )
 }
 
@@ -143,30 +150,34 @@ fun ShimmerBar(
 @Composable
 fun UnifiedShimmerCard(
     height: Int = ShimmerSpecs.STANDARD_HEIGHT,
-    showImagePlaceholder: Boolean = false
+    showImagePlaceholder: Boolean = false,
 ) {
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        modifier = Modifier
-            .width(ShimmerSpecs.CARD_WIDTH.dp)
-            .height(height.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
+        modifier =
+            Modifier
+                .width(ShimmerSpecs.CARD_WIDTH.dp)
+                .height(height.dp),
         shape = RoundedCornerShape(ShimmerSpecs.CORNER_RADIUS.dp),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        )
+        border =
+            BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+            ),
     ) {
         Column {
             if (showImagePlaceholder) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                        )
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                            ),
                 )
             }
 
@@ -193,17 +204,17 @@ fun UnifiedCarouselShimmer(
     height: Int = ShimmerSpecs.STANDARD_HEIGHT,
     cardCount: Int = ShimmerSpecs.CARD_COUNT,
     showImagePlaceholder: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(ShimmerSpecs.HORIZONTAL_SPACING.dp),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        modifier = modifier
+        modifier = modifier,
     ) {
         items(cardCount) {
             UnifiedShimmerCard(
                 height = height,
-                showImagePlaceholder = showImagePlaceholder
+                showImagePlaceholder = showImagePlaceholder,
             )
         }
     }
@@ -215,41 +226,46 @@ fun UnifiedCarouselShimmer(
 @Composable
 fun UnifiedListShimmer(
     height: Int = 72,
-    itemCount: Int = 5
+    itemCount: Int = 5,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(itemCount) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(height.dp)
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(height.dp)
+                        .padding(horizontal = 16.dp),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
+                border =
+                    BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    ),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                                CircleShape
-                            )
+                        modifier =
+                            Modifier
+                                .size(40.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                    CircleShape,
+                                ),
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         ShimmerBar(height = 14, widthFraction = 0.6f)
@@ -259,7 +275,7 @@ fun UnifiedListShimmer(
                     ShimmerBar(
                         height = 12,
                         widthFraction = 0.2f,
-                        modifier = Modifier.width(60.dp)
+                        modifier = Modifier.width(60.dp),
                     )
                 }
             }
@@ -276,42 +292,47 @@ fun SectionErrorState(
     canRetry: Boolean = true,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector = Icons.Default.Refresh
+    icon: ImageVector = Icons.Default.Refresh,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-        ),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+            ),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
-        )
+        border =
+            BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.error.copy(alpha = 0.3f),
+            ),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(48.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                            shape = CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = "Error",
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
 
@@ -321,19 +342,19 @@ fun SectionErrorState(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             if (canRetry) {
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = onRetry,
-                    modifier = Modifier.height(36.dp)
+                    modifier = Modifier.height(36.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(text = "Retry", style = MaterialTheme.typography.bodySmall)
@@ -367,18 +388,19 @@ fun DotsIndicator(
     selectedSize: Dp = 8.dp,
     unselectedSize: Dp = 8.dp,
     spacing: Dp = 8.dp,
-    showPageNumber: Boolean = false
+    showPageNumber: Boolean = false,
 ) {
     if (pageCount <= 1) return
 
     val shouldShowPageNumber = showPageNumber || pageCount > MAX_VISIBLE_DOTS
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (pageCount <= MAX_VISIBLE_DOTS) {
             SimpleDotsRow(pageCount, selectedIndex, selectedSize, unselectedSize, spacing)
@@ -399,7 +421,7 @@ private fun SimpleDotsRow(
     selectedIndex: Int,
     selectedSize: Dp,
     unselectedSize: Dp,
-    spacing: Dp
+    spacing: Dp,
 ) {
     repeat(pageCount) { index ->
         val isSelected = selectedIndex == index
@@ -407,22 +429,24 @@ private fun SimpleDotsRow(
         val animatedSize by animateDpAsState(
             targetValue = if (isSelected) selectedSize else unselectedSize,
             animationSpec = tween(durationMillis = 200),
-            label = "dotSize"
+            label = "dotSize",
         )
         val animatedColor by animateColorAsState(
-            targetValue = if (isSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            },
+            targetValue =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
             animationSpec = tween(durationMillis = 200),
-            label = "dotColor"
+            label = "dotColor",
         )
 
         Box(
-            modifier = Modifier
-                .size(animatedSize)
-                .background(color = animatedColor, shape = CircleShape)
+            modifier =
+                Modifier
+                    .size(animatedSize)
+                    .background(color = animatedColor, shape = CircleShape),
         )
         if (index != pageCount - 1) Spacer(modifier = Modifier.width(spacing))
     }
@@ -434,42 +458,46 @@ private fun CyclingDotsRow(
     selectedIndex: Int,
     selectedSize: Dp,
     unselectedSize: Dp,
-    spacing: Dp
+    spacing: Dp,
 ) {
-    val windowInfo = remember(selectedIndex, pageCount) {
-        calculateDotWindow(selectedIndex, pageCount)
-    }
+    val windowInfo =
+        remember(selectedIndex, pageCount) {
+            calculateDotWindow(selectedIndex, pageCount)
+        }
 
     windowInfo.visibleIndices.forEachIndexed { displayIndex, actualIndex ->
         val isSelected = actualIndex == selectedIndex
         val isEdge = windowInfo.isEdgeDot(displayIndex)
 
-        val targetSize = when {
-            isSelected -> selectedSize
-            isEdge -> unselectedSize * 0.7f // Smaller edge dots hint at more pages
-            else -> unselectedSize
-        }
+        val targetSize =
+            when {
+                isSelected -> selectedSize
+                isEdge -> unselectedSize * 0.7f // Smaller edge dots hint at more pages
+                else -> unselectedSize
+            }
         val animatedSize by animateDpAsState(
             targetValue = targetSize,
             animationSpec = tween(durationMillis = 200),
-            label = "dotSize"
+            label = "dotSize",
         )
 
-        val targetColor = when {
-            isSelected -> MaterialTheme.colorScheme.primary
-            isEdge -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            else -> MaterialTheme.colorScheme.surfaceVariant
-        }
+        val targetColor =
+            when {
+                isSelected -> MaterialTheme.colorScheme.primary
+                isEdge -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                else -> MaterialTheme.colorScheme.surfaceVariant
+            }
         val animatedColor by animateColorAsState(
             targetValue = targetColor,
             animationSpec = tween(durationMillis = 200),
-            label = "dotColor"
+            label = "dotColor",
         )
 
         Box(
-            modifier = Modifier
-                .size(animatedSize)
-                .background(color = animatedColor, shape = CircleShape)
+            modifier =
+                Modifier
+                    .size(animatedSize)
+                    .background(color = animatedColor, shape = CircleShape),
         )
         if (displayIndex != windowInfo.visibleIndices.lastIndex) {
             Spacer(modifier = Modifier.width(spacing))
@@ -480,7 +508,7 @@ private fun CyclingDotsRow(
 private data class DotWindowInfo(
     val visibleIndices: List<Int>,
     val hasLeadingEdge: Boolean,
-    val hasTrailingEdge: Boolean
+    val hasTrailingEdge: Boolean,
 ) {
     fun isEdgeDot(displayIndex: Int): Boolean {
         return (displayIndex == 0 && hasLeadingEdge) ||
@@ -491,7 +519,10 @@ private data class DotWindowInfo(
 /**
  * Calculates the sliding window of dot indices keeping the selection roughly centred.
  */
-private fun calculateDotWindow(selectedIndex: Int, pageCount: Int): DotWindowInfo {
+private fun calculateDotWindow(
+    selectedIndex: Int,
+    pageCount: Int,
+): DotWindowInfo {
     val visibleCount = MAX_VISIBLE_DOTS
     val halfWindow = visibleCount / 2
     var windowStart = (selectedIndex - halfWindow).coerceAtLeast(0)
@@ -502,27 +533,32 @@ private fun calculateDotWindow(selectedIndex: Int, pageCount: Int): DotWindowInf
     return DotWindowInfo(
         visibleIndices = (windowStart..windowEnd).toList(),
         hasLeadingEdge = windowStart > 0,
-        hasTrailingEdge = windowEnd < pageCount - 1
+        hasTrailingEdge = windowEnd < pageCount - 1,
     )
 }
 
 @Composable
-private fun PageNumberBadge(currentPage: Int, totalPages: Int) {
+private fun PageNumberBadge(
+    currentPage: Int,
+    totalPages: Int,
+) {
     Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "$currentPage/$totalPages",
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp,
-                lineHeight = 12.sp,
-                fontWeight = FontWeight.SemiBold
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style =
+                MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -536,30 +572,31 @@ fun SectionTitleWithCount(
     count: Int,
     showBadgeThreshold: Int = 2,
     icon: ImageVector? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontSize = 18.sp,
-                lineHeight = 24.sp,
-                letterSpacing = (-0.2).sp
-            ),
+            style =
+                MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 18.sp,
+                    lineHeight = 24.sp,
+                    letterSpacing = (-0.2).sp,
+                ),
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (count > showBadgeThreshold) {
             CountBadge(count = count)
@@ -575,27 +612,29 @@ fun CountBadge(
     count: Int,
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-    textColor: Color = MaterialTheme.colorScheme.primary
+    textColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val displayText = if (count > 99) "99+" else count.toString()
     val shape = if (count > 9) RoundedCornerShape(10.dp) else CircleShape
 
     Box(
-        modifier = modifier
-            .height(20.dp)
-            .clip(shape)
-            .background(backgroundColor)
-            .padding(horizontal = if (count > 9) 8.dp else 6.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .height(20.dp)
+                .clip(shape)
+                .background(backgroundColor)
+                .padding(horizontal = if (count > 9) 8.dp else 6.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = displayText,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            color = textColor
+            style =
+                MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
+            color = textColor,
         )
     }
 }
@@ -619,38 +658,41 @@ fun AutoSizeText(
     fontWeight: FontWeight = FontWeight.Bold,
     color: Color = Color.Unspecified,
     style: TextStyle = LocalTextStyle.current,
-    maxLines: Int = 1
+    maxLines: Int = 1,
 ) {
     val density = LocalDensity.current
     val containerWidthPx = LocalWindowInfo.current.containerSize.width
     val screenWidth = with(density) { containerWidthPx.toDp() }
 
     // On narrow windows scale the budget to a fraction of the window width
-    val effectiveMaxWidth = remember(screenWidth, maxWidth) {
-        val availableWidth = when {
-            screenWidth < 360.dp -> screenWidth * 0.6f
-            screenWidth < 400.dp -> screenWidth * 0.7f
-            else -> maxWidth
+    val effectiveMaxWidth =
+        remember(screenWidth, maxWidth) {
+            val availableWidth =
+                when {
+                    screenWidth < 360.dp -> screenWidth * 0.6f
+                    screenWidth < 400.dp -> screenWidth * 0.7f
+                    else -> maxWidth
+                }
+            availableWidth.coerceAtLeast(200.dp)
         }
-        availableWidth.coerceAtLeast(200.dp)
-    }
 
-    val fontSize = remember(text, effectiveMaxWidth, maxFontSize, minFontSize, maxLines) {
-        val baseFontSize = maxFontSize.value
-        val minSize = minFontSize.value
+    val fontSize =
+        remember(text, effectiveMaxWidth, maxFontSize, minFontSize, maxLines) {
+            val baseFontSize = maxFontSize.value
+            val minSize = minFontSize.value
 
-        val estimatedTextWidthSp = text.length * baseFontSize * 0.65f
-        val availableWidthPx = with(density) { effectiveMaxWidth.toPx() }
-        val estimatedTextWidthPx = with(density) { estimatedTextWidthSp.sp.toPx() }
+            val estimatedTextWidthSp = text.length * baseFontSize * 0.65f
+            val availableWidthPx = with(density) { effectiveMaxWidth.toPx() }
+            val estimatedTextWidthPx = with(density) { estimatedTextWidthSp.sp.toPx() }
 
-        val estimatedLineWidth = estimatedTextWidthPx / maxLines
-        if (estimatedLineWidth <= availableWidthPx) {
-            maxFontSize
-        } else {
-            val scaleFactor = availableWidthPx / estimatedLineWidth
-            (baseFontSize * scaleFactor).coerceIn(minSize, baseFontSize).sp
+            val estimatedLineWidth = estimatedTextWidthPx / maxLines
+            if (estimatedLineWidth <= availableWidthPx) {
+                maxFontSize
+            } else {
+                val scaleFactor = availableWidthPx / estimatedLineWidth
+                (baseFontSize * scaleFactor).coerceIn(minSize, baseFontSize).sp
+            }
         }
-    }
 
     Text(
         text = text,
@@ -659,8 +701,9 @@ fun AutoSizeText(
         fontSize = fontSize,
         fontWeight = fontWeight,
         maxLines = maxLines,
-        overflow = TextOverflow.Clip, // Clip: the size shrink already guarantees a fit
-        style = style
+        // Clip: the size shrink already guarantees a fit
+        overflow = TextOverflow.Clip,
+        style = style,
     )
 }
 
@@ -676,7 +719,7 @@ fun AutoSizeGreeting(
     maxFontSize: TextUnit = 22.sp,
     minFontSize: TextUnit = 16.sp,
     fontWeight: FontWeight = FontWeight.Bold,
-    color: Color = Color.Unspecified
+    color: Color = Color.Unspecified,
 ) {
     val fullText = if (name.isNotBlank()) "${greeting.trimEnd()} $name" else greeting
     AutoSizeText(
@@ -686,7 +729,7 @@ fun AutoSizeGreeting(
         maxFontSize = maxFontSize,
         minFontSize = minFontSize,
         fontWeight = fontWeight,
-        color = color
+        color = color,
     )
 }
 
@@ -695,14 +738,15 @@ fun AutoSizeGreeting(
  */
 fun calculateTitleMaxWidth(
     screenWidthDp: Int,
-    actionIconsCount: Int = 4
+    actionIconsCount: Int = 4,
 ): Dp {
     val actionIconWidth = 48.dp
     val actionSpacing = 8.dp
     val padding = 32.dp
 
-    val totalActionsWidth = (actionIconWidth * actionIconsCount) +
-        (actionSpacing * (actionIconsCount - 1).coerceAtLeast(0))
+    val totalActionsWidth =
+        (actionIconWidth * actionIconsCount) +
+            (actionSpacing * (actionIconsCount - 1).coerceAtLeast(0))
 
     val availableWidth = screenWidthDp.dp - totalActionsWidth - padding
 

@@ -20,13 +20,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.GpsOff
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerOff
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.AlertDialog
@@ -45,7 +45,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,22 +54,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
-import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.core.data.model.db.EventAudience
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
 import com.miletracker.core.data.util.DateUtils
+import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.tracking.export.HardwareEventExporter
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
-import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -81,7 +78,7 @@ import java.util.Locale
 fun HardwareEventsLogScreen(
     routeId: String,
     onBack: () -> Unit,
-    viewModel: HardwareEventsViewModel = koinViewModel()
+    viewModel: HardwareEventsViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -114,7 +111,7 @@ fun HardwareEventsLogScreen(
                     val intent = HardwareEventExporter.shareEvents(context, routeId, events, useCsv = false)
                     context.startActivity(intent)
                 }) { Text("JSON") }
-            }
+            },
         )
     }
 
@@ -133,12 +130,11 @@ fun HardwareEventsLogScreen(
                     IconButton(onClick = { showExportDialog = true }, enabled = events.isNotEmpty()) {
                         Icon(Icons.Default.FileDownload, contentDescription = "Export events")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-
             // Search
             OutlinedTextField(
                 value = searchQuery,
@@ -154,20 +150,20 @@ fun HardwareEventsLogScreen(
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             )
 
             // Audience filter chips
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(EventAudience.entries.filter { it != EventAudience.UNKNOWN }) { audience ->
                     FilterChip(
                         selected = selectedAudiences.contains(audience),
                         onClick = { viewModel.toggleAudienceFilter(audience) },
-                        label = { Text(audience.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                        label = { Text(audience.name.lowercase().replaceFirstChar { it.uppercase() }) },
                     )
                 }
             }
@@ -188,9 +184,10 @@ fun HardwareEventsLogScreen(
                 }
             } else {
                 // Group by date
-                val grouped = events.groupBy { event ->
-                    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(event.time))
-                }
+                val grouped =
+                    events.groupBy { event ->
+                        SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(event.time))
+                    }
 
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                     grouped.forEach { (date, dayEvents) ->
@@ -200,7 +197,7 @@ fun HardwareEventsLogScreen(
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                modifier = Modifier.padding(vertical = 8.dp),
                             )
                         }
                         items(dayEvents, key = { it.id }) { event ->
@@ -221,7 +218,7 @@ private fun HardwareEventItem(event: HardwareEvent) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(shape = CircleShape, color = color.copy(alpha = 0.15f), modifier = Modifier.size(36.dp)) {
@@ -236,13 +233,13 @@ private fun HardwareEventItem(event: HardwareEvent) {
                     Text(
                         DateUtils.epochToTime(event.time),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     event.activity?.let { activity ->
                         Text(
                             activity,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -254,33 +251,35 @@ private fun HardwareEventItem(event: HardwareEvent) {
 
 @Composable
 private fun AudienceBadge(audience: EventAudience) {
-    val color = when (audience) {
-        EventAudience.USER -> Color(0xFF2196F3)
-        EventAudience.SUPPORT -> Color(0xFFFF5722)
-        EventAudience.DEBUG -> Color(0xFF9C27B0)
-        EventAudience.SUMMARY -> Color(0xFF4CAF50)
-        else -> Color(0xFF9E9E9E)
-    }
+    val color =
+        when (audience) {
+            EventAudience.USER -> Color(0xFF2196F3)
+            EventAudience.SUPPORT -> Color(0xFFFF5722)
+            EventAudience.DEBUG -> Color(0xFF9C27B0)
+            EventAudience.SUMMARY -> Color(0xFF4CAF50)
+            else -> Color(0xFF9E9E9E)
+        }
     Surface(shape = RoundedCornerShape(4.dp), color = color.copy(alpha = 0.12f)) {
         Text(
             audience.name.take(3),
             style = MaterialTheme.typography.labelSmall,
             color = color,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
         )
     }
 }
 
-private fun eventIconAndColor(type: EventType): Pair<ImageVector, Color> = when (type) {
-    EventType.TRACKING_STARTED -> Icons.Default.PlayArrow to Color(0xFF4CAF50)
-    EventType.TRACKING_STOPPED -> Icons.Default.Stop to Color(0xFFF44336)
-    EventType.TRACKING_PAUSED -> Icons.Default.PowerOff to Color(0xFFFF9800)
-    EventType.TRACKING_RESUMED -> Icons.Default.PlayArrow to Color(0xFF8BC34A)
-    EventType.GPS_LOST -> Icons.Default.GpsOff to Color(0xFFF44336)
-    EventType.GPS_REGAINED -> Icons.Default.GpsFixed to Color(0xFF4CAF50)
-    EventType.BATTERY_OPTIMIZATION_ON, EventType.BATTERY_OPTIMIZATION_OFF -> Icons.Default.BatteryAlert to Color(0xFFFF9800)
-    EventType.APP_KILLED -> Icons.Default.PhoneAndroid to Color(0xFFF44336)
-    EventType.PHONE_RESTART -> Icons.Default.PhoneAndroid to Color(0xFF9C27B0)
-    else -> Icons.Default.Info to Color(0xFF9E9E9E)
-}
+private fun eventIconAndColor(type: EventType): Pair<ImageVector, Color> =
+    when (type) {
+        EventType.TRACKING_STARTED -> Icons.Default.PlayArrow to Color(0xFF4CAF50)
+        EventType.TRACKING_STOPPED -> Icons.Default.Stop to Color(0xFFF44336)
+        EventType.TRACKING_PAUSED -> Icons.Default.PowerOff to Color(0xFFFF9800)
+        EventType.TRACKING_RESUMED -> Icons.Default.PlayArrow to Color(0xFF8BC34A)
+        EventType.GPS_LOST -> Icons.Default.GpsOff to Color(0xFFF44336)
+        EventType.GPS_REGAINED -> Icons.Default.GpsFixed to Color(0xFF4CAF50)
+        EventType.BATTERY_OPTIMIZATION_ON, EventType.BATTERY_OPTIMIZATION_OFF -> Icons.Default.BatteryAlert to Color(0xFFFF9800)
+        EventType.APP_KILLED -> Icons.Default.PhoneAndroid to Color(0xFFF44336)
+        EventType.PHONE_RESTART -> Icons.Default.PhoneAndroid to Color(0xFF9C27B0)
+        else -> Icons.Default.Info to Color(0xFF9E9E9E)
+    }

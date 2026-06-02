@@ -3,7 +3,6 @@ package com.miletracker.feature.profile.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,12 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.HourglassBottom
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
@@ -52,7 +49,7 @@ import com.miletracker.feature.profile.model.CardType
 @Composable
 fun CardRequestScreen(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var fullName by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
@@ -63,7 +60,7 @@ fun CardRequestScreen(
     if (submitted) {
         CardRequestSuccessContent(
             cardType = cardType,
-            onBack = onBack
+            onBack = onBack,
         )
         return
     }
@@ -78,38 +75,40 @@ fun CardRequestScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
             Surface(shadowElevation = 8.dp) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
                 ) {
                     Button(
                         onClick = { submitted = true },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = fullName.isNotBlank() && address.isNotBlank()
+                        enabled = fullName.isNotBlank() && address.isNotBlank(),
                     ) {
                         Text("Submit Card Request")
                     }
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .imePadding()
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .imePadding()
+                    .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Spacer(Modifier.height(DesignTokens.Spacing.s))
 
@@ -121,7 +120,7 @@ fun CardRequestScreen(
                 label = { Text("Full Name") },
                 placeholder = { Text("As per your employee record") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             OutlinedTextField(
@@ -131,14 +130,14 @@ fun CardRequestScreen(
                 placeholder = { Text("Building, street, city, PIN") },
                 minLines = 2,
                 maxLines = 3,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Text("Card Preferences", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+                onExpandedChange = { expanded = !expanded },
             ) {
                 OutlinedTextField(
                     value = cardType.name.lowercase().replaceFirstChar { it.uppercase() },
@@ -146,13 +145,14 @@ fun CardRequestScreen(
                     readOnly = true,
                     label = { Text("Card Network") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
                 ) {
                     CardType.entries.forEach { type ->
                         androidx.compose.material3.DropdownMenuItem(
@@ -160,7 +160,7 @@ fun CardRequestScreen(
                             onClick = {
                                 cardType = type
                                 expanded = false
-                            }
+                            },
                         )
                     }
                 }
@@ -168,13 +168,13 @@ fun CardRequestScreen(
 
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                shape = DesignTokens.Shape.roundedMd
+                shape = DesignTokens.Shape.roundedMd,
             ) {
                 Text(
                     "Processing time: 5–7 business days after verification. A physical card will be couriered to your registered address.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(DesignTokens.Spacing.l)
+                    modifier = Modifier.padding(DesignTokens.Spacing.l),
                 )
             }
 
@@ -186,41 +186,42 @@ fun CardRequestScreen(
 @Composable
 private fun CardRequestSuccessContent(
     cardType: CardType,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = Icons.Filled.HourglassBottom,
             contentDescription = null,
             tint = Color(0xFFF59E0B),
-            modifier = Modifier.size(80.dp)
+            modifier = Modifier.size(80.dp),
         )
         Spacer(Modifier.height(24.dp))
         Text(
             text = "Request Submitted",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = "${cardType.name.lowercase().replaceFirstChar { it.uppercase() }} Corporate Card",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(16.dp))
         Text(
             text = "Your request is under review. You'll receive confirmation within 5–7 business days.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(32.dp))
         Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {

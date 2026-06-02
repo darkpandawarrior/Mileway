@@ -56,58 +56,60 @@ fun SectionCard(
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
     leadingIconContainerColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
     trailingAction: (@Composable () -> Unit)? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Surface(
         shape = shape,
         color = containerColor,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(contentPadding)) {
             // Header row — omitted when no title, subtitle, icon, or trailing action
-            if (title.isNotEmpty() || subtitle != null || leadingIcon != null || trailingAction != null) Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = DesignTokens.Spacing.m),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (title.isNotEmpty() || subtitle != null || leadingIcon != null || trailingAction != null) {
                 Row(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = DesignTokens.Spacing.m),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
                 ) {
-                    if (leadingIcon != null) {
-                        Surface(
-                            color = leadingIconContainerColor,
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Icon(
-                                imageVector = leadingIcon,
-                                contentDescription = null,
-                                tint = leadingIconTint,
-                                modifier = Modifier.padding(10.dp)
-                            )
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                    ) {
+                        if (leadingIcon != null) {
+                            Surface(
+                                color = leadingIconContainerColor,
+                                shape = RoundedCornerShape(10.dp),
+                            ) {
+                                Icon(
+                                    imageVector = leadingIcon,
+                                    contentDescription = null,
+                                    tint = leadingIconTint,
+                                    modifier = Modifier.padding(10.dp),
+                                )
+                            }
                         }
-                    }
-                    Column {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = titleColor
-                        )
-                        if (subtitle != null) {
+                        Column {
                             Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = subtitleColor,
-                                modifier = Modifier.padding(top = 2.dp)
+                                text = title,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = titleColor,
                             )
+                            if (subtitle != null) {
+                                Text(
+                                    text = subtitle,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = subtitleColor,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
                         }
                     }
-                }
 
-                if (trailingAction != null) {
-                    Box(modifier = Modifier.padding(start = DesignTokens.Spacing.s)) {
-                        trailingAction()
+                    if (trailingAction != null) {
+                        Box(modifier = Modifier.padding(start = DesignTokens.Spacing.s)) {
+                            trailingAction()
+                        }
                     }
                 }
             }
@@ -131,14 +133,14 @@ fun CollapsibleSectionCard(
     initiallyExpanded: Boolean = false,
     subtitle: String? = null,
     leadingIcon: ImageVector? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(initiallyExpanded) }
 
     // Animate the rotation of the arrow icon
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
-        label = "arrow_rotation"
+        label = "arrow_rotation",
     )
 
     SectionCard(
@@ -151,34 +153,36 @@ fun CollapsibleSectionCard(
             Button(
                 onClick = { expanded = !expanded },
                 shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(
-                    horizontal = DesignTokens.Spacing.m,
-                    vertical = DesignTokens.Spacing.xs
-                ),
-                modifier = Modifier.height(32.dp) // Compact height for the toggle
+                contentPadding =
+                    PaddingValues(
+                        horizontal = DesignTokens.Spacing.m,
+                        vertical = DesignTokens.Spacing.xs,
+                    ),
+                modifier = Modifier.height(32.dp),
             ) {
                 Text(
                     text = if (expanded) "Hide" else "Show",
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.labelMedium,
                 )
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "Collapse" else "Expand",
-                    modifier = Modifier
-                        .padding(start = DesignTokens.Spacing.xs)
-                        .size(DesignTokens.IconSize.inline)
-                        .rotate(rotation)
+                    modifier =
+                        Modifier
+                            .padding(start = DesignTokens.Spacing.xs)
+                            .size(DesignTokens.IconSize.inline)
+                            .rotate(rotation),
                 )
             }
-        }
+        },
     ) {
         AnimatedVisibility(
             visible = expanded,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(top = DesignTokens.Spacing.s),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m) // Consistent spacing for inputs
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 content()
             }

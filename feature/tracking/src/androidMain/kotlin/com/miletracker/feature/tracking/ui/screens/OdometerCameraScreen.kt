@@ -55,28 +55,29 @@ fun OdometerCameraScreen(
                         capturedUri = uri
                         captureTimeMs = System.currentTimeMillis()
                         showConfirmSheet = true
-                    }
+                    },
                 )
             } else {
                 // Photo captured — leave camera view in place; confirm sheet renders above.
                 CameraCaptureScreen(
                     isOdometerMode = true,
-                    onCaptured = {}
+                    onCaptured = {},
                 )
             }
 
             // Back arrow (always visible over the camera)
             IconButton(
                 onClick = onBack,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .statusBarsPadding()
-                    .padding(8.dp)
+                modifier =
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .statusBarsPadding()
+                        .padding(8.dp),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -97,7 +98,7 @@ fun OdometerCameraScreen(
                         reading = reading,
                         isManual = isManual,
                         captureTimeMs = captureTimeMs,
-                    )
+                    ),
                 )
             },
             onRetake = {
@@ -106,7 +107,7 @@ fun OdometerCameraScreen(
             },
             onDismiss = {
                 showConfirmSheet = false
-            }
+            },
         )
     }
 }

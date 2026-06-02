@@ -23,14 +23,17 @@ data class OcrResult(
     val rawText: String,
     val detectedOdometer: String?,
     val confidence: Float,
-    val watermarkApplied: Boolean
+    val watermarkApplied: Boolean,
 )
 
 /** Lifecycle of a (mocked) upload for a single attachment. */
 sealed interface UploadState {
     data object Idle : UploadState
+
     data object Uploading : UploadState
+
     data class Done(val remoteUrl: String) : UploadState
+
     data class Failed(val reason: String) : UploadState
 }
 
@@ -44,5 +47,5 @@ data class AttachmentItem(
     val mimeType: String = "image/jpeg",
     val capturedAtMillis: Long = 0L,
     val ocr: OcrResult? = null,
-    val uploadState: UploadState = UploadState.Idle
+    val uploadState: UploadState = UploadState.Idle,
 )

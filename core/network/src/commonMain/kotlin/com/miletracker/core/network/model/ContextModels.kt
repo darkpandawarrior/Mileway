@@ -12,10 +12,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class TrackingContextType {
-    @SerialName("trip") TRIP,
-    @SerialName("itinerary") ITINERARY,
-    @SerialName("pettyCash") PETTY_CASH,
-    @SerialName("event") EVENT
+    @SerialName("trip")
+    TRIP,
+
+    @SerialName("itinerary")
+    ITINERARY,
+
+    @SerialName("pettyCash")
+    PETTY_CASH,
+
+    @SerialName("event")
+    EVENT,
 }
 
 /**
@@ -27,5 +34,5 @@ data class TrackingContext(
     @SerialName("id") val id: String,
     @SerialName("title") val title: String,
     @SerialName("subtitle") val subtitle: String? = null,
-    @SerialName("type") val type: TrackingContextType
+    @SerialName("type") val type: TrackingContextType,
 )

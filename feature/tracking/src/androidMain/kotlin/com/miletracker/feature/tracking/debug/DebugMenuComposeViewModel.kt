@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:property-naming")
+
 package com.miletracker.feature.tracking.debug
 
 import android.content.Context
@@ -9,10 +11,10 @@ import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.ui.components.ExportFormat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,16 +35,16 @@ class DebugMenuComposeViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,
 ) : ViewModel() {
-
     // --- Location Tracking Fine-tuning Config Flows ---
     private val _abnormalConfigValues = MutableStateFlow<Map<String, String>>(emptyMap())
     val abnormalConfigValues: StateFlow<Map<String, String>> = _abnormalConfigValues.asStateFlow()
 
-    private val _abnormalConfigEvents = MutableSharedFlow<Unit>(
-        replay = 0,
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+    private val _abnormalConfigEvents =
+        MutableSharedFlow<Unit>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     private fun loadAbnormalConfigValues() {
         scope.launch {
@@ -51,7 +53,11 @@ class DebugMenuComposeViewModel(
         }
     }
 
-    fun updateAbnormalConfigEntry(key: String, value: String, context: Context) {
+    fun updateAbnormalConfigEntry(
+        key: String,
+        value: String,
+        context: Context,
+    ) {
         scope.launch {
             val updated = _abnormalConfigValues.value.toMutableMap()
             updated[key] = value
@@ -89,28 +95,31 @@ class DebugMenuComposeViewModel(
     val loginStatus: StateFlow<Boolean> = _loginStatus.asStateFlow()
 
     // Combined screen state for more efficient UI updates
-    private val _screenState = MutableStateFlow(
-        DebugScreenState(
-            uiState = DebugMenuUiState(),
-            searchQuery = "",
-            availableProfiles = emptyList(),
-            selectedProfile = null,
-            isLoggedIn = false
+    private val _screenState =
+        MutableStateFlow(
+            DebugScreenState(
+                uiState = DebugMenuUiState(),
+                searchQuery = "",
+                availableProfiles = emptyList(),
+                selectedProfile = null,
+                isLoggedIn = false,
+            ),
         )
-    )
     val screenState = _screenState.asStateFlow()
 
     // Login events flow to trigger login status checks
-    private val _loginEvents = MutableSharedFlow<Unit>(
-        replay = 0,
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+    private val _loginEvents =
+        MutableSharedFlow<Unit>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     // Reactive count of enabled options
-    private val enabledOptionsCount = _uiState.map { state ->
-        countEnabledOptions(state)
-    }
+    private val enabledOptionsCount =
+        _uiState.map { state ->
+            countEnabledOptions(state)
+        }
 
     // Initialize state
     init {
@@ -174,7 +183,7 @@ class DebugMenuComposeViewModel(
                 searchQuery = _searchQuery.value,
                 availableProfiles = _availableProfiles.value,
                 selectedProfile = _selectedProfile.value,
-                isLoggedIn = _loginStatus.value
+                isLoggedIn = _loginStatus.value,
             )
         }
     }
@@ -200,19 +209,20 @@ class DebugMenuComposeViewModel(
                         featureOptions = loadFeatureOptions(),
                         trackingOptions = loadTrackingOptions(),
                         customValues = loadCustomValues(),
-                        expandedSections = mapOf(
-                            DebugSection.CORE to false,
-                            DebugSection.ORIGIN to false,
-                            DebugSection.AUTH to false,
-                            DebugSection.FEATURES to false,
-                            DebugSection.TRACKING to false,
-                            DebugSection.PROFILES to false
-                        ),
+                        expandedSections =
+                            mapOf(
+                                DebugSection.CORE to false,
+                                DebugSection.ORIGIN to false,
+                                DebugSection.AUTH to false,
+                                DebugSection.FEATURES to false,
+                                DebugSection.TRACKING to false,
+                                DebugSection.PROFILES to false,
+                            ),
                         apiOrigin = "Not set",
                         referralParams = getReferralParams(),
                         isLoggedIn = false,
                         hasSavedConfig = false,
-                        savedConfigSummary = ""
+                        savedConfigSummary = "",
                     )
                 }
             } catch (e: Exception) {
@@ -221,66 +231,72 @@ class DebugMenuComposeViewModel(
         }
     }
 
-    private fun loadCoreOptions(): Map<String, Boolean> = mapOf(
-        "Enable Logging For Release" to false,
-        "Force Logout Enabled" to false,
-        "Force Super Delegate Mode" to false,
-        "Enable Tracking Overlay" to false,
-        "Save Debug Configuration" to false
-    )
+    private fun loadCoreOptions(): Map<String, Boolean> =
+        mapOf(
+            "Enable Logging For Release" to false,
+            "Force Logout Enabled" to false,
+            "Force Super Delegate Mode" to false,
+            "Enable Tracking Overlay" to false,
+            "Save Debug Configuration" to false,
+        )
 
-    private fun loadOriginOptions(): Map<String, Boolean> = mapOf(
-        "Force UAT" to false,
-        "Force Prod" to false,
-        "Force Dev Environment" to false,
-        "Force Custom Origin" to false,
-        "Force MENA Login" to false,
-        "Force File Prod" to false
-    )
+    private fun loadOriginOptions(): Map<String, Boolean> =
+        mapOf(
+            "Force UAT" to false,
+            "Force Prod" to false,
+            "Force Dev Environment" to false,
+            "Force Custom Origin" to false,
+            "Force MENA Login" to false,
+            "Force File Prod" to false,
+        )
 
-    private fun loadAuthOptions(): Map<String, Boolean> = mapOf(
-        "Use Custom OTP" to false,
-        "Skip OTP Pin Screen" to false
-    )
+    private fun loadAuthOptions(): Map<String, Boolean> =
+        mapOf(
+            "Use Custom OTP" to false,
+            "Skip OTP Pin Screen" to false,
+        )
 
-    private fun loadFeatureOptions(): Map<String, Boolean> = mapOf(
-        "Enable Custom Banner" to false,
-        "Hide Debug Banner" to false,
-        "Enable Trip Deactivation" to false,
-        "Force Editable Form" to false,
-        "Force Expense" to false,
-        "Force Corporate" to false,
-        "Force Travel" to false,
-        "Force Travel Old UI" to false,
-        "Force Track Miles V2 UI" to false,
-        "Force Single Invoice" to false,
-        "Force Multi Invoice" to false,
-        "Force PR" to false,
-        "Force Events" to false,
-        "Force Cards" to false,
-        "Force Cards V2 UI" to false,
-        "Force Club" to false,
-        "Force Fave App Redirection" to false,
-        "Enable Draft Log Miles" to false,
-        "Enable Track Miles to Log Miles Draft" to false
-    )
+    private fun loadFeatureOptions(): Map<String, Boolean> =
+        mapOf(
+            "Enable Custom Banner" to false,
+            "Hide Debug Banner" to false,
+            "Enable Trip Deactivation" to false,
+            "Force Editable Form" to false,
+            "Force Expense" to false,
+            "Force Corporate" to false,
+            "Force Travel" to false,
+            "Force Travel Old UI" to false,
+            "Force Track Miles V2 UI" to false,
+            "Force Single Invoice" to false,
+            "Force Multi Invoice" to false,
+            "Force PR" to false,
+            "Force Events" to false,
+            "Force Cards" to false,
+            "Force Cards V2 UI" to false,
+            "Force Club" to false,
+            "Force Fave App Redirection" to false,
+            "Enable Draft Log Miles" to false,
+            "Enable Track Miles to Log Miles Draft" to false,
+        )
 
-    private fun loadTrackingOptions(): Map<String, Boolean> = mapOf(
-        "Skip Odometer" to false,
-        "Toggle Odometer OCR" to false,
-        "Allow Mock Locations" to false,
-        "Enable Location Dump Creation" to false,
-        "Force BE Distance Calculation" to false,
-        "Bypass Battery Level Check" to false,
-        "Bypass Battery Optimization Check" to false,
-        "Use V2 Location Sync API" to false
-    )
+    private fun loadTrackingOptions(): Map<String, Boolean> =
+        mapOf(
+            "Skip Odometer" to false,
+            "Toggle Odometer OCR" to false,
+            "Allow Mock Locations" to false,
+            "Enable Location Dump Creation" to false,
+            "Force BE Distance Calculation" to false,
+            "Bypass Battery Level Check" to false,
+            "Bypass Battery Optimization Check" to false,
+            "Use V2 Location Sync API" to false,
+        )
 
-    private fun loadCustomValues(): Map<String, String> = mapOf(
-        "Custom Origin" to "",
-        "Custom Banner Text" to "",
-        "Custom OTP" to ""
-    )
+    private fun loadCustomValues(): Map<String, String> =
+        mapOf(
+            "Custom Origin" to "",
+            "Custom Banner Text" to "",
+            "Custom OTP" to "",
+        )
 
     /**
      * Check if the user is logged in — stub, always false in demo
@@ -297,7 +313,7 @@ class DebugMenuComposeViewModel(
             _uiState.update {
                 it.copy(
                     isLoggedIn = isLoggedIn,
-                    apiOrigin = if (isLoggedIn) "Not set" else "Not logged in"
+                    apiOrigin = if (isLoggedIn) "Not set" else "Not logged in",
                 )
             }
         }
@@ -309,10 +325,10 @@ class DebugMenuComposeViewModel(
     private fun countEnabledOptions(state: DebugMenuUiState): Int {
         return with(state) {
             coreOptions.count { it.value } +
-                    originOptions.count { it.value } +
-                    authOptions.count { it.value } +
-                    featureOptions.count { it.value } +
-                    trackingOptions.count { it.value }
+                originOptions.count { it.value } +
+                authOptions.count { it.value } +
+                featureOptions.count { it.value } +
+                trackingOptions.count { it.value }
         }
     }
 
@@ -349,7 +365,7 @@ class DebugMenuComposeViewModel(
         currentOptions: Map<String, Boolean>,
         updateState: (Map<String, Boolean>) -> Unit,
         mutuallyExclusive: Boolean = false,
-        postAction: (String, Boolean) -> Unit = { _, _ -> }
+        postAction: (String, Boolean) -> Unit = { _, _ -> },
     ) {
         val currentValue = currentOptions[optionName] ?: false
         val newValue = !currentValue
@@ -369,7 +385,7 @@ class DebugMenuComposeViewModel(
         toggleOption(
             optionName = optionName,
             currentOptions = _uiState.value.coreOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(coreOptions = newOptions) } }
+            updateState = { newOptions -> _uiState.update { it.copy(coreOptions = newOptions) } },
         )
     }
 
@@ -378,7 +394,7 @@ class DebugMenuComposeViewModel(
             optionName = optionName,
             currentOptions = _uiState.value.originOptions,
             updateState = { newOptions -> _uiState.update { it.copy(originOptions = newOptions) } },
-            mutuallyExclusive = true
+            mutuallyExclusive = true,
         )
     }
 
@@ -386,7 +402,7 @@ class DebugMenuComposeViewModel(
         toggleOption(
             optionName = optionName,
             currentOptions = _uiState.value.authOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(authOptions = newOptions) } }
+            updateState = { newOptions -> _uiState.update { it.copy(authOptions = newOptions) } },
         )
     }
 
@@ -394,7 +410,7 @@ class DebugMenuComposeViewModel(
         toggleOption(
             optionName = optionName,
             currentOptions = _uiState.value.featureOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(featureOptions = newOptions) } }
+            updateState = { newOptions -> _uiState.update { it.copy(featureOptions = newOptions) } },
         )
     }
 
@@ -402,14 +418,17 @@ class DebugMenuComposeViewModel(
         toggleOption(
             optionName = optionName,
             currentOptions = _uiState.value.trackingOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(trackingOptions = newOptions) } }
+            updateState = { newOptions -> _uiState.update { it.copy(trackingOptions = newOptions) } },
         )
     }
 
     /**
      * Update a custom input value
      */
-    fun updateCustomValue(key: String, value: String) {
+    fun updateCustomValue(
+        key: String,
+        value: String,
+    ) {
         val currentValues = _uiState.value.customValues.toMutableMap()
         currentValues[key] = value
         _uiState.update { it.copy(customValues = currentValues) }
@@ -455,7 +474,7 @@ class DebugMenuComposeViewModel(
                 authOptions = newAuthOptions,
                 featureOptions = newFeatureOptions,
                 trackingOptions = newTrackingOptions,
-                customValues = newCustomValues
+                customValues = newCustomValues,
             )
         }
     }
@@ -476,7 +495,7 @@ class DebugMenuComposeViewModel(
         return ApplyResult(
             changesApplied = changesMade > 0,
             restartRequired = true,
-            changeCount = changesMade
+            changeCount = changesMade,
         )
     }
 
@@ -524,7 +543,7 @@ class DebugMenuComposeViewModel(
             "Login Status" to "Logged Out",
             "API Origin" to "Not set",
             "Debug Mode" to "Enabled",
-            "Save Config" to "Disabled"
+            "Save Config" to "Disabled",
         )
     }
 
@@ -564,22 +583,25 @@ class DebugMenuComposeViewModel(
                     return@launch
                 }
                 // Load the most recently active/completed track
-                val track = savedTrackRepository.getActiveTrack()
-                    ?: return@launch Unit.also { Log.w(TAG, "No active track found") }
+                val track =
+                    savedTrackRepository.getActiveTrack()
+                        ?: return@launch Unit.also { Log.w(TAG, "No active track found") }
 
                 val locations = locationRepository.getForToken(track.routeId)
-                val content = TrackExportManager.buildContent(
-                    format = ExportFormat.GPX,
-                    track = track,
-                    locations = locations,
-                    events = emptyList(),
-                )
-                val intent = TrackExportManager.buildShareIntent(
-                    context = context,
-                    format = ExportFormat.GPX,
-                    trackName = track.routeId,
-                    content = content,
-                )
+                val content =
+                    TrackExportManager.buildContent(
+                        format = ExportFormat.GPX,
+                        track = track,
+                        locations = locations,
+                        events = emptyList(),
+                    )
+                val intent =
+                    TrackExportManager.buildShareIntent(
+                        context = context,
+                        format = ExportFormat.GPX,
+                        trackName = track.routeId,
+                        content = content,
+                    )
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
             } catch (e: Exception) {
@@ -615,14 +637,19 @@ data class DebugMenuUiState(
     val isLoggedIn: Boolean = false,
     val enabledOptionsCount: Int = 0,
     val hasSavedConfig: Boolean = false,
-    val savedConfigSummary: String = ""
+    val savedConfigSummary: String = "",
 )
 
 /**
  * Debug Menu Sections
  */
 enum class DebugSection {
-    CORE, ORIGIN, AUTH, FEATURES, TRACKING, PROFILES
+    CORE,
+    ORIGIN,
+    AUTH,
+    FEATURES,
+    TRACKING,
+    PROFILES,
 }
 
 /**
@@ -631,7 +658,7 @@ enum class DebugSection {
 data class ApplyResult(
     val changesApplied: Boolean,
     val restartRequired: Boolean,
-    val changeCount: Int
+    val changeCount: Int,
 )
 
 data class DebugScreenState(
@@ -639,5 +666,5 @@ data class DebugScreenState(
     val searchQuery: String,
     val availableProfiles: List<DebugProfile>,
     val selectedProfile: DebugProfile?,
-    val isLoggedIn: Boolean
+    val isLoggedIn: Boolean,
 )

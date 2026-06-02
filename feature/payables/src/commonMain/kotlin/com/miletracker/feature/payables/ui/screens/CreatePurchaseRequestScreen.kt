@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length")
+
 package com.miletracker.feature.payables.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -24,8 +26,8 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,14 +50,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
+import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.payables.model.NewLineItemDraft
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import com.miletracker.core.common.formatDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +64,7 @@ fun CreatePurchaseRequestScreen(
     onBack: () -> Unit,
     onSubmitted: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PayablesViewModel = koinViewModel()
+    viewModel: PayablesViewModel = koinViewModel(),
 ) {
     val form by viewModel.formState.collectAsState()
 
@@ -78,22 +80,23 @@ fun CreatePurchaseRequestScreen(
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
             Surface(shadowElevation = 8.dp) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
                 ) {
                     if (form.step == 1) {
                         Button(
                             onClick = viewModel::goToStep2,
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = form.vendorName.isNotBlank() && form.deliveryDate.isNotBlank()
+                            enabled = form.vendorName.isNotBlank() && form.deliveryDate.isNotBlank(),
                         ) { Text("Continue to Line Items") }
                     } else {
                         Button(
@@ -102,25 +105,28 @@ fun CreatePurchaseRequestScreen(
                                 onSubmitted()
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = form.lineItems.isNotEmpty() && form.lineItems.all {
-                                it.description.isNotBlank() && it.unitPrice.isNotBlank()
-                            }
+                            enabled =
+                                form.lineItems.isNotEmpty() &&
+                                    form.lineItems.all {
+                                        it.description.isNotBlank() && it.unitPrice.isNotBlank()
+                                    },
                         ) { Text("Submit Purchase Request") }
                     }
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .imePadding()
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .imePadding()
+                    .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Spacer(Modifier.height(DesignTokens.Spacing.s))
 
@@ -138,12 +144,12 @@ fun CreatePurchaseRequestScreen(
 @Composable
 private fun Step1Fields(
     form: com.miletracker.feature.payables.viewmodel.CreatePoFormState,
-    viewModel: PayablesViewModel
+    viewModel: PayablesViewModel,
 ) {
     Text(
         text = "Request Details",
         style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.SemiBold,
     )
 
     OutlinedTextField(
@@ -153,7 +159,7 @@ private fun Step1Fields(
         placeholder = { Text("e.g. OfficeMax Supplies Ltd.") },
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
         singleLine = true,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     OutlinedTextField(
@@ -162,13 +168,13 @@ private fun Step1Fields(
         label = { Text("Expected Delivery Date") },
         placeholder = { Text("e.g. 2024-02-15") },
         singleLine = true,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 
     OfficeLocationDropdown(
         selected = form.officeLocation,
         options = viewModel.officeLocations,
-        onSelect = viewModel::setOfficeLocation
+        onSelect = viewModel::setOfficeLocation,
     )
 }
 
@@ -177,12 +183,12 @@ private fun Step1Fields(
 private fun OfficeLocationDropdown(
     selected: String,
     options: List<String>,
-    onSelect: (String) -> Unit
+    onSelect: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = it }
+        onExpandedChange = { expanded = it },
     ) {
         OutlinedTextField(
             value = selected,
@@ -190,15 +196,19 @@ private fun OfficeLocationDropdown(
             readOnly = true,
             label = { Text("Delivery Location") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
+            modifier =
+                Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },
-                    onClick = { onSelect(option); expanded = false }
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    },
                 )
             }
         }
@@ -208,12 +218,12 @@ private fun OfficeLocationDropdown(
 @Composable
 private fun Step2LineItems(
     form: com.miletracker.feature.payables.viewmodel.CreatePoFormState,
-    viewModel: PayablesViewModel
+    viewModel: PayablesViewModel,
 ) {
     Text(
         text = "Line Items",
         style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.SemiBold,
     )
 
     form.lineItems.forEachIndexed { index, item ->
@@ -222,7 +232,7 @@ private fun Step2LineItems(
             index = index,
             canRemove = form.lineItems.size > 1,
             onUpdate = { viewModel.updateLineItem(index, it) },
-            onRemove = { viewModel.removeLineItem(index) }
+            onRemove = { viewModel.removeLineItem(index) },
         )
         if (index < form.lineItems.lastIndex) {
             HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.xs))
@@ -231,7 +241,7 @@ private fun Step2LineItems(
 
     OutlinedButton(
         onClick = viewModel::addLineItem,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -239,23 +249,30 @@ private fun Step2LineItems(
     }
 
     // Running total
-    val total = form.lineItems.sumOf { item ->
-        val unitPrice = item.unitPrice.toDoubleOrNull() ?: 0.0
-        item.qty * unitPrice * (1 + item.gstPercent / 100.0)
-    }
+    val total =
+        form.lineItems.sumOf { item ->
+            val unitPrice = item.unitPrice.toDoubleOrNull() ?: 0.0
+            item.qty * unitPrice * (1 + item.gstPercent / 100.0)
+        }
     if (total > 0) {
         Surface(
             color = MaterialTheme.colorScheme.primaryContainer,
-            shape = DesignTokens.Shape.roundedSm
+            shape = DesignTokens.Shape.roundedSm,
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(DesignTokens.Spacing.l),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(DesignTokens.Spacing.l),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text("Total (incl. GST)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                Text("₹${total.formatDecimal(2)}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    "₹${total.formatDecimal(2)}",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
         }
     }
@@ -267,19 +284,19 @@ private fun LineItemEditor(
     index: Int,
     canRemove: Boolean,
     onUpdate: (NewLineItemDraft) -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
         ) {
             Text(
                 text = "Item ${index + 1}",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             if (canRemove) {
                 IconButton(onClick = onRemove) {
@@ -294,33 +311,33 @@ private fun LineItemEditor(
             label = { Text("Product / Description") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Qty stepper
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = DesignTokens.Shape.roundedSm,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.padding(horizontal = 4.dp),
                 ) {
                     IconButton(
                         onClick = { if (item.qty > 1) onUpdate(item.copy(qty = item.qty - 1)) },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp),
                     ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease", modifier = Modifier.size(16.dp)) }
                     Text("${item.qty}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                     IconButton(
                         onClick = { onUpdate(item.copy(qty = item.qty + 1)) },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp),
                     ) { Icon(Icons.Filled.Add, contentDescription = "Increase", modifier = Modifier.size(16.dp)) }
                 }
             }
@@ -332,7 +349,7 @@ private fun LineItemEditor(
                 prefix = { Text("₹") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.weight(2f)
+                modifier = Modifier.weight(2f),
             )
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
@@ -51,7 +50,7 @@ import com.miletracker.stub.AnalyticsMockData
 fun AnalyticsDetailScreen(
     category: String,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val series = AnalyticsMockData.seriesForCategory(category)
     val merchants = AnalyticsMockData.merchantsForCategory(category)
@@ -80,28 +79,30 @@ fun AnalyticsDetailScreen(
                     IconButton(onClick = { showExportSnackbar = true }) {
                         Icon(Icons.Filled.FileDownload, contentDescription = "Export")
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .navigationBarsPadding(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = DesignTokens.Spacing.l,
-                vertical = DesignTokens.Spacing.l
-            ),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .navigationBarsPadding(),
+            contentPadding =
+                androidx.compose.foundation.layout.PaddingValues(
+                    horizontal = DesignTokens.Spacing.l,
+                    vertical = DesignTokens.Spacing.l,
+                ),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = DesignTokens.Shape.roundedMd,
-                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l)) {
                         Text("30-Day Trend", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -109,15 +110,16 @@ fun AnalyticsDetailScreen(
                         val primaryColor = MaterialTheme.colorScheme.primary
                         val fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
                         androidx.compose.foundation.Canvas(
-                            modifier = Modifier.fillMaxWidth().height(160.dp)
+                            modifier = Modifier.fillMaxWidth().height(160.dp),
                         ) {
                             if (series.size < 2) return@Canvas
                             val maxAmount = series.maxOf { it.amountRupees }
-                            val points = series.mapIndexed { i, day ->
-                                val x = i * size.width / (series.size - 1).toFloat()
-                                val y = size.height - (day.amountRupees / maxAmount).toFloat() * size.height * 0.85f
-                                Offset(x, y)
-                            }
+                            val points =
+                                series.mapIndexed { i, day ->
+                                    val x = i * size.width / (series.size - 1).toFloat()
+                                    val y = size.height - (day.amountRupees / maxAmount).toFloat() * size.height * 0.85f
+                                    Offset(x, y)
+                                }
 
                             // Bezier line
                             val linePath = Path()
@@ -132,7 +134,7 @@ fun AnalyticsDetailScreen(
                             drawPath(
                                 path = linePath,
                                 color = primaryColor,
-                                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
                             )
 
                             // Fill
@@ -154,7 +156,7 @@ fun AnalyticsDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = DesignTokens.Shape.roundedMd,
-                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+                    elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l)) {
                         Text("Top Merchants / Routes", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -165,14 +167,14 @@ fun AnalyticsDetailScreen(
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                             ) {
                                 Text(
                                     "#${i + 1}",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(end = DesignTokens.Spacing.xs)
+                                    modifier = Modifier.padding(end = DesignTokens.Spacing.xs),
                                 )
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(merchant.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)

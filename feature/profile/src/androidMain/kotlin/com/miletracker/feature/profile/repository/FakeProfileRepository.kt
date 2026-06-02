@@ -13,7 +13,6 @@ import com.miletracker.stub.ProfileMockData
  * and serves the rich profile surfaces straight from [ProfileMockData].
  */
 class FakeProfileRepository : ProfileRepository {
-
     override fun richProfile(): EmployeeProfile = ProfileMockData.primaryProfile()
 
     override fun completion(): ProfileCompletion = ProfileMockData.completion()

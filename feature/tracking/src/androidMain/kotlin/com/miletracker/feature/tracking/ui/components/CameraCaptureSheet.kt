@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -59,7 +58,7 @@ fun CameraCaptureSheet(
     onDismiss: () -> Unit,
     onOdometerReading: (String) -> Unit = {},
     onPhotoCaptured: (String) -> Unit = {},
-    mediaRepository: MediaRepository = koinInject()
+    mediaRepository: MediaRepository = koinInject(),
 ) {
     var capturedUri by remember { mutableStateOf<String?>(null) }
     var ocr by remember { mutableStateOf<OcrResult?>(null) }
@@ -78,7 +77,7 @@ fun CameraCaptureSheet(
                             } else {
                                 capturedUri = captured
                             }
-                        }
+                        },
                     )
                 }
                 // 2. Odometer mode: run mocked OCR, then confirm.
@@ -96,16 +95,19 @@ fun CameraCaptureSheet(
                         Text(
                             text = result.detectedOdometer ?: "—",
                             style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
                         Text(
                             "Detected reading · ${(result.confidence * 100).toInt()}% confidence",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(DesignTokens.Spacing.l))
                         Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
-                            OutlinedButton(onClick = { capturedUri = null; ocr = null }) { Text("Retake") }
+                            OutlinedButton(onClick = {
+                                capturedUri = null
+                                ocr = null
+                            }) { Text("Retake") }
                             Button(onClick = {
                                 onOdometerReading(result.detectedOdometer.orEmpty())
                                 onDismiss()
@@ -118,7 +120,7 @@ fun CameraCaptureSheet(
             // Close affordance, always available.
             IconButton(
                 onClick = onDismiss,
-                modifier = Modifier.statusBarsPadding().padding(DesignTokens.Spacing.s)
+                modifier = Modifier.statusBarsPadding().padding(DesignTokens.Spacing.s),
             ) {
                 Icon(Icons.Default.Close, contentDescription = "Close")
             }
@@ -128,21 +130,25 @@ fun CameraCaptureSheet(
 
 /** Shows the captured photo with a content panel (spinner or OCR confirm) beneath it. */
 @Composable
-private fun CapturedPreview(uri: String, content: @Composable () -> Unit) {
+private fun CapturedPreview(
+    uri: String,
+    content: @Composable () -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(DesignTokens.Spacing.l),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         AsyncImage(
             model = uri,
             contentDescription = "Captured photo",
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(280.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
         )
         Spacer(Modifier.height(DesignTokens.Spacing.xl))
         content()

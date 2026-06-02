@@ -10,7 +10,6 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 object CommonUtils {
-
     fun formatDistance(distanceKm: Double): String = "${distanceKm.fmt1d()} km"
 
     fun formatDuration(durationMs: Long): String {
@@ -27,34 +26,45 @@ object CommonUtils {
             word.lowercase().replaceFirstChar { it.uppercase() }
         }
 
-    fun capitalizeFirstLetter(input: String): String =
-        if (input.isEmpty()) input else input[0].uppercase() + input.substring(1)
+    fun capitalizeFirstLetter(input: String): String = if (input.isEmpty()) input else input[0].uppercase() + input.substring(1)
 
-    fun formatCurrencyAmount(amount: Double, currencySymbol: String = "₹"): String =
-        "$currencySymbol${amount.fmt2d()}"
+    fun formatCurrencyAmount(
+        amount: Double,
+        currencySymbol: String = "₹",
+    ): String = "$currencySymbol${amount.fmt2d()}"
 
-    fun roundValueUsingFormatter(value: Double, decimalPlaces: Int = 2): Double {
+    fun roundValueUsingFormatter(
+        value: Double,
+        decimalPlaces: Int = 2,
+    ): Double {
         val factor = 10.0.pow(decimalPlaces)
         return (value * factor).roundToInt() / factor
     }
 
-    fun getDistanceFromLatLonInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    fun getDistanceFromLatLonInKm(
+        lat1: Double,
+        lon1: Double,
+        lat2: Double,
+        lon2: Double,
+    ): Double {
         val earthRadiusKm = 6371.0
         val dLat = (lat2 - lat1) * PI / 180.0
         val dLon = (lon2 - lon1) * PI / 180.0
-        val a = sin(dLat / 2).pow(2) +
+        val a =
+            sin(dLat / 2).pow(2) +
                 cos(lat1 * PI / 180.0) * cos(lat2 * PI / 180.0) * sin(dLon / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return earthRadiusKm * c
     }
 
-    fun formatDistanceMeters(meters: Double): String =
-        if (meters < 1000) "${meters.roundToInt()}m" else "${(meters / 1000.0).fmt1d()} km"
+    fun formatDistanceMeters(meters: Double): String = if (meters < 1000) "${meters.roundToInt()}m" else "${(meters / 1000.0).fmt1d()} km"
 
     fun metersToKm(meters: Double): Double = roundToTwoDecimals(meters / 1000.0)
 
     fun kmToMeters(km: Double): Double = km * 1000.0
 
-    fun isValidLatLng(lat: Double, lng: Double): Boolean =
-        abs(lat) <= 90.0 && abs(lng) <= 180.0 && !(lat == 0.0 && lng == 0.0)
+    fun isValidLatLng(
+        lat: Double,
+        lng: Double,
+    ): Boolean = abs(lat) <= 90.0 && abs(lng) <= 180.0 && !(lat == 0.0 && lng == 0.0)
 }

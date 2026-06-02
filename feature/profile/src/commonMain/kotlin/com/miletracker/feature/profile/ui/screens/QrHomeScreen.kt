@@ -2,7 +2,6 @@ package com.miletracker.feature.profile.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,9 +45,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -65,7 +64,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.profile.model.CorporateCard
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
@@ -74,20 +72,30 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private const val QR_SIZE = 21
 
-private fun finderBit(row: Int, col: Int): Boolean = when {
-    row == 0 || row == 6 || col == 0 || col == 6 -> true
-    row == 1 || row == 5 || col == 1 || col == 5 -> false
-    else -> true
-}
+private fun finderBit(
+    row: Int,
+    col: Int,
+): Boolean =
+    when {
+        row == 0 || row == 6 || col == 0 || col == 6 -> true
+        row == 1 || row == 5 || col == 1 || col == 5 -> false
+        else -> true
+    }
 
-private fun isFinderRegion(row: Int, col: Int): Boolean {
+private fun isFinderRegion(
+    row: Int,
+    col: Int,
+): Boolean {
     val last = QR_SIZE - 1
     return (row in 0..6 && col in 0..6) ||
-            (row in 0..6 && col in (last - 6)..last) ||
-            (row in (last - 6)..last && col in 0..6)
+        (row in 0..6 && col in (last - 6)..last) ||
+        (row in (last - 6)..last && col in 0..6)
 }
 
-private fun finderBitAt(row: Int, col: Int): Boolean {
+private fun finderBitAt(
+    row: Int,
+    col: Int,
+): Boolean {
     val last = QR_SIZE - 1
     return when {
         row in 0..6 && col in 0..6 -> finderBit(row, col)
@@ -97,13 +105,21 @@ private fun finderBitAt(row: Int, col: Int): Boolean {
     }
 }
 
-private fun isDataModule(row: Int, col: Int): Boolean {
+private fun isDataModule(
+    row: Int,
+    col: Int,
+): Boolean {
     if (isFinderRegion(row, col)) return finderBitAt(row, col)
     // Deterministic data pattern — no Random()
     return ((row * 3 + col * 5) % 7 < 3) || ((row xor col) % 5 == 0)
 }
 
-private fun DrawScope.drawQrModule(row: Int, col: Int, cellPx: Float, color: Color) {
+private fun DrawScope.drawQrModule(
+    row: Int,
+    col: Int,
+    cellPx: Float,
+    color: Color,
+) {
     val x = col * cellPx
     val y = row * cellPx
     val r = cellPx * 0.15f
@@ -132,19 +148,22 @@ fun QrHomeScreen(
         modifier = modifier,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             Box(
-                modifier = Modifier
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF004D40), Color(0xFF00796B))))
-                    .windowInsetsPadding(WindowInsets.statusBars)
+                modifier =
+                    Modifier
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF004D40), Color(0xFF00796B))))
+                        .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
@@ -161,19 +180,21 @@ fun QrHomeScreen(
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .navigationBarsPadding(),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .navigationBarsPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(DesignTokens.Spacing.xl))
 
                 // QR code card
                 Card(
-                    modifier = Modifier
-                        .size(260.dp)
-                        .padding(4.dp),
+                    modifier =
+                        Modifier
+                            .size(260.dp)
+                            .padding(4.dp),
                     shape = DesignTokens.Shape.roundedMd,
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                 ) {
@@ -205,9 +226,10 @@ fun QrHomeScreen(
                 if (state.cards.isNotEmpty()) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = DesignTokens.Spacing.l),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = DesignTokens.Spacing.l),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -229,9 +251,10 @@ fun QrHomeScreen(
                 }
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignTokens.Spacing.l),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignTokens.Spacing.l),
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 ) {
                     Button(
@@ -272,17 +295,19 @@ fun QrHomeScreen(
 
 @Composable
 private fun QrCardChip(card: CorporateCard) {
-    val chipGradient = Brush.linearGradient(
-        listOf(Color(0xFF1565C0).copy(alpha = 0.85f), Color(0xFF4A148C).copy(alpha = 0.85f))
-    )
+    val chipGradient =
+        Brush.linearGradient(
+            listOf(Color(0xFF1565C0).copy(alpha = 0.85f), Color(0xFF4A148C).copy(alpha = 0.85f)),
+        )
     Box(
-        modifier = Modifier
-            .width(140.dp)
-            .height(76.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(chipGradient)
-            .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-            .padding(12.dp),
+        modifier =
+            Modifier
+                .width(140.dp)
+                .height(76.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(chipGradient)
+                .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .padding(12.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -299,9 +324,10 @@ private fun QrCardChip(card: CorporateCard) {
 @Composable
 private fun QrInfoRow() {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l),
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         QrInfoTile(label = "Daily Limit", value = "₹50,000", modifier = Modifier.weight(1f))
@@ -311,7 +337,11 @@ private fun QrInfoRow() {
 }
 
 @Composable
-private fun QrInfoTile(label: String, value: String, modifier: Modifier = Modifier) {
+private fun QrInfoTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier = modifier,
         shape = DesignTokens.Shape.roundedSm,
@@ -342,11 +372,12 @@ private fun QrRequestSheet(
         sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl)
-                .navigationBarsPadding(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl)
+                    .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Row(
@@ -423,16 +454,17 @@ private fun PreviewQrInfoRow() {
 private fun PreviewQrCardChip() {
     com.miletracker.core.ui.theme.MileTrackerTheme {
         QrCardChip(
-            card = CorporateCard(
-                id = "CARD-001",
-                lastFourDigits = "4821",
-                cardType = com.miletracker.feature.profile.model.CardType.VISA,
-                holderName = "Priya Sharma",
-                balanceRupees = 48000.0,
-                status = com.miletracker.feature.profile.model.CardStatus.ACTIVE,
-                expiryDate = "12/26",
-                creditLimitRupees = 100000.0,
-            )
+            card =
+                CorporateCard(
+                    id = "CARD-001",
+                    lastFourDigits = "4821",
+                    cardType = com.miletracker.feature.profile.model.CardType.VISA,
+                    holderName = "Priya Sharma",
+                    balanceRupees = 48000.0,
+                    status = com.miletracker.feature.profile.model.CardStatus.ACTIVE,
+                    expiryDate = "12/26",
+                    creditLimitRupees = 100000.0,
+                ),
         )
     }
 }

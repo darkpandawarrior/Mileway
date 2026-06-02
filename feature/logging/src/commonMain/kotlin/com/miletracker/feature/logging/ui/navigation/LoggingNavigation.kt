@@ -67,34 +67,35 @@ object LoggingRoutes {
  *   - Add Expense   → Expense category → details → success flow (ExpenseViewModel)
  */
 fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
-
     // ── Spends home ──────────────────────────────────────────────────────────
     composable(LoggingRoutes.HOME) {
         SpendsHomeScreen(
             onTrackMileage = { navController.navigate(LoggingRoutes.LOG_MILES) },
             onAddExpense = { navController.navigate(LoggingRoutes.EXPENSE_ENTRY) },
             onMileageHistory = { navController.navigate(LoggingRoutes.HISTORY) },
-            onExpenseHistory = { navController.navigate(LoggingRoutes.EXPENSE_HISTORY) }
+            onExpenseHistory = { navController.navigate(LoggingRoutes.EXPENSE_HISTORY) },
         )
     }
 
     // ── Log Miles flow ───────────────────────────────────────────────────────
     composable(LoggingRoutes.LOG_MILES) { entry ->
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = entry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
+                viewModelStoreOwner = entry,
+            )
         LogMilesScreen(
             viewModel = viewModel,
             onNext = { navController.navigate(LoggingRoutes.STEP2) },
-            onOpenHistory = { navController.navigate(LoggingRoutes.HISTORY) }
+            onOpenHistory = { navController.navigate(LoggingRoutes.HISTORY) },
         )
     }
 
     composable(LoggingRoutes.STEP2) {
         val logMilesEntry = rememberLogMilesEntry(navController)
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = logMilesEntry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
+                viewModelStoreOwner = logMilesEntry,
+            )
         LogMilesStep2Screen(
             viewModel = viewModel,
             onBack = { navController.popBackStack() },
@@ -102,56 +103,60 @@ fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
                 navController.navigate(LoggingRoutes.SUCCESS) {
                     popUpTo(LoggingRoutes.STEP2) { inclusive = true }
                 }
-            }
+            },
         )
     }
 
     composable(LoggingRoutes.SUCCESS) {
         val logMilesEntry = rememberLogMilesEntry(navController)
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = logMilesEntry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
+                viewModelStoreOwner = logMilesEntry,
+            )
         LogMilesSuccessScreen(
             viewModel = viewModel,
             onLogAnother = {
                 navController.navigate(LoggingRoutes.LOG_MILES) {
                     popUpTo(LoggingRoutes.LOG_MILES) { inclusive = true }
                 }
-            }
+            },
         )
     }
 
     composable(LoggingRoutes.HISTORY) {
         val logMilesEntry = rememberLogMilesEntry(navController)
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
-            viewModelStoreOwner = logMilesEntry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.LogMilesViewModel>(
+                viewModelStoreOwner = logMilesEntry,
+            )
         LogMilesHistoryScreen(
             viewModel = viewModel,
             onBack = { navController.popBackStack() },
             onOpenDraft = {
                 navController.popBackStack(LoggingRoutes.LOG_MILES, inclusive = false)
-            }
+            },
         )
     }
 
     // ── Expense flow ─────────────────────────────────────────────────────────
     composable(LoggingRoutes.EXPENSE_ENTRY) { entry ->
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
-            viewModelStoreOwner = entry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
+                viewModelStoreOwner = entry,
+            )
         ExpenseEntryScreen(
             onBack = { navController.popBackStack() },
             onCategorySelected = { navController.navigate(LoggingRoutes.EXPENSE_DETAILS) },
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 
     composable(LoggingRoutes.EXPENSE_DETAILS) {
         val expenseEntry = rememberExpenseEntry(navController)
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
-            viewModelStoreOwner = expenseEntry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
+                viewModelStoreOwner = expenseEntry,
+            )
         ExpenseDetailsInputScreen(
             onBack = { navController.popBackStack() },
             onSubmitted = {
@@ -159,15 +164,16 @@ fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
                     popUpTo(LoggingRoutes.EXPENSE_DETAILS) { inclusive = true }
                 }
             },
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 
     composable(LoggingRoutes.EXPENSE_SUCCESS) {
         val expenseEntry = rememberExpenseEntry(navController)
-        val viewModel = koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
-            viewModelStoreOwner = expenseEntry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.logging.viewmodel.ExpenseViewModel>(
+                viewModelStoreOwner = expenseEntry,
+            )
         ExpenseSuccessScreen(
             onAddAnother = {
                 navController.navigate(LoggingRoutes.EXPENSE_ENTRY) {
@@ -179,25 +185,25 @@ fun NavGraphBuilder.loggingGraph(navController: NavHostController) {
                     popUpTo(LoggingRoutes.EXPENSE_SUCCESS) { inclusive = true }
                 }
             },
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 
     composable(LoggingRoutes.EXPENSE_HISTORY) {
         ExpenseHistoryScreen(
             onBack = { navController.popBackStack() },
-            onOpenDetail = { id -> navController.navigate(LoggingRoutes.expenseDetailRoute(id)) }
+            onOpenDetail = { id -> navController.navigate(LoggingRoutes.expenseDetailRoute(id)) },
         )
     }
 
     composable(
         route = LoggingRoutes.EXPENSE_DETAIL,
-        arguments = listOf(navArgument("id") { type = NavType.StringType })
+        arguments = listOf(navArgument("id") { type = NavType.StringType }),
     ) { backStackEntry ->
         val id = backStackEntry.arguments?.read { getStringOrNull("id") } ?: return@composable
         ExpenseDetailScreen(
             expenseId = id,
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
         )
     }
 }

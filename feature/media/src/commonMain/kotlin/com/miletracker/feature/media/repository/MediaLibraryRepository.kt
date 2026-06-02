@@ -7,7 +7,6 @@ import com.miletracker.feature.media.model.UploadState
 import kotlinx.coroutines.flow.Flow
 
 class MediaLibraryRepository(private val dao: MediaLibraryDao) {
-
     fun observeLibrary(): Flow<List<MediaLibraryEntry>> = dao.observeAll()
 
     suspend fun save(item: AttachmentItem) {
@@ -19,8 +18,8 @@ class MediaLibraryRepository(private val dao: MediaLibraryDao) {
                 mimeType = item.mimeType,
                 label = "Attachment ${item.source.name.lowercase()}",
                 source = item.source.name,
-                savedAtMs = item.capturedAtMillis
-            )
+                savedAtMs = item.capturedAtMillis,
+            ),
         )
     }
 

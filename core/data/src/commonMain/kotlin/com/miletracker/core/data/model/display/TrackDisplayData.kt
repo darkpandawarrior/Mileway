@@ -22,13 +22,14 @@ data class TrackDisplayData(
     val reimbursableAmount: Double = 0.0,
     val submittedAt: Long = 0L,
     val isSubmitted: Boolean = false,
-    val locationCount: Int = 0
+    val locationCount: Int = 0,
 ) {
-    fun getDurationMs(): Long = when {
-        endTime > 0 && startTime > 0 -> endTime - startTime
-        startTime > 0 -> kotlin.time.Clock.System.now().toEpochMilliseconds() - startTime
-        else -> 0L
-    }
+    fun getDurationMs(): Long =
+        when {
+            endTime > 0 && startTime > 0 -> endTime - startTime
+            startTime > 0 -> kotlin.time.Clock.System.now().toEpochMilliseconds() - startTime
+            else -> 0L
+        }
 
     fun getFormattedDuration(): String {
         val ms = getDurationMs()
@@ -39,29 +40,31 @@ data class TrackDisplayData(
 
     fun getFormattedDistance(): String = "${distanceKm.fmt2d()} km"
 
-    fun getTrackingState(): TrackingState = when {
-        isTracking && isPaused -> TrackingState.PAUSED
-        isTracking -> TrackingState.LIVE_TRACKING
-        startTime > 0 && endTime > 0 -> TrackingState.COMPLETED
-        else -> TrackingState.READY
-    }
+    fun getTrackingState(): TrackingState =
+        when {
+            isTracking && isPaused -> TrackingState.PAUSED
+            isTracking -> TrackingState.LIVE_TRACKING
+            startTime > 0 && endTime > 0 -> TrackingState.COMPLETED
+            else -> TrackingState.READY
+        }
 }
 
-fun SavedTrack.toDisplayData() = TrackDisplayData(
-    token = routeId,
-    name = name,
-    startLatitude = startLatitude,
-    startLongitude = startLongitude,
-    endLatitude = endLatitude,
-    endLongitude = endLongitude,
-    startTime = startTime,
-    endTime = endTime,
-    distanceKm = distance / 1000.0,
-    selectedVehicleType = selectedVehicleType,
-    vehiclePricing = vehiclePricing,
-    service = service,
-    reimbursableAmount = submittedAmount,
-    submittedAt = submissionTime,
-    isSubmitted = serverUploaded,
-    locationCount = totalLocationPoints.toInt()
-)
+fun SavedTrack.toDisplayData() =
+    TrackDisplayData(
+        token = routeId,
+        name = name,
+        startLatitude = startLatitude,
+        startLongitude = startLongitude,
+        endLatitude = endLatitude,
+        endLongitude = endLongitude,
+        startTime = startTime,
+        endTime = endTime,
+        distanceKm = distance / 1000.0,
+        selectedVehicleType = selectedVehicleType,
+        vehiclePricing = vehiclePricing,
+        service = service,
+        reimbursableAmount = submittedAmount,
+        submittedAt = submissionTime,
+        isSubmitted = serverUploaded,
+        locationCount = totalLocationPoints.toInt(),
+    )

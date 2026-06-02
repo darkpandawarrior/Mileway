@@ -148,15 +148,16 @@ fun TrackingSuccessScreen(
 
     // Date line: prefer the journey window when both ends are present, else fall back
     // to whichever timestamp we have.
-    val dateLine = remember(startTime, endTime) {
-        when {
-            startTime > 0L && endTime > 0L && endTime != startTime ->
-                "${DateUtils.epochToDateTime(startTime)}  •  ${DateUtils.epochToTime12h(endTime)}"
-            startTime > 0L -> DateUtils.epochToDateTime(startTime)
-            endTime > 0L -> DateUtils.epochToDateTime(endTime)
-            else -> ""
+    val dateLine =
+        remember(startTime, endTime) {
+            when {
+                startTime > 0L && endTime > 0L && endTime != startTime ->
+                    "${DateUtils.epochToDateTime(startTime)}  •  ${DateUtils.epochToTime12h(endTime)}"
+                startTime > 0L -> DateUtils.epochToDateTime(startTime)
+                endTime > 0L -> DateUtils.epochToDateTime(endTime)
+                else -> ""
+            }
         }
-    }
 
     val density = LocalDensity.current
 
@@ -190,11 +191,12 @@ fun TrackingSuccessScreen(
     // Spring pop for the badge ring + check mark.
     val checkScale by animateFloatAsState(
         targetValue = if (iconState.targetState) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "checkScale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "checkScale",
     )
 
     // Continuous gentle pulse for the outer glow ring.
@@ -204,22 +206,24 @@ fun TrackingSuccessScreen(
             repeatable(
                 iterations = Int.MAX_VALUE,
                 animation = tween(2000),
-                repeatMode = RepeatMode.Reverse
+                repeatMode = RepeatMode.Reverse,
             )
         },
-        label = "pulse"
+        label = "pulse",
     ) { if (it) 1.05f else 0.95f }
 
     // Soft vertical gradient that lightens toward the bottom for depth.
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.surface,
-            MaterialTheme.colorScheme.surface,
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ),
-        startY = 0f,
-        endY = 1500f
-    )
+    val backgroundBrush =
+        Brush.verticalGradient(
+            colors =
+                listOf(
+                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                ),
+            startY = 0f,
+            endY = 1500f,
+        )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -227,46 +231,50 @@ fun TrackingSuccessScreen(
             bottomBar = {
                 AnimatedVisibility(
                     visibleState = buttonsState,
-                    enter = fadeIn(animationSpec = tween(700)) +
-                        slideInVertically(
-                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                            initialOffsetY = { with(density) { 40.dp.roundToPx() } }
-                        )
+                    enter =
+                        fadeIn(animationSpec = tween(700)) +
+                            slideInVertically(
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                                initialOffsetY = { with(density) { 40.dp.roundToPx() } },
+                            ),
                 ) {
                     SuccessActionBar(
                         hasVoucher = hasVoucher,
                         hasTransaction = hasTransaction,
                         onTrackNewJourney = onTrackNewJourney,
                         onViewExpense = onViewExpense,
-                        onCreateVoucher = onCreateVoucher
+                        onCreateVoucher = onCreateVoucher,
                     )
                 }
-            }
+            },
         ) { innerPadding ->
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(backgroundBrush),
-                contentAlignment = Alignment.TopCenter
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(backgroundBrush),
+                contentAlignment = Alignment.TopCenter,
             ) {
                 Column(
-                    modifier = modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(innerPadding)
-                        .padding(vertical = DesignTokens.Spacing.l)
-                        .widthIn(max = 600.dp) // keep line lengths comfortable on tablets
-                        .fillMaxWidth(),
+                    modifier =
+                        modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(innerPadding)
+                            .padding(vertical = DesignTokens.Spacing.l)
+                            .widthIn(max = 600.dp) // keep line lengths comfortable on tablets
+                            .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
+                    verticalArrangement = Arrangement.Top,
                 ) {
                     // 1 ─ Success badge ───────────────────────────────────────
                     AnimatedVisibility(
                         visibleState = iconState,
-                        enter = fadeIn(animationSpec = tween(500)) +
-                            slideInVertically(
-                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                                initialOffsetY = { with(density) { -40.dp.roundToPx() } }
-                            )
+                        enter =
+                            fadeIn(animationSpec = tween(500)) +
+                                slideInVertically(
+                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                                    initialOffsetY = { with(density) { -40.dp.roundToPx() } },
+                                ),
                     ) {
                         SuccessBadge(checkScale = checkScale, pulse = pulse)
                     }
@@ -276,20 +284,22 @@ fun TrackingSuccessScreen(
                     // 2 + 3 ─ Title and policy chip ───────────────────────────
                     AnimatedVisibility(
                         visibleState = titleState,
-                        enter = fadeIn(animationSpec = tween(700)) +
-                            expandVertically(animationSpec = tween(700))
+                        enter =
+                            fadeIn(animationSpec = tween(700)) +
+                                expandVertically(animationSpec = tween(700)),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = "Expense Submitted Successfully",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontSize = 26.sp,
-                                    letterSpacing = (-0.5).sp
-                                ),
+                                style =
+                                    MaterialTheme.typography.headlineMedium.copy(
+                                        fontSize = 26.sp,
+                                        letterSpacing = (-0.5).sp,
+                                    ),
                                 fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.xl)
+                                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.xl),
                             )
 
                             if (hasViolations) {
@@ -304,11 +314,12 @@ fun TrackingSuccessScreen(
                     // 4 ─ Distance card ───────────────────────────────────────
                     AnimatedVisibility(
                         visibleState = distanceCardState,
-                        enter = fadeIn(animationSpec = tween(400)) +
-                            slideInVertically(
-                                animationSpec = tween(400),
-                                initialOffsetY = { it / 4 }
-                            )
+                        enter =
+                            fadeIn(animationSpec = tween(400)) +
+                                slideInVertically(
+                                    animationSpec = tween(400),
+                                    initialOffsetY = { it / 4 },
+                                ),
                     ) {
                         DistanceCard(distanceKm = distanceKm)
                     }
@@ -318,18 +329,19 @@ fun TrackingSuccessScreen(
                         Spacer(modifier = Modifier.height(DesignTokens.Spacing.m))
                         AnimatedVisibility(
                             visibleState = transactionCardState,
-                            enter = fadeIn(animationSpec = tween(400)) +
-                                slideInVertically(
-                                    animationSpec = tween(400),
-                                    initialOffsetY = { it / 4 }
-                                )
+                            enter =
+                                fadeIn(animationSpec = tween(400)) +
+                                    slideInVertically(
+                                        animationSpec = tween(400),
+                                        initialOffsetY = { it / 4 },
+                                    ),
                         ) {
                             TransactionCard(
                                 transactionId = transactionId,
                                 vehicleName = vehicleName,
                                 reimbursableAmount = reimbursableAmount,
                                 dateLine = dateLine,
-                                onClick = onViewExpense
+                                onClick = onViewExpense,
                             )
                         }
                     }
@@ -339,15 +351,16 @@ fun TrackingSuccessScreen(
                         Spacer(modifier = Modifier.height(DesignTokens.Spacing.m))
                         AnimatedVisibility(
                             visibleState = policyCardState,
-                            enter = fadeIn(animationSpec = tween(400)) +
-                                slideInVertically(
-                                    animationSpec = tween(400),
-                                    initialOffsetY = { it / 4 }
-                                )
+                            enter =
+                                fadeIn(animationSpec = tween(400)) +
+                                    slideInVertically(
+                                        animationSpec = tween(400),
+                                        initialOffsetY = { it / 4 },
+                                    ),
                         ) {
                             PolicyIssuesCard(
                                 violationCount = violationCount,
-                                violationMessage = violationMessage
+                                violationMessage = violationMessage,
                             )
                         }
                     }
@@ -357,16 +370,17 @@ fun TrackingSuccessScreen(
                         Spacer(modifier = Modifier.height(DesignTokens.Spacing.m))
                         AnimatedVisibility(
                             visibleState = voucherCardState,
-                            enter = fadeIn(animationSpec = tween(400)) +
-                                slideInVertically(
-                                    animationSpec = tween(400),
-                                    initialOffsetY = { it / 4 }
-                                )
+                            enter =
+                                fadeIn(animationSpec = tween(400)) +
+                                    slideInVertically(
+                                        animationSpec = tween(400),
+                                        initialOffsetY = { it / 4 },
+                                    ),
                         ) {
                             VoucherCard(
                                 voucherNumber = voucherNumber,
                                 voucherAmount = voucherAmount,
-                                onCreateVoucher = onCreateVoucher
+                                onCreateVoucher = onCreateVoucher,
                             )
                         }
                     }
@@ -383,7 +397,7 @@ fun TrackingSuccessScreen(
             ConfettiBurst(
                 modifier = Modifier.fillMaxSize(),
                 particleCount = 50,
-                durationMs = 1800
+                durationMs = 1800,
             )
         }
     }
@@ -391,68 +405,79 @@ fun TrackingSuccessScreen(
 
 /** Animated, gently pulsing circular badge with a primary-tinted check mark. */
 @Composable
-private fun SuccessBadge(checkScale: Float, pulse: Float) {
+private fun SuccessBadge(
+    checkScale: Float,
+    pulse: Float,
+) {
     Box(contentAlignment = Alignment.Center) {
         // Outer glow ring
         Box(
-            modifier = Modifier
-                .size(80.dp)
-                .scale(pulse)
-                .alpha(0.3f)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            Color.Transparent
-                        )
+            modifier =
+                Modifier
+                    .size(80.dp)
+                    .scale(pulse)
+                    .alpha(0.3f)
+                    .background(
+                        Brush.radialGradient(
+                            colors =
+                                listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                    Color.Transparent,
+                                ),
+                        ),
+                        shape = CircleShape,
                     ),
-                    shape = CircleShape
-                )
         )
 
         // Middle outline ring
         Box(
-            modifier = Modifier
-                .size(70.dp)
-                .scale(checkScale)
-                .border(
-                    width = 2.dp,
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                        )
+            modifier =
+                Modifier
+                    .size(70.dp)
+                    .scale(checkScale)
+                    .border(
+                        width = 2.dp,
+                        brush =
+                            Brush.linearGradient(
+                                colors =
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    ),
+                            ),
+                        shape = CircleShape,
                     ),
-                    shape = CircleShape
-                )
         )
 
         // Filled check container
         Box(
-            modifier = Modifier
-                .size(56.dp)
-                .scale(checkScale)
-                .shadow(
-                    elevation = DesignTokens.Elevation.prominent,
-                    shape = CircleShape,
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                )
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            MaterialTheme.colorScheme.surface
-                        )
+            modifier =
+                Modifier
+                    .size(56.dp)
+                    .scale(checkScale)
+                    .shadow(
+                        elevation = DesignTokens.Elevation.prominent,
+                        shape = CircleShape,
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                    )
+                    .background(
+                        brush =
+                            Brush.linearGradient(
+                                colors =
+                                    listOf(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        MaterialTheme.colorScheme.surface,
+                                    ),
+                            ),
+                        shape = CircleShape,
                     ),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.CheckCircle,
                 contentDescription = "Submission successful",
                 modifier = Modifier.size(42.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -462,27 +487,28 @@ private fun SuccessBadge(checkScale: Float, pulse: Float) {
 @Composable
 private fun PolicyIssueChip(violationCount: Int) {
     Row(
-        modifier = Modifier
-            .padding(horizontal = DesignTokens.Spacing.l)
-            .background(
-                MaterialTheme.colorScheme.errorContainer,
-                RoundedCornerShape(DesignTokens.Spacing.s)
-            )
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .padding(horizontal = DesignTokens.Spacing.l)
+                .background(
+                    MaterialTheme.colorScheme.errorContainer,
+                    RoundedCornerShape(DesignTokens.Spacing.s),
+                )
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = Icons.Filled.Warning,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(DesignTokens.IconSize.inline)
+            modifier = Modifier.size(DesignTokens.IconSize.inline),
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = "$violationCount ${if (violationCount == 1) "Policy Issue" else "Policy Issues"} Found",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onErrorContainer
+            color = MaterialTheme.colorScheme.onErrorContainer,
         )
     }
 }
@@ -491,22 +517,26 @@ private fun PolicyIssueChip(violationCount: Int) {
 @Composable
 private fun DistanceCard(distanceKm: Double) {
     ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l),
         shape = DesignTokens.Shape.roundedMd,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = DesignTokens.Elevation.card
-        )
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        elevation =
+            CardDefaults.elevatedCardElevation(
+                defaultElevation = DesignTokens.Elevation.card,
+            ),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = "Distance",
@@ -514,7 +544,7 @@ private fun DistanceCard(distanceKm: Double) {
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                letterSpacing = 0.4.sp
+                letterSpacing = 0.4.sp,
             )
 
             Spacer(modifier = Modifier.height(DesignTokens.Spacing.s))
@@ -533,16 +563,17 @@ private fun DistanceCard(distanceKm: Double) {
 
             Row(
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = (round(animatedDistance * 100).toLong() / 100.0).toString(),
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 48.sp,
-                        letterSpacing = (-0.5).sp
-                    ),
-                    color = MaterialTheme.colorScheme.primary
+                    style =
+                        MaterialTheme.typography.displayLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 48.sp,
+                            letterSpacing = (-0.5).sp,
+                        ),
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(modifier = Modifier.width(DesignTokens.Spacing.xs))
                 Text(
@@ -550,7 +581,7 @@ private fun DistanceCard(distanceKm: Double) {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = DesignTokens.Spacing.s)
+                    modifier = Modifier.padding(bottom = DesignTokens.Spacing.s),
                 )
             }
         }
@@ -567,36 +598,40 @@ private fun TransactionCard(
     vehicleName: String,
     reimbursableAmount: Double,
     dateLine: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ElevatedCard(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
         shape = DesignTokens.Shape.actionTile,
-        elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = DesignTokens.Elevation.card,
-            pressedElevation = DesignTokens.Elevation.raised
-        )
+        elevation =
+            CardDefaults.elevatedCardElevation(
+                defaultElevation = DesignTokens.Elevation.card,
+                pressedElevation = DesignTokens.Elevation.raised,
+            ),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.m + 2.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.m + 2.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = Icons.Filled.Receipt,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(DesignTokens.IconSize.header)
+                    modifier = Modifier.size(DesignTokens.IconSize.header),
                 )
                 Spacer(modifier = Modifier.width(DesignTokens.Spacing.m))
                 Text(
@@ -606,13 +641,13 @@ private fun TransactionCard(
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = "View expense details",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                    modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                    modifier = Modifier.size(DesignTokens.IconSize.navigation),
                 )
             }
 
@@ -620,30 +655,31 @@ private fun TransactionCard(
             if (reimbursableAmount > 0.0) {
                 Spacer(modifier = Modifier.height(DesignTokens.Spacing.m))
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
-                            DesignTokens.Shape.roundedSm
-                        )
-                        .padding(DesignTokens.Spacing.m)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .background(
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+                                DesignTokens.Shape.roundedSm,
+                            )
+                            .padding(DesignTokens.Spacing.m),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             text = "Reimbursable",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = "₹${round(reimbursableAmount * 100).toLong() / 100.0}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -658,20 +694,20 @@ private fun TransactionCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.DirectionsCar,
                         contentDescription = null,
                         modifier = Modifier.size(DesignTokens.IconSize.inline),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                     Spacer(modifier = Modifier.width(DesignTokens.Spacing.s))
                     Text(
                         text = vehicleName,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                     )
                 }
             }
@@ -684,13 +720,13 @@ private fun TransactionCard(
                         imageVector = Icons.Outlined.Info,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier.size(12.dp),
                     )
                     Spacer(modifier = Modifier.width(DesignTokens.Spacing.xs))
                     Text(
                         text = dateLine,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
                 }
             }
@@ -700,35 +736,41 @@ private fun TransactionCard(
 
 /** Red-tinted card listing the policy issues with the first violation's message. */
 @Composable
-private fun PolicyIssuesCard(violationCount: Int, violationMessage: String?) {
+private fun PolicyIssuesCard(
+    violationCount: Int,
+    violationMessage: String?,
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l),
         shape = DesignTokens.Shape.roundedSm,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
+            ),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.m)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = DesignTokens.Spacing.s)
+                modifier = Modifier.padding(bottom = DesignTokens.Spacing.s),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .background(
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(28.dp)
+                            .background(
+                                MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
+                                CircleShape,
+                            ),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Warning,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(DesignTokens.IconSize.inline)
+                        modifier = Modifier.size(DesignTokens.IconSize.inline),
                     )
                 }
                 Spacer(modifier = Modifier.width(DesignTokens.Spacing.s))
@@ -737,12 +779,12 @@ private fun PolicyIssuesCard(violationCount: Int, violationMessage: String?) {
                         text = "Policy Issues",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                     Text(
                         text = "$violationCount ${if (violationCount == 1) "issue" else "issues"} found",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
                     )
                 }
             }
@@ -750,20 +792,21 @@ private fun PolicyIssuesCard(violationCount: Int, violationMessage: String?) {
             if (!violationMessage.isNullOrBlank()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-                    ),
-                    shape = RoundedCornerShape(DesignTokens.Spacing.s)
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        ),
+                    shape = RoundedCornerShape(DesignTokens.Spacing.s),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(10.dp)
+                        modifier = Modifier.padding(10.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Warning,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(14.dp),
                         )
                         Spacer(modifier = Modifier.width(DesignTokens.Spacing.s))
                         Text(
@@ -771,7 +814,7 @@ private fun PolicyIssuesCard(violationCount: Int, violationMessage: String?) {
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
@@ -785,37 +828,41 @@ private fun PolicyIssuesCard(violationCount: Int, violationMessage: String?) {
 private fun VoucherCard(
     voucherNumber: String,
     voucherAmount: Double,
-    onCreateVoucher: () -> Unit
+    onCreateVoucher: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-        ),
-        shape = DesignTokens.Shape.roundedSm
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+            ),
+        shape = DesignTokens.Shape.roundedSm,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.m),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.m),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .background(
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                            CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.AccountBalance,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(DesignTokens.IconSize.badge)
+                    modifier = Modifier.size(DesignTokens.IconSize.badge),
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
@@ -824,13 +871,13 @@ private fun VoucherCard(
                     text = "Voucher",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "#$voucherNumber",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
                 )
             }
             if (voucherAmount > 0.0) {
@@ -838,7 +885,7 @@ private fun VoucherCard(
                     text = "₹${round(voucherAmount * 100).toLong() / 100.0}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
         }
@@ -856,49 +903,51 @@ private fun SuccessActionBar(
     hasTransaction: Boolean,
     onTrackNewJourney: () -> Unit,
     onViewExpense: () -> Unit,
-    onCreateVoucher: () -> Unit
+    onCreateVoucher: () -> Unit,
 ) {
     Surface(
         tonalElevation = DesignTokens.Elevation.prominent,
         shadowElevation = DesignTokens.Elevation.prominent,
-        modifier = Modifier.navigationBarsPadding()
+        modifier = Modifier.navigationBarsPadding(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                            MaterialTheme.colorScheme.surface
-                        )
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                                    MaterialTheme.colorScheme.surface,
+                                ),
+                        ),
                     )
-                )
-                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             if (hasVoucher) {
                 PrimaryCta(
                     label = "Add to Claim",
                     icon = Icons.Filled.AccountBalance,
-                    onClick = onViewExpense
+                    onClick = onViewExpense,
                 )
                 SecondaryCta(
                     label = "Create Voucher",
                     icon = Icons.Outlined.Description,
-                    onClick = onCreateVoucher
+                    onClick = onCreateVoucher,
                 )
             } else {
                 PrimaryCta(
                     label = "Track New Journey",
                     icon = Icons.Filled.DirectionsCar,
-                    onClick = onTrackNewJourney
+                    onClick = onTrackNewJourney,
                 )
                 if (hasTransaction) {
                     SecondaryCta(
                         label = "View Expense",
                         icon = Icons.Filled.Receipt,
-                        onClick = onViewExpense
+                        onClick = onViewExpense,
                     )
                 }
             }
@@ -910,23 +959,25 @@ private fun SuccessActionBar(
 private fun PrimaryCta(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(56.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 10.dp
-        )
+        elevation =
+            ButtonDefaults.buttonElevation(
+                defaultElevation = 6.dp,
+                pressedElevation = 10.dp,
+            ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(22.dp))
             Spacer(modifier = Modifier.width(DesignTokens.Spacing.m))
@@ -934,7 +985,7 @@ private fun PrimaryCta(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
             )
         }
     }
@@ -944,28 +995,30 @@ private fun PrimaryCta(
 private fun SecondaryCta(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(48.dp),
         shape = DesignTokens.Shape.chip,
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary
-        )
+        colors =
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary,
+            ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
         ) {
             Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }

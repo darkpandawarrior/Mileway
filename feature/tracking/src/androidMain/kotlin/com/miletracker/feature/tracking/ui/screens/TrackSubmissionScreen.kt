@@ -2,9 +2,7 @@ package com.miletracker.feature.tracking.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
@@ -70,7 +67,7 @@ fun TrackSubmissionScreen(
     onBack: () -> Unit,
     onNavigateToOdometerStart: () -> Unit = {},
     onNavigateToOdometerEnd: () -> Unit = {},
-    viewModel: MileageSubmissionViewModel = koinViewModel()
+    viewModel: MileageSubmissionViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val form by viewModel.form.collectAsState()
@@ -82,8 +79,12 @@ fun TrackSubmissionScreen(
     val durationMs = (endTime - startTime).coerceAtLeast(0L)
     val startOdo = form.simulatedStartOdo
     val endOdo = form.simulatedEndOdo
-    val odometerDistanceKm = if (startOdo != null && endOdo != null)
-        (endOdo - startOdo).toDouble() else null
+    val odometerDistanceKm =
+        if (startOdo != null && endOdo != null) {
+            (endOdo - startOdo).toDouble()
+        } else {
+            null
+        }
 
     // Load start/end addresses and vehicle info from Room on first composition.
     LaunchedEffect(routeId) {
@@ -115,7 +116,7 @@ fun TrackSubmissionScreen(
                     violationMessage = r.violations.firstOrNull()?.message,
                     voucherNumber = r.issuedVoucher?.number,
                     voucherAmount = r.issuedVoucher?.amount ?: 0.0,
-                )
+                ),
             )
         }
     }
@@ -223,17 +224,18 @@ fun TrackSubmissionScreen(
                 // ── Forms section ────────────────────────────────────────────────
                 item {
                     AdditionalDetailsForm(
-                        fields = form.fields.map { f ->
-                            FormField(
-                                id = f.id,
-                                label = f.label,
-                                type = if (f.type == SubmissionFieldType.DROPDOWN) FormFieldType.DROPDOWN else FormFieldType.TEXT,
-                                value = form.values[f.id].orEmpty(),
-                                required = f.required,
-                                options = f.options,
-                                errorText = if (f.required && form.values[f.id].isNullOrBlank()) "${f.label} is required" else null,
-                            )
-                        },
+                        fields =
+                            form.fields.map { f ->
+                                FormField(
+                                    id = f.id,
+                                    label = f.label,
+                                    type = if (f.type == SubmissionFieldType.DROPDOWN) FormFieldType.DROPDOWN else FormFieldType.TEXT,
+                                    value = form.values[f.id].orEmpty(),
+                                    required = f.required,
+                                    options = f.options,
+                                    errorText = if (f.required && form.values[f.id].isNullOrBlank()) "${f.label} is required" else null,
+                                )
+                            },
                         onValueChange = viewModel::setFormValue,
                     )
                 }
@@ -279,49 +281,54 @@ fun TrackSubmissionScreen(
 
     // ── Submission sheets (single source of truth: form.sheet) ──────────────────
     when (form.sheet) {
-        SubmissionSheet.SUBMIT_CONFIRM -> SubmitConfirmSheet(
-            onConfirm = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
-            onCancel = viewModel::dismissSheet,
-            onDismiss = viewModel::dismissSheet,
-        )
+        SubmissionSheet.SUBMIT_CONFIRM ->
+            SubmitConfirmSheet(
+                onConfirm = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
+                onCancel = viewModel::dismissSheet,
+                onDismiss = viewModel::dismissSheet,
+            )
 
-        SubmissionSheet.POLICY_VIOLATION -> PolicyViolationSheet(
-            violations = form.violations,
-            askAuthoritiesSelected = form.askAuthorities,
-            note = form.violationNote,
-            onToggleAskAuthorities = { viewModel.setAskAuthorities(!form.askAuthorities) },
-            onNoteChange = viewModel::setViolationNote,
-            onSubmit = viewModel::resolvePolicyAndFinalize,
-            onDismiss = viewModel::dismissSheet,
-        )
+        SubmissionSheet.POLICY_VIOLATION ->
+            PolicyViolationSheet(
+                violations = form.violations,
+                askAuthoritiesSelected = form.askAuthorities,
+                note = form.violationNote,
+                onToggleAskAuthorities = { viewModel.setAskAuthorities(!form.askAuthorities) },
+                onNoteChange = viewModel::setViolationNote,
+                onSubmit = viewModel::resolvePolicyAndFinalize,
+                onDismiss = viewModel::dismissSheet,
+            )
 
-        SubmissionSheet.OFFICE_PICKER -> OfficePickerSheet(
-            offices = form.offices,
-            query = form.officeQuery,
-            onQueryChange = viewModel::setOfficeQuery,
-            onSelect = viewModel::selectOffice,
-            onDismiss = viewModel::dismissSheet,
-        )
+        SubmissionSheet.OFFICE_PICKER ->
+            OfficePickerSheet(
+                offices = form.offices,
+                query = form.officeQuery,
+                onQueryChange = viewModel::setOfficeQuery,
+                onSelect = viewModel::selectOffice,
+                onDismiss = viewModel::dismissSheet,
+            )
 
-        SubmissionSheet.ENTITY_PICKER -> EntityPickerSheet(
-            entities = form.entities,
-            query = form.entityQuery,
-            onQueryChange = viewModel::setEntityQuery,
-            onSelect = viewModel::selectEntity,
-            onDismiss = viewModel::dismissSheet,
-        )
+        SubmissionSheet.ENTITY_PICKER ->
+            EntityPickerSheet(
+                entities = form.entities,
+                query = form.entityQuery,
+                onQueryChange = viewModel::setEntityQuery,
+                onSelect = viewModel::selectEntity,
+                onDismiss = viewModel::dismissSheet,
+            )
 
-        SubmissionSheet.SMART_DISTANCE -> SmartDistanceSheet(
-            trackedKm = form.smartDistanceTrackedKm,
-            odometerKm = form.smartDistanceOdometerKm,
-            verified = smartDistanceVerified,
-            explanation = smartDistanceExplanation,
-            onVerifiedChange = { smartDistanceVerified = it },
-            onExplanationChange = { smartDistanceExplanation = it },
-            onStop = viewModel::dismissSheet,
-            onContinue = viewModel::dismissSheet,
-            onDismiss = viewModel::dismissSheet,
-        )
+        SubmissionSheet.SMART_DISTANCE ->
+            SmartDistanceSheet(
+                trackedKm = form.smartDistanceTrackedKm,
+                odometerKm = form.smartDistanceOdometerKm,
+                verified = smartDistanceVerified,
+                explanation = smartDistanceExplanation,
+                onVerifiedChange = { smartDistanceVerified = it },
+                onExplanationChange = { smartDistanceExplanation = it },
+                onStop = viewModel::dismissSheet,
+                onContinue = viewModel::dismissSheet,
+                onDismiss = viewModel::dismissSheet,
+            )
 
         SubmissionSheet.NONE -> Unit
     }
@@ -337,7 +344,7 @@ private fun buildDemoRoutePoints(distanceKm: Double): List<Pair<Double, Double>>
         val t = i.toDouble() / steps
         Pair(
             baseLat + t * latDelta,
-            baseLng + t * latDelta * 0.7 + kotlin.math.sin(t * Math.PI) * 0.01
+            baseLng + t * latDelta * 0.7 + kotlin.math.sin(t * Math.PI) * 0.01,
         )
     }
 }

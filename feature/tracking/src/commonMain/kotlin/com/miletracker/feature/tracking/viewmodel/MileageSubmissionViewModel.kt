@@ -4,7 +4,6 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.display.OdometerCaptureResult
-import com.miletracker.core.data.model.display.OdometerPurpose
 import com.miletracker.core.data.model.network.ExpenseSubmissionResponse
 import com.miletracker.core.data.model.network.PolicyViolation
 import com.miletracker.core.data.model.network.SubmissionStatus
@@ -12,11 +11,11 @@ import com.miletracker.core.data.model.network.SubmitMilesRequestK
 import com.miletracker.core.network.api.MileTrackerNetworkApi
 import com.miletracker.core.network.model.BusinessEntity
 import com.miletracker.core.network.model.Office
+import com.miletracker.core.platform.NotificationScheduler
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
 import com.miletracker.feature.tracking.repository.OfflinePlacesRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
-import com.miletracker.core.platform.NotificationScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +25,11 @@ import kotlin.time.Clock
 
 sealed class SubmissionUiState {
     object Idle : SubmissionUiState()
+
     object Submitting : SubmissionUiState()
+
     data class Success(val response: ExpenseSubmissionResponse) : SubmissionUiState()
+
     data class Error(val message: String) : SubmissionUiState()
 }
 
@@ -81,12 +83,13 @@ data class SubmissionFormUi(
 ) {
     /** Required items still missing — drives the "N remaining" checklist header. */
     val remainingRequirements: List<String>
-        get() = buildList {
-            if (officeRequired && selectedOffice == null) add("Office selection")
-            if (officeRequired && selectedEntity == null) add("Entity selection")
-            val missingFields = fields.count { it.required && values[it.id].isNullOrBlank() }
-            if (missingFields > 0) add("Complete required fields")
-        }
+        get() =
+            buildList {
+                if (officeRequired && selectedOffice == null) add("Office selection")
+                if (officeRequired && selectedEntity == null) add("Entity selection")
+                val missingFields = fields.count { it.required && values[it.id].isNullOrBlank() }
+                if (missingFields > 0) add("Complete required fields")
+            }
 
     val canSubmit: Boolean get() = remainingRequirements.isEmpty()
 }
@@ -98,25 +101,28 @@ class MileageSubmissionViewModel(
     private val configManager: TrackingConfigManager,
     private val notificationScheduler: NotificationScheduler,
 ) : ViewModel() {
-
     private val _state = MutableStateFlow<SubmissionUiState>(SubmissionUiState.Idle)
     val state: StateFlow<SubmissionUiState> = _state.asStateFlow()
 
-    private val _form = MutableStateFlow(
-        SubmissionFormUi(
-            offices = configManager.getOffices(),
-            entities = configManager.getBusinessEntities(),
-            officeRequired = configManager.isOfficeSelectionRequired(),
-            // Two representative required fields (the source uses server-driven forms).
-            fields = listOf(
-                SubmissionField("purpose", "Purpose of travel", SubmissionFieldType.TEXT),
-                SubmissionField(
-                    "gender", "Gender", SubmissionFieldType.DROPDOWN,
-                    options = listOf("Male", "Female", "Others"),
-                ),
+    private val _form =
+        MutableStateFlow(
+            SubmissionFormUi(
+                offices = configManager.getOffices(),
+                entities = configManager.getBusinessEntities(),
+                officeRequired = configManager.isOfficeSelectionRequired(),
+                // Two representative required fields (the source uses server-driven forms).
+                fields =
+                    listOf(
+                        SubmissionField("purpose", "Purpose of travel", SubmissionFieldType.TEXT),
+                        SubmissionField(
+                            "gender",
+                            "Gender",
+                            SubmissionFieldType.DROPDOWN,
+                            options = listOf("Male", "Female", "Others"),
+                        ),
+                    ),
             ),
         )
-    )
     val form: StateFlow<SubmissionFormUi> = _form.asStateFlow()
 
     /** Snapshot of the last submission response, for the success screen. */
@@ -151,11 +157,17 @@ class MileageSubmissionViewModel(
         _pendingReceipts.update { it - uri }
     }
 
-    fun setOdometerStart(uri: String, ocrText: String?) {
+    fun setOdometerStart(
+        uri: String,
+        ocrText: String?,
+    ) {
         _pendingOdoStart.value = uri to ocrText
     }
 
-    fun setOdometerEnd(uri: String, ocrText: String?) {
+    fun setOdometerEnd(
+        uri: String,
+        ocrText: String?,
+    ) {
         _pendingOdoEnd.value = uri to ocrText
     }
 
@@ -163,33 +175,48 @@ class MileageSubmissionViewModel(
     // Submission form intents (single source of truth in the VM)
     // ---------------------------------------------------------------------------
 
-    fun setFormValue(id: String, value: String) =
-        _form.update { it.copy(values = it.values + (id to value)) }
+    fun setFormValue(
+        id: String,
+        value: String,
+    ) = _form.update { it.copy(values = it.values + (id to value)) }
 
     fun toggleDraft(enabled: Boolean) = _form.update { it.copy(saveAsDraft = enabled) }
 
     fun openOfficePicker() = _form.update { it.copy(sheet = SubmissionSheet.OFFICE_PICKER) }
+
     fun openEntityPicker() = _form.update { it.copy(sheet = SubmissionSheet.ENTITY_PICKER) }
+
     fun setOfficeQuery(q: String) = _form.update { it.copy(officeQuery = q) }
+
     fun setEntityQuery(q: String) = _form.update { it.copy(entityQuery = q) }
-    fun selectOffice(code: String) = _form.update {
-        it.copy(selectedOffice = it.offices.firstOrNull { o -> o.code == code }, sheet = SubmissionSheet.NONE)
-    }
-    fun selectEntity(name: String) = _form.update {
-        it.copy(selectedEntity = it.entities.firstOrNull { e -> e.name == name }, sheet = SubmissionSheet.NONE)
-    }
+
+    fun selectOffice(code: String) =
+        _form.update {
+            it.copy(selectedOffice = it.offices.firstOrNull { o -> o.code == code }, sheet = SubmissionSheet.NONE)
+        }
+
+    fun selectEntity(name: String) =
+        _form.update {
+            it.copy(selectedEntity = it.entities.firstOrNull { e -> e.name == name }, sheet = SubmissionSheet.NONE)
+        }
 
     fun openSubmitConfirm() = _form.update { it.copy(sheet = SubmissionSheet.SUBMIT_CONFIRM) }
-    fun openSmartDistanceSheet(trackedKm: Double, odometerKm: Double) = _form.update {
+
+    fun openSmartDistanceSheet(
+        trackedKm: Double,
+        odometerKm: Double,
+    ) = _form.update {
         it.copy(
             sheet = SubmissionSheet.SMART_DISTANCE,
             smartDistanceTrackedKm = trackedKm,
             smartDistanceOdometerKm = odometerKm,
         )
     }
+
     fun dismissSheet() = _form.update { it.copy(sheet = SubmissionSheet.NONE) }
 
     fun setAskAuthorities(enabled: Boolean) = _form.update { it.copy(askAuthorities = enabled) }
+
     fun setViolationNote(note: String) = _form.update { it.copy(violationNote = note) }
 
     /** True once the policy-violation resolution is complete enough to proceed. */
@@ -204,16 +231,26 @@ class MileageSubmissionViewModel(
      * Loads start/end addresses and vehicle info from Room for the given routeId.
      * Safe to call multiple times — subsequent calls are no-ops if already loaded.
      */
-    fun loadTrackInfo(routeId: String, vehicleKey: String, distanceKm: Double) {
+    fun loadTrackInfo(
+        routeId: String,
+        vehicleKey: String,
+        distanceKm: Double,
+    ) {
         if (_form.value.startAddress.isNotEmpty()) return
         viewModelScope.launch {
             val track = trackRepository.getByRouteId(routeId)
-            val startAddr = if (track != null)
-                OfflinePlacesRepository.addressFor(track.startLatitude, track.startLongitude)
-            else "Start Location"
-            val endAddr = if (track != null)
-                OfflinePlacesRepository.addressFor(track.endLatitude, track.endLongitude)
-            else "End Location"
+            val startAddr =
+                if (track != null) {
+                    OfflinePlacesRepository.addressFor(track.startLatitude, track.startLongitude)
+                } else {
+                    "Start Location"
+                }
+            val endAddr =
+                if (track != null) {
+                    OfflinePlacesRepository.addressFor(track.endLatitude, track.endLongitude)
+                } else {
+                    "End Location"
+                }
             // Resolve vehicle display name and rate from the vehicles list.
             val vehicles = runCatching { api.vehicles(trackMiles = true).vehicles }.getOrElse { emptyList() }
             val vehicle = vehicles.firstOrNull { it.vehicleKey == vehicleKey }
@@ -244,7 +281,7 @@ class MileageSubmissionViewModel(
         _form.update {
             it.copy(
                 simulatedEndOdo = start + distanceKm.toInt().coerceAtLeast(1),
-                isManualEndOdo = false
+                isManualEndOdo = false,
             )
         }
     }
@@ -285,7 +322,13 @@ class MileageSubmissionViewModel(
 
     private data class PendingFinalize(val routeId: String, val response: ExpenseSubmissionResponse)
 
-    fun submit(routeId: String, distanceKm: Double, vehicleKey: String, startTime: Long, endTime: Long) {
+    fun submit(
+        routeId: String,
+        distanceKm: Double,
+        vehicleKey: String,
+        startTime: Long,
+        endTime: Long,
+    ) {
         _form.update { it.copy(sheet = SubmissionSheet.NONE) }
         _state.update { SubmissionUiState.Submitting }
         viewModelScope.launch {
@@ -301,13 +344,14 @@ class MileageSubmissionViewModel(
                         distance = distanceKm,
                         startTime = startTime,
                         endTime = endTime,
-                        submissionTime = Clock.System.now().toEpochMilliseconds()
-                    )
+                        submissionTime = Clock.System.now().toEpochMilliseconds(),
+                    ),
                 )
             }.onSuccess { response ->
                 _lastResponse.value = response
-                val needsResolution = response.submissionStatus == SubmissionStatus.POLICY_VIOLATION ||
-                    response.submissionStatus == SubmissionStatus.HARD_STOP
+                val needsResolution =
+                    response.submissionStatus == SubmissionStatus.POLICY_VIOLATION ||
+                        response.submissionStatus == SubmissionStatus.HARD_STOP
                 if (needsResolution && response.violations.isNotEmpty()) {
                     // Park the response and surface the policy-violation sheet for the user
                     // to choose a resolution before the expense is finalized.
@@ -331,14 +375,17 @@ class MileageSubmissionViewModel(
         pendingFinalize = null
     }
 
-    private fun finalize(routeId: String, response: ExpenseSubmissionResponse) {
+    private fun finalize(
+        routeId: String,
+        response: ExpenseSubmissionResponse,
+    ) {
         viewModelScope.launch {
             val transId = response.transId ?: "DEMO-${Clock.System.now().toEpochMilliseconds()}"
             trackRepository.markSubmitted(routeId, transId, response.reimbursableAmount ?: 0.0)
             notificationScheduler.notify(
                 id = routeId.hashCode(),
                 title = "Trip submitted",
-                body = "₹${(response.reimbursableAmount ?: 0.0).toLong()} pending reimbursement"
+                body = "₹${(response.reimbursableAmount ?: 0.0).toLong()} pending reimbursement",
             )
             _state.update { SubmissionUiState.Success(response) }
         }

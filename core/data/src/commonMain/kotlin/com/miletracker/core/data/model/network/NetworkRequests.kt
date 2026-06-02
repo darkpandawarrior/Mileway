@@ -19,7 +19,7 @@ data class PostMileageEventRequestK(
     @SerialName("lng") val longitude: Double? = null,
     @SerialName("message") val message: String? = null,
     @SerialName("activity") val activity: String? = null,
-    @SerialName("battery") val battery: Double? = null
+    @SerialName("battery") val battery: Double? = null,
 )
 
 // ── Track miles submission ────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ data class SubmitMilesRequestK(
     @SerialName("officeId") val officeId: Long? = null,
     @SerialName("entityId") val entityId: Long? = null,
     @SerialName("mjpId") val mjpId: String? = null,
-    @SerialName("mjpItemId") val mjpItemId: Long? = null
+    @SerialName("mjpItemId") val mjpItemId: Long? = null,
 )
 
 // ── Location sync requests ────────────────────────────────────────────────────
@@ -84,14 +84,18 @@ data class LocationPayload(
     @SerialName("isMock") val isMock: Boolean = false,
     @SerialName("isAbnormal") val isAbnormal: Boolean = false,
     @SerialName("displacement") val displacement: Double = 0.0,
-    @SerialName("accuracy") val accuracy: Float = 0f
+    @SerialName("accuracy") val accuracy: Float = 0f,
 )
 
 @Serializable
-data class LocationRequest(@SerialName("data") val data: LocationPayload)
+data class LocationRequest(
+    @SerialName("data") val data: LocationPayload,
+)
 
 @Serializable
-data class BulkLocationRequest(@SerialName("data") val data: List<LocationPayload>)
+data class BulkLocationRequest(
+    @SerialName("data") val data: List<LocationPayload>,
+)
 
 @Serializable
 data class EventPayload(
@@ -100,14 +104,18 @@ data class EventPayload(
     @SerialName("time") val time: Long,
     @SerialName("audience") val audience: String? = null,
     @SerialName("lat") val lat: Double? = null,
-    @SerialName("lng") val lng: Double? = null
+    @SerialName("lng") val lng: Double? = null,
 )
 
 @Serializable
-data class EventRequest(@SerialName("data") val data: EventPayload)
+data class EventRequest(
+    @SerialName("data") val data: EventPayload,
+)
 
 @Serializable
-data class BulkEventRequest(@SerialName("data") val data: List<EventPayload>)
+data class BulkEventRequest(
+    @SerialName("data") val data: List<EventPayload>,
+)
 
 // ── V2 sync requests/responses ────────────────────────────────────────────────
 
@@ -123,14 +131,18 @@ data class LocationPayloadV2(
     @SerialName("isAbnormal") val isAbnormal: Boolean = false,
     @SerialName("displacement") val displacement: Double = 0.0,
     @SerialName("accuracy") val accuracy: Float = 0f,
-    @SerialName("provider") val provider: String? = null
+    @SerialName("provider") val provider: String? = null,
 )
 
 @Serializable
-data class LocationRequestV2(@SerialName("data") val data: LocationPayloadV2)
+data class LocationRequestV2(
+    @SerialName("data") val data: LocationPayloadV2,
+)
 
 @Serializable
-data class BulkLocationRequestV2(@SerialName("data") val data: List<LocationPayloadV2>)
+data class BulkLocationRequestV2(
+    @SerialName("data") val data: List<LocationPayloadV2>,
+)
 
 @Serializable
 data class EventPayloadV2(
@@ -141,23 +153,27 @@ data class EventPayloadV2(
     @SerialName("audience") val audience: String? = null,
     @SerialName("lat") val lat: Double? = null,
     @SerialName("lng") val lng: Double? = null,
-    @SerialName("metadata") val metadata: String? = null
+    @SerialName("metadata") val metadata: String? = null,
 )
 
 @Serializable
-data class EventRequestV2(@SerialName("data") val data: EventPayloadV2)
+data class EventRequestV2(
+    @SerialName("data") val data: EventPayloadV2,
+)
 
 @Serializable
-data class BulkEventRequestV2(@SerialName("data") val data: List<EventPayloadV2>)
+data class BulkEventRequestV2(
+    @SerialName("data") val data: List<EventPayloadV2>,
+)
 
 @Serializable
 data class LocationResponseV2(
-    @SerialName("data") val data: List<LocationPayloadV2> = emptyList()
+    @SerialName("data") val data: List<LocationPayloadV2> = emptyList(),
 )
 
 @Serializable
 data class EventResponseV2(
-    @SerialName("data") val data: List<EventPayloadV2> = emptyList()
+    @SerialName("data") val data: List<EventPayloadV2> = emptyList(),
 )
 
 // ── Check-in models ───────────────────────────────────────────────────────────
@@ -166,30 +182,30 @@ data class EventResponseV2(
 data class CheckInRequestV2(
     @SerialName("lat") val lat: Double,
     @SerialName("lng") val lng: Double,
-    @SerialName("typeId") val typeId: Long? = null
+    @SerialName("typeId") val typeId: Long? = null,
 )
 
 @Serializable
 data class CheckInDetailsResponseV2(
     @SerialName("id") val id: Long = 0,
     @SerialName("name") val name: String = "",
-    @SerialName("radius") val radius: Double = 0.0
+    @SerialName("radius") val radius: Double = 0.0,
 )
 
 @Serializable
 data class SubmittedCheckInResponseV2(
-    @SerialName("checkIns") val checkIns: List<CheckInItem> = emptyList()
+    @SerialName("checkIns") val checkIns: List<CheckInItem> = emptyList(),
 )
 
 @Serializable
 data class CheckInItem(
     @SerialName("id") val id: Long = 0,
-    @SerialName("time") val time: Long = 0
+    @SerialName("time") val time: Long = 0,
 )
 
 @Serializable
 data class AllTypesResponseV2(
-    @SerialName("types") val types: List<CheckInDetailsResponseV2> = emptyList()
+    @SerialName("types") val types: List<CheckInDetailsResponseV2> = emptyList(),
 )
 
 // ── Map / address ─────────────────────────────────────────────────────────────
@@ -198,7 +214,7 @@ data class AllTypesResponseV2(
 data class MapResponse(
     @SerialName("address") val address: String? = null,
     @SerialName("lat") val lat: Double? = null,
-    @SerialName("lng") val lng: Double? = null
+    @SerialName("lng") val lng: Double? = null,
 )
 
 // ── Expense tagging ───────────────────────────────────────────────────────────
@@ -207,18 +223,20 @@ data class MapResponse(
 data class TaggedExpenseItem(
     @SerialName("id") val id: Long = 0,
     @SerialName("title") val title: String = "",
-    @SerialName("amount") val amount: Double = 0.0
+    @SerialName("amount") val amount: Double = 0.0,
 )
 
 @Serializable
 data class AllTaggedExpenseResponse(
-    @SerialName("data") val data: List<TaggedExpenseItem> = emptyList()
+    @SerialName("data") val data: List<TaggedExpenseItem> = emptyList(),
 )
 
 // ── Success wrappers ──────────────────────────────────────────────────────────
 
 @Serializable
-data class SuccessResponseV2(@SerialName("status") val status: String = "SUCCESS")
+data class SuccessResponseV2(
+    @SerialName("status") val status: String = "SUCCESS",
+)
 
 @Serializable
 data class EmptyRequest(val _empty: String? = null)
@@ -234,17 +252,17 @@ data class LogMilesSubmitRequestV2(
     @SerialName("destination") val destination: CoordsV2? = null,
     @SerialName("files") val files: List<String>? = emptyList(),
     @SerialName("forms") val forms: Map<Long, String> = emptyMap(),
-    @SerialName("roundTrip") val roundTrip: Boolean = false
+    @SerialName("roundTrip") val roundTrip: Boolean = false,
 )
 
 @Serializable
 data class LogMilesRequestV2(
     @SerialName("vehicleType") val vehicleType: String? = null,
-    @SerialName("distance") val distance: Double = 0.0
+    @SerialName("distance") val distance: Double = 0.0,
 )
 
 @Serializable
 data class LogMilesResponseV2(
     @SerialName("limit") val limit: Double? = null,
-    @SerialName("limitPeriod") val limitPeriod: String? = null
+    @SerialName("limitPeriod") val limitPeriod: String? = null,
 )

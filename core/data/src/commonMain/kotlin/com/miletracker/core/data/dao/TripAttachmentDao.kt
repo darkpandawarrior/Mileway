@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TripAttachmentDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(attachment: TripAttachmentEntity): Long
 
@@ -21,10 +20,16 @@ interface TripAttachmentDao {
     suspend fun getForTrack(trackToken: String): List<TripAttachmentEntity>
 
     @Query("SELECT * FROM trip_attachments WHERE track_token = :trackToken AND type = :type ORDER BY created_at DESC LIMIT 1")
-    suspend fun getLatestOfType(trackToken: String, type: AttachmentType): TripAttachmentEntity?
+    suspend fun getLatestOfType(
+        trackToken: String,
+        type: AttachmentType,
+    ): TripAttachmentEntity?
 
     @Query("SELECT * FROM trip_attachments WHERE track_token = :trackToken AND type = :type ORDER BY created_at ASC")
-    fun observeByType(trackToken: String, type: AttachmentType): Flow<List<TripAttachmentEntity>>
+    fun observeByType(
+        trackToken: String,
+        type: AttachmentType,
+    ): Flow<List<TripAttachmentEntity>>
 
     @Query("DELETE FROM trip_attachments WHERE id = :id")
     suspend fun delete(id: Long)

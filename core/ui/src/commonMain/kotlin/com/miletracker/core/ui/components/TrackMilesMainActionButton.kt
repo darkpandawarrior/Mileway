@@ -48,13 +48,13 @@ private val IconSize = 32.dp
 private val GlowElevation = 12.dp
 
 /** Container/content colors cross-fade over 300ms when the button switches state. */
-private const val ColorAnimMillis = 300
+private const val COLOR_ANIM_MILLIS = 300
 
 /** Scale target while pressed (and, in the stateful overload, while a trip is active). */
-private const val PressedScale = 0.95f
+private const val PRESSED_SCALE = 0.95f
 
 /** Alpha applied to the container color for the ambient/spot glow shadow. */
-private const val GlowAlpha = 0.3f
+private const val GLOW_ALPHA = 0.3f
 
 /**
  * Hero circular action button for the trip tracking screen.
@@ -81,85 +81,89 @@ fun TrackMilesMainActionButton(
     isCompact: Boolean = false,
     enabled: Boolean = true,
     containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
 ) {
     val haptic = LocalHapticFeedback.current
 
     val animatedContainerColor by animateColorAsState(
         targetValue = containerColor,
-        animationSpec = tween(ColorAnimMillis),
-        label = "buttonColor"
+        animationSpec = tween(COLOR_ANIM_MILLIS),
+        label = "buttonColor",
     )
     val animatedContentColor by animateColorAsState(
         targetValue = contentColor,
-        animationSpec = tween(ColorAnimMillis),
-        label = "buttonContentColor"
+        animationSpec = tween(COLOR_ANIM_MILLIS),
+        label = "buttonContentColor",
     )
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) PressedScale else 1f,
+        targetValue = if (isPressed && enabled) PRESSED_SCALE else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "buttonScale"
+        label = "buttonScale",
     )
 
     Box(
-        modifier = modifier
-            .size(if (isCompact) HaloSizeCompact else HaloSize)
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            },
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .size(if (isCompact) HaloSizeCompact else HaloSize)
+                .graphicsLayer {
+                    scaleX = pressScale
+                    scaleY = pressScale
+                },
+        contentAlignment = Alignment.Center,
     ) {
         // Outer glow: transparent circle casting a tinted shadow around the disc.
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .shadow(
-                    elevation = GlowElevation,
-                    shape = CircleShape,
-                    ambientColor = animatedContainerColor.copy(alpha = GlowAlpha),
-                    spotColor = animatedContainerColor.copy(alpha = GlowAlpha)
-                ),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .shadow(
+                        elevation = GlowElevation,
+                        shape = CircleShape,
+                        ambientColor = animatedContainerColor.copy(alpha = GLOW_ALPHA),
+                        spotColor = animatedContainerColor.copy(alpha = GLOW_ALPHA),
+                    ),
             shape = CircleShape,
-            color = Color.Transparent
+            color = Color.Transparent,
         ) {}
 
         // Main button disc
         Surface(
-            modifier = Modifier
-                .size(if (isCompact) ButtonSizeCompact else ButtonSize)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = LocalIndication.current,
-                    enabled = enabled
-                ) {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onClick()
-                },
+            modifier =
+                Modifier
+                    .size(if (isCompact) ButtonSizeCompact else ButtonSize)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current,
+                        enabled = enabled,
+                    ) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onClick()
+                    },
             shape = CircleShape,
-            color = if (enabled) animatedContainerColor else MaterialTheme.colorScheme.surfaceVariant
+            color = if (enabled) animatedContainerColor else MaterialTheme.colorScheme.surfaceVariant,
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = text,
                     modifier = Modifier.size(IconSize),
-                    tint = if (enabled) animatedContentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (enabled) animatedContentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.height(DesignTokens.Spacing.xs))
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = if (enabled) animatedContentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    style =
+                        MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                        ),
+                    color = if (enabled) animatedContentColor else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -186,41 +190,45 @@ fun TrackMilesMainActionButton(
     modifier: Modifier = Modifier,
     isCompact: Boolean = false,
     isStartEnabled: Boolean = true,
-    isStopEnabled: Boolean = true
+    isStopEnabled: Boolean = true,
 ) {
     // A paused journey is still in progress, so any active trip shows STOP
     // regardless of isPaused.
-    val isStopState = when {
-        isTracking && isPaused -> true
-        isTracking && !isPaused -> true
-        else -> false
-    }
+    val isStopState =
+        when {
+            isTracking && isPaused -> true
+            isTracking && !isPaused -> true
+            else -> false
+        }
 
     val trackingScale by animateFloatAsState(
-        targetValue = if (isTracking) PressedScale else 1f,
+        targetValue = if (isTracking) PRESSED_SCALE else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "trackingScale"
+        label = "trackingScale",
     )
 
     TrackMilesMainActionButton(
         text = if (isStopState) "STOP" else "START",
         icon = if (isStopState) Icons.Filled.Stop else Icons.Filled.PlayArrow,
         onClick = onClick,
-        modifier = modifier.graphicsLayer {
-            scaleX = trackingScale
-            scaleY = trackingScale
-        },
+        modifier =
+            modifier.graphicsLayer {
+                scaleX = trackingScale
+                scaleY = trackingScale
+            },
         isCompact = isCompact,
         enabled = if (isStopState) isStopEnabled else isStartEnabled,
-        containerColor = if (isStopState) {
-            MaterialTheme.colorScheme.error
-        } else {
-            MaterialTheme.colorScheme.primary
-        },
-        contentColor = if (isStopState) {
-            MaterialTheme.colorScheme.onError
-        } else {
-            MaterialTheme.colorScheme.onPrimary
-        }
+        containerColor =
+            if (isStopState) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
+        contentColor =
+            if (isStopState) {
+                MaterialTheme.colorScheme.onError
+            } else {
+                MaterialTheme.colorScheme.onPrimary
+            },
     )
 }

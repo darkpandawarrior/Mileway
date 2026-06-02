@@ -33,7 +33,6 @@ import com.miletracker.core.data.model.network.SuccessResponseV2
 import com.miletracker.core.data.model.network.TrackMileageStatusResponse
 
 interface MileTrackerNetworkApi {
-
     suspend fun vehicles(trackMiles: Boolean): PolicyApprovedVehiclesResponse
 
     suspend fun pricing(): ApprovedVehiclePricingResponse
@@ -72,11 +71,22 @@ interface MileTrackerNetworkApi {
 
     suspend fun postBulkEventsV2(request: BulkEventRequestV2)
 
-    suspend fun getLocationsV2(token: String, startTime: Long, endTime: Long): LocationResponseV2
+    suspend fun getLocationsV2(
+        token: String,
+        startTime: Long,
+        endTime: Long,
+    ): LocationResponseV2
 
-    suspend fun getEventsV2(token: String, startTime: Long, endTime: Long): EventResponseV2
+    suspend fun getEventsV2(
+        token: String,
+        startTime: Long,
+        endTime: Long,
+    ): EventResponseV2
 
-    suspend fun fetchMap(lat: String, lng: String): MapResponse
+    suspend fun fetchMap(
+        lat: String,
+        lng: String,
+    ): MapResponse
 
     suspend fun geoTypeById(typeId: Long): CheckInDetailsResponseV2
 
@@ -86,11 +96,20 @@ interface MileTrackerNetworkApi {
 
     suspend fun updateCenterLocation(request: CheckInRequestV2): SuccessResponseV2
 
-    suspend fun resetMilesLocation(contactId: Long, request: EmptyRequest = EmptyRequest()): SuccessResponseV2
+    suspend fun resetMilesLocation(
+        contactId: Long,
+        request: EmptyRequest = EmptyRequest(),
+    ): SuccessResponseV2
 
     suspend fun submitCheckIn(request: CheckInRequestV2): SuccessResponseV2
 
-    suspend fun allTaggedExpenses(start: Long, end: Long): AllTaggedExpenseResponse
+    suspend fun allTaggedExpenses(
+        start: Long,
+        end: Long,
+    ): AllTaggedExpenseResponse
 
-    suspend fun pendingTaggedExpenses(start: Long, end: Long): AllTaggedExpenseResponse
+    suspend fun pendingTaggedExpenses(
+        start: Long,
+        end: Long,
+    ): AllTaggedExpenseResponse
 }
