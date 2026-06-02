@@ -4,7 +4,6 @@ package com.miletracker.feature.tracking.debug
  * Utility class for debug menu operations that need to be shared between implementations
  */
 object DebugMenuUtils {
-
     /**
      * Determine the initial origin override based on debug settings
      * Returns:

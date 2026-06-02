@@ -20,16 +20,15 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.components.GridProfileTile
 import com.miletracker.core.ui.components.ProfileGridItem
 import com.miletracker.core.ui.components.ProfileItemStatus
@@ -83,62 +82,64 @@ fun PreferencesScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         val prefs = state.preferences
-        val items = listOf(
-            ProfileGridItem(
-                id = "push_notifications",
-                title = "Push Notifications",
-                subtitle = if (prefs.pushNotifications) "Enabled" else "Disabled",
-                icon = Icons.Default.Notifications,
-                status = if (prefs.pushNotifications) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
-                action = viewModel::intentTogglePushNotifications,
-            ),
-            ProfileGridItem(
-                id = "usage_analytics",
-                title = "Usage Analytics",
-                subtitle = if (prefs.usageAnalytics) "Enabled" else "Disabled",
-                icon = Icons.Default.BarChart,
-                status = if (prefs.usageAnalytics) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
-                action = viewModel::intentToggleUsageAnalytics,
-            ),
-            ProfileGridItem(
-                id = "notification_center",
-                title = "Notification Center",
-                subtitle = "WhatsApp, Slack",
-                icon = Icons.Default.NotificationsActive,
-                status = ProfileItemStatus.COMPLETE,
-                action = { viewModel.intentRaisePreferenceMessage("Notification Center is a demo placeholder.") },
-            ),
-            ProfileGridItem(
-                id = "connected_accounts",
-                title = "Connected Accounts",
-                subtitle = "Cabs, Passport",
-                icon = Icons.Default.Link,
-                status = ProfileItemStatus.COMPLETE,
-                action = { viewModel.intentRaisePreferenceMessage("Connected Accounts is a demo placeholder.") },
-            ),
-            ProfileGridItem(
-                id = "permissions",
-                title = "Permissions",
-                subtitle = "System settings",
-                icon = Icons.Default.Security,
-                status = ProfileItemStatus.COMPLETE,
-                action = { viewModel.intentRaisePreferenceMessage("Opens system settings in the full app.") },
-            ),
-            ProfileGridItem(
-                id = "storage",
-                title = "Storage",
-                subtitle = "Manage data",
-                icon = Icons.Default.Storage,
-                status = ProfileItemStatus.COMPLETE,
-                action = { viewModel.intentRaisePreferenceMessage("Manage local data in the full app.") },
-            ),
-        )
+        val items =
+            listOf(
+                ProfileGridItem(
+                    id = "push_notifications",
+                    title = "Push Notifications",
+                    subtitle = if (prefs.pushNotifications) "Enabled" else "Disabled",
+                    icon = Icons.Default.Notifications,
+                    status = if (prefs.pushNotifications) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
+                    action = viewModel::intentTogglePushNotifications,
+                ),
+                ProfileGridItem(
+                    id = "usage_analytics",
+                    title = "Usage Analytics",
+                    subtitle = if (prefs.usageAnalytics) "Enabled" else "Disabled",
+                    icon = Icons.Default.BarChart,
+                    status = if (prefs.usageAnalytics) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
+                    action = viewModel::intentToggleUsageAnalytics,
+                ),
+                ProfileGridItem(
+                    id = "notification_center",
+                    title = "Notification Center",
+                    subtitle = "WhatsApp, Slack",
+                    icon = Icons.Default.NotificationsActive,
+                    status = ProfileItemStatus.COMPLETE,
+                    action = { viewModel.intentRaisePreferenceMessage("Notification Center is a demo placeholder.") },
+                ),
+                ProfileGridItem(
+                    id = "connected_accounts",
+                    title = "Connected Accounts",
+                    subtitle = "Cabs, Passport",
+                    icon = Icons.Default.Link,
+                    status = ProfileItemStatus.COMPLETE,
+                    action = { viewModel.intentRaisePreferenceMessage("Connected Accounts is a demo placeholder.") },
+                ),
+                ProfileGridItem(
+                    id = "permissions",
+                    title = "Permissions",
+                    subtitle = "System settings",
+                    icon = Icons.Default.Security,
+                    status = ProfileItemStatus.COMPLETE,
+                    action = { viewModel.intentRaisePreferenceMessage("Opens system settings in the full app.") },
+                ),
+                ProfileGridItem(
+                    id = "storage",
+                    title = "Storage",
+                    subtitle = "Manage data",
+                    icon = Icons.Default.Storage,
+                    status = ProfileItemStatus.COMPLETE,
+                    action = { viewModel.intentRaisePreferenceMessage("Manage local data in the full app.") },
+                ),
+            )
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentPadding = PaddingValues(DesignTokens.Spacing.l),
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),

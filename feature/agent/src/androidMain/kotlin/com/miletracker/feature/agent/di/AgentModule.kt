@@ -5,7 +5,8 @@ import com.miletracker.feature.agent.viewmodel.AgentViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val agentModule = module {
-    single { AgentRepository() }
-    viewModelOf(::AgentViewModel)
-}
+val agentModule =
+    module {
+        single { AgentRepository() }
+        viewModelOf(::AgentViewModel)
+    }

@@ -10,5 +10,5 @@ data class MediaLibraryEntry(
     val mimeType: String,
     val label: String,
     val source: String,
-    val savedAtMs: Long
+    val savedAtMs: Long,
 )

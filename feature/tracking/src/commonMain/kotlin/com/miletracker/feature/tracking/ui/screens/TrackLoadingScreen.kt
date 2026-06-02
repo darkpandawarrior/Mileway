@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.ui.screens
 
 import androidx.compose.animation.AnimatedContent
@@ -45,11 +47,12 @@ import kotlinx.coroutines.delay
  * Default sub-status messages cycled beneath the headline while work is in flight.
  * Matches the production loader's "Preparing… → Syncing… → Finalizing…" cadence.
  */
-val DefaultLoadingSubStatuses: List<String> = listOf(
-    "Preparing…",
-    "Syncing…",
-    "Finalizing…"
-)
+val DefaultLoadingSubStatuses: List<String> =
+    listOf(
+        "Preparing…",
+        "Syncing…",
+        "Finalizing…",
+    )
 
 /** How long each sub-status stays on screen before the next is shown. */
 private const val SubStatusDwellMillis = 1_600L
@@ -74,7 +77,7 @@ private const val SubStatusDwellMillis = 1_600L
 fun TrackLoadingScreen(
     modifier: Modifier = Modifier,
     message: String = "Working on your request…",
-    subStatuses: List<String> = DefaultLoadingSubStatuses
+    subStatuses: List<String> = DefaultLoadingSubStatuses,
 ) {
     // Advance the sub-status index on a fixed dwell; pauses naturally for a
     // single-entry list (the loop body is a no-op cycle).
@@ -90,16 +93,16 @@ fun TrackLoadingScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 FloatingPaperPlane(
                     modifier = Modifier.size(160.dp),
-                    planeColor = MaterialTheme.colorScheme.primary
+                    planeColor = MaterialTheme.colorScheme.primary,
                 )
 
                 Spacer(Modifier.height(48.dp))
@@ -110,7 +113,7 @@ fun TrackLoadingScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 32.dp)
+                    modifier = Modifier.padding(horizontal = 32.dp),
                 )
 
                 Spacer(Modifier.height(20.dp))
@@ -121,14 +124,14 @@ fun TrackLoadingScreen(
                     transitionSpec = {
                         (fadeIn(tween(400)) togetherWith fadeOut(tween(400)))
                     },
-                    label = "loadingSubStatus"
+                    label = "loadingSubStatus",
                 ) { sub ->
                     Text(
                         text = sub,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
+                        modifier = Modifier.padding(horizontal = 32.dp),
                     )
                 }
             }
@@ -143,7 +146,7 @@ fun TrackLoadingScreen(
 @Composable
 private fun FloatingPaperPlane(
     modifier: Modifier = Modifier,
-    planeColor: Color
+    planeColor: Color,
 ) {
     val transition = rememberInfiniteTransition(label = "paperPlane")
 
@@ -152,32 +155,35 @@ private fun FloatingPaperPlane(
     val bob by transition.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1_800, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "bob"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 1_800, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "bob",
     )
 
     // Subtle forward drift so the plane reads as "in flight" rather than static.
     val drift by transition.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2_600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "drift"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 2_600, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "drift",
     )
 
     val foldHighlight = planeColor.copy(alpha = 0.55f)
     val cloudColor = Color(0xFF9AA0A6)
 
     Canvas(
-        modifier = modifier.graphicsLayer {
-            translationY = bob * 6f
-            translationX = drift * 4f
-        }
+        modifier =
+            modifier.graphicsLayer {
+                translationY = bob * 6f
+                translationX = drift * 4f
+            },
     ) {
         drawCloud(cloudColor)
         drawPaperPlane(planeColor, foldHighlight)
@@ -189,41 +195,47 @@ private fun FloatingPaperPlane(
  * lower-left of the canvas. Two triangular wings plus a darker fold give it the
  * familiar origami look from the reference.
  */
-private fun DrawScope.drawPaperPlane(planeColor: Color, foldHighlight: Color) {
+private fun DrawScope.drawPaperPlane(
+    planeColor: Color,
+    foldHighlight: Color,
+) {
     val w = size.width
     val h = size.height
 
     // Anchor points expressed as fractions of the canvas so the plane scales.
-    val nose = Offset(w * 0.74f, h * 0.42f)        // tip, up and to the right
-    val tailTop = Offset(w * 0.30f, h * 0.40f)     // upper rear corner
-    val tailBottom = Offset(w * 0.34f, h * 0.66f)  // lower rear corner
-    val belly = Offset(w * 0.46f, h * 0.56f)       // centre crease point
+    val nose = Offset(w * 0.74f, h * 0.42f) // tip, up and to the right
+    val tailTop = Offset(w * 0.30f, h * 0.40f) // upper rear corner
+    val tailBottom = Offset(w * 0.34f, h * 0.66f) // lower rear corner
+    val belly = Offset(w * 0.46f, h * 0.56f) // centre crease point
 
     // Upper wing (lighter underside catches the light).
-    val upperWing = Path().apply {
-        moveTo(nose.x, nose.y)
-        lineTo(tailTop.x, tailTop.y)
-        lineTo(belly.x, belly.y)
-        close()
-    }
+    val upperWing =
+        Path().apply {
+            moveTo(nose.x, nose.y)
+            lineTo(tailTop.x, tailTop.y)
+            lineTo(belly.x, belly.y)
+            close()
+        }
     drawPath(upperWing, color = foldHighlight, style = Fill)
 
     // Lower wing (the main body colour).
-    val lowerWing = Path().apply {
-        moveTo(nose.x, nose.y)
-        lineTo(belly.x, belly.y)
-        lineTo(tailBottom.x, tailBottom.y)
-        close()
-    }
+    val lowerWing =
+        Path().apply {
+            moveTo(nose.x, nose.y)
+            lineTo(belly.x, belly.y)
+            lineTo(tailBottom.x, tailBottom.y)
+            close()
+        }
     drawPath(lowerWing, color = planeColor, style = Fill)
 
     // Central fold spine for a touch of depth.
-    val spine = Path().apply {
-        moveTo(nose.x, nose.y)
-        lineTo(belly.x, belly.y)
-        lineTo((tailTop.x + tailBottom.x) / 2f, (tailTop.y + tailBottom.y) / 2f)
-        close()
-    }
+    val spine =
+        Path().apply {
+            moveTo(nose.x, nose.y)
+            lineTo(belly.x, belly.y)
+            lineTo((tailTop.x + tailBottom.x) / 2f, (tailTop.y + tailBottom.y) / 2f)
+            close()
+        }
     drawPath(spine, color = planeColor.copy(alpha = 0.85f), style = Fill)
 }
 
@@ -240,6 +252,6 @@ private fun DrawScope.drawCloud(cloudColor: Color) {
     drawRect(
         color = cloudColor,
         topLeft = Offset(w * 0.78f, h * 0.30f),
-        size = androidx.compose.ui.geometry.Size(w * 0.16f, r * 0.9f)
+        size = androidx.compose.ui.geometry.Size(w * 0.16f, r * 0.9f),
     )
 }

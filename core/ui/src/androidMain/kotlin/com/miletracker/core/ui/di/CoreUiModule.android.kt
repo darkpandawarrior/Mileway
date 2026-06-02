@@ -8,13 +8,14 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-actual val coreUiPlatformModule: Module = module {
-    single<DataStore<Preferences>> {
-        // Resolve the context eagerly: produceFile runs lazily on first read, which may be
-        // after the Koin scope that created this single has closed (e.g. in tests).
-        val context = androidContext().applicationContext
-        PreferenceDataStoreFactory.create(
-            produceFile = { context.preferencesDataStoreFile("theme_prefs") }
-        )
+actual val coreUiPlatformModule: Module =
+    module {
+        single<DataStore<Preferences>> {
+            // Resolve the context eagerly: produceFile runs lazily on first read, which may be
+            // after the Koin scope that created this single has closed (e.g. in tests).
+            val context = androidContext().applicationContext
+            PreferenceDataStoreFactory.create(
+                produceFile = { context.preferencesDataStoreFile("theme_prefs") },
+            )
+        }
     }
-}

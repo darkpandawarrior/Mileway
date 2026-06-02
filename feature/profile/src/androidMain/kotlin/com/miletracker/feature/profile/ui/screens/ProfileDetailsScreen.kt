@@ -97,24 +97,26 @@ fun ProfileDetailsScreen(
             )
         },
     ) { innerPadding ->
-        val missingItems = completion.categories
-            .filter { it.done < it.total }
-            .map {
-                MissingItemDisplay(
-                    id = it.name,
-                    title = it.name,
-                    isRequired = it.name in REQUIRED_CATEGORIES,
-                )
-            }
+        val missingItems =
+            completion.categories
+                .filter { it.done < it.total }
+                .map {
+                    MissingItemDisplay(
+                        id = it.name,
+                        title = it.name,
+                        isRequired = it.name in REQUIRED_CATEGORIES,
+                    )
+                }
         val categoryDisplays = completion.categories.map { it.toDisplay() }
         val detailItems = buildDetailItems(profile)
         val grouped = detailItems.groupBy { it.category }
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             contentPadding = PaddingValues(DesignTokens.Spacing.l),
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
@@ -169,13 +171,14 @@ fun ProfileDetailsScreen(
 /** Required categories drive the "X required items remaining" copy in the completion banner. */
 private val REQUIRED_CATEGORIES = setOf("Personal Info", "Organization", "Policy & Compliance")
 
-private fun CompletionCategory.toDisplay(): CategoryCompletionDisplay = CategoryCompletionDisplay(
-    categoryLabel = name,
-    completedCount = done,
-    totalCount = total,
-    percentage = if (total > 0) done * 100 / total else 0,
-    isRequiredCategory = name in REQUIRED_CATEGORIES,
-)
+private fun CompletionCategory.toDisplay(): CategoryCompletionDisplay =
+    CategoryCompletionDisplay(
+        categoryLabel = name,
+        completedCount = done,
+        totalCount = total,
+        percentage = if (total > 0) done * 100 / total else 0,
+        isRequiredCategory = name in REQUIRED_CATEGORIES,
+    )
 
 @Composable
 private fun ProfileIdentityBlock(profile: EmployeeProfile) {
@@ -185,10 +188,11 @@ private fun ProfileIdentityBlock(profile: EmployeeProfile) {
         verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
+            modifier =
+                Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -227,7 +231,10 @@ private fun DetailChip(text: String) {
 }
 
 @Composable
-private fun ContactRow(icon: ImageVector, value: String) {
+private fun ContactRow(
+    icon: ImageVector,
+    value: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -274,19 +281,21 @@ private fun buildDetailItems(profile: EmployeeProfile): List<DetailEntry> {
         title: String,
         value: String,
         tileIcon: ImageVector,
-    ): DetailEntry = DetailEntry(
-        category = category,
-        leadingIcon = sectionIcon,
-        item = ProfileGridItem(
-            id = id,
-            title = title,
-            subtitle = value.ifBlank { "Not set" },
-            icon = tileIcon,
+    ): DetailEntry =
+        DetailEntry(
             category = category,
-            status = if (value.isNotBlank()) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
-            action = {},
-        ),
-    )
+            leadingIcon = sectionIcon,
+            item =
+                ProfileGridItem(
+                    id = id,
+                    title = title,
+                    subtitle = value.ifBlank { "Not set" },
+                    icon = tileIcon,
+                    category = category,
+                    status = if (value.isNotBlank()) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
+                    action = {},
+                ),
+        )
 
     return listOf(
         entry("Personal Info", Icons.Default.Person, "d_name", "Full Name", profile.name, Icons.Default.Person),

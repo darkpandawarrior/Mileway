@@ -47,18 +47,19 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
             },
             onNavigateToPreview = { navController.navigate(MediaRoutes.PREVIEW) },
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToLibrary = { navController.navigate(MediaRoutes.CLOUD_LIBRARY) }
+            onNavigateToLibrary = { navController.navigate(MediaRoutes.CLOUD_LIBRARY) },
         )
     }
 
     composable(
         route = "${MediaRoutes.CAMERA}?${MediaRoutes.CAMERA_ARG_ODOMETER}={${MediaRoutes.CAMERA_ARG_ODOMETER}}",
-        arguments = listOf(
-            navArgument(MediaRoutes.CAMERA_ARG_ODOMETER) {
-                type = NavType.BoolType
-                defaultValue = false
-            }
-        )
+        arguments =
+            listOf(
+                navArgument(MediaRoutes.CAMERA_ARG_ODOMETER) {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
+            ),
     ) { entry ->
         val parentEntry = remember(entry) { navController.getBackStackEntry(MediaRoutes.SELECTION) }
         val vm: MediaViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
@@ -71,7 +72,7 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
             },
             isOdometerMode = odometer,
             flashMode = state.flashMode,
-            onCycleFlash = vm::cycleFlashMode
+            onCycleFlash = vm::cycleFlashMode,
         )
     }
 
@@ -83,7 +84,7 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
             onSelectUri = { uri ->
                 selVm.onPickedFromGallery(uri)
                 navController.popBackStack(MediaRoutes.SELECTION, inclusive = false)
-            }
+            },
         )
     }
 
@@ -97,7 +98,7 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
             onAddMore = {
                 // Return to the camera (plain mode) to add another photo to the batch.
                 navController.navigate(MediaRoutes.camera(false))
-            }
+            },
         )
     }
 }

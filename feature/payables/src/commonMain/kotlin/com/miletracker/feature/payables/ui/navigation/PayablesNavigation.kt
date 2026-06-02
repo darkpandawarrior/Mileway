@@ -5,12 +5,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.savedstate.read
 import com.miletracker.feature.payables.ui.screens.CreatePurchaseRequestScreen
 import com.miletracker.feature.payables.ui.screens.PayablesHomeScreen
 import com.miletracker.feature.payables.ui.screens.PurchaseRequestDetailsScreen
 import com.miletracker.feature.payables.ui.screens.PurchaseRequestSuccessScreen
 import org.koin.compose.viewmodel.koinViewModel
-import androidx.savedstate.read
 
 object PayablesRoutes {
     const val HOME = "payables_home"
@@ -22,18 +22,18 @@ object PayablesRoutes {
 }
 
 fun NavGraphBuilder.payablesGraph(navController: NavHostController) {
-
     composable(PayablesRoutes.HOME) {
         PayablesHomeScreen(
             onNewRequest = { navController.navigate(PayablesRoutes.CREATE) },
-            onOpenPo = { id -> navController.navigate(PayablesRoutes.detailRoute(id)) }
+            onOpenPo = { id -> navController.navigate(PayablesRoutes.detailRoute(id)) },
         )
     }
 
     composable(PayablesRoutes.CREATE) { entry ->
-        val viewModel = koinViewModel<com.miletracker.feature.payables.viewmodel.PayablesViewModel>(
-            viewModelStoreOwner = entry
-        )
+        val viewModel =
+            koinViewModel<com.miletracker.feature.payables.viewmodel.PayablesViewModel>(
+                viewModelStoreOwner = entry,
+            )
         CreatePurchaseRequestScreen(
             onBack = { navController.popBackStack() },
             onSubmitted = {
@@ -41,22 +41,24 @@ fun NavGraphBuilder.payablesGraph(navController: NavHostController) {
                     popUpTo(PayablesRoutes.CREATE) { inclusive = true }
                 }
             },
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 
     composable(PayablesRoutes.SUCCESS) {
-        val createEntry = runCatching {
-            navController.getBackStackEntry(PayablesRoutes.CREATE)
-        }.getOrNull()
+        val createEntry =
+            runCatching {
+                navController.getBackStackEntry(PayablesRoutes.CREATE)
+            }.getOrNull()
 
-        val viewModel = if (createEntry != null) {
-            koinViewModel<com.miletracker.feature.payables.viewmodel.PayablesViewModel>(
-                viewModelStoreOwner = createEntry
-            )
-        } else {
-            koinViewModel()
-        }
+        val viewModel =
+            if (createEntry != null) {
+                koinViewModel<com.miletracker.feature.payables.viewmodel.PayablesViewModel>(
+                    viewModelStoreOwner = createEntry,
+                )
+            } else {
+                koinViewModel()
+            }
 
         PurchaseRequestSuccessScreen(
             onCreateAnother = {
@@ -69,18 +71,18 @@ fun NavGraphBuilder.payablesGraph(navController: NavHostController) {
                     popUpTo(PayablesRoutes.HOME) { inclusive = true }
                 }
             },
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 
     composable(
         route = PayablesRoutes.DETAIL,
-        arguments = listOf(navArgument("id") { type = NavType.StringType })
+        arguments = listOf(navArgument("id") { type = NavType.StringType }),
     ) { backStackEntry ->
         val id = backStackEntry.arguments?.read { getStringOrNull("id") } ?: return@composable
         PurchaseRequestDetailsScreen(
             poId = id,
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
         )
     }
 }

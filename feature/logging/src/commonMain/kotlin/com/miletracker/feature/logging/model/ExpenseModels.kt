@@ -17,7 +17,7 @@ enum class ExpenseCategory(val label: String, val icon: ImageVector) {
     OFFICE_SUPPLIES("Office Supplies", Icons.Filled.Receipt),
     COMMUNICATION("Communication", Icons.Filled.PhoneAndroid),
     MEDICAL("Medical", Icons.Filled.LocalHospital),
-    OTHER("Other", Icons.Filled.Category)
+    OTHER("Other", Icons.Filled.Category),
 }
 
 enum class ExpenseStatus { DRAFT, PENDING, APPROVED, REJECTED }
@@ -29,7 +29,7 @@ data class ExpenseRecord(
     val amountRupees: Double,
     val status: ExpenseStatus,
     val dateMs: Long,
-    val note: String = ""
+    val note: String = "",
 ) {
     val requiresApproval: Boolean get() = amountRupees > 5000.0
 }

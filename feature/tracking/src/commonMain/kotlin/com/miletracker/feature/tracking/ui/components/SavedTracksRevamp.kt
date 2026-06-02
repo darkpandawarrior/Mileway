@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.ui.components
 
 import androidx.compose.animation.animateColorAsState
@@ -21,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
@@ -51,35 +52,23 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.theme.DesignTokens
 
-/**
- * Stateless building blocks for the revamped Saved Tracks screen.
- *
- * Every composable here follows unidirectional data flow: data arrives through parameters and
- * every interaction is surfaced through a callback. None of them own a ViewModel or read global
- * state, so each piece is independently testable and the integrating screen wires them together.
- *
- * Layout, spacing and copy mirror the production "Saved Tracks" surface (segmented Journeys /
- * Submissions toggle, rounded search field, chip filters, submission cards and a selection mode);
- * colors resolve from [MaterialTheme] and [DesignTokens] so the components inherit the app theme.
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. Journeys / Submissions segmented toggle
-// ─────────────────────────────────────────────────────────────────────────────
+// Stateless building blocks for the revamped Saved Tracks screen.
+// UDF: data arrives through parameters, interactions surface through callbacks.
+// None own a ViewModel; each piece is independently testable.
 
 /** One pill of the [SavedTracksSegmentedToggle]. */
 enum class SavedTracksSegment { JOURNEYS, SUBMISSIONS }
@@ -99,25 +88,25 @@ fun SavedTracksSegmentedToggle(
     journeyCount: Int,
     submissionCount: Int,
     onSelect: (SavedTracksSegment) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         SegmentPill(
             label = "Journeys ($journeyCount)",
             icon = Icons.Default.Map,
             selected = selected == SavedTracksSegment.JOURNEYS,
             onClick = { onSelect(SavedTracksSegment.JOURNEYS) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         SegmentPill(
             label = "Submissions ($submissionCount)",
             icon = Icons.Default.Receipt,
             selected = selected == SavedTracksSegment.SUBMISSIONS,
             onClick = { onSelect(SavedTracksSegment.SUBMISSIONS) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -128,22 +117,22 @@ private fun SegmentPill(
     icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val background by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         animationSpec = spring(stiffness = 300f),
-        label = "segmentBackground"
+        label = "segmentBackground",
     )
     val contentColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
         animationSpec = spring(stiffness = 300f),
-        label = "segmentContent"
+        label = "segmentContent",
     )
     val borderColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
         animationSpec = spring(stiffness = 300f),
-        label = "segmentBorder"
+        label = "segmentBorder",
     )
 
     Surface(
@@ -153,12 +142,12 @@ private fun SegmentPill(
         contentColor = contentColor,
         border = BorderStroke(1.dp, borderColor),
         tonalElevation = if (selected) DesignTokens.Elevation.raised else 0.dp,
-        onClick = onClick
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.badge))
             Spacer(Modifier.width(DesignTokens.Spacing.s))
@@ -166,7 +155,7 @@ private fun SegmentPill(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                maxLines = 1
+                maxLines = 1,
             )
         }
     }
@@ -190,7 +179,7 @@ fun SavedTracksSearchField(
     placeholder: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    onFilterClick: (() -> Unit)? = null
+    onFilterClick: (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = query,
@@ -200,26 +189,28 @@ fun SavedTracksSearchField(
         leadingIcon = {
             Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         },
-        trailingIcon = onFilterClick?.let { onClick ->
-            {
-                IconButton(onClick = onClick) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = "Filters",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        trailingIcon =
+            onFilterClick?.let { onClick ->
+                {
+                    IconButton(onClick = onClick) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = "Filters",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
-            }
-        },
+            },
         singleLine = true,
         shape = CircleShape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
-        )
+        colors =
+            TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+            ),
     )
 }
 
@@ -234,21 +225,23 @@ fun SavedTracksFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    leadingIcon: ImageVector? = null
+    leadingIcon: ImageVector? = null,
 ) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         modifier = modifier,
         label = { Text(label, style = MaterialTheme.typography.labelLarge) },
-        leadingIcon = leadingIcon?.let {
-            { Icon(it, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.inline)) }
-        },
+        leadingIcon =
+            leadingIcon?.let {
+                { Icon(it, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.inline)) }
+            },
         shape = DesignTokens.Shape.chip,
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+        colors =
+            FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
     )
 }
 
@@ -260,12 +253,12 @@ fun SavedTracksFilterChip(
 @Composable
 fun SavedTracksChipRow(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         content()
     }
@@ -277,13 +270,16 @@ fun SavedTracksChipRow(
 
 /** Sticky-styled date label that separates submission groups (e.g. "Sun 31 May 2026"). */
 @Composable
-fun SubmissionDateHeader(label: String, modifier: Modifier = Modifier) {
+fun SubmissionDateHeader(
+    label: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = label,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(vertical = DesignTokens.Spacing.s)
+        modifier = modifier.padding(vertical = DesignTokens.Spacing.s),
     )
 }
 
@@ -306,7 +302,7 @@ data class SubmissionCardData(
     val isNewTracker: Boolean,
     val voucherCreated: Boolean,
     val approvalStatus: String = "Pending Approval",
-    val voucherNumber: String? = null
+    val voucherNumber: String? = null,
 )
 
 /**
@@ -330,7 +326,7 @@ fun SubmissionCard(
     selectionMode: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val borderColor =
         if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
@@ -340,42 +336,52 @@ fun SubmissionCard(
     val scale by animateFloatAsState(
         targetValue = if (selectionMode && !isSelected) 0.97f else 1.0f,
         animationSpec = spring(stiffness = 400f),
-        label = "cardScale"
+        label = "cardScale",
     )
 
-    val approvalColor = when (data.approvalStatus) {
-        "Approved" -> DesignTokens.StatusColors.success
-        "Rejected" -> DesignTokens.StatusColors.error
-        "Reimbursed" -> Color(0xFF00897B)
-        else -> Color(0xFFFF9800)
-    }
+    val approvalColor =
+        when (data.approvalStatus) {
+            "Approved" -> DesignTokens.StatusColors.success
+            "Rejected" -> DesignTokens.StatusColors.error
+            "Reimbursed" -> Color(0xFF00897B)
+            else -> Color(0xFFFF9800)
+        }
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = DesignTokens.Shape.roundedMd,
-        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
-                else MaterialTheme.colorScheme.surface,
+        color =
+            if (isSelected) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
         border = BorderStroke(if (isSelected) 2.dp else 1.dp, borderColor),
-        tonalElevation = DesignTokens.Elevation.card
+        tonalElevation = DesignTokens.Elevation.card,
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             // Header: icon + id/status block + (optional) selection checkbox.
             Row(verticalAlignment = Alignment.Top) {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(DesignTokens.Shape.roundedSm)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .clip(DesignTokens.Shape.roundedSm)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.DirectionsCar,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(DesignTokens.IconSize.actionTile)
+                        modifier = Modifier.size(DesignTokens.IconSize.actionTile),
                     )
                 }
                 Spacer(Modifier.width(DesignTokens.Spacing.m))
@@ -383,23 +389,24 @@ fun SubmissionCard(
                     // Monospace transaction ID (10sp per VI.2)
                     Text(
                         text = "#${data.transId}",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 10.sp
-                        ),
+                        style =
+                            MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                            ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                     Text(
                         text = if (data.voucherCreated) "Voucher Filed" else "Voucher Not Created",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (data.voucherCreated) DesignTokens.StatusColors.success else DesignTokens.StatusColors.error
+                        color = if (data.voucherCreated) DesignTokens.StatusColors.success else DesignTokens.StatusColors.error,
                     )
                     Text(
                         text = "Self Paid",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 if (showCheckbox) {
@@ -420,7 +427,7 @@ fun SubmissionCard(
                     text = "₹${data.amount.formatDecimal(2)}",
                     style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(Modifier.width(DesignTokens.Spacing.m))
                 ApprovalStatusChip(status = data.approvalStatus, color = approvalColor)
@@ -434,22 +441,23 @@ fun SubmissionCard(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
-                    modifier = Modifier
-                        .clip(DesignTokens.Shape.chip)
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs)
+                    modifier =
+                        Modifier
+                            .clip(DesignTokens.Shape.chip)
+                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                            .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs),
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ReceiptLong,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(DesignTokens.IconSize.inline)
+                        modifier = Modifier.size(DesignTokens.IconSize.inline),
                     )
                     Text(
                         data.voucherNumber,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 }
             }
@@ -466,20 +474,24 @@ fun SubmissionCard(
 }
 
 @Composable
-private fun ApprovalStatusChip(status: String, color: Color) {
+private fun ApprovalStatusChip(
+    status: String,
+    color: Color,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
-        modifier = Modifier
-            .clip(DesignTokens.Shape.chip)
-            .background(color.copy(alpha = 0.12f))
-            .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs)
+        modifier =
+            Modifier
+                .clip(DesignTokens.Shape.chip)
+                .background(color.copy(alpha = 0.12f))
+                .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs),
     ) {
         Text(
             status,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = color
+            color = color,
         )
     }
 }
@@ -490,46 +502,51 @@ private fun SubmissionChipRow(data: SubmissionCardData) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         StatusPill(
             text = if (data.isNewTracker) "New Tracker" else "Other",
             icon = Icons.Default.Map,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         if (data.attachmentCount > 0) {
             StatusPill(
                 text = "Attachments",
                 icon = Icons.Default.AttachFile,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.secondary,
             )
         }
         if (data.violationCount > 0) {
             StatusPill(
                 text = "${data.violationCount} Violations",
                 icon = Icons.Default.Warning,
-                color = DesignTokens.StatusColors.error
+                color = DesignTokens.StatusColors.error,
             )
         }
         if (data.acknowledged) {
             StatusPill(
                 text = "Acknowledged",
                 icon = Icons.Default.CheckCircle,
-                color = DesignTokens.StatusColors.success
+                color = DesignTokens.StatusColors.success,
             )
         }
     }
 }
 
 @Composable
-private fun StatusPill(text: String, icon: ImageVector, color: Color) {
+private fun StatusPill(
+    text: String,
+    icon: ImageVector,
+    color: Color,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
-        modifier = Modifier
-            .clip(DesignTokens.Shape.chip)
-            .background(color.copy(alpha = 0.12f))
-            .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs)
+        modifier =
+            Modifier
+                .clip(DesignTokens.Shape.chip)
+                .background(color.copy(alpha = 0.12f))
+                .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs),
     ) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(DesignTokens.IconSize.inline))
         Text(text, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Medium, color = color)
@@ -541,28 +558,33 @@ private fun TrackMilesTag() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
-        modifier = Modifier
-            .clip(DesignTokens.Shape.chip)
-            .background(MaterialTheme.colorScheme.tertiaryContainer)
-            .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs)
+        modifier =
+            Modifier
+                .clip(DesignTokens.Shape.chip)
+                .background(MaterialTheme.colorScheme.tertiaryContainer)
+                .padding(horizontal = DesignTokens.Spacing.s, vertical = DesignTokens.Spacing.xs),
     ) {
         Icon(
             imageVector = Icons.Default.DirectionsCar,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onTertiaryContainer,
-            modifier = Modifier.size(DesignTokens.IconSize.inline)
+            modifier = Modifier.size(DesignTokens.IconSize.inline),
         )
         Text(
             text = "Track Miles",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onTertiaryContainer
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
         )
     }
 }
 
 @Composable
-private fun FooterField(label: String, value: String, modifier: Modifier = Modifier) {
+private fun FooterField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
@@ -578,18 +600,18 @@ private fun FooterField(label: String, value: String, modifier: Modifier = Modif
 fun SubmissionSelectionRow(
     selectedCount: Int,
     onClearSelection: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = "Selected $selectedCount",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         TextButton(onClick = onClearSelection) {
             Text("Clear selection")
@@ -602,13 +624,13 @@ fun SubmissionSelectionRow(
 fun CreateVoucherButton(
     count: Int,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Button(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(52.dp),
         shape = DesignTokens.Shape.roundedSm,
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
     ) {
         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.badge))
         Spacer(Modifier.width(DesignTokens.Spacing.s))
@@ -627,13 +649,13 @@ fun CreateVoucherButton(
 @Composable
 fun NoJourneysThisWeekState(
     onViewAll: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     EmptyStateBlock(
         icon = Icons.Default.CalendarToday,
         title = "No journeys this week",
         subtitle = "Switch to All to see your history",
-        modifier = modifier
+        modifier = modifier,
     ) {
         OutlinedButton(onClick = onViewAll) {
             Icon(Icons.AutoMirrored.Filled.ReceiptLong, contentDescription = null, modifier = Modifier.size(DesignTokens.IconSize.badge))
@@ -648,13 +670,13 @@ fun NoJourneysThisWeekState(
 fun NoSubmissionsState(
     title: String,
     subtitle: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     EmptyStateBlock(
         icon = Icons.Default.Receipt,
         title = title,
         subtitle = subtitle,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -664,24 +686,25 @@ private fun EmptyStateBlock(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    action: (@Composable () -> Unit)? = null
+    action: (@Composable () -> Unit)? = null,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.xxl, vertical = DesignTokens.Spacing.xxl),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.xxl, vertical = DesignTokens.Spacing.xxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Surface(
             shape = DesignTokens.Shape.roundedLg,
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
         ) {
             Box(modifier = Modifier.padding(DesignTokens.Spacing.xl), contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp),
                 )
             }
         }
@@ -692,7 +715,7 @@ private fun EmptyStateBlock(
             subtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         if (action != null) {
             Spacer(Modifier.height(DesignTokens.Spacing.xl))

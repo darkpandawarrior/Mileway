@@ -20,7 +20,7 @@ import androidx.core.content.ContextCompat
  */
 class CameraPermissionState internal constructor(
     val hasPermission: Boolean,
-    val request: () -> Unit
+    val request: () -> Unit,
 )
 
 @Composable
@@ -30,19 +30,20 @@ fun rememberCameraPermissionState(): CameraPermissionState {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
+                Manifest.permission.CAMERA,
+            ) == PackageManager.PERMISSION_GRANTED,
         )
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        granted = isGranted
-    }
+    val launcher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { isGranted ->
+            granted = isGranted
+        }
 
     return CameraPermissionState(
         hasPermission = granted,
-        request = { launcher.launch(Manifest.permission.CAMERA) }
+        request = { launcher.launch(Manifest.permission.CAMERA) },
     )
 }

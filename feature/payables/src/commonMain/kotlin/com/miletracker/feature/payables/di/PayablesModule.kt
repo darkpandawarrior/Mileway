@@ -5,7 +5,8 @@ import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val payablesModule = module {
-    single { PayablesRepository() }
-    viewModel { PayablesViewModel(get()) }
-}
+val payablesModule =
+    module {
+        single { PayablesRepository() }
+        viewModel { PayablesViewModel(get()) }
+    }

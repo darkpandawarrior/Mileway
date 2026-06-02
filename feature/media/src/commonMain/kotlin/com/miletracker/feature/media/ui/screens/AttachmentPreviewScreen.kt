@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.media.ui.screens
 
 import androidx.compose.foundation.background
@@ -33,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import com.miletracker.core.ui.components.ZoomImageViewer
@@ -73,7 +75,7 @@ fun AttachmentPreviewScreen(
     onRetake: () -> Unit,
     onUsePhoto: () -> Unit,
     modifier: Modifier = Modifier,
-    onAddMore: () -> Unit = {}
+    onAddMore: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsState()
     val batch = state.pendingBatch
@@ -99,7 +101,7 @@ fun AttachmentPreviewScreen(
                 onConfirm = {
                     viewModel.confirmPending()
                     onUsePhoto()
-                }
+                },
             )
         } else {
             SingleCaptureContent(
@@ -115,7 +117,7 @@ fun AttachmentPreviewScreen(
                 onUsePhoto = {
                     viewModel.confirmPending()
                     onUsePhoto()
-                }
+                },
             )
         }
     }
@@ -125,7 +127,7 @@ fun AttachmentPreviewScreen(
         ZoomImageViewer(
             painter = rememberAsyncImagePainter(model = uri),
             contentDescription = "Attachment preview",
-            onDismiss = { viewerUri = null }
+            onDismiss = { viewerUri = null },
         )
     }
 
@@ -138,7 +140,7 @@ fun AttachmentPreviewScreen(
                 onUsePhoto()
             },
             onEdit = { viewModel.dismissSheet() },
-            onDismiss = { viewModel.dismissSheet() }
+            onDismiss = { viewModel.dismissSheet() },
         )
     }
 }
@@ -152,33 +154,36 @@ private fun SingleCaptureContent(
     onPreviewTap: (String) -> Unit,
     onRetake: () -> Unit,
     onRunOcr: () -> Unit,
-    onUsePhoto: () -> Unit
+    onUsePhoto: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
     ) {
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
         ) {
             if (pending != null) {
                 AsyncImage(
                     model = pending.uri,
                     contentDescription = "Captured attachment preview",
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { onPreviewTap(pending.uri) }
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clickable { onPreviewTap(pending.uri) },
                 )
             } else {
                 Text(
                     text = "No photo to preview.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -188,30 +193,31 @@ private fun SingleCaptureContent(
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(DesignTokens.Spacing.l),
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(DesignTokens.Spacing.l),
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             OutlinedButton(
                 onClick = onRetake,
                 enabled = !isProcessing,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text("Retake")
             }
             TextButton(
                 onClick = onRunOcr,
                 enabled = pending != null && !isProcessing,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text("Run OCR")
             }
             Button(
                 onClick = onUsePhoto,
                 enabled = pending != null && !isProcessing,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text("Use photo")
             }
@@ -229,23 +235,25 @@ private fun MultiCaptureContent(
     onDelete: (AttachmentItem) -> Unit,
     onAddMore: () -> Unit,
     onRetake: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
     ) {
         Text(
             text = "Review captures",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(
-                start = DesignTokens.Spacing.l,
-                end = DesignTokens.Spacing.l,
-                top = DesignTokens.Spacing.l,
-                bottom = DesignTokens.Spacing.s
-            )
+            modifier =
+                Modifier.padding(
+                    start = DesignTokens.Spacing.l,
+                    end = DesignTokens.Spacing.l,
+                    top = DesignTokens.Spacing.l,
+                    bottom = DesignTokens.Spacing.s,
+                ),
         )
 
         LazyVerticalGrid(
@@ -253,13 +261,13 @@ private fun MultiCaptureContent(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(DesignTokens.Spacing.l),
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
         ) {
             itemsIndexed(items, key = { _, item -> item.id }) { _, item ->
                 CaptureThumbnail(
                     item = item,
                     onOpen = { onOpen(item) },
-                    onDelete = { onDelete(item) }
+                    onDelete = { onDelete(item) },
                 )
             }
             item(key = "add_more") {
@@ -268,21 +276,22 @@ private fun MultiCaptureContent(
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(DesignTokens.Spacing.l)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(DesignTokens.Spacing.l),
         ) {
             Button(
                 onClick = onConfirm,
                 enabled = items.isNotEmpty() && !isProcessing,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 if (isProcessing) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
                         color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
+                        strokeWidth = 2.dp,
                     )
                 } else {
                     Text("Use ${items.size} photos")
@@ -292,7 +301,7 @@ private fun MultiCaptureContent(
             OutlinedButton(
                 onClick = onRetake,
                 enabled = !isProcessing,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Discard all")
             }
@@ -305,41 +314,43 @@ private fun MultiCaptureContent(
 private fun CaptureThumbnail(
     item: AttachmentItem,
     onOpen: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     Box(modifier = Modifier.aspectRatio(1f)) {
         Surface(
             shape = DesignTokens.Shape.roundedMd,
             tonalElevation = DesignTokens.Elevation.card,
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(DesignTokens.Shape.roundedMd)
-                .clickable(onClick = onOpen)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clip(DesignTokens.Shape.roundedMd)
+                    .clickable(onClick = onOpen),
         ) {
             AsyncImage(
                 model = item.uri,
                 contentDescription = "Capture ${item.id}",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
 
         Surface(
             shape = CircleShape,
             color = Color.Black.copy(alpha = 0.55f),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(DesignTokens.Spacing.xs)
-                .size(24.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onDelete)
+            modifier =
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(DesignTokens.Spacing.xs)
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onDelete),
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Remove capture",
                     tint = Color.White,
-                    modifier = Modifier.size(DesignTokens.IconSize.inline)
+                    modifier = Modifier.size(DesignTokens.IconSize.inline),
                 )
             }
         }
@@ -352,34 +363,36 @@ private fun AddMoreTile(onClick: () -> Unit) {
     Surface(
         shape = DesignTokens.Shape.roundedMd,
         color = Color.Transparent,
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clip(DesignTokens.Shape.roundedMd)
-            .border(
-                width = 1.5.dp,
-                color = MaterialTheme.colorScheme.outline,
-                shape = DesignTokens.Shape.roundedMd
-            )
-            .clickable(onClick = onClick)
+        modifier =
+            Modifier
+                .aspectRatio(1f)
+                .clip(DesignTokens.Shape.roundedMd)
+                .border(
+                    width = 1.5.dp,
+                    color = MaterialTheme.colorScheme.outline,
+                    shape = DesignTokens.Shape.roundedMd,
+                )
+                .clickable(onClick = onClick),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add more",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(DesignTokens.IconSize.header)
+                modifier = Modifier.size(DesignTokens.IconSize.header),
             )
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
             Text(
                 text = "Add More",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

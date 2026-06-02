@@ -74,25 +74,27 @@ import androidx.compose.ui.unit.dp
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** The six default quick-pause reasons, in display order. */
-val DefaultPauseReasons: List<String> = listOf(
-    "Break",
-    "Meeting",
-    "Traffic",
-    "Fuel",
-    "Personal",
-    "Vehicle Issue"
-)
+val DefaultPauseReasons: List<String> =
+    listOf(
+        "Break",
+        "Meeting",
+        "Traffic",
+        "Fuel",
+        "Personal",
+        "Vehicle Issue",
+    )
 
 /** Maps a known quick reason to its leading icon; falls back to a neutral glyph. */
-private fun pauseReasonIcon(reason: String): ImageVector = when (reason.lowercase()) {
-    "break" -> Icons.Default.Coffee
-    "meeting" -> Icons.Default.Event
-    "traffic" -> Icons.Default.Traffic
-    "fuel" -> Icons.Default.LocalGasStation
-    "personal" -> Icons.Default.Person
-    "vehicle issue" -> Icons.Default.DirectionsCar
-    else -> Icons.Default.MoreHoriz
-}
+private fun pauseReasonIcon(reason: String): ImageVector =
+    when (reason.lowercase()) {
+        "break" -> Icons.Default.Coffee
+        "meeting" -> Icons.Default.Event
+        "traffic" -> Icons.Default.Traffic
+        "fuel" -> Icons.Default.LocalGasStation
+        "personal" -> Icons.Default.Person
+        "vehicle issue" -> Icons.Default.DirectionsCar
+        else -> Icons.Default.MoreHoriz
+    }
 
 /**
  * Body of the "Pause Tracking" sheet.
@@ -131,43 +133,44 @@ fun PauseReasonSheet(
     modifier: Modifier = Modifier,
     reasons: List<String> = DefaultPauseReasons,
     showCustomInput: Boolean = customReason.isNotEmpty(),
-    onToggleCustom: (show: Boolean) -> Unit = {}
+    onToggleCustom: (show: Boolean) -> Unit = {},
 ) {
     val haptic = LocalHapticFeedback.current
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp),
     ) {
         // Header: title + timestamp on the left, close icon on the right.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column {
                 Text(
                     text = "Pause Tracking",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccessTime,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = "Pausing at $timestamp",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -176,7 +179,7 @@ fun PauseReasonSheet(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -187,7 +190,7 @@ fun PauseReasonSheet(
             text = "Why are you pausing? This helps track time more accurately.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(Modifier.height(20.dp))
@@ -196,7 +199,7 @@ fun PauseReasonSheet(
             text = "Quick Reasons",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Spacer(Modifier.height(12.dp))
@@ -204,7 +207,7 @@ fun PauseReasonSheet(
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             reasons.forEach { reason ->
                 val isSelected = selectedReason == reason
@@ -222,30 +225,34 @@ fun PauseReasonSheet(
                     label = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Icon(
                                 imageVector = pauseReasonIcon(reason),
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.dp),
                             )
                             Text(reason)
                         }
                     },
-                    leadingIcon = if (isSelected) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Selected",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    } else null,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    leadingIcon =
+                        if (isSelected) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    colors =
+                        FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
                 )
             }
         }
@@ -260,12 +267,12 @@ fun PauseReasonSheet(
                     onToggleCustom(true)
                     onSelectReason(null)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreHoriz,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("Add custom reason")
@@ -275,13 +282,15 @@ fun PauseReasonSheet(
         // Custom free-text input, revealed with a medium-bouncy expand + fade.
         AnimatedVisibility(
             visible = showCustomInput,
-            enter = expandVertically(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
-            ) + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            enter =
+                expandVertically(
+                    animationSpec =
+                        spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                ) + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
         ) {
             Column {
                 Spacer(Modifier.height(8.dp))
@@ -302,18 +311,19 @@ fun PauseReasonSheet(
                         Text(
                             text = "${customReason.length}/200 characters",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (customReason.length > 180) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
+                            color =
+                                if (customReason.length > 180) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.End
+                            textAlign = TextAlign.End,
                         )
                     },
                     minLines = 2,
                     maxLines = 4,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 )
 
                 TextButton(
@@ -322,7 +332,7 @@ fun PauseReasonSheet(
                         onToggleCustom(false)
                         onCustomReason("")
                     },
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.align(Alignment.End),
                 ) {
                     Text("Use quick reason instead")
                 }
@@ -333,22 +343,24 @@ fun PauseReasonSheet(
 
         // Resolve the final reason once so both the enabled state and confirm
         // payload agree. Kept non-null so [onConfirm] receives a plain String.
-        val finalReason: String = when {
-            !selectedReason.isNullOrBlank() -> selectedReason
-            customReason.isNotBlank() -> customReason.trim()
-            else -> ""
-        }
+        val finalReason: String =
+            when {
+                !selectedReason.isNullOrBlank() -> selectedReason
+                customReason.isNotBlank() -> customReason.trim()
+                else -> ""
+            }
         val isValid = finalReason.isNotBlank()
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             OutlinedButton(
                 onClick = onCancel,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text("Cancel")
             }
@@ -360,15 +372,16 @@ fun PauseReasonSheet(
                 },
                 modifier = Modifier.weight(1f),
                 enabled = isValid,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Default.Pause,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("Pause Tracking")
@@ -397,29 +410,31 @@ fun ResumeTrackingSheet(
     onNotesChange: (String) -> Unit,
     onResume: (String) -> Unit,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
             imageVector = Icons.Filled.PlayCircle,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp),
         )
 
         Text(
             text = "Resume Tracking?",
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            textAlign = TextAlign.Center
+            style =
+                MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                ),
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -428,17 +443,18 @@ fun ResumeTrackingSheet(
             Text(
                 text = "You paused for:",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "\"$pauseReason\"",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
+                style =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                    ),
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
             Spacer(modifier = Modifier.height(16.dp))
         } else {
@@ -446,7 +462,7 @@ fun ResumeTrackingSheet(
                 text = "Ready to continue tracking?",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -457,9 +473,10 @@ fun ResumeTrackingSheet(
             text = "Optional: Add resume notes",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
         )
 
         OutlinedTextField(
@@ -473,23 +490,23 @@ fun ResumeTrackingSheet(
                     text = "${resumeNotes.length}/200",
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             singleLine = false,
             maxLines = 3,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             TextButton(
                 onClick = onCancel,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text("Cancel")
             }
@@ -498,12 +515,12 @@ fun ResumeTrackingSheet(
 
             Button(
                 onClick = { onResume(resumeNotes.trim()) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Icon(
                     imageVector = Icons.Filled.PlayCircle,
                     contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = 8.dp),
                 )
                 Text("Resume")
             }
@@ -521,7 +538,7 @@ fun ResumeTrackingSheet(
 data class RestorableSession(
     val token: String,
     val label: String,
-    val timestamp: String
+    val timestamp: String,
 )
 
 /**
@@ -545,36 +562,38 @@ fun SessionRestoreSheet(
     onDiscard: (RestorableSession) -> Unit,
     onIgnore: (RestorableSession) -> Unit,
     modifier: Modifier = Modifier,
-    onCheckDismissed: (() -> Unit)? = null
+    onCheckDismissed: (() -> Unit)? = null,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Header: history badge + title/subtitle.
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(44.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = RoundedCornerShape(12.dp),
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.History,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
             Column {
@@ -582,12 +601,12 @@ fun SessionRestoreSheet(
                     text = "Drafts & Server Sessions",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = "Continue drafts, resubmit discarded, or copy server tokens",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -596,12 +615,12 @@ fun SessionRestoreSheet(
         if (onCheckDismissed != null) {
             OutlinedButton(
                 onClick = onCheckDismissed,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
                     imageVector = Icons.Default.History,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("Check dismissed restore sessions")
@@ -613,7 +632,7 @@ fun SessionRestoreSheet(
                 text = "No unfinished sessions to restore.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             )
         } else {
             sessions.forEach { session ->
@@ -621,7 +640,7 @@ fun SessionRestoreSheet(
                     session = session,
                     onRestore = { onRestore(session) },
                     onDiscard = { onDiscard(session) },
-                    onIgnore = { onIgnore(session) }
+                    onIgnore = { onIgnore(session) },
                 )
             }
         }
@@ -634,38 +653,40 @@ private fun RestorableSessionRow(
     session: RestorableSession,
     onRestore: () -> Unit,
     onDiscard: () -> Unit,
-    onIgnore: () -> Unit
+    onIgnore: () -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(36.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surface,
+                                shape = CircleShape,
+                            ),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
@@ -673,18 +694,18 @@ private fun RestorableSessionRow(
                         text = session.label,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = shortToken(session.token),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (session.timestamp.isNotBlank()) {
                         Text(
                             text = session.timestamp,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -692,34 +713,37 @@ private fun RestorableSessionRow(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Button(
                     onClick = onRestore,
                     modifier = Modifier.weight(1f),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )
+                    contentPadding =
+                        androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 12.dp,
+                            vertical = 8.dp,
+                        ),
                 ) {
                     Text("Restore", style = MaterialTheme.typography.labelLarge)
                 }
                 OutlinedButton(
                     onClick = onDiscard,
                     modifier = Modifier.weight(1f),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )
+                    contentPadding =
+                        androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 12.dp,
+                            vertical = 8.dp,
+                        ),
                 ) {
                     Text("Discard", style = MaterialTheme.typography.labelLarge)
                 }
                 TextButton(
                     onClick = onIgnore,
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = 12.dp,
-                        vertical = 8.dp
-                    )
+                    contentPadding =
+                        androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 12.dp,
+                            vertical = 8.dp,
+                        ),
                 ) {
                     Text("Ignore", style = MaterialTheme.typography.labelLarge)
                 }
@@ -729,5 +753,4 @@ private fun RestorableSessionRow(
 }
 
 /** Returns the first 7 characters of a token (or the whole token if shorter). */
-private fun shortToken(token: String): String =
-    if (token.length <= 7) token else token.take(7)
+private fun shortToken(token: String): String = if (token.length <= 7) token else token.take(7)

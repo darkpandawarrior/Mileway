@@ -24,22 +24,24 @@ import com.miletracker.core.data.model.db.SavedTrack
  *   <5 min → 2 s/point, <30 min → 3 s/point, else → 5 s/point.
  */
 class JourneyQualityAnalyzer {
-
     fun analyze(track: SavedTrack): QualityResult {
         val factors = mutableListOf<ScoreFactor>()
         var score = 100
 
-        fun deduct(label: String, points: Int) {
+        fun deduct(
+            label: String,
+            points: Int,
+        ) {
             score -= points
             factors += ScoreFactor(label, points)
         }
 
-        if (track.wasMockLocationUsed)           deduct("Mock location detected", 20)
+        if (track.wasMockLocationUsed) deduct("Mock location detected", 20)
         if (track.wasBatteryOptimizationEnabled) deduct("Battery optimisation on", 15)
-        if (track.wasPowerSaverEnabled)          deduct("Power saver on", 15)
-        if (track.wasAppKilled)                  deduct("App killed during trip", 25)
-        if (track.wasPermissionsViolated)        deduct("Permissions violated", 15)
-        if (track.wasPhoneShutDown)              deduct("Device shutdown during trip", 25)
+        if (track.wasPowerSaverEnabled) deduct("Power saver on", 15)
+        if (track.wasAppKilled) deduct("App killed during trip", 25)
+        if (track.wasPermissionsViolated) deduct("Permissions violated", 15)
+        if (track.wasPhoneShutDown) deduct("Device shutdown during trip", 25)
 
         // Unsynced-point ratio → up to −20
         if (track.unsyncedLocationPoints > 0 && track.totalLocationPoints > 0) {
@@ -74,17 +76,18 @@ class JourneyQualityAnalyzer {
             qualityScore = score.coerceIn(0, 100),
             dataCompleteness = calculateDataCompleteness(track),
             reliabilityScore = calculateReliabilityScore(track),
-            scoreFactors = factors
+            scoreFactors = factors,
         )
     }
 
     private fun calculateDataCompleteness(track: SavedTrack): Double {
         val duration = track.duration.coerceAtLeast(1000L)
-        val samplingRate = when {
-            duration < 5 * 60 * 1000  -> 2.0   // <5 min  → 2 s/point
-            duration < 30 * 60 * 1000 -> 3.0   // <30 min → 3 s/point
-            else                       -> 5.0   // longer  → 5 s/point
-        }
+        val samplingRate =
+            when {
+                duration < 5 * 60 * 1000 -> 2.0 // <5 min  → 2 s/point
+                duration < 30 * 60 * 1000 -> 3.0 // <30 min → 3 s/point
+                else -> 5.0 // longer  → 5 s/point
+            }
         val expectedPoints = (duration / 1000.0) / samplingRate
         val ratio = track.totalLocationPoints.toDouble() / expectedPoints.coerceAtLeast(1.0)
         val durationFactor = (1.0 + (duration.toDouble() / (60 * 60 * 1000)).coerceAtMost(2.0)) / 3.0
@@ -95,7 +98,8 @@ class JourneyQualityAnalyzer {
         var reliability = 100
 
         if (track.cleanedDistance > 0 && track.originalDistance > 0) {
-            val problemRatio = (track.abnormalDistance + track.mockDistance) /
+            val problemRatio =
+                (track.abnormalDistance + track.mockDistance) /
                     track.originalDistance.coerceAtLeast(0.1)
             reliability -= (problemRatio * 50).toInt().coerceAtMost(50)
 
@@ -106,8 +110,8 @@ class JourneyQualityAnalyzer {
         }
 
         if (track.wasMockLocationUsed) reliability -= 20
-        if (track.wasAppKilled)        reliability -= 15
-        if (track.wasPhoneShutDown)    reliability -= 15
+        if (track.wasAppKilled) reliability -= 15
+        if (track.wasPhoneShutDown) reliability -= 15
 
         if (track.totalLocationPoints > 0 && track.distance > 0) {
             val pointsPerKm = track.totalLocationPoints / (track.distance / 1000.0).coerceAtLeast(0.1)

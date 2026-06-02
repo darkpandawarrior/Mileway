@@ -12,7 +12,6 @@ import android.hardware.SensorManager
  * motion analysis). Degrades gracefully to zeros on devices/emulators without the sensors.
  */
 class TrackingSensorMonitor(context: Context) : SensorEventListener {
-
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
     private val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val gyroscope = sensorManager?.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -32,16 +31,22 @@ class TrackingSensorMonitor(context: Context) : SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        snapshot = when (event.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> snapshot.copy(
-                accelX = event.values[0], accelY = event.values[1], accelZ = event.values[2]
-            )
-            Sensor.TYPE_GYROSCOPE -> snapshot.copy(
-                gyroX = event.values[0], gyroY = event.values[1], gyroZ = event.values[2]
-            )
-            else -> snapshot
-        }
+        snapshot =
+            when (event.sensor.type) {
+                Sensor.TYPE_ACCELEROMETER ->
+                    snapshot.copy(
+                        accelX = event.values[0], accelY = event.values[1], accelZ = event.values[2],
+                    )
+                Sensor.TYPE_GYROSCOPE ->
+                    snapshot.copy(
+                        gyroX = event.values[0], gyroY = event.values[1], gyroZ = event.values[2],
+                    )
+                else -> snapshot
+            }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { /* no-op */ }
+    override fun onAccuracyChanged(
+        sensor: Sensor?,
+        accuracy: Int,
+    ) { /* no-op */ }
 }

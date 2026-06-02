@@ -42,9 +42,7 @@ import com.miletracker.core.ui.theme.DesignTokens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrackSettingsScreen(
-    onBack: () -> Unit
-) {
+fun TrackSettingsScreen(onBack: () -> Unit) {
     var gpsAccuracy by remember { mutableFloatStateOf(30f) }
     var locationInterval by remember { mutableFloatStateOf(10f) }
     var distanceThreshold by remember { mutableFloatStateOf(10f) }
@@ -67,11 +65,12 @@ fun TrackSettingsScreen(
         },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(padding)
+                    .padding(DesignTokens.Spacing.l),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             CollapsibleSectionCard(

@@ -9,14 +9,15 @@ import platform.Foundation.NSFileManager
  */
 internal actual fun detectRootSignals(): List<String> {
     val fileManager = NSFileManager.defaultManager
-    val jailbreakPaths = listOf(
-        "/Applications/Cydia.app",
-        "/Library/MobileSubstrate/MobileSubstrate.dylib",
-        "/bin/bash",
-        "/usr/sbin/sshd",
-        "/etc/apt",
-        "/private/var/lib/apt/",
-    )
+    val jailbreakPaths =
+        listOf(
+            "/Applications/Cydia.app",
+            "/Library/MobileSubstrate/MobileSubstrate.dylib",
+            "/bin/bash",
+            "/usr/sbin/sshd",
+            "/etc/apt",
+            "/private/var/lib/apt/",
+        )
     val signals = mutableListOf<String>()
     if (jailbreakPaths.any { fileManager.fileExistsAtPath(it) }) {
         signals += "jailbreak artefact found"

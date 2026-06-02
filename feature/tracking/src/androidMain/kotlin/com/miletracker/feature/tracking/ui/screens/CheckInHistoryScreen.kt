@@ -11,13 +11,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -96,7 +96,7 @@ data class CheckInHistoryItem(
     val lat: Double,
     val lng: Double,
     val type: String,
-    val isManual: Boolean
+    val isManual: Boolean,
 )
 
 /** Time-window filter applied to the timestamp of each [CheckInHistoryItem]. */
@@ -104,7 +104,7 @@ private enum class TimeFilter(val label: String) {
     All("All"),
     Today("Today"),
     ThisWeek("This Week"),
-    ThisMonth("This Month")
+    ThisMonth("This Month"),
 }
 
 /**
@@ -133,21 +133,22 @@ private enum class TimeFilter(val label: String) {
 fun CheckInHistoryScreen(
     events: List<CheckInHistoryItem>,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var timeFilter by remember { mutableStateOf(TimeFilter.All) }
     var expandedId by remember { mutableStateOf<String?>(null) }
 
     // Filter pipeline: time window first, then free-text query, newest first.
-    val filtered = remember(events, searchQuery, timeFilter) {
-        events
-            .asSequence()
-            .filter { matchesTimeFilter(it.timestampMillis, timeFilter) }
-            .filter { matchesQuery(it, searchQuery) }
-            .sortedByDescending { it.timestampMillis }
-            .toList()
-    }
+    val filtered =
+        remember(events, searchQuery, timeFilter) {
+            events
+                .asSequence()
+                .filter { matchesTimeFilter(it.timestampMillis, timeFilter) }
+                .filter { matchesQuery(it, searchQuery) }
+                .sortedByDescending { it.timestampMillis }
+                .toList()
+        }
 
     Scaffold(
         modifier = modifier,
@@ -159,27 +160,28 @@ fun CheckInHistoryScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .navigationBarsPadding()
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .navigationBarsPadding(),
         ) {
             SearchField(
                 query = searchQuery,
-                onQueryChange = { searchQuery = it }
+                onQueryChange = { searchQuery = it },
             )
 
             TimeFilterChips(
                 selected = timeFilter,
-                onSelect = { timeFilter = it }
+                onSelect = { timeFilter = it },
             )
 
             if (filtered.isEmpty()) {
@@ -190,7 +192,7 @@ fun CheckInHistoryScreen(
                     expandedId = expandedId,
                     onToggleExpand = { id ->
                         expandedId = if (expandedId == id) null else id
-                    }
+                    },
                 )
             }
         }
@@ -202,17 +204,18 @@ fun CheckInHistoryScreen(
 private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = DesignTokens.Spacing.screenHorizontal,
-                vertical = DesignTokens.Spacing.s
-            ),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = DesignTokens.Spacing.screenHorizontal,
+                    vertical = DesignTokens.Spacing.s,
+                ),
         placeholder = { Text("Search history") },
         leadingIcon = {
             Icon(imageVector = Icons.Filled.Search, contentDescription = null)
@@ -220,7 +223,7 @@ private fun SearchField(
         singleLine = true,
         shape = DesignTokens.Shape.roundedMd,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions()
+        keyboardActions = KeyboardActions(),
     )
 }
 
@@ -229,14 +232,15 @@ private fun SearchField(
 private fun TimeFilterChips(
     selected: TimeFilter,
     onSelect: (TimeFilter) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = DesignTokens.Spacing.xs),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = DesignTokens.Spacing.xs),
         contentPadding = PaddingValues(horizontal = DesignTokens.Spacing.screenHorizontal),
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         items(TimeFilter.entries) { filter ->
             FilterChip(
@@ -244,10 +248,11 @@ private fun TimeFilterChips(
                 onClick = { onSelect(filter) },
                 label = { Text(filter.label) },
                 shape = DesignTokens.Shape.chip,
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                    selectedLabelColor = MaterialTheme.colorScheme.primary
-                )
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        selectedLabelColor = MaterialTheme.colorScheme.primary,
+                    ),
             )
         }
     }
@@ -259,22 +264,24 @@ private fun TimelineList(
     items: List<CheckInHistoryItem>,
     expandedId: String?,
     onToggleExpand: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Preserve the newest-first ordering already applied to [items] when grouping.
-    val grouped = remember(items) {
-        items.groupBy { friendlyDateHeader(it.timestampMillis) }
-    }
+    val grouped =
+        remember(items) {
+            items.groupBy { friendlyDateHeader(it.timestampMillis) }
+        }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = DesignTokens.Spacing.screenHorizontal,
-            end = DesignTokens.Spacing.screenHorizontal,
-            top = DesignTokens.Spacing.s,
-            // Pushed flow: lift the last row clear of the gesture nav bar.
-            bottom = DesignTokens.Spacing.xxl
-        )
+        contentPadding =
+            PaddingValues(
+                start = DesignTokens.Spacing.screenHorizontal,
+                end = DesignTokens.Spacing.screenHorizontal,
+                top = DesignTokens.Spacing.s,
+                // Pushed flow: lift the last row clear of the gesture nav bar.
+                bottom = DesignTokens.Spacing.xxl,
+            ),
     ) {
         grouped.forEach { (header, groupItems) ->
             item(key = "header_$header") {
@@ -282,14 +289,14 @@ private fun TimelineList(
             }
             itemsIndexed(
                 items = groupItems,
-                key = { _, item -> item.id }
+                key = { _, item -> item.id },
             ) { index, item ->
                 TimelineEventRow(
                     item = item,
                     isFirst = index == 0,
                     isLast = index == groupItems.lastIndex,
                     expanded = expandedId == item.id,
-                    onClick = { onToggleExpand(item.id) }
+                    onClick = { onToggleExpand(item.id) },
                 )
             }
         }
@@ -298,16 +305,20 @@ private fun TimelineList(
 
 /** Friendly date group header (e.g. "Today", "Yesterday", "Mon, Jun 9"). */
 @Composable
-private fun DateHeader(text: String, modifier: Modifier = Modifier) {
+private fun DateHeader(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(
-            top = DesignTokens.Spacing.l,
-            bottom = DesignTokens.Spacing.s
-        )
+        modifier =
+            modifier.padding(
+                top = DesignTokens.Spacing.l,
+                bottom = DesignTokens.Spacing.s,
+            ),
     )
 }
 
@@ -322,24 +333,26 @@ private fun TimelineEventRow(
     isLast: Boolean,
     expanded: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val dotColor = if (item.isManual) {
-        DesignTokens.StatusColors.warning
-    } else {
-        DesignTokens.StatusColors.success
-    }
+    val dotColor =
+        if (item.isManual) {
+            DesignTokens.StatusColors.warning
+        } else {
+            DesignTokens.StatusColors.success
+        }
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            // Let the rail's connector line stretch to the full height of the row.
-            .height(IntrinsicSize.Min)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                // Let the rail's connector line stretch to the full height of the row.
+                .height(IntrinsicSize.Min),
     ) {
         TimelineRail(
             isFirst = isFirst,
             isLast = isLast,
-            dotColor = dotColor
+            dotColor = dotColor,
         )
         Spacer(Modifier.width(DesignTokens.Spacing.m))
         EventCard(
@@ -347,7 +360,7 @@ private fun TimelineEventRow(
             dotColor = dotColor,
             expanded = expanded,
             onClick = onClick,
-            modifier = Modifier.padding(vertical = DesignTokens.Spacing.xs)
+            modifier = Modifier.padding(vertical = DesignTokens.Spacing.xs),
         )
     }
 }
@@ -362,41 +375,45 @@ private fun TimelineRail(
     isFirst: Boolean,
     isLast: Boolean,
     dotColor: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val connectorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
     Column(
-        modifier = modifier
-            .width(28.dp)
-            .fillMaxHeight(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            modifier
+                .width(28.dp)
+                .fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Connector above the node.
         Box(modifier = Modifier.weight(1f)) {
             if (!isFirst) {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .width(2.dp)
-                        .fillMaxHeight()
-                        .background(connectorColor)
+                    modifier =
+                        Modifier
+                            .align(Alignment.Center)
+                            .width(2.dp)
+                            .fillMaxHeight()
+                            .background(connectorColor),
                 )
             }
         }
 
         // Node: a tinted halo around a solid colored dot.
         Box(
-            modifier = Modifier
-                .size(18.dp)
-                .clip(CircleShape)
-                .background(dotColor.copy(alpha = 0.16f)),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(18.dp)
+                    .clip(CircleShape)
+                    .background(dotColor.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center,
         ) {
             Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(dotColor)
+                modifier =
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(dotColor),
             )
         }
 
@@ -404,11 +421,12 @@ private fun TimelineRail(
         Box(modifier = Modifier.weight(1f)) {
             if (!isLast) {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .width(2.dp)
-                        .fillMaxHeight()
-                        .background(connectorColor)
+                    modifier =
+                        Modifier
+                            .align(Alignment.Center)
+                            .width(2.dp)
+                            .fillMaxHeight()
+                            .background(connectorColor),
                 )
             }
         }
@@ -422,18 +440,19 @@ private fun EventCard(
     dotColor: androidx.compose.ui.graphics.Color,
     expanded: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(DesignTokens.Shape.roundedMd)
-            .clickable(onClick = onClick)
-            .animateContentSize(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(DesignTokens.Shape.roundedMd)
+                .clickable(onClick = onClick)
+                .animateContentSize(),
         shape = DesignTokens.Shape.roundedMd,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             // Title + type chip on one line.
@@ -444,7 +463,7 @@ private fun EventCard(
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 Spacer(Modifier.width(DesignTokens.Spacing.s))
                 TypeChip(type = item.type, isManual = item.isManual, accent = dotColor)
@@ -457,7 +476,7 @@ private fun EventCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
@@ -469,13 +488,13 @@ private fun EventCard(
                     imageVector = Icons.Filled.Place,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(DesignTokens.IconSize.inline)
+                    modifier = Modifier.size(DesignTokens.IconSize.inline),
                 )
                 Spacer(Modifier.width(DesignTokens.Spacing.xs))
                 Text(
                     text = formatCoordinates(item.lat, item.lng),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -483,7 +502,7 @@ private fun EventCard(
             Text(
                 text = formatTime(item.timestampMillis),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             // Inline detail panel.
@@ -500,22 +519,23 @@ private fun TypeChip(
     type: String,
     isManual: Boolean,
     accent: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val label = type.ifBlank { if (isManual) "Manual" else "Geo" }
     Row(
-        modifier = modifier
-            .clip(DesignTokens.Shape.chip)
-            .background(accent.copy(alpha = 0.14f))
-            .padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
+        modifier =
+            modifier
+                .clip(DesignTokens.Shape.chip)
+                .background(accent.copy(alpha = 0.14f))
+                .padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Icon(
             imageVector = if (isManual) Icons.Filled.EditLocationAlt else Icons.Filled.MyLocation,
             contentDescription = if (isManual) "Manual check-in" else "Geo check-in",
             tint = accent,
-            modifier = Modifier.size(14.dp)
+            modifier = Modifier.size(14.dp),
         )
         Text(
             text = label,
@@ -523,7 +543,7 @@ private fun TypeChip(
             fontWeight = FontWeight.Medium,
             color = accent,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -536,7 +556,7 @@ private fun TypeChip(
 private fun ExpandedDetails(
     item: CheckInHistoryItem,
     accent: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val coordinates = formatCoordinates(item.lat, item.lng)
@@ -544,10 +564,11 @@ private fun ExpandedDetails(
     Column(modifier = modifier.padding(top = DesignTokens.Spacing.m)) {
         MapPlaceholder(
             pinColor = accent,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-                .clip(DesignTokens.Shape.roundedSm)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .clip(DesignTokens.Shape.roundedSm),
         )
 
         Spacer(Modifier.height(DesignTokens.Spacing.m))
@@ -557,12 +578,12 @@ private fun ExpandedDetails(
                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("coordinates", coordinates))
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Icon(
                 imageVector = Icons.Filled.ContentCopy,
                 contentDescription = null,
-                modifier = Modifier.size(DesignTokens.IconSize.inline)
+                modifier = Modifier.size(DesignTokens.IconSize.inline),
             )
             Spacer(Modifier.width(DesignTokens.Spacing.s))
             Text("Copy coordinates")
@@ -577,7 +598,7 @@ private fun ExpandedDetails(
 @Composable
 private fun MapPlaceholder(
     pinColor: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val surfaceTint = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
     val dotColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.18f)
@@ -593,7 +614,7 @@ private fun MapPlaceholder(
                 drawCircle(
                     color = dotColor,
                     radius = dotRadius,
-                    center = Offset(x, y)
+                    center = Offset(x, y),
                 )
                 x += step
             }
@@ -611,17 +632,18 @@ private fun MapPlaceholder(
         drawCircle(
             color = pinColor.copy(alpha = 0.18f),
             radius = 5f,
-            center = Offset(center.x, tipY + 2f)
+            center = Offset(center.x, tipY + 2f),
         )
 
         // Teardrop: circular bulb + a triangle tapering to the tip.
         drawCircle(color = pinColor, radius = pinRadius, center = bulbCenter)
-        val tail = Path().apply {
-            moveTo(bulbCenter.x - pinRadius * 0.78f, bulbCenter.y + pinRadius * 0.5f)
-            lineTo(center.x, tipY)
-            lineTo(bulbCenter.x + pinRadius * 0.78f, bulbCenter.y + pinRadius * 0.5f)
-            close()
-        }
+        val tail =
+            Path().apply {
+                moveTo(bulbCenter.x - pinRadius * 0.78f, bulbCenter.y + pinRadius * 0.5f)
+                lineTo(center.x, tipY)
+                lineTo(bulbCenter.x + pinRadius * 0.78f, bulbCenter.y + pinRadius * 0.5f)
+                close()
+            }
         drawPath(path = tail, color = pinColor)
 
         // Hollow centre.
@@ -633,38 +655,39 @@ private fun MapPlaceholder(
 @Composable
 private fun EmptyHistoryState(
     hasQuery: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(DesignTokens.Spacing.xl)
+            modifier = Modifier.padding(DesignTokens.Spacing.xl),
         ) {
             Icon(
                 imageVector = Icons.Filled.HistoryToggleOff,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier.size(56.dp)
+                modifier = Modifier.size(56.dp),
             )
             Spacer(Modifier.height(DesignTokens.Spacing.m))
             Text(
                 text = if (hasQuery) "No matching check-ins" else "No check-in history yet",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
             Text(
-                text = if (hasQuery) {
-                    "Try a different search or time range."
-                } else {
-                    "Your geo and manual check-ins will appear here."
-                },
+                text =
+                    if (hasQuery) {
+                        "Try a different search or time range."
+                    } else {
+                        "Your geo and manual check-ins will appear here."
+                    },
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -675,13 +698,17 @@ private fun EmptyHistoryState(
 // ---------------------------------------------------------------------------
 
 /** Returns whether [timestampMillis] falls within the window described by [filter]. */
-private fun matchesTimeFilter(timestampMillis: Long, filter: TimeFilter): Boolean {
+private fun matchesTimeFilter(
+    timestampMillis: Long,
+    filter: TimeFilter,
+): Boolean {
     if (filter == TimeFilter.All) return true
     if (timestampMillis <= 0L) return false
 
-    val date = Instant.ofEpochMilli(timestampMillis)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
+    val date =
+        Instant.ofEpochMilli(timestampMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
     val today = LocalDate.now()
 
     return when (filter) {
@@ -698,7 +725,10 @@ private fun matchesTimeFilter(timestampMillis: Long, filter: TimeFilter): Boolea
 }
 
 /** Case-insensitive match of [query] against the item's title, subtitle and type. */
-private fun matchesQuery(item: CheckInHistoryItem, query: String): Boolean {
+private fun matchesQuery(
+    item: CheckInHistoryItem,
+    query: String,
+): Boolean {
     val trimmed = query.trim()
     if (trimmed.isEmpty()) return true
     val needle = trimmed.lowercase(Locale.getDefault())
@@ -710,9 +740,10 @@ private fun matchesQuery(item: CheckInHistoryItem, query: String): Boolean {
 /** Date group header: "Today", "Yesterday", otherwise "Mon, Jun 9". */
 private fun friendlyDateHeader(timestampMillis: Long): String {
     if (timestampMillis <= 0L) return "Unknown"
-    val date = Instant.ofEpochMilli(timestampMillis)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
+    val date =
+        Instant.ofEpochMilli(timestampMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
     val today = LocalDate.now()
     return when (date) {
         today -> "Today"
@@ -722,8 +753,10 @@ private fun friendlyDateHeader(timestampMillis: Long): String {
 }
 
 /** Coordinates formatted to four decimals, e.g. "18.5204, 73.8567". */
-private fun formatCoordinates(lat: Double, lng: Double): String =
-    String.format(Locale.getDefault(), "%.4f, %.4f", lat, lng)
+private fun formatCoordinates(
+    lat: Double,
+    lng: Double,
+): String = String.format(Locale.getDefault(), "%.4f, %.4f", lat, lng)
 
 /** Event time formatted as "Jun 9, 4:30 PM". */
 private fun formatTime(timestampMillis: Long): String {
@@ -731,7 +764,7 @@ private fun formatTime(timestampMillis: Long): String {
     return TimeFormatter.format(
         Instant.ofEpochMilli(timestampMillis)
             .atZone(ZoneId.systemDefault())
-            .toLocalDateTime()
+            .toLocalDateTime(),
     )
 }
 

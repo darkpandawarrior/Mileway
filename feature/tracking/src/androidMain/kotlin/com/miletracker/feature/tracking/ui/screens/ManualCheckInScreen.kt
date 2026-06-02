@@ -27,8 +27,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -120,8 +120,8 @@ fun ManualCheckInScreen(
                     time = System.currentTimeMillis(),
                     lat = demoLat,
                     lng = demoLng,
-                    event = "Manual check-in${if (selectedType != null) " ($selectedType)" else ""}: $reason"
-                )
+                    event = "Manual check-in${if (selectedType != null) " ($selectedType)" else ""}: $reason",
+                ),
             )
             isSubmitting = false
             snackbarHostState.showSnackbar("Check-in submitted successfully")
@@ -140,40 +140,42 @@ fun ManualCheckInScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
             Column(
-                modifier = Modifier
-                    .padding(DesignTokens.Spacing.l)
-                    .padding(bottom = DesignTokens.Spacing.m)
+                modifier =
+                    Modifier
+                        .padding(DesignTokens.Spacing.l)
+                        .padding(bottom = DesignTokens.Spacing.m),
             ) {
                 Button(
                     onClick = { submitCheckIn() },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = canSubmit
+                    enabled = canSubmit,
                 ) {
                     if (isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     } else {
                         Text("Submit Check-In")
                     }
                 }
             }
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             // ── Current Location Card ───────────────────────────────────────
             SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -183,14 +185,14 @@ fun ManualCheckInScreen(
                             Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(DesignTokens.Spacing.s))
                         Text(
                             "Current Location",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         if (isRefreshing) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -204,12 +206,12 @@ fun ManualCheckInScreen(
                     Text(
                         text = "%.6f, %.6f".format(demoLat, demoLng),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
                     Text(
                         text = configManager.getDemoAccuracyLabel(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
@@ -231,12 +233,12 @@ fun ManualCheckInScreen(
             SectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(DesignTokens.Spacing.m),
-                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 ) {
                     Text(
                         "Check-in Details",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
 
                     OutlinedTextField(
@@ -250,14 +252,14 @@ fun ManualCheckInScreen(
                         supportingText = {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                                horizontalArrangement = Arrangement.End,
                             ) { Text("${reason.length}/200") }
-                        }
+                        },
                     )
 
                     ExposedDropdownMenuBox(
                         expanded = typeExpanded,
-                        onExpandedChange = { typeExpanded = it }
+                        onExpandedChange = { typeExpanded = it },
                     ) {
                         OutlinedTextField(
                             value = selectedType ?: "Select check-in type (optional)",
@@ -265,13 +267,14 @@ fun ManualCheckInScreen(
                             readOnly = true,
                             label = { Text("Check-in Type") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                         )
                         ExposedDropdownMenu(
                             expanded = typeExpanded,
-                            onDismissRequest = { typeExpanded = false }
+                            onDismissRequest = { typeExpanded = false },
                         ) {
                             checkInTypes.forEach { type ->
                                 DropdownMenuItem(
@@ -279,7 +282,7 @@ fun ManualCheckInScreen(
                                     onClick = {
                                         selectedType = type
                                         typeExpanded = false
-                                    }
+                                    },
                                 )
                             }
                         }

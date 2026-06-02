@@ -27,12 +27,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 /** Icon + accent colour for each [ToastType]. */
-private fun ToastType.iconAndTint(): Pair<ImageVector, Color> = when (this) {
-    ToastType.Success -> Icons.Filled.CheckCircle to Color(0xFF2E7D32)
-    ToastType.Error -> Icons.Filled.Error to Color(0xFFC62828)
-    ToastType.Info -> Icons.Filled.Info to Color(0xFF1565C0)
-    ToastType.Warning -> Icons.Filled.Warning to Color(0xFFEF6C00)
-}
+private fun ToastType.iconAndTint(): Pair<ImageVector, Color> =
+    when (this) {
+        ToastType.Success -> Icons.Filled.CheckCircle to Color(0xFF2E7D32)
+        ToastType.Error -> Icons.Filled.Error to Color(0xFFC62828)
+        ToastType.Info -> Icons.Filled.Info to Color(0xFF1565C0)
+        ToastType.Warning -> Icons.Filled.Warning to Color(0xFFEF6C00)
+    }
 
 /**
  * Rich toast card — icon + title + description + optional actions. Multiplatform (Android + iOS),
@@ -87,10 +88,16 @@ fun AppToast(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     data.secondaryAction?.let {
-                        TextButton(onClick = { it.onClick(); onSecondary() }) { Text(it.label) }
+                        TextButton(onClick = {
+                            it.onClick()
+                            onSecondary()
+                        }) { Text(it.label) }
                     }
                     data.primaryAction?.let {
-                        TextButton(onClick = { it.onClick(); onPrimary() }) { Text(it.label) }
+                        TextButton(onClick = {
+                            it.onClick()
+                            onPrimary()
+                        }) { Text(it.label) }
                     }
                 }
             } else {

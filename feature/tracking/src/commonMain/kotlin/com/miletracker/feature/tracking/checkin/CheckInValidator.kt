@@ -1,6 +1,11 @@
 package com.miletracker.feature.tracking.checkin
 
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.asin
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * Pure-Kotlin (no Android imports) Haversine-based check-in validator.
@@ -11,7 +16,6 @@ import kotlin.math.*
  * All validation is done locally; no network calls are made.
  */
 object CheckInValidator {
-
     private const val EARTH_RADIUS_METERS = 6_371_000.0
 
     /**
@@ -31,7 +35,7 @@ object CheckInValidator {
         val lat: Double,
         val lng: Double,
         val type: String,
-        val radiusMeters: Double? = null
+        val radiusMeters: Double? = null,
     )
 
     /**
@@ -54,7 +58,7 @@ object CheckInValidator {
         val nearestLocation: CheckInLocation,
         val effectiveRadius: Double,
         val userLat: Double,
-        val userLng: Double
+        val userLng: Double,
     )
 
     /**
@@ -75,7 +79,7 @@ object CheckInValidator {
         userLat: Double,
         userLng: Double,
         candidates: List<CheckInLocation>,
-        defaultRadiusMeters: Double = 100.0
+        defaultRadiusMeters: Double = 100.0,
     ): ValidationResult {
         require(candidates.isNotEmpty()) { "candidates must not be empty" }
 
@@ -92,7 +96,7 @@ object CheckInValidator {
             nearestLocation = nearest,
             effectiveRadius = radius,
             userLat = userLat,
-            userLng = userLng
+            userLng = userLng,
         )
     }
 
@@ -100,10 +104,16 @@ object CheckInValidator {
      * Haversine formula — returns the great-circle distance in metres between two
      * geographic coordinates.
      */
-    fun haversineMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+    fun haversineMeters(
+        lat1: Double,
+        lng1: Double,
+        lat2: Double,
+        lng2: Double,
+    ): Double {
         val dLat = (lat2 - lat1) * PI / 180.0
         val dLng = (lng2 - lng1) * PI / 180.0
-        val a = sin(dLat / 2).pow(2) +
+        val a =
+            sin(dLat / 2).pow(2) +
                 cos(lat1 * PI / 180.0) * cos(lat2 * PI / 180.0) * sin(dLng / 2).pow(2)
         return EARTH_RADIUS_METERS * 2 * asin(sqrt(a))
     }
@@ -113,6 +123,6 @@ object CheckInValidator {
      */
     fun buildOutsideRadiusMessage(result: ValidationResult): String =
         "You are ${result.distanceOutside.toInt()} m outside the check-in radius of " +
-                "${result.effectiveRadius.toInt()} m for \"${result.nearestLocation.name}\". " +
-                "Move closer and try again."
+            "${result.effectiveRadius.toInt()} m for \"${result.nearestLocation.name}\". " +
+            "Move closer and try again."
 }

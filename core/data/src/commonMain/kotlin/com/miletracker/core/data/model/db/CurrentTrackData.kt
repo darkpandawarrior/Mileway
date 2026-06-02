@@ -39,7 +39,7 @@ data class CurrentTrackData(
     val startedByEmployeeCode: String = "",
     val startedByAccountEmail: String = "demo@miletracker.app",
     val startedByTenant: String = "DEMO",
-    val startedAtTimestamp: Long = 0L
+    val startedAtTimestamp: Long = 0L,
 ) {
     fun isEmpty(): Boolean = token.isEmpty()
 

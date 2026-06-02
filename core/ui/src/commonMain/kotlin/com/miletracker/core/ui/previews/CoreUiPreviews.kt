@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.miletracker.core.ui.components.CollapsibleSectionCard
 import com.miletracker.core.ui.components.EmptyState
 import com.miletracker.core.ui.components.ErrorScreen
 import com.miletracker.core.ui.components.LoadingScreen
@@ -55,7 +54,7 @@ private fun ErrorScreenPreview() {
     PreviewSurface {
         ErrorScreen(
             message = "Could not load data. Please check your connection.",
-            onRetry = {}
+            onRetry = {},
         )
     }
 }
@@ -66,7 +65,7 @@ private fun EmptyStatePreview() {
     PreviewSurface {
         EmptyState(
             title = "No journeys yet",
-            subtitle = "Your completed trips will appear here."
+            subtitle = "Your completed trips will appear here.",
         )
     }
 }
@@ -81,27 +80,27 @@ private fun SectionCardPreview() {
     PreviewSurface {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SectionLabel(text = "Recent Activity")
             SectionCard(
                 title = "Trip Summary",
                 subtitle = "19 Jun 2026",
-                leadingIcon = Icons.Filled.DirectionsCar
+                leadingIcon = Icons.Filled.DirectionsCar,
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     StatCard(
                         label = "Distance",
                         value = "${SampleData.Trip.distanceKm} km",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     StatCard(
                         label = "Reimbursable",
                         value = "₹${SampleData.Trip.reimbursableAmount}",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -119,14 +118,15 @@ private fun ExpandableStatsCardCollapsedPreview() {
     PreviewSurface {
         Column(modifier = Modifier.padding(16.dp)) {
             ExpandableStatsCard(
-                stats = listOf(
-                    StatItem(label = "Distance", value = "${SampleData.Trip.distanceKm} km", icon = Icons.Filled.DirectionsCar),
-                    StatItem(label = "Duration", value = "1 hr 0 min"),
-                    StatItem(label = "Avg Speed", value = "12.4 km/h", icon = Icons.Filled.Speed),
-                    StatItem(label = "Paused", value = "0 min"),
-                ),
+                stats =
+                    listOf(
+                        StatItem(label = "Distance", value = "${SampleData.Trip.distanceKm} km", icon = Icons.Filled.DirectionsCar),
+                        StatItem(label = "Duration", value = "1 hr 0 min"),
+                        StatItem(label = "Avg Speed", value = "12.4 km/h", icon = Icons.Filled.Speed),
+                        StatItem(label = "Paused", value = "0 min"),
+                    ),
                 expanded = false,
-                onToggle = {}
+                onToggle = {},
             )
         }
     }
@@ -142,18 +142,19 @@ private fun SystemStatusRowPreview() {
     PreviewSurface {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             CompactSystemStatusIndicator(
-                chips = listOf(
-                    StatusChip(icon = Icons.Filled.GpsFixed, label = "GPS", level = StatusLevel.OK),
-                    StatusChip(icon = Icons.Filled.NetworkCheck, label = "Network", level = StatusLevel.OK),
-                    StatusChip(icon = Icons.Filled.Speed, label = "Accuracy", level = StatusLevel.WARN),
-                )
+                chips =
+                    listOf(
+                        StatusChip(icon = Icons.Filled.GpsFixed, label = "GPS", level = StatusLevel.OK),
+                        StatusChip(icon = Icons.Filled.NetworkCheck, label = "Network", level = StatusLevel.OK),
+                        StatusChip(icon = Icons.Filled.Speed, label = "Accuracy", level = StatusLevel.WARN),
+                    ),
             )
             SystemStatusBanner(
                 allOk = true,
-                message = "All systems nominal — ready to track."
+                message = "All systems nominal — ready to track.",
             )
         }
     }
@@ -172,7 +173,7 @@ private fun TwoButtonRowPreview() {
             onPrimary = {},
             secondaryText = "Save Draft",
             onSecondary = {},
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = 16.dp),
         )
     }
 }

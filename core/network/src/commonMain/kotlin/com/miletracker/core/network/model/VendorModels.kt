@@ -17,7 +17,7 @@ data class VendorCenter(
     @SerialName("city") val city: String? = null,
     @SerialName("lat") val lat: Double = 0.0,
     @SerialName("lng") val lng: Double = 0.0,
-    @SerialName("radiusMeters") val radiusMeters: Double = 100.0
+    @SerialName("radiusMeters") val radiusMeters: Double = 100.0,
 )
 
 // ── Frequent routes ───────────────────────────────────────────────────────────
@@ -32,5 +32,5 @@ data class FrequentRoute(
     @SerialName("fromName") val fromName: String,
     @SerialName("toName") val toName: String,
     @SerialName("distanceKm") val distanceKm: Double = 0.0,
-    @SerialName("timesUsed") val timesUsed: Int = 0
+    @SerialName("timesUsed") val timesUsed: Int = 0,
 )

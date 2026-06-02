@@ -1,5 +1,8 @@
+@file:Suppress("ktlint:standard:max-line-length")
+
 package com.miletracker.feature.payables.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,16 +40,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
+import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
@@ -56,7 +59,6 @@ import com.miletracker.feature.payables.model.PoStatus
 import com.miletracker.feature.payables.model.PurchaseOrder
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import com.miletracker.core.common.formatDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +66,7 @@ fun PurchaseRequestDetailsScreen(
     poId: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PayablesViewModel = koinViewModel()
+    viewModel: PayablesViewModel = koinViewModel(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
@@ -88,28 +90,29 @@ fun PurchaseRequestDetailsScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         if (po == null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text("Purchase order not found", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = DesignTokens.Spacing.l)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+                modifier =
+                    modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = DesignTokens.Spacing.l)
+                        .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
             ) {
                 Spacer(Modifier.height(DesignTokens.Spacing.s))
 
@@ -124,7 +127,7 @@ fun PurchaseRequestDetailsScreen(
 
                 OutlinedButton(
                     onClick = { viewModel.showSnackbar("Downloading ${po.id}.pdf…") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -139,34 +142,36 @@ fun PurchaseRequestDetailsScreen(
 
 @Composable
 private fun PoHeaderCard(po: PurchaseOrder) {
-    val (statusLabel, statusColor) = when (po.status) {
-        PoStatus.DRAFT -> "Draft" to StatusColors.neutral
-        PoStatus.PENDING_APPROVAL -> "Pending Approval" to StatusColors.warning
-        PoStatus.APPROVED -> "Approved" to StatusColors.success
-        PoStatus.REJECTED -> "Rejected" to StatusColors.error
-    }
+    val (statusLabel, statusColor) =
+        when (po.status) {
+            PoStatus.DRAFT -> "Draft" to StatusColors.neutral
+            PoStatus.PENDING_APPROVAL -> "Pending Approval" to StatusColors.warning
+            PoStatus.APPROVED -> "Approved" to StatusColors.success
+            PoStatus.REJECTED -> "Rejected" to StatusColors.error
+        }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = po.vendorName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Surface(color = statusColor.copy(alpha = 0.15f), shape = RoundedCornerShape(6.dp)) {
                     Text(
@@ -174,7 +179,7 @@ private fun PoHeaderCard(po: PurchaseOrder) {
                         style = MaterialTheme.typography.labelSmall,
                         color = statusColor,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                 }
             }
@@ -187,10 +192,13 @@ private fun PoHeaderCard(po: PurchaseOrder) {
 }
 
 @Composable
-private fun DetailRow(label: String, value: String) {
+private fun DetailRow(
+    label: String,
+    value: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
@@ -198,22 +206,36 @@ private fun DetailRow(label: String, value: String) {
 }
 
 @Composable
-private fun PoLineItemsCard(lineItems: List<PoLineItem>, total: Double) {
+private fun PoLineItemsCard(
+    lineItems: List<PoLineItem>,
+    total: Double,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
         ) {
-            Text("Line Items", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Line Items",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold,
+            )
             Spacer(Modifier.height(DesignTokens.Spacing.xs))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Description", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                Text(
+                    "Description",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
                 Text("Qty", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.size(DesignTokens.Spacing.l))
                 Text("Total", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -223,7 +245,7 @@ private fun PoLineItemsCard(lineItems: List<PoLineItem>, total: Double) {
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.Top,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(item.description, style = MaterialTheme.typography.bodySmall)
@@ -247,48 +269,65 @@ private fun PoLineItemsCard(lineItems: List<PoLineItem>, total: Double) {
 private fun PoTimelineCard(status: PoStatus) {
     data class TStep(val label: String, val icon: ImageVector, val color: Color, val active: Boolean, val note: String = "")
 
-    val steps = listOf(
-        TStep("Submitted", Icons.Filled.Receipt, StatusColors.info, active = true, note = "Sent to procurement team"),
-        TStep("Under Review", Icons.Filled.HourglassBottom, StatusColors.warning, active = status != PoStatus.DRAFT, note = if (status != PoStatus.DRAFT) "Awaiting approver sign-off" else ""),
-        when (status) {
-            PoStatus.APPROVED -> TStep("Approved", Icons.Filled.CheckCircle, StatusColors.success, active = true, note = "PO raised with vendor")
-            PoStatus.REJECTED -> TStep("Rejected", Icons.Filled.CheckCircle, StatusColors.error, active = true, note = "Contact procurement")
-            else -> TStep("Pending Decision", Icons.Filled.HourglassBottom, StatusColors.neutral, active = false)
-        }
-    )
+    val steps =
+        listOf(
+            TStep("Submitted", Icons.Filled.Receipt, StatusColors.info, active = true, note = "Sent to procurement team"),
+            TStep(
+                "Under Review",
+                Icons.Filled.HourglassBottom,
+                StatusColors.warning,
+                active = status != PoStatus.DRAFT,
+                note = if (status != PoStatus.DRAFT) "Awaiting approver sign-off" else "",
+            ),
+            when (status) {
+                PoStatus.APPROVED -> TStep("Approved", Icons.Filled.CheckCircle, StatusColors.success, active = true, note = "PO raised with vendor")
+                PoStatus.REJECTED -> TStep("Rejected", Icons.Filled.CheckCircle, StatusColors.error, active = true, note = "Contact procurement")
+                else -> TStep("Pending Decision", Icons.Filled.HourglassBottom, StatusColors.neutral, active = false)
+            },
+        )
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
-            Text("Approval Timeline", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Approval Timeline",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold,
+            )
             steps.forEach { step ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(
-                                if (step.active) step.color.copy(alpha = 0.15f)
-                                else MaterialTheme.colorScheme.surfaceVariant,
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .size(32.dp)
+                                .background(
+                                    if (step.active) {
+                                        step.color.copy(alpha = 0.15f)
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    },
+                                    CircleShape,
+                                ),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = step.icon,
                             contentDescription = null,
                             tint = if (step.active) step.color else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp),
                         )
                     }
                     Column {
@@ -296,7 +335,7 @@ private fun PoTimelineCard(status: PoStatus) {
                             text = step.label,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = if (step.active) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (step.active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            color = if (step.active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         )
                         if (step.note.isNotBlank()) {
                             Text(step.note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

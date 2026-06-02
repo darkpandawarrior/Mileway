@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.media.model.OcrResult
 
@@ -44,7 +43,7 @@ fun OcrResultBottomSheet(
     onConfirm: () -> Unit,
     onEdit: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -52,20 +51,21 @@ fun OcrResultBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = DesignTokens.Shape.sheet,
-        modifier = modifier
+        modifier = modifier,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = DesignTokens.Spacing.xl,
-                    vertical = DesignTokens.Spacing.l
-                )
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = DesignTokens.Spacing.xl,
+                        vertical = DesignTokens.Spacing.l,
+                    ),
         ) {
             Text(
                 text = "OCR result",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
 
             Spacer(Modifier.height(DesignTokens.Spacing.l))
@@ -73,13 +73,13 @@ fun OcrResultBottomSheet(
             Text(
                 text = "Detected odometer",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = result.detectedOdometer ?: "—",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
 
             Spacer(Modifier.height(DesignTokens.Spacing.m))
@@ -87,7 +87,7 @@ fun OcrResultBottomSheet(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Confidence ${(result.confidence * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.width(DesignTokens.Spacing.l))
                 if (result.watermarkApplied) {
@@ -100,24 +100,24 @@ fun OcrResultBottomSheet(
             Text(
                 text = result.rawText,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(Modifier.height(DesignTokens.Spacing.xl))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 OutlinedButton(
                     onClick = onEdit,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("Edit")
                 }
                 Button(
                     onClick = onConfirm,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("Confirm")
                 }
@@ -132,26 +132,27 @@ fun OcrResultBottomSheet(
 private fun WatermarkBadge() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clip(DesignTokens.Shape.chip)
-            .background(DesignTokens.StatusColors.success.copy(alpha = 0.15f))
-            .padding(
-                horizontal = DesignTokens.Spacing.m,
-                vertical = DesignTokens.Spacing.xs
-            )
+        modifier =
+            Modifier
+                .clip(DesignTokens.Shape.chip)
+                .background(DesignTokens.StatusColors.success.copy(alpha = 0.15f))
+                .padding(
+                    horizontal = DesignTokens.Spacing.m,
+                    vertical = DesignTokens.Spacing.xs,
+                ),
     ) {
         Icon(
             imageVector = Icons.Default.CheckCircle,
             contentDescription = null,
             tint = DesignTokens.StatusColors.success,
-            modifier = Modifier.size(DesignTokens.IconSize.inline)
+            modifier = Modifier.size(DesignTokens.IconSize.inline),
         )
         Spacer(Modifier.width(DesignTokens.Spacing.xs))
         Text(
             text = "Watermarked",
             style = MaterialTheme.typography.labelMedium,
             color = DesignTokens.StatusColors.success,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
         )
     }
 }

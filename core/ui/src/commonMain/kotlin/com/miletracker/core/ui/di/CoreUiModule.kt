@@ -14,7 +14,8 @@ expect val coreUiPlatformModule: Module
  * Koin module for shared UI infrastructure that must outlive any single screen,
  * e.g. the app-wide [ThemeController] read by the shell and written by Settings.
  */
-val coreUiModule = module {
-    includes(coreUiPlatformModule)
-    single { ThemeController(prefs = get()) }
-}
+val coreUiModule =
+    module {
+        includes(coreUiPlatformModule)
+        single { ThemeController(prefs = get()) }
+    }

@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 /**
  * MapScreen.kt
  *
@@ -16,6 +18,7 @@
  * - Device mounting detection (mounted vs handheld)
  * - Data quality scoring and feedback
  */
+
 package com.miletracker.feature.tracking.ui.screens
 
 import android.Manifest
@@ -26,7 +29,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -122,11 +124,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -142,7 +142,6 @@ import com.miletracker.feature.tracking.map.MapRouteBuilder
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -161,13 +160,13 @@ data class MapMarkerData(
     val lat: Double = 0.0,
     val lng: Double = 0.0,
     val title: String = "",
-    val type: String = "UNKNOWN"
+    val type: String = "UNKNOWN",
 )
 
 data class MarkerFilters(
     val showCheckIn: Boolean = true,
     val showIssues: Boolean = true,
-    val showPause: Boolean = true
+    val showPause: Boolean = true,
 )
 
 // ---------------------------------------------------------------------------
@@ -178,7 +177,7 @@ enum class GPSQuality(val label: String, val color: Color) {
     EXCELLENT("Excellent", Color(0xFF4CAF50)),
     GOOD("Good", Color(0xFF8BC34A)),
     FAIR("Fair", Color(0xFFFF9800)),
-    POOR("Poor", Color(0xFFFF5722))
+    POOR("Poor", Color(0xFFFF5722)),
 }
 
 // ---------------------------------------------------------------------------
@@ -188,7 +187,7 @@ enum class GPSQuality(val label: String, val color: Color) {
 enum class DeviceOrientation(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     MOUNTED("Mounted", Icons.Default.PhoneAndroid),
     HANDHELD("Handheld", Icons.Default.PhoneAndroid),
-    UNKNOWN("Unknown", Icons.Default.PhoneAndroid)
+    UNKNOWN("Unknown", Icons.Default.PhoneAndroid),
 }
 
 // ---------------------------------------------------------------------------
@@ -198,7 +197,7 @@ enum class DeviceOrientation(val label: String, val icon: androidx.compose.ui.gr
 @Composable
 fun LocationMapScreen(
     viewModel: LiveTrackViewModel = koinViewModel(),
-    onNavigateBack: (() -> Unit)? = null
+    onNavigateBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
 
@@ -206,29 +205,32 @@ fun LocationMapScreen(
     val liveTrackingState by viewModel.liveTrackingState.collectAsState()
     val locationPointsState by viewModel.locationPointsState.collectAsState()
 
-    val currentTrackData: CurrentTrackData? = when (val s = liveTrackingState) {
-        is com.miletracker.feature.tracking.viewmodel.LiveTrackingUiState.Success -> s.trackData
-        else -> null
-    }
-    val locationPoints: List<LocationData> = when (val s = locationPointsState) {
-        is UiState.Success -> s.data
-        else -> emptyList()
-    }
+    val currentTrackData: CurrentTrackData? =
+        when (val s = liveTrackingState) {
+            is com.miletracker.feature.tracking.viewmodel.LiveTrackingUiState.Success -> s.trackData
+            else -> null
+        }
+    val locationPoints: List<LocationData> =
+        when (val s = locationPointsState) {
+            is UiState.Success -> s.data
+            else -> emptyList()
+        }
     val isTracking = currentTrackData?.isTracking ?: false
     val activeTrack: CurrentTrackData? = currentTrackData
 
     // Synthesise a minimal LocationData for current position from CurrentTrackData
-    val currentLocation: LocationData? = currentTrackData?.let { t ->
-        locationPoints.lastOrNull() ?: LocationData(
-            activity = t.trackingActivity,
-            speed = t.speed.toFloat(),
-            lat = t.startLatitude,
-            lng = t.startLongitude,
-            token = t.token,
-            date = System.currentTimeMillis(),
-            batteryPercentage = 0.0
-        )
-    }
+    val currentLocation: LocationData? =
+        currentTrackData?.let { t ->
+            locationPoints.lastOrNull() ?: LocationData(
+                activity = t.trackingActivity,
+                speed = t.speed.toFloat(),
+                lat = t.startLatitude,
+                lng = t.startLongitude,
+                token = t.token,
+                date = System.currentTimeMillis(),
+                batteryPercentage = 0.0,
+            )
+        }
 
     // Marker state — no-op stubs for demo
     val markers: List<MapMarkerData> = emptyList()
@@ -243,8 +245,8 @@ fun LocationMapScreen(
         mutableStateOf(
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED,
         )
     }
     var hasNotificationPermission by remember {
@@ -252,11 +254,11 @@ fun LocationMapScreen(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ContextCompat.checkSelfPermission(
                     context,
-                    Manifest.permission.POST_NOTIFICATIONS
+                    Manifest.permission.POST_NOTIFICATIONS,
                 ) == PackageManager.PERMISSION_GRANTED
             } else {
                 true
-            }
+            },
         )
     }
 
@@ -271,16 +273,18 @@ fun LocationMapScreen(
     var showOrientationDetection by remember { mutableStateOf(true) }
 
     // Permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
-        hasNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
-        } else {
-            true
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions(),
+        ) { permissions ->
+            hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+            hasNotificationPermission =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
+                } else {
+                    true
+                }
         }
-    }
 
     // Request permissions on launch
     LaunchedEffect(Unit) {
@@ -319,7 +323,7 @@ fun LocationMapScreen(
                     if (permissionsToRequest.isNotEmpty()) {
                         permissionLauncher.launch(permissionsToRequest.toTypedArray())
                     }
-                }
+                },
             )
         } else if (currentLocation != null) {
             EnhancedLiveTrackingUI(
@@ -349,22 +353,22 @@ fun LocationMapScreen(
                 onMarkerClick = { selectedMarker = it },
                 onDismissMarker = { selectedMarker = null },
                 onMarkerFiltersChanged = { markerFilters = it },
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
             )
         } else {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     CircularProgressIndicator()
                     Text(
                         text = "Getting your location...",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -380,41 +384,42 @@ fun LocationMapScreen(
 fun PermissionRequestScreen(
     hasLocationPermission: Boolean,
     hasNotificationPermission: Boolean,
-    onRequestPermissions: () -> Unit
+    onRequestPermissions: () -> Unit,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Card(
-            modifier = Modifier
-                .padding(24.dp)
-                .widthIn(max = 400.dp)
+            modifier =
+                Modifier
+                    .padding(24.dp)
+                    .widthIn(max = 400.dp),
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.MyLocation,
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
 
                 Text(
                     text = "Permissions Required",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
 
                 if (!hasLocationPermission) {
                     InfoRow(
                         icon = Icons.Default.MyLocation,
                         text = "Location permission is needed to track your mileage.",
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
 
@@ -422,13 +427,13 @@ fun PermissionRequestScreen(
                     InfoRow(
                         icon = Icons.Default.Info,
                         text = "Notification permission is needed for background tracking.",
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
 
                 Button(
                     onClick = onRequestPermissions,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Grant Permissions")
                 }
@@ -441,23 +446,23 @@ fun PermissionRequestScreen(
 private fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String,
-    color: Color
+    color: Color,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = color,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
         )
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -533,16 +538,23 @@ fun EnhancedLiveTrackingUI(
     LaunchedEffect(isPlayingBack, playbackSpeed, playbackIndex) {
         if (isPlayingBack && locationPoints.isNotEmpty() && playbackIndex < locationPoints.size) {
             delay((500 / playbackSpeed).toLong())
-            if (playbackIndex < locationPoints.size - 1) playbackIndex++
-            else { isPlayingBack = false; playbackIndex = 0 }
+            if (playbackIndex < locationPoints.size - 1) {
+                playbackIndex++
+            } else {
+                isPlayingBack = false
+                playbackIndex = 0
+            }
         }
     }
 
     // Derive route data from location points (pure Kotlin, no map dependency)
     val routeData = remember(locationPoints) { MapRouteBuilder.build(locationPoints) }
-    val playbackCoord = if (isPlayingBack && playbackIndex < locationPoints.size) {
-        locationPoints[playbackIndex].let { MapCoordinate(it.lat, it.lng) }
-    } else null
+    val playbackCoord =
+        if (isPlayingBack && playbackIndex < locationPoints.size) {
+            locationPoints[playbackIndex].let { MapCoordinate(it.lat, it.lng) }
+        } else {
+            null
+        }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Map — rendered by the active flavor's MapSurface implementation
@@ -551,8 +563,9 @@ fun EnhancedLiveTrackingUI(
             filteredCoords = routeData.filteredCoords.map { MapCoordinate(it.lat, it.lng) },
             abnormalCoords = routeData.abnormalCoords.map { MapCoordinate(it.lat, it.lng) },
             startCoord = routeData.startCoord?.let { MapCoordinate(it.lat, it.lng) },
-            endCoord = routeData.endCoord?.takeIf { locationPoints.size > 1 }
-                ?.let { MapCoordinate(it.lat, it.lng) },
+            endCoord =
+                routeData.endCoord?.takeIf { locationPoints.size > 1 }
+                    ?.let { MapCoordinate(it.lat, it.lng) },
             currentLat = currentLocation.lat,
             currentLng = currentLocation.lng,
             bearing = currentBearing,
@@ -567,10 +580,11 @@ fun EnhancedLiveTrackingUI(
             visible = isTracking && !controlsExpanded && !isPlayingBack,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 130.dp)
-                .zIndex(14f)
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 130.dp)
+                    .zIndex(14f),
         ) {
             EnhancedLiveIndicatorBadge(
                 duration = liveDuration,
@@ -579,7 +593,7 @@ fun EnhancedLiveTrackingUI(
                 bearingAccuracy = currentLocation.bearingAccuracyDegrees,
                 showBearingConfidence = showBearingConfidence,
                 deviceOrientation = deviceOrientation,
-                showOrientation = showOrientationDetection
+                showOrientation = showOrientationDetection,
             )
         }
 
@@ -588,15 +602,16 @@ fun EnhancedLiveTrackingUI(
             visible = showGyroscopeVisualization && !controlsExpanded && isTracking,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 200.dp, end = 16.dp)
-                .zIndex(15f)
+            modifier =
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 200.dp, end = 16.dp)
+                    .zIndex(15f),
         ) {
             GyroscopeVisualization(
                 gyroscopeX = currentLocation.gyroscopeX,
                 gyroscopeY = currentLocation.gyroscopeY,
-                gyroscopeZ = currentLocation.gyroscopeZ
+                gyroscopeZ = currentLocation.gyroscopeZ,
             )
         }
 
@@ -605,15 +620,16 @@ fun EnhancedLiveTrackingUI(
             visible = !controlsExpanded,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 16.dp)
-                .zIndex(16f)
+            modifier =
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp)
+                    .zIndex(16f),
         ) {
             LiveMapControlCluster(
                 onCenterMap = { onToggleAutoCenter() },
                 onZoomIn = {},
-                onZoomOut = {}
+                onZoomOut = {},
             )
         }
 
@@ -622,16 +638,17 @@ fun EnhancedLiveTrackingUI(
             visible = !controlsExpanded && !isPlayingBack,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 100.dp)
-                .zIndex(12f)
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 100.dp)
+                    .zIndex(12f),
         ) {
             EnhancedCompactLiveStatsCard(
                 currentLocation = currentLocation,
                 locationPoints = locationPoints,
                 liveDuration = liveDuration,
-                showDataQuality = true
+                showDataQuality = true,
             )
         }
 
@@ -640,17 +657,18 @@ fun EnhancedLiveTrackingUI(
             visible = isPlayingBack,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 80.dp)
-                .zIndex(12f)
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 80.dp)
+                    .zIndex(12f),
         ) {
             val currentPoint = locationPoints.getOrNull(playbackIndex)
             PlaybackIndicator(
                 currentIndex = playbackIndex,
                 totalPoints = locationPoints.size,
                 playbackSpeed = playbackSpeed,
-                currentLocation = currentPoint
+                currentLocation = currentPoint,
             )
         }
 
@@ -702,9 +720,10 @@ fun EnhancedLiveTrackingUI(
                 playbackIndex = newIndex.coerceIn(0, locationPoints.size - 1)
             },
             onChangePlaybackSpeed = { playbackSpeed = it },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .zIndex(13f)
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .zIndex(13f),
         )
 
         // Back button
@@ -712,16 +731,17 @@ fun EnhancedLiveTrackingUI(
             onClick = { onNavigateBack?.invoke() },
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 56.dp, start = 16.dp)
-                .size(56.dp)
-                .zIndex(20f)
+            modifier =
+                Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 56.dp, start = 16.dp)
+                    .size(56.dp)
+                    .zIndex(20f),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
         }
 
@@ -729,7 +749,7 @@ fun EnhancedLiveTrackingUI(
         if (selectedMarker != null) {
             MarkerInfoDialog(
                 marker = selectedMarker,
-                onDismiss = onDismissMarker
+                onDismiss = onDismissMarker,
             )
         }
     }
@@ -742,22 +762,23 @@ fun EnhancedLiveTrackingUI(
 @Composable
 fun MarkerInfoDialog(
     marker: MapMarkerData,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f))
-            .clickable { onDismiss() },
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.4f))
+                .clickable { onDismiss() },
+        contentAlignment = Alignment.Center,
     ) {
         Card(
             modifier = Modifier.padding(32.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(marker.title.ifEmpty { "Marker" }, style = MaterialTheme.typography.titleMedium)
                 Text("Type: ${marker.type}", style = MaterialTheme.typography.bodySmall)
@@ -776,14 +797,14 @@ fun MarkerInfoDialog(
 fun MarkerFilterChips(
     filters: MarkerFilters,
     onFiltersChanged: (MarkerFilters) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // No-op stub for demo
     Text(
         text = "Marker filters not available in demo",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(8.dp)
+        modifier = modifier.padding(8.dp),
     )
 }
 
@@ -796,7 +817,7 @@ fun HeatmapLegend() {
     Text(
         text = "Speed heatmap legend",
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -805,7 +826,7 @@ fun StatusLegend() {
     Text(
         text = "Status legend",
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -822,7 +843,7 @@ fun EnhancedLiveIndicatorBadge(
     showBearingConfidence: Boolean,
     deviceOrientation: DeviceOrientation,
     showOrientation: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
     val isSmallScreen = configuration.screenWidthDp < 400
@@ -830,27 +851,29 @@ fun EnhancedLiveIndicatorBadge(
     val alpha by animateFloatAsState(
         targetValue = if (isRecording) 1f else 0.3f,
         animationSpec = tween(500),
-        label = "recordingAlpha"
+        label = "recordingAlpha",
     )
 
     Card(
-        modifier = modifier
-            .widthIn(max = if (isSmallScreen) 240.dp else 280.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.95f)
-        ),
-        shape = RoundedCornerShape(20.dp)
+        modifier =
+            modifier
+                .widthIn(max = if (isSmallScreen) 240.dp else 280.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.95f),
+            ),
+        shape = RoundedCornerShape(20.dp),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.FiberManualRecord,
                 contentDescription = "Recording",
                 tint = Color.Red.copy(alpha = alpha),
-                modifier = Modifier.size(12.dp)
+                modifier = Modifier.size(12.dp),
             )
 
             Text(
@@ -858,28 +881,29 @@ fun EnhancedLiveIndicatorBadge(
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onErrorContainer,
-                maxLines = 1
+                maxLines = 1,
             )
 
             Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(14.dp)
-                    .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f))
+                modifier =
+                    Modifier
+                        .width(1.dp)
+                        .height(14.dp)
+                        .background(MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f)),
             )
 
             Icon(
                 imageVector = Icons.Default.GpsFixed,
                 contentDescription = "GPS",
                 tint = gpsQuality.color,
-                modifier = Modifier.size(12.dp)
+                modifier = Modifier.size(12.dp),
             )
 
             Text(
                 text = gpsQuality.label,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onErrorContainer,
-                maxLines = 1
+                maxLines = 1,
             )
         }
     }
@@ -892,37 +916,40 @@ fun EnhancedLiveIndicatorBadge(
 @Composable
 fun BearingConfidenceIndicator(
     accuracy: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val confidence = when {
-        accuracy <= 15 -> "High"
-        accuracy <= 45 -> "Medium"
-        else -> "Low"
-    }
+    val confidence =
+        when {
+            accuracy <= 15 -> "High"
+            accuracy <= 45 -> "Medium"
+            else -> "Low"
+        }
 
-    val color = when {
-        accuracy <= 15 -> Color(0xFF4CAF50)
-        accuracy <= 45 -> Color(0xFFFF9800)
-        else -> Color(0xFFFF5722)
-    }
+    val color =
+        when {
+            accuracy <= 15 -> Color(0xFF4CAF50)
+            accuracy <= 45 -> Color(0xFFFF9800)
+            else -> Color(0xFFFF5722)
+        }
 
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(color)
+            modifier =
+                Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(color),
         )
         Text(
             text = "$confidence (${accuracy.toInt()}°)",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onErrorContainer,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -934,24 +961,24 @@ fun BearingConfidenceIndicator(
 @Composable
 fun DeviceOrientationIndicator(
     orientation: DeviceOrientation,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = orientation.icon,
             contentDescription = null,
             modifier = Modifier.size(12.dp),
-            tint = MaterialTheme.colorScheme.onErrorContainer
+            tint = MaterialTheme.colorScheme.onErrorContainer,
         )
         Text(
             text = orientation.label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onErrorContainer,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
@@ -965,24 +992,25 @@ fun GyroscopeVisualization(
     gyroscopeX: Float,
     gyroscopeY: Float,
     gyroscopeZ: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-        ),
-        shape = RoundedCornerShape(12.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            ),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = "Gyroscope",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             GyroscopeAxis("X", gyroscopeX, Color(0xFFFF5722))
@@ -993,7 +1021,7 @@ fun GyroscopeVisualization(
             Text(
                 text = "Tilt: ${kotlin.math.round(tiltMagnitude * 100).toLong() / 100.0}°/s",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -1003,29 +1031,30 @@ fun GyroscopeVisualization(
 fun GyroscopeAxis(
     label: String,
     value: Float,
-    color: Color
+    color: Color,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = color,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.width(12.dp)
+            modifier = Modifier.width(12.dp),
         )
 
         LinearProgressIndicator(
             progress = { (abs(value) / 5f).coerceIn(0f, 1f) },
-            modifier = Modifier
-                .weight(1f)
-                .height(4.dp)
-                .clip(RoundedCornerShape(2.dp)),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp)),
             color = color,
-            trackColor = color.copy(alpha = 0.2f)
+            trackColor = color.copy(alpha = 0.2f),
         )
 
         Text(
@@ -1033,7 +1062,7 @@ fun GyroscopeAxis(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.width(32.dp),
-            textAlign = TextAlign.End
+            textAlign = TextAlign.End,
         )
     }
 }
@@ -1048,34 +1077,35 @@ fun PlaybackIndicator(
     totalPoints: Int,
     playbackSpeed: Float,
     currentLocation: LocationData? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f)
-        ),
-        shape = RoundedCornerShape(16.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f),
+            ),
+        shape = RoundedCornerShape(16.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "Playback ${playbackSpeed}x",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Text(
                     text = "${currentIndex + 1} / $totalPoints",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
 
@@ -1084,57 +1114,58 @@ fun PlaybackIndicator(
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.tertiary,
-                trackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                trackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
             )
 
             if (currentLocation != null) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Speed,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp),
                         )
                         Text(
                             text = kotlin.math.round(currentLocation.speed * 3.6f).toInt().toString(),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                         Text(
                             text = "km/h",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
                         )
                     }
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.GpsFixed,
                             contentDescription = null,
-                            tint = when {
-                                currentLocation.accuracy <= 10f -> Color(0xFF4CAF50)
-                                currentLocation.accuracy <= 20f -> Color(0xFFFF9800)
-                                else -> Color(0xFFFF5722)
-                            },
-                            modifier = Modifier.size(16.dp)
+                            tint =
+                                when {
+                                    currentLocation.accuracy <= 10f -> Color(0xFF4CAF50)
+                                    currentLocation.accuracy <= 20f -> Color(0xFFFF9800)
+                                    else -> Color(0xFFFF5722)
+                                },
+                            modifier = Modifier.size(16.dp),
                         )
                         Text(
                             text = "${currentLocation.accuracy.toInt()}m",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                     }
                 }
@@ -1153,7 +1184,7 @@ fun EnhancedCompactLiveStatsCard(
     locationPoints: List<LocationData>,
     liveDuration: Long,
     showDataQuality: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
     val isSmallScreen = configuration.screenWidthDp < 400
@@ -1164,108 +1195,111 @@ fun EnhancedCompactLiveStatsCard(
     val dataQualityScore = if (showDataQuality) calculateDataQualityScore(locationPoints) else null
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = if (isSmallScreen) 8.dp else 16.dp)
-            .widthIn(max = maxCardWidth),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-        ),
-        shape = RoundedCornerShape(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = if (isSmallScreen) 8.dp else 16.dp)
+                .widthIn(max = maxCardWidth),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            ),
+        shape = RoundedCornerShape(16.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(if (isSmallScreen) 10.dp else 14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(if (isSmallScreen) 10.dp else 14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Current Speed",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                     Row(
                         verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
                         Text(
                             text = kotlin.math.round(currentSpeed).toInt().toString(),
                             style = if (isSmallScreen) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                         Text(
                             text = "km/h",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = if (isSmallScreen) 2.dp else 3.dp),
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                 }
 
                 Column(
                     horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Route,
                             contentDescription = null,
                             modifier = Modifier.size(if (isSmallScreen) 12.dp else 14.dp),
-                            tint = Color(0xFF2196F3)
+                            tint = Color(0xFF2196F3),
                         )
                         Text(
                             text = "${kotlin.math.round((totalDistance / 1000.0) * 100).toLong() / 100.0} km",
                             style = if (isSmallScreen) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Timer,
                             contentDescription = null,
                             modifier = Modifier.size(if (isSmallScreen) 12.dp else 14.dp),
-                            tint = Color(0xFF9C27B0)
+                            tint = Color(0xFF9C27B0),
                         )
                         Text(
                             text = formatLiveDuration(liveDuration),
                             style = if (isSmallScreen) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Default.MyLocation,
                             contentDescription = null,
                             modifier = Modifier.size(if (isSmallScreen) 12.dp else 14.dp),
-                            tint = Color(0xFF00BCD4)
+                            tint = Color(0xFF00BCD4),
                         )
                         Text(
                             text = "${locationPoints.size} pts",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                 }
@@ -1286,43 +1320,45 @@ fun EnhancedCompactLiveStatsCard(
 @Composable
 fun DataQualityIndicator(
     score: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val color = when {
-        score >= 80 -> Color(0xFF4CAF50)
-        score >= 60 -> Color(0xFFFF9800)
-        else -> Color(0xFFFF5722)
-    }
+    val color =
+        when {
+            score >= 80 -> Color(0xFF4CAF50)
+            score >= 60 -> Color(0xFFFF9800)
+            else -> Color(0xFFFF5722)
+        }
 
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = "Data Quality",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             LinearProgressIndicator(
                 progress = { score / 100f },
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp)),
+                modifier =
+                    Modifier
+                        .width(60.dp)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
                 color = color,
-                trackColor = color.copy(alpha = 0.2f)
+                trackColor = color.copy(alpha = 0.2f),
             )
             Text(
                 text = "$score%",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = color
+                color = color,
             )
         }
     }
@@ -1337,21 +1373,22 @@ private fun LiveMapControlCluster(
     onCenterMap: () -> Unit,
     onZoomIn: () -> Unit,
     onZoomOut: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         SmallFloatingActionButton(
             onClick = onZoomIn,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 4.dp,
-                pressedElevation = 8.dp
-            )
+            elevation =
+                FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp,
+                ),
         ) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "Zoom In")
         }
@@ -1360,10 +1397,11 @@ private fun LiveMapControlCluster(
             onClick = onCenterMap,
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 4.dp,
-                pressedElevation = 8.dp
-            )
+            elevation =
+                FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp,
+                ),
         ) {
             Icon(imageVector = Icons.Default.MyLocation, contentDescription = "Center Map")
         }
@@ -1372,10 +1410,11 @@ private fun LiveMapControlCluster(
             onClick = onZoomOut,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 4.dp,
-                pressedElevation = 8.dp
-            )
+            elevation =
+                FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp,
+                ),
         ) {
             Icon(imageVector = Icons.Default.Remove, contentDescription = "Zoom Out")
         }
@@ -1425,33 +1464,37 @@ fun EnhancedLiveControlPanel(
     onStopPlayback: () -> Unit,
     onSeekPlayback: (Int) -> Unit,
     onChangePlaybackSpeed: (Float) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val rotationAngle by animateFloatAsState(
         targetValue = if (controlsExpanded) 180f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "rotation"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "rotation",
     )
 
     Surface(
         tonalElevation = 8.dp,
         shadowElevation = 12.dp,
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .navigationBarsPadding(),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                )
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                    ),
         ) {
             if (!isTracking) {
                 CompactLiveControlHeader(
@@ -1461,30 +1504,31 @@ fun EnhancedLiveControlPanel(
                     isExpanded = controlsExpanded,
                     onToggleExpanded = onToggleExpanded,
                     onPlayPause = { if (isTracking) onPauseTracking() else onStartTracking() },
-                    rotationAngle = rotationAngle
+                    rotationAngle = rotationAngle,
                 )
             }
 
             AnimatedVisibility(
                 visible = controlsExpanded,
                 enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+                exit = shrinkVertically() + fadeOut(),
             ) {
                 Column {
-                    val availableTabs = remember(isTracking, locationPoints.isNotEmpty()) {
-                        buildList {
-                            if (!isTracking) add(0 to "Journey")
-                            add(1 to "Layers")
-                            add(2 to "Settings")
-                            if (!isTracking && locationPoints.isNotEmpty()) add(3 to "Playback")
+                    val availableTabs =
+                        remember(isTracking, locationPoints.isNotEmpty()) {
+                            buildList {
+                                if (!isTracking) add(0 to "Journey")
+                                add(1 to "Layers")
+                                add(2 to "Settings")
+                                if (!isTracking && locationPoints.isNotEmpty()) add(3 to "Playback")
+                            }
                         }
-                    }
 
                     val selectedTabIndex = availableTabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
 
                     PrimaryTabRow(
                         selectedTabIndex = selectedTabIndex,
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface,
                     ) {
                         availableTabs.forEach { (id, label) ->
                             Tab(
@@ -1502,61 +1546,66 @@ fun EnhancedLiveControlPanel(
                                 },
                                 icon = {
                                     Icon(
-                                        imageVector = when (id) {
-                                            0 -> Icons.Default.Route
-                                            1 -> Icons.Default.Layers
-                                            2 -> Icons.Default.Settings
-                                            else -> Icons.Default.PlayArrow
-                                        },
+                                        imageVector =
+                                            when (id) {
+                                                0 -> Icons.Default.Route
+                                                1 -> Icons.Default.Layers
+                                                2 -> Icons.Default.Settings
+                                                else -> Icons.Default.PlayArrow
+                                            },
                                         contentDescription = null,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(16.dp),
                                     )
-                                }
+                                },
                             )
                         }
                     }
 
                     when (selectedTab) {
-                        0 -> LiveJourneyTab(
-                            isTracking = isTracking,
-                            onStartTracking = onStartTracking,
-                            onPauseTracking = onPauseTracking
-                        )
-                        1 -> LiveLayersTab(
-                            speedHeatmap = speedHeatmap,
-                            showAccuracy = showAccuracy,
-                            showBattery = showBattery,
-                            showIssues = showIssues,
-                            showOfflineTiles = showOfflineTiles,
-                            markerFilters = markerFilters,
-                            onToggleSpeedHeatmap = onToggleSpeedHeatmap,
-                            onToggleAccuracy = onToggleAccuracy,
-                            onToggleBattery = onToggleBattery,
-                            onToggleIssues = onToggleIssues,
-                            onToggleOfflineTiles = onToggleOfflineTiles,
-                            onMarkerFiltersChanged = onMarkerFiltersChanged
-                        )
-                        2 -> EnhancedLiveSettingsTab(
-                            autoCenterEnabled = autoCenterEnabled,
-                            showGyroscope = showGyroscope,
-                            showBearingConfidence = showBearingConfidence,
-                            showOrientation = showOrientation,
-                            onToggleAutoCenter = onToggleAutoCenter,
-                            onToggleGyroscope = onToggleGyroscope,
-                            onToggleBearingConfidence = onToggleBearingConfidence,
-                            onToggleOrientation = onToggleOrientation
-                        )
-                        3 -> LivePlaybackTab(
-                            locationPoints = locationPoints,
-                            isPlaying = isPlayingBack,
-                            currentIndex = playbackIndex,
-                            playbackSpeed = playbackSpeed,
-                            onStartPlayback = onStartPlayback,
-                            onPausePlayback = onPausePlayback,
-                            onStopPlayback = onStopPlayback,
-                            onSeek = onSeekPlayback,
-                            onChangeSpeed = onChangePlaybackSpeed
-                        )
+                        0 ->
+                            LiveJourneyTab(
+                                isTracking = isTracking,
+                                onStartTracking = onStartTracking,
+                                onPauseTracking = onPauseTracking,
+                            )
+                        1 ->
+                            LiveLayersTab(
+                                speedHeatmap = speedHeatmap,
+                                showAccuracy = showAccuracy,
+                                showBattery = showBattery,
+                                showIssues = showIssues,
+                                showOfflineTiles = showOfflineTiles,
+                                markerFilters = markerFilters,
+                                onToggleSpeedHeatmap = onToggleSpeedHeatmap,
+                                onToggleAccuracy = onToggleAccuracy,
+                                onToggleBattery = onToggleBattery,
+                                onToggleIssues = onToggleIssues,
+                                onToggleOfflineTiles = onToggleOfflineTiles,
+                                onMarkerFiltersChanged = onMarkerFiltersChanged,
+                            )
+                        2 ->
+                            EnhancedLiveSettingsTab(
+                                autoCenterEnabled = autoCenterEnabled,
+                                showGyroscope = showGyroscope,
+                                showBearingConfidence = showBearingConfidence,
+                                showOrientation = showOrientation,
+                                onToggleAutoCenter = onToggleAutoCenter,
+                                onToggleGyroscope = onToggleGyroscope,
+                                onToggleBearingConfidence = onToggleBearingConfidence,
+                                onToggleOrientation = onToggleOrientation,
+                            )
+                        3 ->
+                            LivePlaybackTab(
+                                locationPoints = locationPoints,
+                                isPlaying = isPlayingBack,
+                                currentIndex = playbackIndex,
+                                playbackSpeed = playbackSpeed,
+                                onStartPlayback = onStartPlayback,
+                                onPausePlayback = onPausePlayback,
+                                onStopPlayback = onStopPlayback,
+                                onSeek = onSeekPlayback,
+                                onChangeSpeed = onChangePlaybackSpeed,
+                            )
                     }
                 }
             }
@@ -1573,68 +1622,74 @@ fun CompactLiveControlHeader(
     onToggleExpanded: () -> Unit,
     onPlayPause: () -> Unit,
     rotationAngle: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
     val isSmallScreen = configuration.screenWidthDp < 400
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggleExpanded)
-            .padding(
-                horizontal = if (isSmallScreen) 12.dp else 16.dp,
-                vertical = 12.dp
-            ),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggleExpanded)
+                .padding(
+                    horizontal = if (isSmallScreen) 12.dp else 16.dp,
+                    vertical = 12.dp,
+                ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Icon(
             imageVector = Icons.Default.ExpandLess,
             contentDescription = if (isExpanded) "Collapse" else "Expand",
-            modifier = Modifier
-                .size(28.dp)
-                .rotate(rotationAngle),
-            tint = MaterialTheme.colorScheme.primary
+            modifier =
+                Modifier
+                    .size(28.dp)
+                    .rotate(rotationAngle),
+            tint = MaterialTheme.colorScheme.primary,
         )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp),
         ) {
             Icon(
-                imageVector = when {
-                    isPlayingBack -> Icons.Default.PlayArrow
-                    isTracking -> Icons.Default.FiberManualRecord
-                    else -> Icons.Default.Pause
-                },
+                imageVector =
+                    when {
+                        isPlayingBack -> Icons.Default.PlayArrow
+                        isTracking -> Icons.Default.FiberManualRecord
+                        else -> Icons.Default.Pause
+                    },
                 contentDescription = null,
-                tint = when {
-                    isPlayingBack -> MaterialTheme.colorScheme.tertiary
-                    isTracking -> Color.Red
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.size(14.dp)
+                tint =
+                    when {
+                        isPlayingBack -> MaterialTheme.colorScheme.tertiary
+                        isTracking -> Color.Red
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                modifier = Modifier.size(14.dp),
             )
             Text(
-                text = when {
-                    isPlayingBack -> "Playback"
-                    isTracking -> "Recording"
-                    else -> "Paused"
-                },
+                text =
+                    when {
+                        isPlayingBack -> "Playback"
+                        isTracking -> "Recording"
+                        else -> "Paused"
+                    },
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
+                maxLines = 1,
             )
             Text(
                 text = "• $pointCount pts",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 1,
             )
         }
 
@@ -1642,13 +1697,13 @@ fun CompactLiveControlHeader(
             FloatingActionButton(
                 onClick = onPlayPause,
                 modifier = Modifier.size(if (isSmallScreen) 44.dp else 48.dp),
-                containerColor = if (isTracking) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+                containerColor = if (isTracking) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Icon(
                     imageVector = if (isTracking) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = if (isTracking) "Pause" else "Start",
                     tint = if (isTracking) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(if (isSmallScreen) 20.dp else 24.dp)
+                    modifier = Modifier.size(if (isSmallScreen) 20.dp else 24.dp),
                 )
             }
         }
@@ -1660,34 +1715,37 @@ fun LiveJourneyTab(
     isTracking: Boolean,
     onStartTracking: () -> Unit,
     onPauseTracking: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = "Journey Controls",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Button(
             onClick = if (isTracking) onPauseTracking else onStartTracking,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTracking) Color(0xFFFF9800) else Color(0xFF4CAF50)
-            )
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = if (isTracking) Color(0xFFFF9800) else Color(0xFF4CAF50),
+                ),
         ) {
             Icon(
                 imageVector = if (isTracking) Icons.Default.Pause else Icons.Default.PlayArrow,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(if (isTracking) "Pause" else "Start", fontWeight = FontWeight.Bold)
@@ -1699,7 +1757,7 @@ fun LiveJourneyTab(
             text = "Keep your phone active for accurate tracking. Background tracking is enabled, but some devices may require additional optimization settings.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         HorizontalDivider()
@@ -1709,7 +1767,7 @@ fun LiveJourneyTab(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
         )
     }
 }
@@ -1729,46 +1787,48 @@ fun LiveLayersTab(
     onToggleIssues: (Boolean) -> Unit,
     onToggleOfflineTiles: (Boolean) -> Unit,
     onMarkerFiltersChanged: (MarkerFilters) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var overlaysExpanded by remember { mutableStateOf(true) }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { overlaysExpanded = !overlaysExpanded }
-                .padding(vertical = 4.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { overlaysExpanded = !overlaysExpanded }
+                    .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "Map Overlays",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Icon(
                 imageVector = if (overlaysExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                 contentDescription = if (overlaysExpanded) "Collapse" else "Expand",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         AnimatedVisibility(
             visible = overlaysExpanded,
             enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            exit = shrinkVertically() + fadeOut(),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 LiveLayersInnerContent(
                     speedHeatmap = speedHeatmap,
@@ -1782,7 +1842,7 @@ fun LiveLayersTab(
                     onToggleBattery = onToggleBattery,
                     onToggleIssues = onToggleIssues,
                     onToggleOfflineTiles = onToggleOfflineTiles,
-                    onMarkerFiltersChanged = onMarkerFiltersChanged
+                    onMarkerFiltersChanged = onMarkerFiltersChanged,
                 )
             }
         }
@@ -1803,12 +1863,12 @@ private fun LiveLayersInnerContent(
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
     onToggleOfflineTiles: (Boolean) -> Unit,
-    onMarkerFiltersChanged: (MarkerFilters) -> Unit
+    onMarkerFiltersChanged: (MarkerFilters) -> Unit,
 ) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         FilterChip(
             selected = speedHeatmap,
@@ -1816,20 +1876,21 @@ private fun LiveLayersInnerContent(
             label = {
                 Text(
                     if (speedHeatmap) "Speed Heatmap" else "Status Mode",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
                 )
             },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Speed,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
             },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-            )
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                ),
         )
 
         FilterChip(
@@ -1840,13 +1901,14 @@ private fun LiveLayersInnerContent(
                 Icon(
                     imageVector = Icons.Default.GpsFixed,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
             },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
         )
 
         FilterChip(
@@ -1857,13 +1919,14 @@ private fun LiveLayersInnerContent(
                 Icon(
                     imageVector = Icons.Default.BatteryFull,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
             },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
         )
 
         FilterChip(
@@ -1874,13 +1937,14 @@ private fun LiveLayersInnerContent(
                 Icon(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
             },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onErrorContainer
-            )
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
         )
 
         FilterChip(
@@ -1891,13 +1955,14 @@ private fun LiveLayersInnerContent(
                 Icon(
                     imageVector = Icons.Default.Layers,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
             },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-            )
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                ),
         )
     }
 
@@ -1908,7 +1973,7 @@ private fun LiveLayersInnerContent(
             text = if (speedHeatmap) "Speed Legend" else "Status Legend",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         if (speedHeatmap) {
@@ -1923,34 +1988,35 @@ private fun LiveLayersInnerContent(
     var markerFiltersExpanded by remember { mutableStateOf(false) }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { markerFiltersExpanded = !markerFiltersExpanded }
-            .padding(vertical = 4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { markerFiltersExpanded = !markerFiltersExpanded }
+                .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = "Map Markers",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Icon(
             imageVector = if (markerFiltersExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
             contentDescription = if (markerFiltersExpanded) "Collapse markers" else "Expand markers",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 
     AnimatedVisibility(
         visible = markerFiltersExpanded,
         enter = expandVertically() + fadeIn(),
-        exit = shrinkVertically() + fadeOut()
+        exit = shrinkVertically() + fadeOut(),
     ) {
         MarkerFilterChips(
             filters = markerFilters,
-            onFiltersChanged = onMarkerFiltersChanged
+            onFiltersChanged = onMarkerFiltersChanged,
         )
     }
 }
@@ -1965,48 +2031,49 @@ fun EnhancedLiveSettingsTab(
     onToggleGyroscope: () -> Unit,
     onToggleBearingConfidence: () -> Unit,
     onToggleOrientation: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = "Tracking Settings",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         SettingCard(
             title = "Auto-Center Map",
             description = "Automatically center map on current location while tracking",
             enabled = autoCenterEnabled,
-            onToggle = onToggleAutoCenter
+            onToggle = onToggleAutoCenter,
         )
 
         SettingCard(
             title = "Gyroscope Visualization",
             description = "Show real-time gyroscope data and device tilt",
             enabled = showGyroscope,
-            onToggle = onToggleGyroscope
+            onToggle = onToggleGyroscope,
         )
 
         SettingCard(
             title = "Bearing Confidence",
             description = "Display GPS bearing accuracy indicator",
             enabled = showBearingConfidence,
-            onToggle = onToggleBearingConfidence
+            onToggle = onToggleBearingConfidence,
         )
 
         SettingCard(
             title = "Device Orientation",
             description = "Show if device is mounted or handheld",
             enabled = showOrientation,
-            onToggle = onToggleOrientation
+            onToggle = onToggleOrientation,
         )
 
         HorizontalDivider()
@@ -2015,19 +2082,19 @@ fun EnhancedLiveSettingsTab(
             text = "Information",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         InfoCard(
             icon = Icons.Default.GpsFixed,
             title = "GPS & Bearing",
-            description = "Direction marker uses GPS bearing and compass data for accurate heading with sub-degree precision when available."
+            description = "Direction marker uses GPS bearing and compass data for accurate heading with sub-degree precision when available.",
         )
 
         InfoCard(
             icon = Icons.Default.PhoneAndroid,
             title = "Gyroscope Data",
-            description = "Gyroscope sensors detect device tilt and orientation, helping identify if your phone is mounted or handheld."
+            description = "Gyroscope sensors detect device tilt and orientation, helping identify if your phone is mounted or handheld.",
         )
     }
 }
@@ -2038,38 +2105,40 @@ fun SettingCard(
     description: String,
     enabled: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Switch(
                 checked = enabled,
-                onCheckedChange = { onToggle() }
+                onCheckedChange = { onToggle() },
             )
         }
     }
@@ -2086,21 +2155,22 @@ fun LivePlaybackTab(
     onStopPlayback: () -> Unit,
     onSeek: (Int) -> Unit,
     onChangeSpeed: (Float) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val speedOptions = listOf(0.25f, 0.5f, 1f, 2f, 5f, 10f, 20f, 50f)
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = "Route Playback",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         if (locationPoints.isEmpty()) {
@@ -2109,27 +2179,29 @@ fun LivePlaybackTab(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         } else {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 if (!isPlaying) {
                     Button(
                         onClick = onStartPlayback,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                        )
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Play", fontWeight = FontWeight.Bold)
@@ -2137,17 +2209,19 @@ fun LivePlaybackTab(
                 } else {
                     Button(
                         onClick = onPausePlayback,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF9800)
-                        )
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFF9800),
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Pause,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Pause", fontWeight = FontWeight.Bold)
@@ -2157,17 +2231,19 @@ fun LivePlaybackTab(
                 if (isPlaying || currentIndex > 0) {
                     OutlinedButton(
                         onClick = onStopPlayback,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.Red
-                        )
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(56.dp),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.Red,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Stop,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Stop", fontWeight = FontWeight.Bold)
@@ -2179,7 +2255,7 @@ fun LivePlaybackTab(
                 Text(
                     text = "Position: ${currentIndex + 1} / ${locationPoints.size}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Slider(
@@ -2187,11 +2263,12 @@ fun LivePlaybackTab(
                     onValueChange = { newValue -> onSeek(newValue.toInt()) },
                     valueRange = 0f..(locationPoints.size - 1).coerceAtLeast(0).toFloat(),
                     modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.tertiary,
-                        activeTrackColor = MaterialTheme.colorScheme.tertiary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    colors =
+                        SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.tertiary,
+                            activeTrackColor = MaterialTheme.colorScheme.tertiary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
                 )
             }
 
@@ -2201,48 +2278,54 @@ fun LivePlaybackTab(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "Playback Speed",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = "${playbackSpeed}x",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.tertiary
+                        color = MaterialTheme.colorScheme.tertiary,
                     )
                 }
 
                 Row(
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier =
+                        Modifier
+                            .horizontalScroll(rememberScrollState())
+                            .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     speedOptions.forEach { speed ->
                         val isSelected = playbackSpeed == speed
                         Surface(
-                            color = if (isSelected)
-                                MaterialTheme.colorScheme.tertiary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant,
+                            color =
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.tertiary
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                },
                             shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier
-                                .clickable { onChangeSpeed(speed) }
-                                .padding(2.dp)
+                            modifier =
+                                Modifier
+                                    .clickable { onChangeSpeed(speed) }
+                                    .padding(2.dp),
                         ) {
                             Text(
                                 text = "${speed}x",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = if (isSelected)
-                                    MaterialTheme.colorScheme.onTertiary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                color =
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.onTertiary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             )
                         }
                     }
@@ -2257,37 +2340,38 @@ fun InfoCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     description: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+            ),
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Top,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -2312,23 +2396,27 @@ fun CompassUpdater(onAzimuthUpdate: (Float) -> Unit) {
         val rotationMatrix = FloatArray(9)
         val orientation = FloatArray(3)
 
-        val sensorEventListener = object : SensorEventListener {
-            override fun onSensorChanged(event: SensorEvent) {
-                when (event.sensor.type) {
-                    Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0, gravity, 0, 3)
-                    Sensor.TYPE_MAGNETIC_FIELD -> System.arraycopy(event.values, 0, geomagnetic, 0, 3)
+        val sensorEventListener =
+            object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent) {
+                    when (event.sensor.type) {
+                        Sensor.TYPE_ACCELEROMETER -> System.arraycopy(event.values, 0, gravity, 0, 3)
+                        Sensor.TYPE_MAGNETIC_FIELD -> System.arraycopy(event.values, 0, geomagnetic, 0, 3)
+                    }
+
+                    if (SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)) {
+                        SensorManager.getOrientation(rotationMatrix, orientation)
+                        val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
+                        val normalizedAzimuth = if (azimuth < 0) azimuth + 360 else azimuth
+                        onAzimuthUpdate(normalizedAzimuth)
+                    }
                 }
 
-                if (SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)) {
-                    SensorManager.getOrientation(rotationMatrix, orientation)
-                    val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
-                    val normalizedAzimuth = if (azimuth < 0) azimuth + 360 else azimuth
-                    onAzimuthUpdate(normalizedAzimuth)
-                }
+                override fun onAccuracyChanged(
+                    sensor: Sensor?,
+                    accuracy: Int,
+                ) {}
             }
-
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-        }
 
         magnetometer?.let {
             sensorManager.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_UI)
@@ -2362,11 +2450,12 @@ fun getGPSQuality(accuracy: Float): GPSQuality {
 }
 
 fun detectDeviceOrientation(location: LocationData): DeviceOrientation {
-    val tiltMagnitude = sqrt(
-        location.gyroscopeX * location.gyroscopeX +
-            location.gyroscopeY * location.gyroscopeY +
-            location.gyroscopeZ * location.gyroscopeZ
-    )
+    val tiltMagnitude =
+        sqrt(
+            location.gyroscopeX * location.gyroscopeX +
+                location.gyroscopeY * location.gyroscopeY +
+                location.gyroscopeZ * location.gyroscopeZ,
+        )
 
     return when {
         tiltMagnitude < 0.5f -> DeviceOrientation.MOUNTED

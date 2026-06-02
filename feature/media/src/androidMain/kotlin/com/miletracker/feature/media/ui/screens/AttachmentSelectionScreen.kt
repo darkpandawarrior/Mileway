@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.media.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -46,13 +48,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
@@ -88,20 +90,21 @@ fun AttachmentSelectionScreen(
     onNavigateToPreview: () -> Unit,
     onNavigateBack: () -> Unit = {},
     onNavigateToLibrary: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            viewModel.onPickedFromGallery(uri.toString())
-            onNavigateToPreview()
+    val galleryLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent(),
+        ) { uri ->
+            if (uri != null) {
+                viewModel.onPickedFromGallery(uri.toString())
+                onNavigateToPreview()
+            }
         }
-    }
 
     fun showIllustrative(label: String) {
         scope.launch {
@@ -110,19 +113,20 @@ fun AttachmentSelectionScreen(
     }
 
     // The nine source tiles, in reading order across the 3-column grid.
-    val sources = remember {
-        listOf(
-            SourceTileSpec(SourceKey.CAMERA, "Camera", Icons.Default.CameraAlt),
-            SourceTileSpec(SourceKey.GALLERY, "Gallery", Icons.Default.PhotoLibrary),
-            SourceTileSpec(SourceKey.ODOMETER, "Odometer", Icons.Default.Speed, accent = OdometerAccent),
-            SourceTileSpec(SourceKey.DOC_SCANNER, "Document Scanner", Icons.Default.DocumentScanner),
-            SourceTileSpec(SourceKey.PDF, "PDF", Icons.Default.PictureAsPdf),
-            SourceTileSpec(SourceKey.QR, "QR Code", Icons.Default.QrCode),
-            SourceTileSpec(SourceKey.BARCODE, "Barcode", Icons.Default.QrCodeScanner),
-            SourceTileSpec(SourceKey.CLOUD, "Cloud Library", Icons.Default.CloudDownload),
-            SourceTileSpec(SourceKey.FILES, "Files", Icons.Default.Folder)
-        )
-    }
+    val sources =
+        remember {
+            listOf(
+                SourceTileSpec(SourceKey.CAMERA, "Camera", Icons.Default.CameraAlt),
+                SourceTileSpec(SourceKey.GALLERY, "Gallery", Icons.Default.PhotoLibrary),
+                SourceTileSpec(SourceKey.ODOMETER, "Odometer", Icons.Default.Speed, accent = OdometerAccent),
+                SourceTileSpec(SourceKey.DOC_SCANNER, "Document Scanner", Icons.Default.DocumentScanner),
+                SourceTileSpec(SourceKey.PDF, "PDF", Icons.Default.PictureAsPdf),
+                SourceTileSpec(SourceKey.QR, "QR Code", Icons.Default.QrCode),
+                SourceTileSpec(SourceKey.BARCODE, "Barcode", Icons.Default.QrCodeScanner),
+                SourceTileSpec(SourceKey.CLOUD, "Cloud Library", Icons.Default.CloudDownload),
+                SourceTileSpec(SourceKey.FILES, "Files", Icons.Default.Folder),
+            )
+        }
 
     Scaffold(
         modifier = modifier,
@@ -136,7 +140,7 @@ fun AttachmentSelectionScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
                 },
@@ -147,49 +151,52 @@ fun AttachmentSelectionScreen(
                         Icon(
                             imageVector = Icons.Default.WaterDrop,
                             contentDescription = "Theme color",
-                            modifier = Modifier.alpha(0.38f)
+                            modifier = Modifier.alpha(0.38f),
                         )
                     }
                     IconButton(enabled = false, onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.Fingerprint,
                             contentDescription = "Biometric lock",
-                            modifier = Modifier.alpha(0.38f)
+                            modifier = Modifier.alpha(0.38f),
                         )
                     }
                     IconButton(enabled = false, onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.QrCodeScanner,
                             contentDescription = "Scan",
-                            modifier = Modifier.alpha(0.38f)
+                            modifier = Modifier.alpha(0.38f),
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                start = DesignTokens.Spacing.screenHorizontal,
-                end = DesignTokens.Spacing.screenHorizontal,
-                top = DesignTokens.Spacing.l,
-                bottom = BottomBarClearance
-            ),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+            contentPadding =
+                PaddingValues(
+                    start = DesignTokens.Spacing.screenHorizontal,
+                    end = DesignTokens.Spacing.screenHorizontal,
+                    top = DesignTokens.Spacing.l,
+                    bottom = BottomBarClearance,
+                ),
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                 Text(
                     text = "Select an attachment source",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = DesignTokens.Spacing.s)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = DesignTokens.Spacing.s),
                 )
             }
 
@@ -217,7 +224,7 @@ fun AttachmentSelectionScreen(
                             SourceKey.CLOUD -> onNavigateToLibrary()
                             else -> showIllustrative(spec.label)
                         }
-                    }
+                    },
                 )
             }
 
@@ -229,7 +236,7 @@ fun AttachmentSelectionScreen(
                             text = "Captured (${state.attachments.size})",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom = DesignTokens.Spacing.s)
+                            modifier = Modifier.padding(bottom = DesignTokens.Spacing.s),
                         )
                     }
                 }
@@ -244,7 +251,15 @@ fun AttachmentSelectionScreen(
 
 /** Stable identity for each source tile, used as a grid key and to route taps. */
 private enum class SourceKey {
-    CAMERA, GALLERY, ODOMETER, DOC_SCANNER, PDF, QR, BARCODE, CLOUD, FILES
+    CAMERA,
+    GALLERY,
+    ODOMETER,
+    DOC_SCANNER,
+    PDF,
+    QR,
+    BARCODE,
+    CLOUD,
+    FILES,
 }
 
 /** Declarative spec for a single source tile. */
@@ -252,45 +267,49 @@ private data class SourceTileSpec(
     val key: SourceKey,
     val label: String,
     val icon: ImageVector,
-    val accent: Color? = null
+    val accent: Color? = null,
 )
 
 @Composable
 private fun SourceTile(
     spec: SourceTileSpec,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val iconTint = spec.accent ?: MaterialTheme.colorScheme.onPrimaryContainer
-    val containerColor = spec.accent?.copy(alpha = 0.15f)
-        ?: MaterialTheme.colorScheme.primaryContainer
+    val containerColor =
+        spec.accent?.copy(alpha = 0.15f)
+            ?: MaterialTheme.colorScheme.primaryContainer
 
     Surface(
         shape = DesignTokens.Shape.actionTile,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clip(DesignTokens.Shape.actionTile)
-            .clickable(onClick = onClick)
+        modifier =
+            Modifier
+                .aspectRatio(1f)
+                .clip(DesignTokens.Shape.actionTile)
+                .clickable(onClick = onClick),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DesignTokens.Spacing.s),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(DesignTokens.Spacing.s),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
-                modifier = Modifier
-                    .size(DesignTokens.ActionTileSize.circularContainer)
-                    .clip(CircleShape)
-                    .background(containerColor),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(DesignTokens.ActionTileSize.circularContainer)
+                        .clip(CircleShape)
+                        .background(containerColor),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = spec.icon,
                     contentDescription = spec.label,
                     tint = iconTint,
-                    modifier = Modifier.size(DesignTokens.IconSize.actionTileLarge)
+                    modifier = Modifier.size(DesignTokens.IconSize.actionTileLarge),
                 )
             }
             Spacer(Modifier.height(DesignTokens.Spacing.s))
@@ -299,7 +318,7 @@ private fun SourceTile(
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
-                maxLines = 2
+                maxLines = 2,
             )
         }
     }
@@ -310,14 +329,15 @@ private fun AttachmentThumbnail(item: AttachmentItem) {
     Surface(
         shape = DesignTokens.Shape.roundedMd,
         tonalElevation = DesignTokens.Elevation.card,
-        modifier = Modifier.aspectRatio(1f)
+        modifier = Modifier.aspectRatio(1f),
     ) {
         AsyncImage(
             model = item.uri,
             contentDescription = "Attachment ${item.id}",
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(DesignTokens.Shape.roundedMd)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clip(DesignTokens.Shape.roundedMd),
         )
     }
 }

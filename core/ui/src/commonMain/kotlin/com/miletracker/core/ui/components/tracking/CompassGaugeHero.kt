@@ -34,8 +34,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PauseCircle
@@ -95,13 +95,16 @@ enum class GaugeMode {
     COMPASS,
 
     /** Horizontal segmented breakdown of how time was split across activity types. */
-    ACTIVITY;
+    ACTIVITY,
+
+    ;
 
     /** The mode that follows this one when the user toggles the gauge. */
-    fun next(): GaugeMode = when (this) {
-        COMPASS -> ACTIVITY
-        ACTIVITY -> COMPASS
-    }
+    fun next(): GaugeMode =
+        when (this) {
+            COMPASS -> ACTIVITY
+            ACTIVITY -> COMPASS
+        }
 }
 
 /**
@@ -114,22 +117,23 @@ enum class GaugeMode {
 enum class GaugeSignal {
     GOOD,
     FAIR,
-    POOR
+    POOR,
 }
 
 /** Resolve a [GaugeSignal] to its accent color from the shared status palette. */
-private fun GaugeSignal.accentColor(): Color = when (this) {
-    GaugeSignal.GOOD -> DesignTokens.StatusColors.success
-    GaugeSignal.FAIR -> DesignTokens.StatusColors.warning
-    GaugeSignal.POOR -> DesignTokens.StatusColors.error
-}
+private fun GaugeSignal.accentColor(): Color =
+    when (this) {
+        GaugeSignal.GOOD -> DesignTokens.StatusColors.success
+        GaugeSignal.FAIR -> DesignTokens.StatusColors.warning
+        GaugeSignal.POOR -> DesignTokens.StatusColors.error
+    }
 
 /** Activity classifications used by the [ActivityTimeline] gauge. */
 enum class ActivityType {
     WALKING,
     CYCLING,
     DRIVING,
-    IDLE
+    IDLE,
 }
 
 /**
@@ -142,24 +146,26 @@ enum class ActivityType {
  */
 data class ActivitySegment(
     val type: ActivityType,
-    val fraction: Float
+    val fraction: Float,
 )
 
 /** Stable display color for an [ActivityType] (independent of theme for legibility). */
-private fun ActivityType.color(): Color = when (this) {
-    ActivityType.WALKING -> Color(0xFF43A047) // green
-    ActivityType.CYCLING -> Color(0xFF1E88E5) // blue
-    ActivityType.DRIVING -> Color(0xFFFFA726) // amber
-    ActivityType.IDLE -> Color(0xFF90A4AE)    // blue-grey
-}
+private fun ActivityType.color(): Color =
+    when (this) {
+        ActivityType.WALKING -> Color(0xFF43A047) // green
+        ActivityType.CYCLING -> Color(0xFF1E88E5) // blue
+        ActivityType.DRIVING -> Color(0xFFFFA726) // amber
+        ActivityType.IDLE -> Color(0xFF90A4AE) // blue-grey
+    }
 
 /** Human-readable label for an [ActivityType]. */
-private fun ActivityType.label(): String = when (this) {
-    ActivityType.WALKING -> "Walking"
-    ActivityType.CYCLING -> "Cycling"
-    ActivityType.DRIVING -> "Driving"
-    ActivityType.IDLE -> "Idle"
-}
+private fun ActivityType.label(): String =
+    when (this) {
+        ActivityType.WALKING -> "Walking"
+        ActivityType.CYCLING -> "Cycling"
+        ActivityType.DRIVING -> "Driving"
+        ActivityType.IDLE -> "Idle"
+    }
 
 // ---------------------------------------------------------------------------
 // 1. CompassGauge — circular bearing gauge with center speed readout
@@ -196,15 +202,16 @@ fun CompassGauge(
     signalQuality: GaugeSignal,
     modifier: Modifier = Modifier,
     isActive: Boolean = false,
-    diameter: Dp = 132.dp
+    diameter: Dp = 132.dp,
 ) {
     val animatedHeading by animateFloatAsState(
         targetValue = bearingDegrees,
-        animationSpec = spring(
-            dampingRatio = if (isActive) 0.7f else 0.8f,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "compassHeading"
+        animationSpec =
+            spring(
+                dampingRatio = if (isActive) 0.7f else 0.8f,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "compassHeading",
     )
 
     val accentColor = signalQuality.accentColor()
@@ -227,22 +234,22 @@ fun CompassGauge(
                 color = accentColor.copy(alpha = 0.85f),
                 radius = outerRadius - accentStroke / 2f,
                 center = Offset(cx, cy),
-                style = Stroke(width = accentStroke)
+                style = Stroke(width = accentStroke),
             )
             drawCircle(
                 color = accentColor.copy(alpha = 0.05f),
                 radius = radius,
-                center = Offset(cx, cy)
+                center = Offset(cx, cy),
             )
             drawCircle(
                 color = onSurfaceColor.copy(alpha = 0.10f),
                 radius = radius,
-                style = Stroke(width = radius * 0.012f)
+                style = Stroke(width = radius * 0.012f),
             )
             drawCircle(
                 color = onSurfaceColor.copy(alpha = 0.06f),
                 radius = radius * 0.78f,
-                style = Stroke(width = radius * 0.009f)
+                style = Stroke(width = radius * 0.009f),
             )
 
             val majorTickLength = radius * 0.12f
@@ -252,7 +259,7 @@ fun CompassGauge(
                     color = onSurfaceColor.copy(alpha = 0.18f),
                     start = Offset(cx + (radius - majorTickLength) * cos(rad), cy + (radius - majorTickLength) * sin(rad)),
                     end = Offset(cx + radius * cos(rad), cy + radius * sin(rad)),
-                    strokeWidth = radius * 0.014f
+                    strokeWidth = radius * 0.014f,
                 )
             }
             val minorTickLength = radius * 0.06f
@@ -262,7 +269,7 @@ fun CompassGauge(
                     color = onSurfaceColor.copy(alpha = 0.10f),
                     start = Offset(cx + (radius - minorTickLength) * cos(rad), cy + (radius - minorTickLength) * sin(rad)),
                     end = Offset(cx + radius * cos(rad), cy + radius * sin(rad)),
-                    strokeWidth = radius * 0.009f
+                    strokeWidth = radius * 0.009f,
                 )
             }
 
@@ -274,15 +281,26 @@ fun CompassGauge(
             val theta = animatedHeading.toRadians()
             val sinT = sin(theta)
             val cosT = cos(theta)
-            fun rotate(px: Float, py: Float): Offset {
-                val dx = px - cx; val dy = py - cy
+
+            fun rotate(
+                px: Float,
+                py: Float,
+            ): Offset {
+                val dx = px - cx
+                val dy = py - cy
                 return Offset(cx + dx * cosT - dy * sinT, cy + dx * sinT + dy * cosT)
             }
             val halfWidth = radius * 0.08f
             val tip = rotate(cx, cy - radius * 0.62f)
             val left = rotate(cx - halfWidth, cy + radius * 0.28f)
             val rightPt = rotate(cx + halfWidth, cy + radius * 0.28f)
-            val needle = Path().apply { moveTo(tip.x, tip.y); lineTo(left.x, left.y); lineTo(rightPt.x, rightPt.y); close() }
+            val needle =
+                Path().apply {
+                    moveTo(tip.x, tip.y)
+                    lineTo(left.x, left.y)
+                    lineTo(rightPt.x, rightPt.y)
+                    close()
+                }
             drawPath(needle, color = primaryColor, style = Fill)
             drawPath(needle, color = onSurfaceColor.copy(alpha = 0.14f), style = Stroke(width = radius * 0.008f))
             drawCircle(color = errorColor, radius = max(2f, radius * 0.06f), center = tip)
@@ -290,24 +308,25 @@ fun CompassGauge(
     }
 }
 
-/** Draw a single centered cardinal letter at [x],[y] using the multiplatform text API. */
+/** Draw a single centered cardinal letter at [x], [y] using the multiplatform text API. */
 private fun DrawScope.drawCardinalLabel(
     measurer: TextMeasurer,
     text: String,
     x: Float,
     y: Float,
     radius: Float,
-    color: Color
+    color: Color,
 ) {
-    val style = TextStyle(
-        color = color,
-        fontSize = (radius * 0.24f / density).sp,
-        fontWeight = FontWeight.Bold
-    )
+    val style =
+        TextStyle(
+            color = color,
+            fontSize = (radius * 0.24f / density).sp,
+            fontWeight = FontWeight.Bold,
+        )
     val layout = measurer.measure(text, style)
     drawText(
         textLayoutResult = layout,
-        topLeft = Offset(x - layout.size.width / 2f, y - layout.size.height / 2f)
+        topLeft = Offset(x - layout.size.width / 2f, y - layout.size.height / 2f),
     )
 }
 
@@ -338,7 +357,7 @@ fun ActivityTimeline(
     segments: List<ActivitySegment>,
     modifier: Modifier = Modifier,
     currentActivityLabel: String? = null,
-    maxLegendItems: Int = 3
+    maxLegendItems: Int = 3,
 ) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -347,12 +366,12 @@ fun ActivityTimeline(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "Activity",
                 style = MaterialTheme.typography.labelMedium,
-                color = onSurface.copy(alpha = 0.6f)
+                color = onSurface.copy(alpha = 0.6f),
             )
             if (currentActivityLabel != null) {
                 Text(
@@ -360,7 +379,7 @@ fun ActivityTimeline(
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -369,42 +388,45 @@ fun ActivityTimeline(
 
         if (segments.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-                    .background(trackColor.copy(alpha = 0.4f), RoundedCornerShape(50))
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(10.dp)
+                        .background(trackColor.copy(alpha = 0.4f), RoundedCornerShape(50)),
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Analyzing activity…",
                 style = MaterialTheme.typography.bodySmall,
-                color = onSurface.copy(alpha = 0.6f)
+                color = onSurface.copy(alpha = 0.6f),
             )
             return@Column
         }
 
         // Proportional segmented track.
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(10.dp)
-                .background(trackColor.copy(alpha = 0.25f), RoundedCornerShape(50))
-                .padding(horizontal = 2.dp, vertical = 2.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(10.dp)
+                    .background(trackColor.copy(alpha = 0.25f), RoundedCornerShape(50))
+                    .padding(horizontal = 2.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             segments.forEach { segment ->
                 val animatedWeight by animateFloatAsState(
                     targetValue = segment.fraction.coerceAtLeast(0.01f),
                     animationSpec = tween(durationMillis = 600),
-                    label = "activitySegment"
+                    label = "activitySegment",
                 )
                 Box(
-                    modifier = Modifier
-                        .weight(animatedWeight)
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .background(segment.type.color(), RoundedCornerShape(50))
+                    modifier =
+                        Modifier
+                            .weight(animatedWeight)
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .background(segment.type.color(), RoundedCornerShape(50)),
                 )
             }
         }
@@ -415,20 +437,21 @@ fun ActivityTimeline(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             segments.take(maxLegendItems).forEach { segment ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(segment.type.color(), RoundedCornerShape(50))
+                        modifier =
+                            Modifier
+                                .size(6.dp)
+                                .background(segment.type.color(), RoundedCornerShape(50)),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${segment.type.label()} ${(segment.fraction * 100).roundToInt()}%",
                         style = MaterialTheme.typography.labelSmall,
-                        color = onSurface.copy(alpha = 0.7f)
+                        color = onSurface.copy(alpha = 0.7f),
                     )
                 }
             }
@@ -499,70 +522,82 @@ fun HeroTrackingCard(
     pauseReason: String? = null,
     historyIcon: ImageVector = Icons.Filled.History,
     compassPillIcon: ImageVector = Icons.Filled.Explore,
-    shapeRadius: Dp = 20.dp
+    shapeRadius: Dp = 20.dp,
 ) {
     val shape = RoundedCornerShape(shapeRadius)
     val onSurface = MaterialTheme.colorScheme.onSurface
     val heroTopColor = if (isActive) Color(0xFFA9DCAE) else Color(0xFFD3EAD6)
-    val gradient = Brush.verticalGradient(
-        colors = listOf(heroTopColor, heroTopColor.copy(alpha = 0.45f), MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-    )
+    val gradient =
+        Brush.verticalGradient(
+            colors = listOf(heroTopColor, heroTopColor.copy(alpha = 0.45f), MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+        )
 
-    val breath = if (isActive) {
-        val infinite = rememberInfiniteTransition(label = "heroBreath")
-        infinite.animateFloat(
-            initialValue = 0.99f, targetValue = 1.01f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 1400, easing = EaseOutCubic),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "heroBreathAnim"
-        ).value
-    } else 1f
+    val breath =
+        if (isActive) {
+            val infinite = rememberInfiniteTransition(label = "heroBreath")
+            infinite.animateFloat(
+                initialValue = 0.99f,
+                targetValue = 1.01f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(durationMillis = 1400, easing = EaseOutCubic),
+                        repeatMode = RepeatMode.Reverse,
+                    ),
+                label = "heroBreathAnim",
+            ).value
+        } else {
+            1f
+        }
 
     // Flat card — no elevation shadow, gradient provides all the depth.
     Card(
-        modifier = modifier.clip(shape).graphicsLayer { scaleX = breath; scaleY = breath },
+        modifier =
+            modifier.clip(shape).graphicsLayer {
+                scaleX = breath
+                scaleY = breath
+            },
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth().clip(shape).background(gradient)) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(DesignTokens.Spacing.l),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 // ── Gauge + speed column ────────────────────────────────────────
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 ) {
                     // Left: compass or activity timeline (tap to toggle)
                     Box(
                         modifier = Modifier.clickable(onClickLabel = "Switch gauge mode") { onToggleMode() },
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         when (gaugeMode) {
-                            GaugeMode.COMPASS -> CompassGauge(
-                                bearingDegrees = bearingDegrees,
-                                speedKmh = null,
-                                signalQuality = signalQuality,
-                                isActive = isActive,
-                                diameter = 132.dp
-                            )
-                            GaugeMode.ACTIVITY -> ActivityTimeline(
-                                segments = segments,
-                                currentActivityLabel = trackingActivity.takeIf { it.isNotBlank() },
-                                modifier = Modifier.width(132.dp)
-                            )
+                            GaugeMode.COMPASS ->
+                                CompassGauge(
+                                    bearingDegrees = bearingDegrees,
+                                    speedKmh = null,
+                                    signalQuality = signalQuality,
+                                    isActive = isActive,
+                                    diameter = 132.dp,
+                                )
+                            GaugeMode.ACTIVITY ->
+                                ActivityTimeline(
+                                    segments = segments,
+                                    currentActivityLabel = trackingActivity.takeIf { it.isNotBlank() },
+                                    modifier = Modifier.width(132.dp),
+                                )
                         }
                     }
 
                     // Right: speed readout + activity label + vehicle
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         // Prominent speed number
                         val speedText = speedKmh?.let { round(it.coerceAtLeast(0f)).roundToInt().toString() } ?: "--"
@@ -572,32 +607,35 @@ fun HeroTrackingCard(
                             transitionSpec = {
                                 (slideInVertically { it } + fadeIn()).togetherWith(slideOutVertically { -it } + fadeOut())
                             },
-                            label = "heroSpeed"
+                            label = "heroSpeed",
                         ) { value ->
                             Text(
                                 text = value,
                                 style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
                                 color = speedColor,
-                                maxLines = 1
+                                maxLines = 1,
                             )
                         }
                         Text(
                             text = "km/h",
                             style = MaterialTheme.typography.labelMedium,
-                            color = onSurface.copy(alpha = 0.55f)
+                            color = onSurface.copy(alpha = 0.55f),
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         // Vehicle glyph
                         Box(
-                            modifier = if (onVehicleClick != null)
-                                Modifier.clickable(onClickLabel = "Select vehicle") { onVehicleClick() }
-                            else Modifier
+                            modifier =
+                                if (onVehicleClick != null) {
+                                    Modifier.clickable(onClickLabel = "Select vehicle") { onVehicleClick() }
+                                } else {
+                                    Modifier
+                                },
                         ) {
                             vehicleIcon?.invoke() ?: Icon(
                                 imageVector = Icons.Filled.DirectionsCar,
                                 contentDescription = vehicleName?.let { "Vehicle: $it" } ?: "Select vehicle",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.size(36.dp),
                             )
                         }
                     }
@@ -611,19 +649,19 @@ fun HeroTrackingCard(
                     historyCount = historyCount,
                     historyIcon = historyIcon,
                     compassPillIcon = compassPillIcon,
-                    onToggleMode = onToggleMode
+                    onToggleMode = onToggleMode,
                 )
 
                 // ── Metrics row ────────────────────────────────────────────────
                 HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
                     thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.Bottom,
                 ) {
                     HeroMetric("Distance", distanceText, Alignment.Start, Modifier.weight(1f))
                     HeroMetric("Duration", durationText, Alignment.CenterHorizontally, Modifier.weight(1f))
@@ -636,22 +674,32 @@ fun HeroTrackingCard(
                         color = MaterialTheme.colorScheme.tertiaryContainer,
                         shape = RoundedCornerShape(12.dp),
                         tonalElevation = 0.dp,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.PauseCircle,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
                             Column {
-                                Text("Paused", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f))
-                                Text(pauseReason, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onTertiaryContainer, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    "Paused",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                )
+                                Text(
+                                    pauseReason,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                         }
                     }
@@ -674,7 +722,7 @@ private fun ActivityChipsRow(
     historyCount: Int,
     historyIcon: ImageVector,
     compassPillIcon: ImageVector,
-    onToggleMode: () -> Unit
+    onToggleMode: () -> Unit,
 ) {
     val onSurface = MaterialTheme.colorScheme.onSurface
 
@@ -692,43 +740,52 @@ private fun ActivityChipsRow(
 
             if (isActive) {
                 val normalizedActivity = currentActivity.lowercase()
-                val activityChips = listOf(
-                    Triple(ActivityType.WALKING, Icons.AutoMirrored.Filled.DirectionsWalk, "Walking"),
-                    Triple(ActivityType.DRIVING, Icons.Filled.DirectionsCar, "Driving"),
-                    Triple(ActivityType.CYCLING, Icons.AutoMirrored.Filled.DirectionsBike, "Cycling"),
-                )
+                val activityChips =
+                    listOf(
+                        Triple(ActivityType.WALKING, Icons.AutoMirrored.Filled.DirectionsWalk, "Walking"),
+                        Triple(ActivityType.DRIVING, Icons.Filled.DirectionsCar, "Driving"),
+                        Triple(ActivityType.CYCLING, Icons.AutoMirrored.Filled.DirectionsBike, "Cycling"),
+                    )
                 items(activityChips) { (type, icon, label) ->
-                    val isSelected = when (type) {
-                        ActivityType.WALKING -> normalizedActivity.contains("walk")
-                        ActivityType.DRIVING -> normalizedActivity.contains("driv") ||
-                                normalizedActivity.contains("vehicle") ||
-                                normalizedActivity.contains("auto")
-                        ActivityType.CYCLING -> normalizedActivity.contains("cycl") ||
-                                normalizedActivity.contains("bike")
-                        else -> false
-                    }
+                    val isSelected =
+                        when (type) {
+                            ActivityType.WALKING -> normalizedActivity.contains("walk")
+                            ActivityType.DRIVING ->
+                                normalizedActivity.contains("driv") ||
+                                    normalizedActivity.contains("vehicle") ||
+                                    normalizedActivity.contains("auto")
+                            ActivityType.CYCLING ->
+                                normalizedActivity.contains("cycl") ||
+                                    normalizedActivity.contains("bike")
+                            else -> false
+                        }
                     Surface(
-                        color = if (isSelected) type.color().copy(alpha = 0.18f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        color =
+                            if (isSelected) {
+                                type.color().copy(alpha = 0.18f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            },
                         shape = RoundedCornerShape(50),
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
                             Icon(
                                 imageVector = icon,
                                 contentDescription = label,
                                 modifier = Modifier.size(12.dp),
-                                tint = if (isSelected) type.color() else onSurface.copy(alpha = 0.5f)
+                                tint = if (isSelected) type.color() else onSurface.copy(alpha = 0.5f),
                             )
                             Text(
                                 text = label,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                ),
-                                color = if (isSelected) type.color() else onSurface.copy(alpha = 0.5f)
+                                style =
+                                    MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    ),
+                                color = if (isSelected) type.color() else onSurface.copy(alpha = 0.5f),
                             )
                         }
                     }
@@ -748,14 +805,14 @@ private fun HeroMetric(
     label: String,
     value: String,
     alignment: Alignment.Horizontal,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     Column(modifier = modifier, horizontalAlignment = alignment) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = onSurface.copy(alpha = 0.6f)
+            color = onSurface.copy(alpha = 0.6f),
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -763,7 +820,7 @@ private fun HeroMetric(
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = onSurface,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -772,27 +829,27 @@ private fun HeroMetric(
 @Composable
 private fun HistoryCountChip(
     count: Int,
-    icon: ImageVector
+    icon: ImageVector,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        shape = RoundedCornerShape(50)
+        shape = RoundedCornerShape(50),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(14.dp),
             )
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -808,54 +865,57 @@ private fun HistoryCountChip(
 private fun GaugeModePill(
     gaugeMode: GaugeMode,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val label = when (gaugeMode) {
-        GaugeMode.COMPASS -> "Compass"
-        GaugeMode.ACTIVITY -> "Activity"
-    }
-    val leadingIcon = when (gaugeMode) {
-        GaugeMode.COMPASS -> icon
-        GaugeMode.ACTIVITY -> Icons.Filled.Timeline
-    }
+    val label =
+        when (gaugeMode) {
+            GaugeMode.COMPASS -> "Compass"
+            GaugeMode.ACTIVITY -> "Activity"
+        }
+    val leadingIcon =
+        when (gaugeMode) {
+            GaugeMode.COMPASS -> icon
+            GaugeMode.ACTIVITY -> Icons.Filled.Timeline
+        }
 
     val infinite = rememberInfiniteTransition(label = "pillPulse")
     val borderAlpha by infinite.animateFloat(
         initialValue = 0.25f,
         targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 950, easing = EaseOutCubic),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pillBorderAlpha"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 950, easing = EaseOutCubic),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "pillBorderAlpha",
     )
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)),
-        modifier = Modifier.clickable(onClickLabel = "Switch gauge mode") { onClick() }
+        modifier = Modifier.clickable(onClickLabel = "Switch gauge mode") { onClick() },
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(12.dp)
+                modifier = Modifier.size(12.dp),
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = "↻",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -864,8 +924,9 @@ private fun GaugeModePill(
 // Keep the directional activity glyphs referenced so they are available to integrators
 // wiring custom vehicle slots without importing them separately. Not rendered here.
 @Suppress("unused")
-private val activityGlyphReferences = listOf(
-    Icons.AutoMirrored.Filled.DirectionsWalk,
-    Icons.AutoMirrored.Filled.DirectionsBike,
-    Icons.Filled.DirectionsCar
-)
+private val activityGlyphReferences =
+    listOf(
+        Icons.AutoMirrored.Filled.DirectionsWalk,
+        Icons.AutoMirrored.Filled.DirectionsBike,
+        Icons.Filled.DirectionsCar,
+    )

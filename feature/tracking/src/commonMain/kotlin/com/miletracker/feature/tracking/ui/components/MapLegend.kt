@@ -49,37 +49,37 @@ private fun LegendHeatmapRow() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 Modifier
                     .size(14.dp)
-                    .background(Color(0xFF2196F3), CircleShape)
+                    .background(Color(0xFF2196F3), CircleShape),
             )
             Text("Slow", style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.size(8.dp))
             Box(
                 Modifier
                     .size(14.dp)
-                    .background(Color(0xFF4CAF50), CircleShape)
+                    .background(Color(0xFF4CAF50), CircleShape),
             )
             Text("City", style = MaterialTheme.typography.bodySmall)
         }
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 Modifier
                     .size(14.dp)
-                    .background(Color(0xFFFF9800), CircleShape)
+                    .background(Color(0xFFFF9800), CircleShape),
             )
             Text("Fast", style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.size(8.dp))
             Box(
                 Modifier
                     .size(14.dp)
-                    .background(Color(0xFFF44336), CircleShape)
+                    .background(Color(0xFFF44336), CircleShape),
             )
             Text("Highway", style = MaterialTheme.typography.bodySmall)
         }
@@ -87,9 +87,7 @@ private fun LegendHeatmapRow() {
 }
 
 @Composable
-private fun LegendStatusColumn(
-    lineItem: @Composable (color: Color, label: String, dashed: Boolean) -> Unit
-) {
+private fun LegendStatusColumn(lineItem: @Composable (color: Color, label: String, dashed: Boolean) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         lineItem(Color(0xFF1976D2), "Normal", false)
         lineItem(Color(0xFF9E9E9E), "Paused", true)
@@ -100,10 +98,14 @@ private fun LegendStatusColumn(
 }
 
 @Composable
-private fun LegendLineItem(color: Color, label: String, dashed: Boolean) {
+private fun LegendLineItem(
+    color: Color,
+    label: String,
+    dashed: Boolean,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Canvas(modifier = Modifier.size(width = 36.dp, height = 10.dp)) {
             drawLine(
@@ -112,10 +114,15 @@ private fun LegendLineItem(color: Color, label: String, dashed: Boolean) {
                 end = Offset(size.width, size.height / 2f),
                 strokeWidth = 8.dp.toPx(),
                 cap = StrokeCap.Round,
-                pathEffect = if (dashed) PathEffect.dashPathEffect(
-                    floatArrayOf(12f, 12f),
-                    0f
-                ) else null
+                pathEffect =
+                    if (dashed) {
+                        PathEffect.dashPathEffect(
+                            floatArrayOf(12f, 12f),
+                            0f,
+                        )
+                    } else {
+                        null
+                    },
             )
         }
         Text(label, style = MaterialTheme.typography.bodySmall)
@@ -123,10 +130,14 @@ private fun LegendLineItem(color: Color, label: String, dashed: Boolean) {
 }
 
 @Composable
-private fun LegendLineItemCompact(color: Color, label: String, dashed: Boolean) {
+private fun LegendLineItemCompact(
+    color: Color,
+    label: String,
+    dashed: Boolean,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Canvas(modifier = Modifier.size(width = 36.dp, height = 10.dp)) {
             drawLine(
@@ -135,10 +146,15 @@ private fun LegendLineItemCompact(color: Color, label: String, dashed: Boolean) 
                 end = Offset(size.width, size.height / 2f),
                 strokeWidth = 8.dp.toPx(),
                 cap = StrokeCap.Round,
-                pathEffect = if (dashed) PathEffect.dashPathEffect(
-                    floatArrayOf(12f, 12f),
-                    0f
-                ) else null
+                pathEffect =
+                    if (dashed) {
+                        PathEffect.dashPathEffect(
+                            floatArrayOf(12f, 12f),
+                            0f,
+                        )
+                    } else {
+                        null
+                    },
             )
         }
         Text(label, style = MaterialTheme.typography.bodySmall)

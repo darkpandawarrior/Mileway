@@ -9,12 +9,9 @@ import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
 
 class SavedTrackRepository(private val dao: SavedTrackDao) {
+    fun allTracksFlow(): Flow<List<TrackDisplayData>> = dao.getAllSavedTracks().map { list -> list.map { it.toDisplayData() } }
 
-    fun allTracksFlow(): Flow<List<TrackDisplayData>> =
-        dao.getAllSavedTracks().map { list -> list.map { it.toDisplayData() } }
-
-    fun completedTracksFlow(): Flow<List<TrackDisplayData>> =
-        dao.getCompletedTracks().map { list -> list.map { it.toDisplayData() } }
+    fun completedTracksFlow(): Flow<List<TrackDisplayData>> = dao.getCompletedTracks().map { list -> list.map { it.toDisplayData() } }
 
     suspend fun getByRouteId(routeId: String): SavedTrack? = dao.getSavedTrackById(routeId)
 
@@ -24,16 +21,19 @@ class SavedTrackRepository(private val dao: SavedTrackDao) {
 
     suspend fun update(track: SavedTrack) = dao.updateSavedTrack(track)
 
-    suspend fun markSubmitted(routeId: String, transId: String, amount: Double) =
-        dao.markTrackCompleted(
-            routeId = routeId,
-            trackingActivity = "Submitted",
-            currentTime = Clock.System.now().toEpochMilliseconds(),
-            newName = "Submitted Journey",
-            submittedAmount = amount,
-            submittedAmountCurrency = "INR",
-            transId = transId
-        )
+    suspend fun markSubmitted(
+        routeId: String,
+        transId: String,
+        amount: Double,
+    ) = dao.markTrackCompleted(
+        routeId = routeId,
+        trackingActivity = "Submitted",
+        currentTime = Clock.System.now().toEpochMilliseconds(),
+        newName = "Submitted Journey",
+        submittedAmount = amount,
+        submittedAmountCurrency = "INR",
+        transId = transId,
+    )
 
     suspend fun count(): Long = dao.count()
 

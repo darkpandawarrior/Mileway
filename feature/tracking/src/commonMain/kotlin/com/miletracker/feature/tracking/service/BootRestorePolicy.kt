@@ -11,7 +11,7 @@ enum class BootRestoreAction {
     CLEAR_STALE_SESSION,
 
     /** No tracking session — nothing to do. */
-    NONE
+    NONE,
 }
 
 /**
@@ -25,17 +25,19 @@ enum class BootRestoreAction {
  * disallowed or the service receives no fixes.
  */
 object BootRestorePolicy {
-
     fun decide(
         session: CurrentTrackData,
         hasFineLocation: Boolean,
-        hasBackgroundLocation: Boolean
+        hasBackgroundLocation: Boolean,
     ): BootRestoreAction {
         val resumable = session.isTracking && session.token.isNotEmpty() && session.startTime > 0L
         if (!resumable) {
             // isTracking with no token/startTime is a corrupt leftover — clean it up.
-            return if (session.isTracking) BootRestoreAction.CLEAR_STALE_SESSION
-            else BootRestoreAction.NONE
+            return if (session.isTracking) {
+                BootRestoreAction.CLEAR_STALE_SESSION
+            } else {
+                BootRestoreAction.NONE
+            }
         }
         if (!hasFineLocation || !hasBackgroundLocation) return BootRestoreAction.CLEAR_STALE_SESSION
         return BootRestoreAction.RESUME_SERVICE

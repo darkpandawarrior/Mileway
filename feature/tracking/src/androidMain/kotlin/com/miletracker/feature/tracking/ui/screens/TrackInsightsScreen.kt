@@ -56,13 +56,13 @@ import org.koin.compose.viewmodel.koinViewModel
 fun TrackInsightsScreen(
     routeId: String,
     onBack: () -> Unit,
-    viewModel: TrackInsightsViewModel = koinViewModel()
+    viewModel: TrackInsightsViewModel = koinViewModel(),
 ) {
     LaunchedEffect(routeId) { viewModel.loadTrackInsights(routeId) }
 
     val isLoading by viewModel.isLoading.collectAsState()
-    val error     by viewModel.error.collectAsState()
-    val insights  by viewModel.insights.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val insights by viewModel.insights.collectAsState()
 
     Scaffold(
         topBar = {
@@ -73,53 +73,56 @@ fun TrackInsightsScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
-                isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-                error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(48.dp))
-                        Spacer(Modifier.height(8.dp))
-                        Text(error ?: "Error loading insights", color = MaterialTheme.colorScheme.error)
+                isLoading ->
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
-                }
+                error != null ->
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(48.dp))
+                            Spacer(Modifier.height(8.dp))
+                            Text(error ?: "Error loading insights", color = MaterialTheme.colorScheme.error)
+                        }
+                    }
                 insights != null -> {
                     val data = insights!!
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         item {
                             // Quality score header
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = qualityColor(data.qualityScore).copy(alpha = 0.1f)
-                                )
+                                colors =
+                                    CardDefaults.cardColors(
+                                        containerColor = qualityColor(data.qualityScore).copy(alpha = 0.1f),
+                                    ),
                             ) {
                                 Column(
                                     modifier = Modifier.padding(20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                    horizontalAlignment = Alignment.CenterHorizontally,
                                 ) {
                                     Text(
                                         "${data.qualityScore}",
                                         style = MaterialTheme.typography.displayMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = qualityColor(data.qualityScore)
+                                        color = qualityColor(data.qualityScore),
                                     )
                                     Text("Quality Score", style = MaterialTheme.typography.titleSmall)
                                     Text(
                                         data.qualityLabel,
                                         style = MaterialTheme.typography.labelLarge,
                                         color = qualityColor(data.qualityScore),
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.SemiBold,
                                     )
                                 }
                             }
@@ -129,25 +132,25 @@ fun TrackInsightsScreen(
                             SectionHeader("Journey Summary")
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 StatItem(
                                     icon = Icons.AutoMirrored.Filled.TrendingUp,
                                     label = "Distance",
                                     value = "%.2f km".format(data.distanceKm),
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
                                 )
                                 StatItem(
                                     icon = Icons.Default.Timer,
                                     label = "Duration",
                                     value = formatDuration(data.durationMs),
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
                                 )
                                 StatItem(
                                     icon = Icons.Default.Speed,
                                     label = "Avg Speed",
                                     value = "%.1f km/h".format(data.avgSpeedKmh),
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
                                 )
                             }
                         }
@@ -157,7 +160,7 @@ fun TrackInsightsScreen(
                             if (data.qualityResult != null) {
                                 QualityDetailCard(
                                     qualityResult = data.qualityResult,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             } else {
                                 DataQualityReportCard(
@@ -165,7 +168,7 @@ fun TrackInsightsScreen(
                                     locationCount = data.locationCount,
                                     mockCount = data.mockLocationCount,
                                     abnormalCount = data.abnormalLocationCount,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -176,7 +179,7 @@ fun TrackInsightsScreen(
                                 SectionHeader("Activity & Driving Style")
                                 ActivityBreakdownCard(
                                     activityResult = activity,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -187,7 +190,7 @@ fun TrackInsightsScreen(
                                 SectionHeader("System Impact")
                                 SystemImpactCard(
                                     systemImpactResult = systemImpact,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -198,7 +201,7 @@ fun TrackInsightsScreen(
                                 SectionHeader("Distance Quality")
                                 DistanceQualityCard(
                                     distanceQualityResult = dq,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -208,11 +211,11 @@ fun TrackInsightsScreen(
                                 SectionHeader("Recommendations")
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(16.dp)
+                                    shape = RoundedCornerShape(16.dp),
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
                                         data.recommendations.forEach { rec ->
                                             Row(verticalAlignment = Alignment.Top) {
@@ -220,11 +223,11 @@ fun TrackInsightsScreen(
                                                     Icons.Default.LightMode,
                                                     contentDescription = null,
                                                     modifier = Modifier.size(16.dp).padding(top = 2.dp),
-                                                    tint = Color(0xFFFFC107)
+                                                    tint = Color(0xFFFFC107),
                                                 )
                                                 Text(
                                                     " $rec",
-                                                    style = MaterialTheme.typography.bodySmall
+                                                    style = MaterialTheme.typography.bodySmall,
                                                 )
                                             }
                                         }

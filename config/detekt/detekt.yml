@@ -1,0 +1,60 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+# --------------------------------------------------------------------------
+# Suppressions — rules that conflict with the project's coding conventions
+# or that produce too much noise on auto-generated/preview code.
+# --------------------------------------------------------------------------
+
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '100'
+      - '360'
+      - '800'
+    ignoreAnnotated:
+      - 'androidx.compose.ui.tooling.preview.Preview'
+      - 'com.miletracker.core.ui.previews.PreviewLightDark'
+      - 'com.miletracker.core.ui.previews.PreviewMatrix'
+      - 'com.miletracker.core.ui.previews.PreviewFontScales'
+      - 'com.miletracker.core.ui.previews.PreviewDevices'
+      - 'com.miletracker.core.ui.previews.PreviewStates'
+  MaxLineLength:
+    maxLineLength: 120
+  WildcardImport:
+    active: false   # Compose generates many wildcard imports via IDE; suppress project-wide
+
+complexity:
+  LongMethod:
+    threshold: 60   # Compose screens tend to be long but readable
+  LongParameterList:
+    functionThreshold: 8   # Composables accept many parameters by design
+  CyclomaticComplexMethod:
+    threshold: 15
+
+comments:
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+  UndocumentedPublicProperty:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false   # runCatching { } is idiomatic in this codebase
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated:
+      - 'androidx.compose.runtime.Composable'
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'

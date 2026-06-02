@@ -18,7 +18,6 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 
 class FloatingBubbleManager(private val context: Context) {
-
     companion object {
         private const val TAG = "FloatingBubbleManager"
         private const val BUBBLE_SIZE_DP = 56
@@ -41,38 +40,42 @@ class FloatingBubbleManager(private val context: Context) {
         isTracking: Boolean,
         savedX: Int = 0,
         savedY: Int = 100,
-        onTap: () -> Unit
+        onTap: () -> Unit,
     ) {
         if (isAdded) {
             Log.w(TAG, "Bubble already shown — skipping")
             return
         }
 
-        val view = ImageView(context).apply {
-            setImageResource(android.R.drawable.ic_menu_mylocation)
-            setColorFilter(if (isTracking) Color.parseColor("#4CAF50") else Color.parseColor("#FF9800"))
-            setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
-            setOnClickListener { onTap() }
-            alpha = 0f
-            scaleX = 0.3f
-            scaleY = 0.3f
-        }
+        val view =
+            ImageView(context).apply {
+                setImageResource(android.R.drawable.ic_menu_mylocation)
+                setColorFilter(if (isTracking) Color.parseColor("#4CAF50") else Color.parseColor("#FF9800"))
+                setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
+                setOnClickListener { onTap() }
+                alpha = 0f
+                scaleX = 0.3f
+                scaleY = 0.3f
+            }
 
-        val params = WindowManager.LayoutParams(
-            bubbleSizePx,
-            bubbleSizePx,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else
-                @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+        val params =
+            WindowManager.LayoutParams(
+                bubbleSizePx,
+                bubbleSizePx,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                } else {
+                    @Suppress("DEPRECATION")
+                    WindowManager.LayoutParams.TYPE_PHONE
+                },
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = savedX
-            y = savedY
-        }
+                PixelFormat.TRANSLUCENT,
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                x = savedX
+                y = savedY
+            }
 
         try {
             windowManager.addView(view, params)
@@ -91,7 +94,7 @@ class FloatingBubbleManager(private val context: Context) {
                     ObjectAnimator.ofFloat(view, "scaleY", 0.3f, 1f).apply {
                         interpolator = OvershootInterpolator()
                         duration = ANIM_ENTER_MS
-                    }
+                    },
                 )
                 start()
             }
@@ -112,7 +115,11 @@ class FloatingBubbleManager(private val context: Context) {
     }
 
     fun dismiss(onDismissed: () -> Unit) {
-        val view = bubbleView ?: run { onDismissed(); return }
+        val view =
+            bubbleView ?: run {
+                onDismissed()
+                return
+            }
         stopPulse()
 
         AnimatorSet().apply {
@@ -125,14 +132,16 @@ class FloatingBubbleManager(private val context: Context) {
                 ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.2f).apply {
                     interpolator = DecelerateInterpolator()
                     duration = ANIM_EXIT_MS
-                }
+                },
             )
-            addListener(object : android.animation.AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: android.animation.Animator) {
-                    removeBubble()
-                    onDismissed()
-                }
-            })
+            addListener(
+                object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        removeBubble()
+                        onDismissed()
+                    }
+                },
+            )
             start()
         }
     }
@@ -156,37 +165,43 @@ class FloatingBubbleManager(private val context: Context) {
 
     private fun startPulse(view: View) {
         stopPulse()
-        pulseAnimator = ValueAnimator.ofFloat(1f, 1.15f, 1f).apply {
-            duration = ANIM_PULSE_MS
-            repeatCount = ValueAnimator.INFINITE
-            repeatMode = ValueAnimator.RESTART
-            addUpdateListener { anim ->
-                val scale = anim.animatedValue as Float
-                view.scaleX = scale
-                view.scaleY = scale
+        pulseAnimator =
+            ValueAnimator.ofFloat(1f, 1.15f, 1f).apply {
+                duration = ANIM_PULSE_MS
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.RESTART
+                addUpdateListener { anim ->
+                    val scale = anim.animatedValue as Float
+                    view.scaleX = scale
+                    view.scaleY = scale
+                }
+                start()
             }
-            start()
-        }
     }
 
     private fun stopPulse() {
         pulseAnimator?.cancel()
         pulseAnimator = null
-        bubbleView?.let { it.scaleX = 1f; it.scaleY = 1f }
+        bubbleView?.let {
+            it.scaleX = 1f
+            it.scaleY = 1f
+        }
     }
 
     fun vibrate() {
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager
-            vm?.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        } ?: return
+        val vibrator =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager
+                vm?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            } ?: return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
         } else {
-            @Suppress("DEPRECATION") vibrator.vibrate(50)
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(50)
         }
     }
 
@@ -195,7 +210,10 @@ class FloatingBubbleManager(private val context: Context) {
         return Pair(params.x, params.y)
     }
 
-    fun updatePosition(x: Int, y: Int) {
+    fun updatePosition(
+        x: Int,
+        y: Int,
+    ) {
         val params = bubbleParams ?: return
         val view = bubbleView ?: return
         params.x = x

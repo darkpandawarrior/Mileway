@@ -44,13 +44,14 @@ data class AccountAnalyticsSnapshot(
 ) {
     companion object {
         /** Deterministic demo snapshot mirroring the reference "last 7 days" widget. */
-        fun demo(): AccountAnalyticsSnapshot = AccountAnalyticsSnapshot(
-            totalSpend = "₹22,629.12",
-            transactions = 1,
-            window = "last 7 days",
-            updatedAt = "02:54 AM",
-            sparkline = listOf(0.30f, 0.42f, 0.38f, 0.55f, 0.48f, 0.70f, 0.62f),
-        )
+        fun demo(): AccountAnalyticsSnapshot =
+            AccountAnalyticsSnapshot(
+                totalSpend = "₹22,629.12",
+                transactions = 1,
+                window = "last 7 days",
+                updatedAt = "02:54 AM",
+                sparkline = listOf(0.30f, 0.42f, 0.38f, 0.55f, 0.48f, 0.70f, 0.62f),
+            )
     }
 }
 

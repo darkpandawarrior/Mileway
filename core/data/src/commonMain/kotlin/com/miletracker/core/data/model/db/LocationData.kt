@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "locations",
-    indices = [Index(value = ["token", "uploaded", "date"])]
+    indices = [Index(value = ["token", "uploaded", "date"])],
 )
 data class LocationData(
     @PrimaryKey(autoGenerate = true)
@@ -54,5 +54,5 @@ data class LocationData(
     val locationTime: Long = 0L,
     val ramUsage: Long = 0L,
     val deviceModel: String = "",
-    val appVersionName: String = ""
+    val appVersionName: String = "",
 )

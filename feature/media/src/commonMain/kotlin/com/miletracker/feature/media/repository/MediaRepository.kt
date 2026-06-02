@@ -14,7 +14,10 @@ interface MediaRepository {
     suspend fun runOcr(uri: String): OcrResult
 
     /** Burns [text] into the image at [uri] and returns the (mock) watermarked uri. */
-    suspend fun applyWatermark(uri: String, text: String): String
+    suspend fun applyWatermark(
+        uri: String,
+        text: String,
+    ): String
 
     /** Uploads the attachment and returns the terminal [UploadState.Done]. */
     suspend fun upload(item: AttachmentItem): UploadState.Done

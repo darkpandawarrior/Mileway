@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 package com.miletracker.feature.tracking.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -18,39 +21,38 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Apartment
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,35 +61,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.KeyboardOptions
 import coil3.compose.AsyncImage
 import com.miletracker.core.ui.components.CollapsibleSectionCard
 import com.miletracker.core.ui.components.SectionCard
 import com.miletracker.core.ui.theme.DesignTokens
 
-/**
- * Stateless building blocks for the mileage submission ("Review and submit journey") screen.
- *
- * Every composable here follows unidirectional data flow: all data arrives through parameters
- * and every interaction is reported through a callback. None of them own a ViewModel, talk to
- * navigation, or read global state — the integrating screen wires them together. This keeps each
- * piece independently previewable and testable.
- *
- * The layout, spacing and copy mirror the production submission screen; colors are resolved from
- * [MaterialTheme] and [DesignTokens] so the components inherit the app's theme automatically.
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Custom-form field model (shared by AdditionalDetailsForm)
-// ─────────────────────────────────────────────────────────────────────────────
+// Stateless building blocks for the mileage submission ("Review and submit journey") screen.
+// UDF: data arrives through parameters, interactions surface through callbacks.
+// None own a ViewModel; each piece is independently previewable and testable.
+// Custom-form field model is shared by AdditionalDetailsForm.
 
 /** Input control rendered for a [FormField]. */
 enum class FormFieldType {
@@ -95,7 +85,7 @@ enum class FormFieldType {
     TEXT,
 
     /** A fixed set of [FormField.options] rendered as an [ExposedDropdownMenuBox]. */
-    DROPDOWN
+    DROPDOWN,
 }
 
 /**
@@ -116,7 +106,7 @@ data class FormField(
     val value: String,
     val required: Boolean,
     val options: List<String> = emptyList(),
-    val errorText: String? = null
+    val errorText: String? = null,
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -138,25 +128,25 @@ data class FormField(
 fun SubmissionChecklistHeader(
     remaining: Int,
     requirements: List<String>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val allSet = remaining <= 0
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = if (allSet) "All set" else "Review and submit journey",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f, fill = false)
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 Spacer(Modifier.width(DesignTokens.Spacing.s))
                 RemainingPill(remaining = remaining)
@@ -170,19 +160,19 @@ fun SubmissionChecklistHeader(
                         imageVector = Icons.Filled.CheckCircle,
                         contentDescription = null,
                         tint = DesignTokens.StatusColors.success,
-                        modifier = Modifier.size(DesignTokens.IconSize.badge)
+                        modifier = Modifier.size(DesignTokens.IconSize.badge),
                     )
                     Spacer(Modifier.width(DesignTokens.Spacing.s))
                     Text(
                         text = "You can continue when ready.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             } else {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                 ) {
                     requirements.forEach { req -> RequirementChip(label = req) }
                 }
@@ -196,8 +186,11 @@ fun SubmissionChecklistHeader(
 private fun RemainingPill(remaining: Int) {
     val allSet = remaining <= 0
     val container =
-        if (allSet) DesignTokens.StatusColors.success.copy(alpha = 0.15f)
-        else MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        if (allSet) {
+            DesignTokens.StatusColors.success.copy(alpha = 0.15f)
+        } else {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        }
     val content =
         if (allSet) DesignTokens.StatusColors.success else MaterialTheme.colorScheme.primary
     Surface(shape = CircleShape, color = container) {
@@ -205,7 +198,7 @@ private fun RemainingPill(remaining: Int) {
             text = if (allSet) "Ready" else "$remaining remaining",
             style = MaterialTheme.typography.labelMedium,
             color = content,
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.xs)
+            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.xs),
         )
     }
 }
@@ -215,13 +208,13 @@ private fun RemainingPill(remaining: Int) {
 private fun RequirementChip(label: String) {
     Surface(
         shape = DesignTokens.Shape.chip,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.s)
+            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.m, vertical = DesignTokens.Spacing.s),
         )
     }
 }
@@ -240,7 +233,7 @@ private fun RequirementChip(label: String) {
 fun PendingDataSyncCard(
     pendingPoints: Int,
     totalPoints: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     SectionCard(
         title = "Pending Data Sync",
@@ -249,31 +242,32 @@ fun PendingDataSyncCard(
         titleColor = MaterialTheme.colorScheme.onTertiaryContainer,
         leadingIconTint = MaterialTheme.colorScheme.onTertiaryContainer,
         leadingIconContainerColor = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.10f),
-        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Sync,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                    modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                    modifier = Modifier.size(DesignTokens.IconSize.navigation),
                 )
                 Text(
                     text = "$pendingPoints of $totalPoints location points pending sync",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
             Text(
-                text = "Your tracking data will be automatically synced when you submit. " +
-                    "Ensure you have a stable internet connection.",
+                text =
+                    "Your tracking data will be automatically synced when you submit. " +
+                        "Ensure you have a stable internet connection.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
             )
         }
     }
@@ -295,12 +289,12 @@ fun JourneySummaryCard(
     durationText: String,
     maxSpeedText: String,
     avgSpeedText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     SectionCard(
         title = "Journey Summary",
         modifier = modifier,
-        leadingIcon = Icons.Outlined.Route
+        leadingIcon = Icons.Outlined.Route,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)) {
             Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)) {
@@ -308,13 +302,13 @@ fun JourneySummaryCard(
                     icon = Icons.Outlined.Place,
                     label = "Distance",
                     value = distanceText,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 MetricCell(
                     icon = Icons.Outlined.Timer,
                     label = "Duration",
                     value = durationText,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)) {
@@ -322,13 +316,13 @@ fun JourneySummaryCard(
                     icon = Icons.Outlined.Speed,
                     label = "Max Speed",
                     value = maxSpeedText,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 MetricCell(
                     icon = Icons.Outlined.Speed,
                     label = "Avg Speed",
                     value = avgSpeedText,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -341,7 +335,7 @@ private fun MetricCell(
     icon: ImageVector,
     label: String,
     value: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -349,20 +343,20 @@ private fun MetricCell(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(DesignTokens.IconSize.inline)
+                modifier = Modifier.size(DesignTokens.IconSize.inline),
             )
             Spacer(Modifier.width(DesignTokens.Spacing.xs))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Spacer(Modifier.height(DesignTokens.Spacing.xs))
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -384,7 +378,7 @@ fun LocationDetailsCard(
     startTime: String,
     endTime: String,
     modifier: Modifier = Modifier,
-    onOpenInMaps: () -> Unit = {}
+    onOpenInMaps: () -> Unit = {},
 ) {
     SectionCard(
         title = "Location Details",
@@ -395,10 +389,10 @@ fun LocationDetailsCard(
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
                     contentDescription = "Open in maps",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
-        }
+        },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
             LocationLine(label = "Start", address = startAddress, time = startTime)
@@ -409,28 +403,32 @@ fun LocationDetailsCard(
 
 /** One labelled address + time entry inside [LocationDetailsCard]. */
 @Composable
-private fun LocationLine(label: String, address: String, time: String) {
+private fun LocationLine(
+    label: String,
+    address: String,
+    time: String,
+) {
     Column {
         Text(
             text = "$label: $address",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 2.dp)
+            modifier = Modifier.padding(top = 2.dp),
         ) {
             Icon(
                 imageVector = Icons.Outlined.AccessTime,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(DesignTokens.IconSize.inline)
+                modifier = Modifier.size(DesignTokens.IconSize.inline),
             )
             Spacer(Modifier.width(DesignTokens.Spacing.xs))
             Text(
                 text = time,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -464,34 +462,34 @@ fun OdometerReadingsCard(
     onCaptureEnd: () -> Unit,
     startImageUri: String? = null,
     endImageUri: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     CollapsibleSectionCard(
         title = "Odometer Readings",
         modifier = modifier,
         initiallyExpanded = true,
-        leadingIcon = Icons.Outlined.Speed
+        leadingIcon = Icons.Outlined.Speed,
     ) {
         OdometerRow(
             label = "Start Odometer",
             reading = startReading,
             isManual = isManualStart,
             imageUri = startImageUri,
-            onCapture = onCaptureStart
+            onCapture = onCaptureStart,
         )
         OdometerRow(
             label = "End Odometer",
             reading = endReading,
             isManual = isManualEnd,
             imageUri = endImageUri,
-            onCapture = onCaptureEnd
+            onCapture = onCaptureEnd,
         )
         if (odometerDistanceKm != null) {
             Text(
                 text = "Calculated Odometer Distance: ${formatKm(odometerDistanceKm)} kms",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = DesignTokens.Spacing.xs)
+                modifier = Modifier.padding(top = DesignTokens.Spacing.xs),
             )
         }
     }
@@ -504,33 +502,34 @@ private fun OdometerRow(
     reading: Int?,
     isManual: Boolean,
     imageUri: String?,
-    onCapture: () -> Unit
+    onCapture: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Thumbnail: actual photo if captured, camera icon placeholder otherwise.
         Box(
-            modifier = Modifier
-                .size(width = 80.dp, height = 60.dp)
-                .clip(DesignTokens.Shape.roundedSm)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(width = 80.dp, height = 60.dp)
+                    .clip(DesignTokens.Shape.roundedSm)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center,
         ) {
             if (imageUri != null) {
                 AsyncImage(
                     model = imageUri,
                     contentDescription = "$label photo",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
             } else {
                 Icon(
                     imageVector = Icons.Filled.CameraAlt,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                    modifier = Modifier.size(DesignTokens.IconSize.navigation),
                 )
             }
         }
@@ -543,7 +542,7 @@ private fun OdometerRow(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 if (isManual) {
                     Spacer(Modifier.width(DesignTokens.Spacing.s))
@@ -553,8 +552,12 @@ private fun OdometerRow(
             Text(
                 text = reading?.toString() ?: "Not captured",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = if (reading != null) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.colorScheme.onSurfaceVariant
+                color =
+                    if (reading != null) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
             )
         }
 
@@ -562,7 +565,7 @@ private fun OdometerRow(
             Icon(
                 imageVector = if (reading == null) Icons.Filled.CameraAlt else Icons.Filled.Edit,
                 contentDescription = if (reading == null) "Capture $label" else "Edit $label",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -573,13 +576,13 @@ private fun OdometerRow(
 private fun ManualChip() {
     Surface(
         shape = DesignTokens.Shape.chip,
-        color = MaterialTheme.colorScheme.surfaceVariant
+        color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Text(
             text = "Manual",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.s, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = DesignTokens.Spacing.s, vertical = 2.dp),
         )
     }
 }
@@ -607,13 +610,13 @@ private fun formatKm(value: Double): String {
 fun AdditionalDetailsForm(
     fields: List<FormField>,
     onValueChange: (String, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     CollapsibleSectionCard(
         title = "Additional Details (${fields.size})",
         modifier = modifier,
         initiallyExpanded = true,
-        subtitle = "Required expense fields before submission"
+        subtitle = "Required expense fields before submission",
     ) {
         fields.forEach { field ->
             when (field.type) {
@@ -626,18 +629,21 @@ fun AdditionalDetailsForm(
 
 /** Composes a label with a red asterisk appended when [required]. */
 @Composable
-private fun FieldLabel(label: String, required: Boolean) {
+private fun FieldLabel(
+    label: String,
+    required: Boolean,
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (required) {
             Text(
                 text = "*",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
             )
         }
     }
@@ -651,7 +657,7 @@ private fun FieldError(errorText: String?) {
             text = errorText,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(top = DesignTokens.Spacing.xs)
+            modifier = Modifier.padding(top = DesignTokens.Spacing.xs),
         )
     }
 }
@@ -660,7 +666,7 @@ private fun FieldError(errorText: String?) {
 @Composable
 private fun FormTextField(
     field: FormField,
-    onValueChange: (String, String) -> Unit
+    onValueChange: (String, String) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         FieldLabel(label = field.label, required = field.required)
@@ -672,7 +678,7 @@ private fun FormTextField(
             isError = field.errorText != null,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
         FieldError(field.errorText)
     }
@@ -683,7 +689,7 @@ private fun FormTextField(
 @Composable
 private fun FormDropdownField(
     field: FormField,
-    onValueChange: (String, String) -> Unit
+    onValueChange: (String, String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -692,7 +698,7 @@ private fun FormDropdownField(
         Spacer(Modifier.height(DesignTokens.Spacing.xs))
         ExposedDropdownMenuBox(
             expanded = expanded,
-            onExpandedChange = { expanded = it }
+            onExpandedChange = { expanded = it },
         ) {
             OutlinedTextField(
                 value = field.value,
@@ -701,11 +707,11 @@ private fun FormDropdownField(
                 placeholder = { Text("Select ${field.label}") },
                 isError = field.errorText != null,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
             ) {
                 field.options.forEach { option ->
                     DropdownMenuItem(
@@ -713,7 +719,7 @@ private fun FormDropdownField(
                         onClick = {
                             onValueChange(field.id, option)
                             expanded = false
-                        }
+                        },
                     )
                 }
             }
@@ -742,45 +748,54 @@ fun OfficeEntitySelectRow(
     value: String?,
     requiredHint: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val isMissing = value == null
     SectionCard(
         title = label,
         modifier = modifier,
         subtitle = "Required for submission",
-        leadingIcon = Icons.Outlined.Apartment
+        leadingIcon = Icons.Outlined.Apartment,
     ) {
         Column {
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
                 color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(
-                    1.dp,
-                    if (isMissing) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                ),
-                modifier = Modifier.fillMaxWidth().clip(DesignTokens.Shape.roundedSm).clickable(onClick = onClick)
+                border =
+                    BorderStroke(
+                        1.dp,
+                        if (isMissing) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        },
+                    ),
+                modifier = Modifier.fillMaxWidth().clip(DesignTokens.Shape.roundedSm).clickable(onClick = onClick),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = value ?: requiredHint,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = if (isMissing) MaterialTheme.colorScheme.onSurfaceVariant
-                        else MaterialTheme.colorScheme.onSurface,
+                        color =
+                            if (isMissing) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -789,7 +804,7 @@ fun OfficeEntitySelectRow(
                     text = "Required field",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = DesignTokens.Spacing.xs)
+                    modifier = Modifier.padding(top = DesignTokens.Spacing.xs),
                 )
             }
         }
@@ -814,46 +829,47 @@ fun AttachmentsSection(
     attachments: List<String>,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     SectionCard(
         title = "Attachments",
         modifier = modifier,
         subtitle = "Add bills, invoices, docs…",
-        leadingIcon = Icons.Filled.Add
+        leadingIcon = Icons.Filled.Add,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
             // Dashed add tile.
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 96.dp)
-                    .clip(DesignTokens.Shape.roundedSm)
-                    .dashedBorder(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                        shape = DesignTokens.Shape.roundedSm
-                    )
-                    .clickable(onClick = onAdd),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 96.dp)
+                        .clip(DesignTokens.Shape.roundedSm)
+                        .dashedBorder(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            shape = DesignTokens.Shape.roundedSm,
+                        )
+                        .clickable(onClick = onAdd),
+                contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(DesignTokens.IconSize.header)
+                        modifier = Modifier.size(DesignTokens.IconSize.header),
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.xs))
                     Text(
                         text = "Add Attachments",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         text = "Use camera or gallery",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -861,12 +877,12 @@ fun AttachmentsSection(
             if (attachments.isNotEmpty()) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                 ) {
                     attachments.forEach { attachment ->
                         AttachmentThumbnail(
                             label = attachment,
-                            onRemove = { onRemove(attachment) }
+                            onRemove = { onRemove(attachment) },
                         )
                     }
                 }
@@ -879,39 +895,41 @@ fun AttachmentsSection(
 @Composable
 private fun AttachmentThumbnail(
     label: String,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     Box(modifier = Modifier.size(72.dp)) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(72.dp)
-                .clip(DesignTokens.Shape.roundedSm)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(DesignTokens.Shape.roundedSm)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = label.take(2).uppercase(),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         // Delete overlay.
         Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(2.dp)
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.error)
-                .clickable(onClick = onRemove),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(2.dp)
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.error)
+                    .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.Close,
                 contentDescription = "Remove $label",
                 tint = MaterialTheme.colorScheme.onError,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(14.dp),
             )
         }
     }
@@ -941,38 +959,39 @@ fun MileageDraftBottomBar(
     onDiscard: () -> Unit,
     onSubmit: () -> Unit,
     infoText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = DesignTokens.Elevation.raised,
-        shadowElevation = DesignTokens.Elevation.raised
+        shadowElevation = DesignTokens.Elevation.raised,
     ) {
         // Inner content clears the gesture-nav area (the bar itself spans full-bleed).
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             // Info + draft toggle, on a subtle tinted surface.
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ) {
                 Column(modifier = Modifier.padding(DesignTokens.Spacing.m)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Place,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(6.dp).size(DesignTokens.IconSize.inline)
+                                modifier = Modifier.padding(6.dp).size(DesignTokens.IconSize.inline),
                             )
                         }
                         Spacer(Modifier.width(DesignTokens.Spacing.s))
@@ -980,14 +999,14 @@ fun MileageDraftBottomBar(
                             text = infoText,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                     }
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Switch(
                             checked = saveAsDraft,
-                            onCheckedChange = onToggleDraft
+                            onCheckedChange = onToggleDraft,
                         )
                         Spacer(Modifier.width(DesignTokens.Spacing.m))
                         Column {
@@ -995,12 +1014,12 @@ fun MileageDraftBottomBar(
                                 text = "Save as Draft",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = "Store progress now and finish later.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -1011,7 +1030,7 @@ fun MileageDraftBottomBar(
             Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
                 OutlinedButton(
                     onClick = onDiscard,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("Discard Journey")
                 }
@@ -1019,7 +1038,7 @@ fun MileageDraftBottomBar(
                     onClick = onSubmit,
                     enabled = submitEnabled,
                     colors = ButtonDefaults.buttonColors(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(if (saveAsDraft) "Save Draft" else "Submit Miles")
                 }
@@ -1041,10 +1060,11 @@ private fun Modifier.dashedBorder(
     shape: androidx.compose.ui.graphics.Shape,
     strokeWidth: androidx.compose.ui.unit.Dp = 1.dp,
     dashLength: Float = 12f,
-    gapLength: Float = 8f
-): Modifier = this.then(
-    Modifier.androidx_drawBehindDashed(color, shape, strokeWidth, dashLength, gapLength)
-)
+    gapLength: Float = 8f,
+): Modifier =
+    this.then(
+        Modifier.androidx_drawBehindDashed(color, shape, strokeWidth, dashLength, gapLength),
+    )
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 11. Vehicle summary card
@@ -1058,30 +1078,31 @@ private fun Modifier.dashedBorder(
 fun VehicleSummaryCard(
     vehicleName: String,
     ratePerKm: Double,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     SectionCard(
         title = "Vehicle",
         modifier = modifier,
-        leadingIcon = Icons.Filled.DirectionsCar
+        leadingIcon = Icons.Filled.DirectionsCar,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(DesignTokens.Shape.roundedSm)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(48.dp)
+                        .clip(DesignTokens.Shape.roundedSm)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.DirectionsCar,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(DesignTokens.IconSize.header)
+                    modifier = Modifier.size(DesignTokens.IconSize.header),
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -1109,24 +1130,29 @@ private fun Modifier.androidx_drawBehindDashed(
     shape: androidx.compose.ui.graphics.Shape,
     strokeWidth: androidx.compose.ui.unit.Dp,
     dashLength: Float,
-    gapLength: Float
-): Modifier = this.drawBehind {
-    val outline = shape.createOutline(size, layoutDirection, this)
-    val path = when (outline) {
-        is androidx.compose.ui.graphics.Outline.Generic -> outline.path
-        is androidx.compose.ui.graphics.Outline.Rounded ->
-            androidx.compose.ui.graphics.Path().apply { addRoundRect(outline.roundRect) }
-        is androidx.compose.ui.graphics.Outline.Rectangle ->
-            androidx.compose.ui.graphics.Path().apply { addRect(outline.rect) }
-    }
-    drawPath(
-        path = path,
-        color = color,
-        style = androidx.compose.ui.graphics.drawscope.Stroke(
-            width = strokeWidth.toPx(),
-            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(
-                floatArrayOf(dashLength, gapLength), 0f
-            )
+    gapLength: Float,
+): Modifier =
+    this.drawBehind {
+        val outline = shape.createOutline(size, layoutDirection, this)
+        val path =
+            when (outline) {
+                is androidx.compose.ui.graphics.Outline.Generic -> outline.path
+                is androidx.compose.ui.graphics.Outline.Rounded ->
+                    androidx.compose.ui.graphics.Path().apply { addRoundRect(outline.roundRect) }
+                is androidx.compose.ui.graphics.Outline.Rectangle ->
+                    androidx.compose.ui.graphics.Path().apply { addRect(outline.rect) }
+            }
+        drawPath(
+            path = path,
+            color = color,
+            style =
+                androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = strokeWidth.toPx(),
+                    pathEffect =
+                        androidx.compose.ui.graphics.PathEffect.dashPathEffect(
+                            floatArrayOf(dashLength, gapLength),
+                            0f,
+                        ),
+                ),
         )
-    )
-}
+    }

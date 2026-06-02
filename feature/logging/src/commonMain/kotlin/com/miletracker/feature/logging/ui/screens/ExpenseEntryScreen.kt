@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +48,7 @@ fun ExpenseEntryScreen(
     onBack: () -> Unit,
     onCategorySelected: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ExpenseViewModel = koinViewModel()
+    viewModel: ExpenseViewModel = koinViewModel(),
 ) {
     Scaffold(
         topBar = {
@@ -61,24 +60,25 @@ fun ExpenseEntryScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .navigationBarsPadding()
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .navigationBarsPadding(),
         ) {
             Spacer(Modifier.height(DesignTokens.Spacing.l))
 
             Text(
                 text = "What type of expense is this?",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
 
             Spacer(Modifier.height(DesignTokens.Spacing.l))
@@ -87,7 +87,7 @@ fun ExpenseEntryScreen(
                 columns = GridCells.Fixed(3),
                 horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
-                contentPadding = PaddingValues(bottom = DesignTokens.Spacing.xl)
+                contentPadding = PaddingValues(bottom = DesignTokens.Spacing.xl),
             ) {
                 items(ExpenseCategory.entries) { category ->
                     CategoryTile(
@@ -95,7 +95,7 @@ fun ExpenseEntryScreen(
                         onClick = {
                             viewModel.selectCategory(category)
                             onCategorySelected()
-                        }
+                        },
                     )
                 }
             }
@@ -107,41 +107,45 @@ fun ExpenseEntryScreen(
 private fun CategoryTile(
     category: ExpenseCategory,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(96.dp)
-            .clip(DesignTokens.Shape.roundedMd)
-            .clickable(onClick = onClick),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(96.dp)
+                .clip(DesignTokens.Shape.roundedMd)
+                .clickable(onClick = onClick),
         shape = DesignTokens.Shape.roundedMd,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        RoundedCornerShape(10.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            RoundedCornerShape(10.dp),
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = category.icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
             Spacer(Modifier.height(6.dp))
@@ -150,7 +154,7 @@ private fun CategoryTile(
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2
+                maxLines = 2,
             )
         }
     }

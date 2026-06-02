@@ -21,7 +21,6 @@ import kotlinx.coroutines.tasks.await
  * responsibility of [PermissionsProvider].
  */
 class AndroidLocationTracker(private val context: Context) : LocationTracker {
-
     private val client = LocationServices.getFusedLocationProviderClient(context)
     private val _updates = MutableSharedFlow<GeoPoint>(extraBufferCapacity = 16)
     override val updates: Flow<GeoPoint> = _updates.asSharedFlow()
@@ -30,16 +29,18 @@ class AndroidLocationTracker(private val context: Context) : LocationTracker {
     @SuppressLint("MissingPermission")
     override fun start() {
         if (callback != null) return
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 4_000L)
-            .setMinUpdateIntervalMillis(2_000L)
-            .build()
-        val cb = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let {
-                    _updates.tryEmit(GeoPoint(it.latitude, it.longitude, it.accuracy, it.time))
+        val request =
+            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 4_000L)
+                .setMinUpdateIntervalMillis(2_000L)
+                .build()
+        val cb =
+            object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    result.lastLocation?.let {
+                        _updates.tryEmit(GeoPoint(it.latitude, it.longitude, it.accuracy, it.time))
+                    }
                 }
             }
-        }
         callback = cb
         try {
             client.requestLocationUpdates(request, cb, Looper.getMainLooper())
@@ -54,10 +55,11 @@ class AndroidLocationTracker(private val context: Context) : LocationTracker {
     }
 
     @SuppressLint("MissingPermission")
-    override suspend fun current(): GeoPoint? = try {
-        client.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
-            ?.let { GeoPoint(it.latitude, it.longitude, it.accuracy, it.time) }
-    } catch (_: Exception) {
-        null
-    }
+    override suspend fun current(): GeoPoint? =
+        try {
+            client.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).await()
+                ?.let { GeoPoint(it.latitude, it.longitude, it.accuracy, it.time) }
+        } catch (_: Exception) {
+            null
+        }
 }

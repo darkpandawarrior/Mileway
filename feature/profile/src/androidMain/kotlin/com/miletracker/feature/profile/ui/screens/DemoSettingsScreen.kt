@@ -1,6 +1,5 @@
 package com.miletracker.feature.profile.ui.screens
 
-import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,12 +32,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
-import com.miletracker.core.ui.theme.MileTrackerTheme
-import com.miletracker.feature.profile.ui.previews.LightDarkPreview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -46,6 +43,8 @@ import com.miletracker.core.security.BiometricGuard
 import com.miletracker.core.security.RootDetector
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.core.ui.theme.MileTrackerTheme
+import com.miletracker.feature.profile.ui.previews.LightDarkPreview
 import com.miletracker.feature.profile.viewmodel.DemoSettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -55,7 +54,7 @@ fun DemoSettingsScreen(
     onBack: () -> Unit,
     onOpenRootGuard: () -> Unit = {},
     onOpenRootGuardDetected: () -> Unit = {},
-    viewModel: DemoSettingsViewModel = koinViewModel()
+    viewModel: DemoSettingsViewModel = koinViewModel(),
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -71,40 +70,42 @@ fun DemoSettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFF8E1)
-                ),
-                modifier = Modifier.fillMaxWidth()
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFF8E1),
+                    ),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 ListItem(
                     headlineContent = {
                         Text(
                             "Demo Mode Only",
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xFFE65100)
+                            color = Color(0xFFE65100),
                         )
                     },
                     supportingContent = {
                         Text(
                             "These toggles showcase architecture capabilities. They have no effect in production.",
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     },
                     leadingContent = {
                         Icon(Icons.Default.BugReport, contentDescription = null, tint = Color(0xFFE65100))
-                    }
+                    },
                 )
             }
 
@@ -117,28 +118,28 @@ fun DemoSettingsScreen(
                 title = "Simulate Root Detection",
                 subtitle = "App treats this device as rooted — shows RootGuardScreen on restart",
                 checked = settings.simulateRoot,
-                onToggle = { viewModel.toggleSimulateRoot() }
+                onToggle = { viewModel.toggleSimulateRoot() },
             )
 
             DemoToggle(
                 title = "Simulate Offline Mode",
                 subtitle = "NetworkMonitor reports disconnected; data served from Room/DataStore",
                 checked = settings.simulateOffline,
-                onToggle = { viewModel.toggleSimulateOffline() }
+                onToggle = { viewModel.toggleSimulateOffline() },
             )
 
             DemoToggle(
                 title = "Biometric Guard",
                 subtitle = "Require biometric auth before viewing Cards and Advance screens",
                 checked = settings.biometricGuardEnabled,
-                onToggle = { viewModel.toggleBiometricGuard() }
+                onToggle = { viewModel.toggleBiometricGuard() },
             )
 
             DemoToggle(
                 title = "GPS Drift Simulation",
                 subtitle = "Tracking service adds ±30m noise to coordinates to demo spike detection",
                 checked = settings.simulateGpsDrift,
-                onToggle = { viewModel.toggleGpsDrift() }
+                onToggle = { viewModel.toggleGpsDrift() },
             )
 
             DemoToggle(
@@ -146,7 +147,7 @@ fun DemoSettingsScreen(
                 subtitle = "WorkManager discards any active journey at 22:00 — demo of AutoDiscardWorker",
                 checked = settings.autoDiscardEnabled,
                 onToggle = { viewModel.toggleAutoDiscard() },
-                warningColor = Color(0xFFFF8F00)
+                warningColor = Color(0xFFFF8F00),
             )
 
             Spacer(Modifier.height(24.dp))
@@ -156,7 +157,7 @@ fun DemoSettingsScreen(
 
             OutlinedButton(
                 onClick = { rootDialogResult = RootDetector.check() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Run Root Detection Check")
             }
@@ -165,7 +166,7 @@ fun DemoSettingsScreen(
 
             OutlinedButton(
                 onClick = onOpenRootGuard,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("View Root Guard — Clean Device")
             }
@@ -174,7 +175,7 @@ fun DemoSettingsScreen(
 
             OutlinedButton(
                 onClick = onOpenRootGuardDetected,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("View Root Guard — Detected (Demo)")
             }
@@ -196,7 +197,7 @@ fun DemoSettingsScreen(
                                 },
                                 onFailure = { msg ->
                                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                                }
+                                },
                             )
                         } else {
                             Toast.makeText(context, "Biometric: $availability", Toast.LENGTH_SHORT).show()
@@ -206,9 +207,10 @@ fun DemoSettingsScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1A237E)
-                )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1A237E),
+                    ),
             ) {
                 Text("Test Biometric Prompt")
             }
@@ -235,7 +237,7 @@ fun DemoSettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { rootDialogResult = null }) { Text("OK") }
-            }
+            },
         )
     }
 }
@@ -246,7 +248,7 @@ private fun DemoToggle(
     subtitle: String,
     checked: Boolean,
     onToggle: () -> Unit,
-    warningColor: Color? = null
+    warningColor: Color? = null,
 ) {
     ListItem(
         headlineContent = {
@@ -255,7 +257,7 @@ private fun DemoToggle(
         supportingContent = { Text(subtitle, style = MaterialTheme.typography.bodySmall) },
         trailingContent = {
             Switch(checked = checked, onCheckedChange = { onToggle() })
-        }
+        },
     )
 }
 
@@ -296,7 +298,7 @@ private fun RootDetectionDialogPreview() {
             },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = {}) { Text("OK") }
-            }
+            },
         )
     }
 }

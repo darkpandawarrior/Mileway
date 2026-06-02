@@ -10,10 +10,11 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val profileModule = module {
-    single<ProfileRepository> { FakeProfileRepository() }
-    single { AdvanceRepository() }
-    viewModelOf(::ProfileViewModel)
-    viewModel { AdvanceViewModel(get()) }
-    viewModelOf(::DemoSettingsViewModel)
-}
+val profileModule =
+    module {
+        single<ProfileRepository> { FakeProfileRepository() }
+        single { AdvanceRepository() }
+        viewModelOf(::ProfileViewModel)
+        viewModel { AdvanceViewModel(get()) }
+        viewModelOf(::DemoSettingsViewModel)
+    }

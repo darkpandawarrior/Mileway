@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.agent.ui.screens
 
 import androidx.compose.foundation.clickable
@@ -22,12 +24,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.feature.agent.model.AgentConversation
 import com.miletracker.feature.agent.viewmodel.AgentViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -49,14 +51,15 @@ fun AgentHistoryScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
         ) {
             items(uiState.history) { conversation ->
                 ConversationRow(
@@ -64,7 +67,7 @@ fun AgentHistoryScreen(
                     onClick = {
                         viewModel.loadConversation(conversation)
                         onConversationSelected(conversation)
-                    }
+                    },
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 72.dp))
             }
@@ -73,20 +76,24 @@ fun AgentHistoryScreen(
 }
 
 @Composable
-private fun ConversationRow(conversation: AgentConversation, onClick: () -> Unit) {
+private fun ConversationRow(
+    conversation: AgentConversation,
+    onClick: () -> Unit,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Icon(
             imageVector = Icons.Filled.ChatBubbleOutline,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
         )
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(

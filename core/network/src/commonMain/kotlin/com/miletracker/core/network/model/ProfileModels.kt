@@ -19,7 +19,7 @@ data class EmployeeProfile(
     @SerialName("role") val role: String = "",
     @SerialName("organization") val organization: String = "",
     @SerialName("manager") val manager: String = "",
-    @SerialName("homeLocation") val homeLocation: String = ""
+    @SerialName("homeLocation") val homeLocation: String = "",
 )
 
 // ── Profile completion ────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ data class EmployeeProfile(
 data class CompletionCategory(
     @SerialName("name") val name: String,
     @SerialName("done") val done: Int = 0,
-    @SerialName("total") val total: Int = 0
+    @SerialName("total") val total: Int = 0,
 )
 
 /**
@@ -41,7 +41,7 @@ data class CompletionCategory(
 @Serializable
 data class ProfileCompletion(
     @SerialName("percent") val percent: Int = 0,
-    @SerialName("categories") val categories: List<CompletionCategory> = emptyList()
+    @SerialName("categories") val categories: List<CompletionCategory> = emptyList(),
 )
 
 // ── Sessions & accounts ───────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ data class UserSession(
     @SerialName("deviceName") val deviceName: String,
     @SerialName("platform") val platform: String,
     @SerialName("lastActiveMillis") val lastActiveMillis: Long = 0L,
-    @SerialName("isCurrent") val isCurrent: Boolean = false
+    @SerialName("isCurrent") val isCurrent: Boolean = false,
 )
 
 /**
@@ -65,5 +65,5 @@ data class DemoAccount(
     @SerialName("id") val id: String,
     @SerialName("displayName") val displayName: String,
     @SerialName("employeeCode") val employeeCode: String,
-    @SerialName("organization") val organization: String = ""
+    @SerialName("organization") val organization: String = "",
 )

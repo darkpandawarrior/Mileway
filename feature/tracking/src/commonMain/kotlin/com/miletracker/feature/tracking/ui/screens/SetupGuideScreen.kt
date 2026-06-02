@@ -52,12 +52,13 @@ private data class SetupStep(
     val icon: ImageVector,
 )
 
-private val SETUP_STEPS = listOf(
-    SetupStep(1, "Grant Location Permission", "Allow location access 'Always' for background tracking", Icons.Filled.GpsFixed),
-    SetupStep(2, "Disable Battery Optimization", "Prevent Android from stopping the tracking service", Icons.Filled.BatteryFull),
-    SetupStep(3, "Enable Background Data", "Allow the app to sync trip data in the background", Icons.Filled.Wifi),
-    SetupStep(4, "Configure Vehicle & Odometer", "Set up your vehicle details and odometer readings", Icons.Filled.DirectionsCar),
-)
+private val SETUP_STEPS =
+    listOf(
+        SetupStep(1, "Grant Location Permission", "Allow location access 'Always' for background tracking", Icons.Filled.GpsFixed),
+        SetupStep(2, "Disable Battery Optimization", "Prevent Android from stopping the tracking service", Icons.Filled.BatteryFull),
+        SetupStep(3, "Enable Background Data", "Allow the app to sync trip data in the background", Icons.Filled.Wifi),
+        SetupStep(4, "Configure Vehicle & Odometer", "Set up your vehicle details and odometer readings", Icons.Filled.DirectionsCar),
+    )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,23 +86,25 @@ fun SetupGuideScreen(
         },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(padding)
+                    .padding(DesignTokens.Spacing.l),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             // Completion banner — only visible when all steps done.
             if (allDone) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(12.dp),
-                        )
-                        .padding(DesignTokens.Spacing.m),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = RoundedCornerShape(12.dp),
+                            )
+                            .padding(DesignTokens.Spacing.m),
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -159,12 +162,13 @@ private fun SetupStepRow(
         // Step indicator column: number circle + connector line
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(
-                        color = if (isDone) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = CircleShape,
-                    ),
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .background(
+                            color = if (isDone) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = CircleShape,
+                        ),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isDone) {
@@ -185,10 +189,11 @@ private fun SetupStepRow(
             }
             if (!isLast) {
                 Spacer(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .height(DesignTokens.Spacing.xl)
-                        .background(MaterialTheme.colorScheme.outlineVariant),
+                    modifier =
+                        Modifier
+                            .width(2.dp)
+                            .height(DesignTokens.Spacing.xl)
+                            .background(MaterialTheme.colorScheme.outlineVariant),
                 )
             }
         }
@@ -223,9 +228,10 @@ private fun SetupStepRow(
             if (isDone) {
                 OutlinedButton(
                     onClick = onAction,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                    ),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(4.dp))

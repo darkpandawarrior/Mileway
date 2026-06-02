@@ -3,11 +3,6 @@ package com.miletracker.core.ui.components.tracking
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -125,10 +119,11 @@ fun ThreeButtonFabSystem(
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(DesignTokens.Spacing.l),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Bright-green geo check-in chip.
@@ -169,11 +164,12 @@ fun ThreeButtonFabSystem(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onHero()
                     },
-                    containerColor = if (isActive) {
-                        DesignTokens.StatusColors.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
+                    containerColor =
+                        if (isActive) {
+                            DesignTokens.StatusColors.error
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
                     contentColor = Color.White,
                 )
 
@@ -205,9 +201,10 @@ private fun SideFab(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
-            modifier = Modifier
-                .size(56.dp)
-                .shadow(6.dp, CircleShape),
+            modifier =
+                Modifier
+                    .size(56.dp)
+                    .shadow(6.dp, CircleShape),
             shape = CircleShape,
             color = container,
             onClick = onClick,
@@ -226,7 +223,10 @@ private fun SideFab(
 }
 
 @Composable
-private fun GeoCheckInChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun GeoCheckInChip(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier = modifier,
         shape = DesignTokens.Shape.chip,
@@ -256,14 +256,15 @@ private fun QuickActionGrid(
     modifier: Modifier = Modifier,
 ) {
     // A rotating accent palette so tiles read as distinct categories (matching the source grid).
-    val palette = listOf(
-        DesignTokens.StatusColors.info,
-        DesignTokens.StatusColors.success,
-        MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.tertiary,
-        DesignTokens.StatusColors.warning,
-        MaterialTheme.colorScheme.secondary,
-    )
+    val palette =
+        listOf(
+            DesignTokens.StatusColors.info,
+            DesignTokens.StatusColors.success,
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.tertiary,
+            DesignTokens.StatusColors.warning,
+            MaterialTheme.colorScheme.secondary,
+        )
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedLg,
@@ -280,17 +281,19 @@ private fun QuickActionGrid(
             )
             actions.chunked(3).forEach { rowActions ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = DesignTokens.Spacing.xs),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = DesignTokens.Spacing.xs),
                     horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                 ) {
                     rowActions.forEachIndexed { i, action ->
-                        val tint = when {
-                            action.destructive -> DesignTokens.StatusColors.error
-                            action.tint != null -> action.tint
-                            else -> palette[(actions.indexOf(action)) % palette.size]
-                        }
+                        val tint =
+                            when {
+                                action.destructive -> DesignTokens.StatusColors.error
+                                action.tint != null -> action.tint
+                                else -> palette[(actions.indexOf(action)) % palette.size]
+                            }
                         QuickActionTile(action, tint, onAction, Modifier.weight(1f))
                     }
                     repeat(3 - rowActions.size) { Spacer(Modifier.weight(1f)) }
@@ -319,10 +322,11 @@ private fun QuickActionTile(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.25f)),
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.25f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(action.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))

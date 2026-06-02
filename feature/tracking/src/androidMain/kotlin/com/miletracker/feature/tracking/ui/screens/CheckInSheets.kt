@@ -50,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
-import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import kotlinx.coroutines.tasks.await
 
@@ -67,35 +66,37 @@ import kotlinx.coroutines.tasks.await
 fun ManualCheckInSheet(
     viewModel: CheckInViewModel,
     uiState: CheckInViewModel.UiState,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp),
                     )
                 }
                 Spacer(Modifier.width(12.dp))
@@ -103,12 +104,12 @@ fun ManualCheckInSheet(
                     Text(
                         text = "Manual Check-In",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         text = "Record your current position as a check-in point",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -123,38 +124,38 @@ fun ManualCheckInSheet(
                 placeholder = { Text("e.g. Arrived at client site") },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3,
-                enabled = !uiState.isSubmitting
+                enabled = !uiState.isSubmitting,
             )
 
             if (uiState.error != null) {
                 Text(
                     text = uiState.error,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
 
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),
-                    enabled = !uiState.isSubmitting
+                    enabled = !uiState.isSubmitting,
                 ) { Text("Cancel") }
 
                 Button(
                     onClick = { viewModel.submitManualCheckIn() },
                     modifier = Modifier.weight(1f),
-                    enabled = !uiState.isSubmitting
+                    enabled = !uiState.isSubmitting,
                 ) {
                     if (uiState.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     } else {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -183,7 +184,7 @@ fun ManualCheckInSheet(
 fun GeoCheckInSheet(
     viewModel: CheckInViewModel,
     uiState: CheckInViewModel.UiState,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -194,9 +195,10 @@ fun GeoCheckInSheet(
 
     // Fetch device location when the sheet opens
     LaunchedEffect(Unit) {
-        val hasPermission = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasPermission =
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasPermission) {
             locationError = "Location permission not granted. Please enable it in system settings."
@@ -219,29 +221,31 @@ fun GeoCheckInSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp),
                     )
                 }
                 Spacer(Modifier.width(12.dp))
@@ -249,12 +253,12 @@ fun GeoCheckInSheet(
                     Text(
                         text = "Geo Check-In",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         text = "Validate your position against a nearby check-in location",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -266,7 +270,7 @@ fun GeoCheckInSheet(
                 isFetchingLocation -> {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         Text("Fetching location…", style = MaterialTheme.typography.bodyMedium)
@@ -277,7 +281,7 @@ fun GeoCheckInSheet(
                     Text(
                         text = locationError ?: "",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
 
@@ -285,18 +289,18 @@ fun GeoCheckInSheet(
                     val loc = fetchedLocation!!
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.MyLocation,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                         Text(
                             text = "%.5f, %.5f  (±%.0f m)".format(loc.latitude, loc.longitude, loc.accuracy),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -306,19 +310,19 @@ fun GeoCheckInSheet(
                 Text(
                     text = uiState.error,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
 
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),
-                    enabled = !uiState.isSubmitting
+                    enabled = !uiState.isSubmitting,
                 ) { Text("Cancel") }
 
                 Button(
@@ -327,13 +331,13 @@ fun GeoCheckInSheet(
                         viewModel.validateAndGeoCheckIn(loc.latitude, loc.longitude)
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = fetchedLocation != null && !isFetchingLocation && !uiState.isSubmitting
+                    enabled = fetchedLocation != null && !isFetchingLocation && !uiState.isSubmitting,
                 ) {
                     if (uiState.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     } else {
                         Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -363,35 +367,37 @@ fun GeoCheckInSheet(
 fun CheckInRadiusWarningSheet(
     viewModel: CheckInViewModel,
     uiState: CheckInViewModel.UiState,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Warning header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.errorContainer),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.errorContainer),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp),
                     )
                 }
                 Spacer(Modifier.width(12.dp))
@@ -399,7 +405,7 @@ fun CheckInRadiusWarningSheet(
                     text = "Outside Check-In Radius",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
 
@@ -407,7 +413,7 @@ fun CheckInRadiusWarningSheet(
 
             Text(
                 text = uiState.radiusWarningMessage,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
 
             // Distance detail chip if we have the result
@@ -415,34 +421,35 @@ fun CheckInRadiusWarningSheet(
                 Text(
                     text = "Nearest location: ${result.nearestLocation.name} (${result.nearestLocation.type})",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = "Your distance: ${result.distanceMeters.toInt()} m  |  Allowed: ${result.effectiveRadius.toInt()} m",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             // Action buttons
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 // Override — record the check-in anyway (with type GEO_OVERRIDE)
                 Button(
                     onClick = { viewModel.forceGeoCheckInDespiteRadius() },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    ),
-                    enabled = !uiState.isSubmitting
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                        ),
+                    enabled = !uiState.isSubmitting,
                 ) {
                     if (uiState.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
-                            color = Color.White
+                            color = Color.White,
                         )
                     } else {
                         Text("Check In Anyway (Override)")
@@ -451,7 +458,7 @@ fun CheckInRadiusWarningSheet(
 
                 TextButton(
                     onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) { Text("Cancel") }
             }
 

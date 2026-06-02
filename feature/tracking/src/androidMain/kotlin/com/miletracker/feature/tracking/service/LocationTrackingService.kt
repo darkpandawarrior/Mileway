@@ -21,7 +21,6 @@ import com.miletracker.feature.tracking.service.location.FusedLocationSource
 import com.miletracker.feature.tracking.service.location.GpsFix
 import com.miletracker.feature.tracking.service.location.LocationProcessor
 import com.miletracker.feature.tracking.service.location.LocationSource
-import com.miletracker.feature.tracking.service.location.ProcessResult
 import com.miletracker.feature.tracking.service.location.SimulatedLocationSource
 import com.miletracker.feature.tracking.service.location.TrackStats
 import com.miletracker.feature.tracking.service.location.TrackingSensorMonitor
@@ -46,7 +45,6 @@ import org.koin.android.ext.android.inject
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocationTrackingService : Service() {
-
     private val locationDao: LocationDao by inject()
     private val savedTrackDao: SavedTrackDao by inject()
     private val hardwareEventDao: HardwareEventDao by inject()
@@ -87,7 +85,11 @@ class LocationTrackingService : Service() {
         createNotificationChannel()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         // A startForegroundService() launch that doesn't reach startForeground() within the
         // ANR window kills the whole process (ForegroundServiceDidNotStartInTimeException),
         // so promote to foreground before ANY other work — especially before the suspendable
@@ -116,16 +118,17 @@ class LocationTrackingService : Service() {
     }
 
     /** Calls startForeground defensively. Returns false (and stops self) on failure. */
-    private fun enterForeground(): Boolean = try {
-        startForeground(NOTIFICATION_ID, buildNotification("Tracking…"))
-        true
-    } catch (e: Exception) {
-        // e.g. missing FGS location permission on Android 14+, or a background start the
-        // OS disallows (ForegroundServiceStartNotAllowedException). Don't crash the app.
-        android.util.Log.w("LocationTrackingService", "startForeground failed", e)
-        stopSelf()
-        false
-    }
+    private fun enterForeground(): Boolean =
+        try {
+            startForeground(NOTIFICATION_ID, buildNotification("Tracking…"))
+            true
+        } catch (e: Exception) {
+            // e.g. missing FGS location permission on Android 14+, or a background start the
+            // OS disallows (ForegroundServiceStartNotAllowedException). Don't crash the app.
+            android.util.Log.w("LocationTrackingService", "startForeground failed", e)
+            stopSelf()
+            false
+        }
 
     private fun leaveForegroundAndStop() {
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -143,30 +146,37 @@ class LocationTrackingService : Service() {
             val token = intentToken?.takeIf { it.isNotEmpty() } ?: session.token
             val resumable = session.isTracking && token.isNotEmpty() && token == session.token
             withContext(Dispatchers.Main) {
-                if (resumable) startTracking(token, resumeFrom = session)
-                else leaveForegroundAndStop()
+                if (resumable) {
+                    startTracking(token, resumeFrom = session)
+                } else {
+                    leaveForegroundAndStop()
+                }
             }
         }
     }
 
-    private fun startTracking(token: String, resumeFrom: CurrentTrackData? = null) {
+    private fun startTracking(
+        token: String,
+        resumeFrom: CurrentTrackData? = null,
+    ) {
         activeToken = token
         startTime = resumeFrom?.startTime?.takeIf { it > 0L } ?: System.currentTimeMillis()
         isPaused = resumeFrom?.isPaused ?: false
         startCoordsWritten = resumeFrom != null &&
             (resumeFrom.startLatitude != 0.0 || resumeFrom.startLongitude != 0.0)
-        processor = LocationProcessor(
-            deviceModel = Build.MODEL ?: "",
-            appVersionName = appVersionName(),
-            initialStats = resumeFrom?.let { seedStats(it) }
-        )
+        processor =
+            LocationProcessor(
+                deviceModel = Build.MODEL ?: "",
+                appVersionName = appVersionName(),
+                initialStats = resumeFrom?.let { seedStats(it) },
+            )
 
         acquireWakeLock()
         sensorMonitor.start()
         logEvent(
             token,
             if (resumeFrom != null) EventType.TRACKING_RESUMED else EventType.TRACKING_STARTED,
-            if (resumeFrom != null) "Tracking Restored After Restart" else "Tracking Started"
+            if (resumeFrom != null) "Tracking Restored After Restart" else "Tracking Started",
         )
 
         source = if (SIMULATE_LOCATION) SimulatedLocationSource() else FusedLocationSource(this)
@@ -178,17 +188,21 @@ class LocationTrackingService : Service() {
      * over a restart instead of resetting to zero. Only the cleaned totals are persisted
      * live, so the abnormal/mock buckets restart at zero for the resumed segment.
      */
-    private fun seedStats(s: CurrentTrackData) = TrackStats(
-        totalPoints = s.totalLocationPoints.toInt(),
-        originalDistanceM = s.distance,
-        cleanedDistanceM = s.distance,
-        abnormalDistanceM = 0.0,
-        mockDistanceM = 0.0,
-        avgSpeedMps = s.avgSpeed,
-        maxSpeedMps = s.maxSpeed
-    )
+    private fun seedStats(s: CurrentTrackData) =
+        TrackStats(
+            totalPoints = s.totalLocationPoints.toInt(),
+            originalDistanceM = s.distance,
+            cleanedDistanceM = s.distance,
+            abnormalDistanceM = 0.0,
+            mockDistanceM = 0.0,
+            avgSpeedMps = s.avgSpeed,
+            maxSpeedMps = s.maxSpeed,
+        )
 
-    private fun onFix(token: String, fix: GpsFix) {
+    private fun onFix(
+        token: String,
+        fix: GpsFix,
+    ) {
         val proc = processor ?: return
         val result = proc.process(fix, isPaused, sensorMonitor.snapshot) ?: return // jitter-suppressed
         val battery = batteryPercent()
@@ -203,7 +217,7 @@ class LocationTrackingService : Service() {
                 startCoordsWritten = true
                 savedTrackDao.getSavedTrackById(token)?.let { t ->
                     savedTrackDao.updateSavedTrack(
-                        t.copy(startLatitude = proc.firstLat!!, startLongitude = proc.firstLng!!)
+                        t.copy(startLatitude = proc.firstLat!!, startLongitude = proc.firstLng!!),
                     )
                 }
             }
@@ -215,22 +229,26 @@ class LocationTrackingService : Service() {
 
         val speedKmh = fix.speedMps * 3.6
         updateNotification(
-            if (isPaused) "Paused · %.2f km".format(stats.cleanedDistanceM / 1000)
-            else "%.2f km · %.0f km/h".format(stats.cleanedDistanceM / 1000, speedKmh)
+            if (isPaused) {
+                "Paused · %.2f km".format(stats.cleanedDistanceM / 1000)
+            } else {
+                "%.2f km · %.0f km/h".format(stats.cleanedDistanceM / 1000, speedKmh)
+            },
         )
     }
 
     private fun setPaused(paused: Boolean) {
         // Pause/resume with no live session (service started cold) — don't linger foreground.
-        val token = activeToken ?: run {
-            leaveForegroundAndStop()
-            return
-        }
+        val token =
+            activeToken ?: run {
+                leaveForegroundAndStop()
+                return
+            }
         isPaused = paused
         logEvent(
             token,
             if (paused) EventType.TRACKING_PAUSED else EventType.TRACKING_RESUMED,
-            if (paused) "Tracking Paused" else "Tracking Resumed"
+            if (paused) "Tracking Paused" else "Tracking Resumed",
         )
         updateNotification(if (paused) "Tracking paused" else "Tracking resumed")
     }
@@ -249,7 +267,7 @@ class LocationTrackingService : Service() {
                     endTime = endTime,
                     finalDistance = stats.cleanedDistanceM,
                     avgSpeed = stats.avgSpeedMps,
-                    maxSpeed = stats.maxSpeedMps
+                    maxSpeed = stats.maxSpeedMps,
                 )
                 // Persist the full advanced distance breakdown into the rich schema fields.
                 savedTrackDao.getSavedTrackById(token)?.let { t ->
@@ -265,8 +283,8 @@ class LocationTrackingService : Service() {
                             avgSpeed = stats.avgSpeedMps,
                             maxSpeed = stats.maxSpeedMps,
                             wasMockLocationUsed = stats.mockDistanceM > 0.0,
-                            wasEverPaused = t.wasEverPaused
-                        )
+                            wasEverPaused = t.wasEverPaused,
+                        ),
                     )
                 }
                 logEventSuspend(token, EventType.TRACKING_STOPPED, "Tracking Stopped")
@@ -280,7 +298,12 @@ class LocationTrackingService : Service() {
 
     // ---- session + events -------------------------------------------------
 
-    private suspend fun persistSession(token: String, fix: GpsFix, stats: com.miletracker.feature.tracking.service.location.TrackStats, battery: Double) {
+    private suspend fun persistSession(
+        token: String,
+        fix: GpsFix,
+        stats: com.miletracker.feature.tracking.service.location.TrackStats,
+        battery: Double,
+    ) {
         val current = currentSession()
         sessionStore.saveSession(
             current.copy(
@@ -298,8 +321,8 @@ class LocationTrackingService : Service() {
                 maxSpeed = stats.maxSpeedMps,
                 totalLocationPoints = stats.totalPoints.toLong(),
                 wasEverPaused = current.wasEverPaused || isPaused,
-                startedAtTimestamp = if (current.startedAtTimestamp == 0L) startTime else current.startedAtTimestamp
-            )
+                startedAtTimestamp = if (current.startedAtTimestamp == 0L) startTime else current.startedAtTimestamp,
+            ),
         )
     }
 
@@ -312,11 +335,21 @@ class LocationTrackingService : Service() {
         sessionStore.saveSession(current.copy(isTracking = false, isPaused = false, endTime = System.currentTimeMillis()))
     }
 
-    private fun logEvent(token: String, type: EventType, text: String, fix: GpsFix? = null) {
+    private fun logEvent(
+        token: String,
+        type: EventType,
+        text: String,
+        fix: GpsFix? = null,
+    ) {
         scope.launch(dbDispatcher) { logEventSuspend(token, type, text, fix) }
     }
 
-    private suspend fun logEventSuspend(token: String, type: EventType, text: String, fix: GpsFix? = null) {
+    private suspend fun logEventSuspend(
+        token: String,
+        type: EventType,
+        text: String,
+        fix: GpsFix? = null,
+    ) {
         hardwareEventDao.insert(
             HardwareEvent(
                 token = token,
@@ -328,8 +361,8 @@ class LocationTrackingService : Service() {
                 speed = fix?.speedMps,
                 audience = EventAudience.USER,
                 deviceModel = Build.MODEL ?: "",
-                appVersionName = appVersionName()
-            )
+                appVersionName = appVersionName(),
+            ),
         )
     }
 
@@ -341,16 +374,18 @@ class LocationTrackingService : Service() {
         return pct.toDouble()
     }
 
-    private fun appVersionName(): String = runCatching {
-        packageManager.getPackageInfo(packageName, 0).versionName ?: ""
-    }.getOrDefault("")
+    private fun appVersionName(): String =
+        runCatching {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: ""
+        }.getOrDefault("")
 
     private fun acquireWakeLock() {
         val pm = getSystemService(POWER_SERVICE) as? PowerManager ?: return
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "miletracker:tracking").apply {
-            setReferenceCounted(false)
-            acquire(60 * 60 * 1000L) // 1h safety cap
-        }
+        wakeLock =
+            pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "miletracker:tracking").apply {
+                setReferenceCounted(false)
+                acquire(60 * 60 * 1000L) // 1h safety cap
+            }
     }
 
     private fun releaseWakeLock() {
@@ -359,9 +394,12 @@ class LocationTrackingService : Service() {
     }
 
     private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID, "Location Tracking", NotificationManager.IMPORTANCE_LOW
-        ).apply { description = "Tracks your current journey" }
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                "Location Tracking",
+                NotificationManager.IMPORTANCE_LOW,
+            ).apply { description = "Tracks your current journey" }
         getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
     }
 

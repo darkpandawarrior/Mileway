@@ -14,7 +14,6 @@ import kotlin.coroutines.resumeWithException
  * cannot be decoded. The iOS counterpart (Phase 4) uses Vision's `VNRecognizeTextRequest`.
  */
 class AndroidTextRecognizer : TextRecognizer {
-
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
     override suspend fun recognize(imageBytes: ByteArray): String {

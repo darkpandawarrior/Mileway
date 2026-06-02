@@ -1,11 +1,10 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.ui.screens
 
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,11 +38,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -99,16 +97,18 @@ fun computeHealthLevel(track: SavedTrack): HealthLevel {
     }
 }
 
-private fun HealthLevel.color(): Color = when (this) {
-    HealthLevel.EXCELLENT -> Color(0xFF2E7D32)
-    HealthLevel.GOOD -> Color(0xFF558B2F)
-    HealthLevel.FAIR -> Color(0xFFF9A825)
-    HealthLevel.POOR -> Color(0xFFE65100)
-    HealthLevel.CRITICAL -> Color(0xFFC62828)
-}
+private fun HealthLevel.color(): Color =
+    when (this) {
+        HealthLevel.EXCELLENT -> Color(0xFF2E7D32)
+        HealthLevel.GOOD -> Color(0xFF558B2F)
+        HealthLevel.FAIR -> Color(0xFFF9A825)
+        HealthLevel.POOR -> Color(0xFFE65100)
+        HealthLevel.CRITICAL -> Color(0xFFC62828)
+    }
 
-private fun HealthLevel.label(): String = name.lowercase()
-    .replaceFirstChar { it.uppercase() }
+private fun HealthLevel.label(): String =
+    name.lowercase()
+        .replaceFirstChar { it.uppercase() }
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 
@@ -142,24 +142,26 @@ fun TrackDataPreviewScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
-        if (uiState.isLoading) { LoadingScreen(); return@Scaffold }
+        if (uiState.isLoading) {
+            LoadingScreen()
+            return@Scaffold
+        }
 
         val track = uiState.rawTrack ?: return@Scaffold
         val displayTrack = uiState.track ?: return@Scaffold
 
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-
             // Sticky tab row
             PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = pagerState.currentPage == index,
                         onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                        text = { Text(title, style = MaterialTheme.typography.labelMedium) }
+                        text = { Text(title, style = MaterialTheme.typography.labelMedium) },
                     )
                 }
             }
@@ -168,20 +170,22 @@ fun TrackDataPreviewScreen(
                 when (page) {
                     0 -> OverviewTab(track = track, displayTrack = displayTrack, locationCount = uiState.locations.size)
                     1 -> QualityTab(track = track)
-                    2 -> EventsTab(
-                        events = events,
-                        onExport = {
-                            scope.launch { snackbarHostState.showSnackbar("Export — use share button on Hardware Events Log") }
-                        }
-                    )
-                    3 -> DetailsTab(
-                        track = track,
-                        onCopy = { value ->
-                            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            cm.setPrimaryClip(ClipData.newPlainText("field", value))
-                            scope.launch { snackbarHostState.showSnackbar("Copied: $value") }
-                        }
-                    )
+                    2 ->
+                        EventsTab(
+                            events = events,
+                            onExport = {
+                                scope.launch { snackbarHostState.showSnackbar("Export — use share button on Hardware Events Log") }
+                            },
+                        )
+                    3 ->
+                        DetailsTab(
+                            track = track,
+                            onCopy = { value ->
+                                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                cm.setPrimaryClip(ClipData.newPlainText("field", value))
+                                scope.launch { snackbarHostState.showSnackbar("Copied: $value") }
+                            },
+                        )
                 }
             }
         }
@@ -202,7 +206,7 @@ private fun OverviewTab(
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(DesignTokens.Spacing.l),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         // Journey summary
         SectionCard(title = "Journey Summary") {
@@ -224,12 +228,12 @@ private fun OverviewTab(
                 LinearProgressIndicator(
                     progress = { completeness },
                     modifier = Modifier.fillMaxWidth(),
-                    color = if (completeness > 0.8f) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+                    color = if (completeness > 0.8f) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error,
                 )
                 Text(
                     "%.0f%% completeness".format(completeness * 100),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -238,18 +242,21 @@ private fun OverviewTab(
         SectionCard(title = "Distance Breakdown") {
             Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
                 PreviewRow("Original distance", "%.3f km".format(track.originalDistance / 1000))
-                if (track.mockDistance > 0)
+                if (track.mockDistance > 0) {
                     PreviewRow("Mock removed", "-%.3f km".format(track.mockDistance / 1000), valueColor = MaterialTheme.colorScheme.error)
-                if (track.abnormalDistance > 0)
+                }
+                if (track.abnormalDistance > 0) {
                     PreviewRow("Abnormal removed", "-%.3f km".format(track.abnormalDistance / 1000), valueColor = MaterialTheme.colorScheme.error)
-                if (track.spikeDistance > 0)
+                }
+                if (track.spikeDistance > 0) {
                     PreviewRow("Spike removed", "-%.3f km".format(track.spikeDistance / 1000), valueColor = MaterialTheme.colorScheme.error)
+                }
                 Spacer(Modifier.height(4.dp))
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
                 PreviewRow(
                     "Clean distance",
                     "%.3f km".format(track.cleanedDistance.let { if (it > 0) it / 1000.0 else track.distance / 1000.0 }),
-                    labelStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    labelStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 )
             }
         }
@@ -264,42 +271,69 @@ private data class IssueRow(val icon: ImageVector, val title: String, val impact
 
 private enum class IssueSeverity { LOW, MEDIUM, HIGH, CRITICAL }
 
-private fun IssueSeverity.color(): Color = when (this) {
-    IssueSeverity.LOW -> Color(0xFFF9A825)
-    IssueSeverity.MEDIUM -> Color(0xFFE65100)
-    IssueSeverity.HIGH -> Color(0xFFC62828)
-    IssueSeverity.CRITICAL -> Color(0xFFB71C1C)
-}
+private fun IssueSeverity.color(): Color =
+    when (this) {
+        IssueSeverity.LOW -> Color(0xFFF9A825)
+        IssueSeverity.MEDIUM -> Color(0xFFE65100)
+        IssueSeverity.HIGH -> Color(0xFFC62828)
+        IssueSeverity.CRITICAL -> Color(0xFFB71C1C)
+    }
 
 @Composable
 private fun QualityTab(track: SavedTrack) {
     val health = computeHealthLevel(track)
 
-    val issues = buildList {
-        if (track.wasMockLocationUsed) add(IssueRow(Icons.Default.GpsOff, "Mock Location Was Used", "Distance accuracy severely degraded", IssueSeverity.CRITICAL))
-        if (track.wasPermissionsViolated) add(IssueRow(Icons.Default.Block, "Permissions Were Violated", "GPS data may be missing", IssueSeverity.HIGH))
-        if (track.wasPhoneShutDown) add(IssueRow(Icons.Default.PowerOff, "Phone Was Shut Down", "Tracking gap — distance may be under-reported", IssueSeverity.HIGH))
-        if (track.wasAppKilled) add(IssueRow(Icons.Default.ScreenLockPortrait, "App Was Force-Killed", "Background tracking interrupted (${track.appKilledCount}×)", IssueSeverity.MEDIUM))
-        if (track.wasBatteryOptimizationEnabled) add(IssueRow(Icons.Default.BatteryAlert, "Battery Optimization Was ON", "Distance may be under-reported", IssueSeverity.MEDIUM))
-        if (track.wasPowerSaverEnabled) add(IssueRow(Icons.Default.PhoneLocked, "Power Saver Was ON", "GPS sampling reduced — distance affected", IssueSeverity.LOW))
-    }
+    val issues =
+        buildList {
+            if (track.wasMockLocationUsed) {
+                add(
+                    IssueRow(Icons.Default.GpsOff, "Mock Location Was Used", "Distance accuracy severely degraded", IssueSeverity.CRITICAL),
+                )
+            }
+            if (track.wasPermissionsViolated) add(IssueRow(Icons.Default.Block, "Permissions Were Violated", "GPS data may be missing", IssueSeverity.HIGH))
+            if (track.wasPhoneShutDown) {
+                add(
+                    IssueRow(Icons.Default.PowerOff, "Phone Was Shut Down", "Tracking gap — distance may be under-reported", IssueSeverity.HIGH),
+                )
+            }
+            if (track.wasAppKilled) {
+                add(
+                    IssueRow(
+                        Icons.Default.ScreenLockPortrait,
+                        "App Was Force-Killed",
+                        "Background tracking interrupted (${track.appKilledCount}×)",
+                        IssueSeverity.MEDIUM,
+                    ),
+                )
+            }
+            if (track.wasBatteryOptimizationEnabled) {
+                add(
+                    IssueRow(Icons.Default.BatteryAlert, "Battery Optimization Was ON", "Distance may be under-reported", IssueSeverity.MEDIUM),
+                )
+            }
+            if (track.wasPowerSaverEnabled) {
+                add(
+                    IssueRow(Icons.Default.PhoneLocked, "Power Saver Was ON", "GPS sampling reduced — distance affected", IssueSeverity.LOW),
+                )
+            }
+        }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(DesignTokens.Spacing.l),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         // Health badge card
         SectionCard(title = "Health Assessment") {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier.size(48.dp).background(health.color(), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         health.label().first().uppercase(),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
                 Spacer(Modifier.width(DesignTokens.Spacing.m))
@@ -314,7 +348,7 @@ private fun QualityTab(track: SavedTrack) {
                             HealthLevel.CRITICAL -> "Critical issues — data unreliable"
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -333,10 +367,11 @@ private fun QualityTab(track: SavedTrack) {
                                 Text(issue.impact, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Box(
-                                modifier = Modifier
-                                    .wrapContentWidth()
-                                    .background(issue.severity.color(), RoundedCornerShape(4.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier =
+                                    Modifier
+                                        .wrapContentWidth()
+                                        .background(issue.severity.color(), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp),
                             ) {
                                 Text(issue.severity.name, style = MaterialTheme.typography.labelSmall, color = Color.White)
                             }
@@ -357,7 +392,7 @@ private fun QualityTab(track: SavedTrack) {
                 PreviewRow("Unsynced points", track.unsyncedLocationPoints.toString())
                 PreviewRow(
                     "Last synced",
-                    if (track.lastSyncedTime > 0) DateUtils.epochToDisplayDate(track.lastSyncedTime) else "Never"
+                    if (track.lastSyncedTime > 0) DateUtils.epochToDisplayDate(track.lastSyncedTime) else "Never",
                 )
                 PreviewRow("Sync interval", "${track.syncIntervalTime / 1000}s")
             }
@@ -370,13 +405,16 @@ private fun QualityTab(track: SavedTrack) {
 // ── Tab 3: Events ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun EventsTab(events: List<HardwareEvent>, onExport: () -> Unit) {
+private fun EventsTab(
+    events: List<HardwareEvent>,
+    onExport: () -> Unit,
+) {
     val grouped = events.groupBy { it.audience }
     val audienceOrder = listOf(EventAudience.USER, EventAudience.SUMMARY, EventAudience.SUPPORT, EventAudience.DEBUG, EventAudience.UNKNOWN)
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(DesignTokens.Spacing.l),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         if (events.isEmpty()) {
             Text("No hardware events recorded", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -385,7 +423,7 @@ private fun EventsTab(events: List<HardwareEvent>, onExport: () -> Unit) {
                 val bucket = grouped[audience] ?: return@forEach
                 CollapsibleSectionCard(
                     title = "${audience.name.lowercase().replaceFirstChar { it.uppercase() }} (${bucket.size})",
-                    initiallyExpanded = audience == EventAudience.USER
+                    initiallyExpanded = audience == EventAudience.USER,
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
                         bucket.forEach { event ->
@@ -393,7 +431,7 @@ private fun EventsTab(events: List<HardwareEvent>, onExport: () -> Unit) {
                                 Text(
                                     DateUtils.epochToDisplayDate(event.time),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                                 Text(event.event, style = MaterialTheme.typography.bodySmall)
                             }
@@ -409,10 +447,13 @@ private fun EventsTab(events: List<HardwareEvent>, onExport: () -> Unit) {
 // ── Tab 4: Details ──────────────────────────────────────────────────────────
 
 @Composable
-private fun DetailsTab(track: SavedTrack, onCopy: (String) -> Unit) {
+private fun DetailsTab(
+    track: SavedTrack,
+    onCopy: (String) -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(DesignTokens.Spacing.l),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         CollapsibleSectionCard(title = "Timestamps", initiallyExpanded = true) {
             Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
@@ -480,13 +521,18 @@ private fun PreviewRow(
 }
 
 @Composable
-private fun CopyableRow(label: String, value: String, onCopy: (String) -> Unit) {
+private fun CopyableRow(
+    label: String,
+    value: String,
+    onCopy: (String) -> Unit,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(value) { detectTapGestures(onLongPress = { onCopy(value) }) },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .pointerInput(value) { detectTapGestures(onLongPress = { onCopy(value) }) },
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         Text(
             label,
@@ -494,7 +540,7 @@ private fun CopyableRow(label: String, value: String, onCopy: (String) -> Unit) 
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
         Text(
             value,
@@ -502,7 +548,7 @@ private fun CopyableRow(label: String, value: String, onCopy: (String) -> Unit) 
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
             modifier = Modifier.weight(1f),
-            textAlign = androidx.compose.ui.text.style.TextAlign.End
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
         )
     }
 }

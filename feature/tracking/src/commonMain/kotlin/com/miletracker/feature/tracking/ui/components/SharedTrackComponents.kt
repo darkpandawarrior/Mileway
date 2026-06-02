@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 enum class TrendDirection { UP, DOWN, STABLE }
 
@@ -44,16 +43,16 @@ fun StatItem(
     value: String,
     modifier: Modifier = Modifier,
     tintColor: Color = MaterialTheme.colorScheme.primary,
-    trend: TrendDirection? = null
+    trend: TrendDirection? = null,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(icon, contentDescription = label, tint = tintColor, modifier = Modifier.size(24.dp))
             Spacer(Modifier.height(4.dp))
@@ -71,12 +70,16 @@ fun StatItem(
 }
 
 @Composable
-fun TrendIndicator(trend: TrendDirection, modifier: Modifier = Modifier) {
-    val (icon, color) = when (trend) {
-        TrendDirection.UP -> Icons.Default.ArrowUpward to Color(0xFF4CAF50)
-        TrendDirection.DOWN -> Icons.Default.ArrowDownward to Color(0xFFF44336)
-        TrendDirection.STABLE -> Icons.Default.Remove to Color(0xFF9E9E9E)
-    }
+fun TrendIndicator(
+    trend: TrendDirection,
+    modifier: Modifier = Modifier,
+) {
+    val (icon, color) =
+        when (trend) {
+            TrendDirection.UP -> Icons.Default.ArrowUpward to Color(0xFF4CAF50)
+            TrendDirection.DOWN -> Icons.Default.ArrowDownward to Color(0xFFF44336)
+            TrendDirection.STABLE -> Icons.Default.Remove to Color(0xFF9E9E9E)
+        }
     Icon(icon, contentDescription = trend.name, tint = color, modifier = modifier.size(12.dp))
 }
 
@@ -84,20 +87,20 @@ fun TrendIndicator(trend: TrendDirection, modifier: Modifier = Modifier) {
 fun StatusBadge(
     text: String,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val animatedColor by animateColorAsState(color, animationSpec = spring(), label = "badge")
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(50),
-        color = animatedColor.copy(alpha = 0.15f)
+        color = animatedColor.copy(alpha = 0.15f),
     ) {
         Text(
             text = text,
             color = animatedColor,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
         )
     }
 }
@@ -107,14 +110,15 @@ fun DataQualityItem(
     label: String,
     value: String,
     trend: TrendDirection = TrendDirection.STABLE,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -126,36 +130,45 @@ fun DataQualityItem(
 }
 
 @Composable
-fun SectionHeader(title: String, modifier: Modifier = Modifier) {
+fun SectionHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(vertical = 8.dp)
+        modifier = modifier.padding(vertical = 8.dp),
     )
 }
 
 @Composable
-fun QualityDot(score: Int, modifier: Modifier = Modifier) {
-    val color = when {
+fun QualityDot(
+    score: Int,
+    modifier: Modifier = Modifier,
+) {
+    val color =
+        when {
+            score >= 90 -> Color(0xFF4CAF50)
+            score >= 75 -> Color(0xFF8BC34A)
+            score >= 55 -> Color(0xFFFFC107)
+            score >= 35 -> Color(0xFFFF9800)
+            else -> Color(0xFFF44336)
+        }
+    Box(
+        modifier =
+            modifier
+                .size(10.dp)
+                .background(color, CircleShape),
+    )
+}
+
+fun qualityColor(score: Int): Color =
+    when {
         score >= 90 -> Color(0xFF4CAF50)
         score >= 75 -> Color(0xFF8BC34A)
         score >= 55 -> Color(0xFFFFC107)
         score >= 35 -> Color(0xFFFF9800)
         else -> Color(0xFFF44336)
     }
-    Box(
-        modifier = modifier
-            .size(10.dp)
-            .background(color, CircleShape)
-    )
-}
-
-fun qualityColor(score: Int): Color = when {
-    score >= 90 -> Color(0xFF4CAF50)
-    score >= 75 -> Color(0xFF8BC34A)
-    score >= 55 -> Color(0xFFFFC107)
-    score >= 35 -> Color(0xFFFF9800)
-    else -> Color(0xFFF44336)
-}

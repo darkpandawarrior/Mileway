@@ -8,9 +8,13 @@ import com.miletracker.core.network.model.VendorCenter
 
 interface ConfigProvider {
     fun getTrackMilesConfig(): TrackMilesPluginConfig
+
     fun getLogMilesConfig(): LogMilesPluginConfig
+
     fun isMilesEnabled(): Boolean
+
     fun isLogMilesEnabled(): Boolean
+
     fun getCurrency(): String
 
     /** Workspace disclaimer shown on the start-journey consent step; null = no consent. */

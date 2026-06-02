@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.service.location
 
 import android.content.Context
@@ -22,27 +24,29 @@ import kotlin.math.sin
 /** Abstracts the stream of GPS fixes so the service can use real GPS or a simulated drive. */
 interface LocationSource {
     fun start(onFix: (GpsFix) -> Unit)
+
     fun stop()
 }
 
 /** Real GPS via the fused location provider. */
 class FusedLocationSource(
     private val context: Context,
-    private val intervalMs: Long = 4_000L
+    private val intervalMs: Long = 4_000L,
 ) : LocationSource {
-
     private val client = LocationServices.getFusedLocationProviderClient(context)
     private var callback: LocationCallback? = null
 
     override fun start(onFix: (GpsFix) -> Unit) {
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
-            .setMinUpdateIntervalMillis(intervalMs / 2)
-            .build()
-        val cb = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { onFix(it.toGpsFix()) }
+        val request =
+            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+                .setMinUpdateIntervalMillis(intervalMs / 2)
+                .build()
+        val cb =
+            object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    result.lastLocation?.let { onFix(it.toGpsFix()) }
+                }
             }
-        }
         callback = cb
         try {
             client.requestLocationUpdates(request, cb, Looper.getMainLooper())
@@ -56,18 +60,24 @@ class FusedLocationSource(
         callback = null
     }
 
-    private fun Location.toGpsFix(): GpsFix = GpsFix(
-        lat = latitude,
-        lng = longitude,
-        timeMs = time,
-        speedMps = speed,
-        accuracyM = accuracy,
-        bearingDeg = bearing,
-        altitudeM = altitude,
-        provider = provider ?: "fused",
-        isMock = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) isMock
-        else @Suppress("DEPRECATION") isFromMockProvider
-    )
+    private fun Location.toGpsFix(): GpsFix =
+        GpsFix(
+            lat = latitude,
+            lng = longitude,
+            timeMs = time,
+            speedMps = speed,
+            accuracyM = accuracy,
+            bearingDeg = bearing,
+            altitudeM = altitude,
+            provider = provider ?: "fused",
+            isMock =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    isMock
+                } else {
+                    @Suppress("DEPRECATION")
+                    isFromMockProvider
+                },
+        )
 }
 
 /**
@@ -76,11 +86,11 @@ class FusedLocationSource(
  * Occasionally flags an on-route point as mock-sourced so mock handling is observable.
  */
 class SimulatedLocationSource(
-    private val startLat: Double = 18.5204, // Pune
+    // Pune city center coordinates
+    private val startLat: Double = 18.5204,
     private val startLng: Double = 73.8567,
-    private val intervalMs: Long = 2_000L
+    private val intervalMs: Long = 2_000L,
 ) : LocationSource {
-
     private var scope: CoroutineScope? = null
 
     override fun start(onFix: (GpsFix) -> Unit) {
@@ -97,7 +107,7 @@ class SimulatedLocationSource(
                 val isMock = step > 0 && step % 20 == 0 // periodic mock-sourced point
                 onFix(
                     GpsFix(
-                        lat = lat + (Math.random() - 0.5) * 0.00002, // small GPS jitter
+                        lat = lat + (Math.random() - 0.5) * 0.00002,
                         lng = lng + (Math.random() - 0.5) * 0.00002,
                         timeMs = now,
                         speedMps = speed.toFloat(),
@@ -105,8 +115,8 @@ class SimulatedLocationSource(
                         bearingDeg = bearing.toFloat(),
                         altitudeM = 560.0,
                         provider = "fused",
-                        isMock = isMock
-                    )
+                        isMock = isMock,
+                    ),
                 )
                 // Advance along the current bearing by speed * dt.
                 val distanceM = speed * (intervalMs / 1000.0)

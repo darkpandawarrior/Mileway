@@ -26,7 +26,6 @@ class RouteAnalyzer(
     private val activityAnalyzer: ActivityAnalyzer = ActivityAnalyzer(),
     private val systemImpactAnalyzer: SystemImpactAnalyzer = SystemImpactAnalyzer(),
 ) {
-
     companion object {
         private const val KMH_CONVERSION = 3.6
     }
@@ -34,25 +33,25 @@ class RouteAnalyzer(
     fun analyze(
         track: SavedTrack,
         points: List<LocationData>,
-        events: List<HardwareEvent> = emptyList()
+        events: List<HardwareEvent> = emptyList(),
     ): RouteAnalysisResult {
-        val quality       = journeyQualityAnalyzer.analyze(track)
-        val activity      = activityAnalyzer.analyze(points)
-        val systemImpact  = systemImpactAnalyzer.analyze(track, points, events)
-        val distQuality   = DistanceQualityAnalyzer.analyze(track, points)
+        val quality = journeyQualityAnalyzer.analyze(track)
+        val activity = activityAnalyzer.analyze(points)
+        val systemImpact = systemImpactAnalyzer.analyze(track, points, events)
+        val distQuality = DistanceQualityAnalyzer.analyze(track, points)
 
-        val summary   = buildSummary(track)
-        val category  = categorizeRoute(track)
+        val summary = buildSummary(track)
+        val category = categorizeRoute(track)
         val anomalies = detectAnomalies(track, points)
 
         return RouteAnalysisResult(
-            quality       = quality,
-            activity      = activity,
-            systemImpact  = systemImpact,
+            quality = quality,
+            activity = activity,
+            systemImpact = systemImpact,
             distanceQuality = distQuality,
-            summary       = summary,
-            category      = category,
-            anomalies     = anomalies
+            summary = summary,
+            category = category,
+            anomalies = anomalies,
         )
     }
 
@@ -64,8 +63,9 @@ class RouteAnalyzer(
     }
 
     private fun categorizeRoute(track: SavedTrack): String {
-        val ldt = Instant.fromEpochMilliseconds(track.startTime)
-            .toLocalDateTime(TimeZone.currentSystemDefault())
+        val ldt =
+            Instant.fromEpochMilliseconds(track.startTime)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
         val dayOfWeek = ldt.dayOfWeek
         val hour = ldt.hour
         val avgKmh = track.avgSpeed * KMH_CONVERSION
@@ -80,11 +80,14 @@ class RouteAnalyzer(
         }
     }
 
-    private fun detectAnomalies(track: SavedTrack, points: List<LocationData>): List<String> {
+    private fun detectAnomalies(
+        track: SavedTrack,
+        points: List<LocationData>,
+    ): List<String> {
         val anomalies = mutableListOf<String>()
         if (track.wasMockLocationUsed) anomalies += "Mock locations detected, affecting data reliability"
-        if (track.wasAppKilled)        anomalies += "App was terminated during tracking, causing potential data gaps"
-        if (track.wasPhoneShutDown)    anomalies += "Device was restarted during tracking, interrupting data collection"
+        if (track.wasAppKilled) anomalies += "App was terminated during tracking, causing potential data gaps"
+        if (track.wasPhoneShutDown) anomalies += "Device was restarted during tracking, interrupting data collection"
 
         if (track.totalLocationPoints > 0 && track.duration > 0) {
             val pointsPerMinute = track.totalLocationPoints.toDouble() / (track.duration / 60_000.0)

@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.media.ui.camera
 
 import android.net.Uri
@@ -97,7 +99,7 @@ fun CameraCaptureScreen(
     modifier: Modifier = Modifier,
     isOdometerMode: Boolean = false,
     flashMode: FlashMode = FlashMode.AUTO,
-    onCycleFlash: () -> Unit = {}
+    onCycleFlash: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -111,21 +113,22 @@ fun CameraCaptureScreen(
 
     if (!permission.hasPermission) {
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(DesignTokens.Spacing.xl),
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(DesignTokens.Spacing.xl),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 imageVector = Icons.Default.CameraAlt,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = "Camera permission is required to capture a photo.",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(vertical = DesignTokens.Spacing.l)
+                modifier = Modifier.padding(vertical = DesignTokens.Spacing.l),
             )
             Button(onClick = permission.request) {
                 Text("Grant permission")
@@ -134,19 +137,21 @@ fun CameraCaptureScreen(
         return
     }
 
-    val controller = remember {
-        LifecycleCameraController(context).apply {
-            bindToLifecycle(lifecycleOwner)
+    val controller =
+        remember {
+            LifecycleCameraController(context).apply {
+                bindToLifecycle(lifecycleOwner)
+            }
         }
-    }
 
     // Keep the CameraX flash mode in sync with the UI toggle.
     LaunchedEffect(flashMode) {
-        controller.imageCaptureFlashMode = when (flashMode) {
-            FlashMode.AUTO -> ImageCapture.FLASH_MODE_AUTO
-            FlashMode.ON -> ImageCapture.FLASH_MODE_ON
-            FlashMode.OFF -> ImageCapture.FLASH_MODE_OFF
-        }
+        controller.imageCaptureFlashMode =
+            when (flashMode) {
+                FlashMode.AUTO -> ImageCapture.FLASH_MODE_AUTO
+                FlashMode.ON -> ImageCapture.FLASH_MODE_ON
+                FlashMode.OFF -> ImageCapture.FLASH_MODE_OFF
+            }
     }
 
     // Animated focus ring state: where the last tap landed and its current alpha.
@@ -158,45 +163,47 @@ fun CameraCaptureScreen(
 
     Box(modifier = modifier.fillMaxSize()) {
         AndroidView(
-            modifier = Modifier
-                .fillMaxSize()
-                // Pinch-to-zoom: scale the live zoom ratio within the device's bounds.
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, _, gestureZoom, _ ->
-                        val bounds = controller.zoomState.value
-                        val min = bounds?.minZoomRatio ?: 1f
-                        val max = bounds?.maxZoomRatio ?: 1f
-                        zoomRatio = (zoomRatio * gestureZoom).coerceIn(min, max)
-                        controller.cameraControl?.setZoomRatio(zoomRatio)
-                    }
-                }
-                // Tap-to-focus: meter at the tap point and flash a focus ring there.
-                .pointerInput(Unit) {
-                    detectTapGestures { tap ->
-                        focusPoint = tap
-                        // A SurfaceOrientedMeteringPointFactory maps view px -> metering
-                        // coordinates without needing the PreviewView instance here.
-                        val pointFactory = androidx.camera.core.SurfaceOrientedMeteringPointFactory(
-                            size.width.toFloat(),
-                            size.height.toFloat()
-                        )
-                        val point = pointFactory.createPoint(tap.x, tap.y)
-                        runCatching {
-                            controller.cameraControl?.startFocusAndMetering(
-                                FocusMeteringAction.Builder(point).build()
-                            )
-                        }
-                        scope.launch {
-                            focusAlpha.snapTo(1f)
-                            focusAlpha.animateTo(0f, animationSpec = tween(durationMillis = 900))
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    // Pinch-to-zoom: scale the live zoom ratio within the device's bounds.
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, _, gestureZoom, _ ->
+                            val bounds = controller.zoomState.value
+                            val min = bounds?.minZoomRatio ?: 1f
+                            val max = bounds?.maxZoomRatio ?: 1f
+                            zoomRatio = (zoomRatio * gestureZoom).coerceIn(min, max)
+                            controller.cameraControl?.setZoomRatio(zoomRatio)
                         }
                     }
-                },
+                    // Tap-to-focus: meter at the tap point and flash a focus ring there.
+                    .pointerInput(Unit) {
+                        detectTapGestures { tap ->
+                            focusPoint = tap
+                            // A SurfaceOrientedMeteringPointFactory maps view px -> metering
+                            // coordinates without needing the PreviewView instance here.
+                            val pointFactory =
+                                androidx.camera.core.SurfaceOrientedMeteringPointFactory(
+                                    size.width.toFloat(),
+                                    size.height.toFloat(),
+                                )
+                            val point = pointFactory.createPoint(tap.x, tap.y)
+                            runCatching {
+                                controller.cameraControl?.startFocusAndMetering(
+                                    FocusMeteringAction.Builder(point).build(),
+                                )
+                            }
+                            scope.launch {
+                                focusAlpha.snapTo(1f)
+                                focusAlpha.animateTo(0f, animationSpec = tween(durationMillis = 900))
+                            }
+                        }
+                    },
             factory = { ctx ->
                 PreviewView(ctx).apply {
                     this.controller = controller
                 }
-            }
+            },
         )
 
         // Odometer alignment guide: a centred rectangle with an instruction caption.
@@ -207,14 +214,15 @@ fun CameraCaptureScreen(
         // Top controls: flash toggle (always) + an "Auto Capture: Off" pill in odometer mode.
         // displayCutoutPadding keeps controls clear of camera punch-holes / notches.
         Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .displayCutoutPadding()
-                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+            modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .displayCutoutPadding()
+                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (isOdometerMode) {
                 AutoCapturePill()
@@ -229,7 +237,7 @@ fun CameraCaptureScreen(
             FocusRing(
                 center = point,
                 alpha = focusAlpha.value,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
 
@@ -249,17 +257,18 @@ fun CameraCaptureScreen(
                         override fun onError(exception: ImageCaptureException) {
                             // Demo: surface failures silently; a real app would emit an event.
                         }
-                    }
+                    },
                 )
             },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = DesignTokens.Spacing.xxl)
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = DesignTokens.Spacing.xxl),
         ) {
             Icon(
                 imageVector = Icons.Default.PhotoCamera,
-                contentDescription = "Capture photo"
+                contentDescription = "Capture photo",
             )
         }
     }
@@ -270,25 +279,26 @@ fun CameraCaptureScreen(
 private fun FlashToggleButton(
     flashMode: FlashMode,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val (icon: ImageVector, label) = when (flashMode) {
-        FlashMode.AUTO -> Icons.Default.FlashAuto to "Flash: auto"
-        FlashMode.ON -> Icons.Default.FlashOn to "Flash: on"
-        FlashMode.OFF -> Icons.Default.FlashOff to "Flash: off"
-    }
+    val (icon: ImageVector, label) =
+        when (flashMode) {
+            FlashMode.AUTO -> Icons.Default.FlashAuto to "Flash: auto"
+            FlashMode.ON -> Icons.Default.FlashOn to "Flash: on"
+            FlashMode.OFF -> Icons.Default.FlashOff to "Flash: off"
+        }
     Surface(
         modifier = modifier.size(44.dp),
         shape = CircleShape,
         color = Color.Black.copy(alpha = 0.45f),
-        onClick = onClick
+        onClick = onClick,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
                 tint = Color.White,
-                modifier = Modifier.size(DesignTokens.IconSize.actionTile)
+                modifier = Modifier.size(DesignTokens.IconSize.actionTile),
             )
         }
     }
@@ -300,16 +310,17 @@ private fun AutoCapturePill(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(50),
-        color = Color.Black.copy(alpha = 0.45f)
+        color = Color.Black.copy(alpha = 0.45f),
     ) {
         Text(
             text = "Auto Capture: Off",
             style = MaterialTheme.typography.labelMedium,
             color = Color.White,
-            modifier = Modifier.padding(
-                horizontal = DesignTokens.Spacing.m,
-                vertical = DesignTokens.Spacing.xs
-            )
+            modifier =
+                Modifier.padding(
+                    horizontal = DesignTokens.Spacing.m,
+                    vertical = DesignTokens.Spacing.xs,
+                ),
         )
     }
 }
@@ -323,21 +334,23 @@ private fun OdometerAlignmentOverlay(modifier: Modifier = Modifier) {
     val accent = DesignTokens.StatusColors.info
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth(0.86f)
-                .clip(DesignTokens.Shape.roundedSm)
-                .background(Color.White.copy(alpha = 0.06f))
-                .padding(1.5.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxWidth(0.86f)
+                    .clip(DesignTokens.Shape.roundedSm)
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .padding(1.5.dp),
+            contentAlignment = Alignment.Center,
         ) {
             // Inner band that carries the caption and the accent border.
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(DesignTokens.Shape.roundedSm)
-                    .background(Color.Transparent)
-                    .padding(vertical = 56.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(DesignTokens.Shape.roundedSm)
+                        .background(Color.Transparent)
+                        .padding(vertical = 56.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = "Align odometer digits within the frame",
@@ -345,13 +358,14 @@ private fun OdometerAlignmentOverlay(modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.Medium,
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black.copy(alpha = 0.35f))
-                        .padding(
-                            horizontal = DesignTokens.Spacing.m,
-                            vertical = DesignTokens.Spacing.xs
-                        )
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.35f))
+                            .padding(
+                                horizontal = DesignTokens.Spacing.m,
+                                vertical = DesignTokens.Spacing.xs,
+                            ),
                 )
             }
             // Accent rectangle border drawn over the band.
@@ -359,7 +373,7 @@ private fun OdometerAlignmentOverlay(modifier: Modifier = Modifier) {
                 drawRoundRect(
                     color = accent,
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(24f, 24f),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f)
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
                 )
             }
         }
@@ -371,7 +385,7 @@ private fun OdometerAlignmentOverlay(modifier: Modifier = Modifier) {
 private fun FocusRing(
     center: Offset,
     alpha: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val accent = MaterialTheme.colorScheme.primary
     Canvas(modifier = modifier.alpha(alpha)) {
@@ -382,7 +396,7 @@ private fun FocusRing(
             topLeft = topLeft,
             size = androidx.compose.ui.geometry.Size(sidePx, sidePx),
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(12f, 12f),
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f)
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 4f),
         )
     }
 }

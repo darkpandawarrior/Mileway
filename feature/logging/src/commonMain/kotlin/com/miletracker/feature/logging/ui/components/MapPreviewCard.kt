@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.logging.ui.components
 
 import androidx.compose.foundation.Canvas
@@ -32,7 +34,7 @@ import com.miletracker.core.ui.theme.DesignTokens
 @Composable
 fun MapPreviewCard(
     stopCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val gridColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
     val routeColor = MaterialTheme.colorScheme.primary
@@ -40,11 +42,12 @@ fun MapPreviewCard(
     val surfaceTint = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(160.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(160.dp),
         shape = DesignTokens.Shape.roundedMd,
-        color = surfaceTint
+        color = surfaceTint,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Canvas(modifier = Modifier.fillMaxSize().padding(DesignTokens.Spacing.s)) {
@@ -70,7 +73,7 @@ fun MapPreviewCard(
                         start = points[i],
                         end = points[i + 1],
                         strokeWidth = 6f,
-                        pathEffect = dash
+                        pathEffect = dash,
                     )
                 }
 
@@ -81,32 +84,33 @@ fun MapPreviewCard(
                     color = routeColor,
                     radius = 16f,
                     center = points.last(),
-                    style = Stroke(width = 3f)
+                    style = Stroke(width = 3f),
                 )
             }
 
             // Corner badge so the card reads as a map even when empty.
             Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(DesignTokens.Spacing.s),
+                modifier =
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .padding(DesignTokens.Spacing.s),
                 shape = DesignTokens.Shape.chip,
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
             ) {
                 androidx.compose.foundation.layout.Row(
                     modifier = Modifier.padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.Filled.Map,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.height(14.dp)
+                        modifier = Modifier.height(14.dp),
                     )
                     Text(
                         "  Route preview",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -115,7 +119,11 @@ fun MapPreviewCard(
 }
 
 /** Deterministic zig-zag of vertices spanning the canvas, one per stop. */
-private fun routePoints(count: Int, width: Float, height: Float): List<Offset> {
+private fun routePoints(
+    count: Int,
+    width: Float,
+    height: Float,
+): List<Offset> {
     val n = count.coerceIn(2, 6)
     val marginX = width * 0.12f
     val usableW = width - marginX * 2

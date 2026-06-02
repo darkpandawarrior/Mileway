@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+
 package com.miletracker.feature.tracking.ui.screens
 
 import androidx.compose.runtime.Stable
@@ -10,7 +12,7 @@ import androidx.compose.runtime.setValue
 /** Emergency/outlet contact shown on the tracking surface. */
 data class ContactV2(
     val title: String? = null,
-    val coords: ContactCoords? = null
+    val coords: ContactCoords? = null,
 )
 
 /** Coordinates attached to a contact. */
@@ -30,7 +32,7 @@ enum class PermissionType {
     BluetoothConnect,
     ExactAlarm,
     RecordAudio,
-    GpsEnabled
+    GpsEnabled,
 }
 
 /**
@@ -60,6 +62,7 @@ class TrackMilesScreenState {
     var viewerUrl by mutableStateOf("")
 
     // Current location chip
+
     /** Controls whether the "open in maps" bottom sheet for the current location is visible. */
     var showCurrentLocationSheet by mutableStateOf(false)
 

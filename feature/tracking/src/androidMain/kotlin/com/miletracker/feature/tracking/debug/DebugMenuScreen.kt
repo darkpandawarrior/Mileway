@@ -30,17 +30,15 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.NetworkCheck
-import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -67,7 +65,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -114,16 +111,17 @@ fun DebugMenuScreen(
                 title = {
                     Text(
                         text = "Developer Options",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                        style =
+                            MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
                 },
@@ -132,13 +130,15 @@ fun DebugMenuScreen(
         },
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                horizontal = 16.dp,
-                vertical = 12.dp,
-            ),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+            contentPadding =
+                PaddingValues(
+                    horizontal = 16.dp,
+                    vertical = 12.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Search bar
@@ -160,10 +160,11 @@ fun DebugMenuScreen(
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(24.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    ),
+                    colors =
+                        OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        ),
                 )
             }
 
@@ -307,9 +308,10 @@ fun DebugMenuScreen(
                         viewModel.clearAllDebugSettings()
                         showClearAllDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                    ),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) { Text("Reset") }
             },
             dismissButton = {
@@ -331,23 +333,25 @@ private fun ConfigSnapshotCard(
     val trackCfg = configProvider.getTrackMilesConfig()
     val logCfg = configProvider.getLogMilesConfig()
 
-    val snapshot = buildConfigSnapshot(
-        uiState = uiState,
-        trackMilesV2 = trackCfg.trackMilesV2,
-        geoCheckIn = trackCfg.geoCheckInEnabled,
-        manualCheckIn = trackCfg.allowManualCheckIn,
-        currency = configProvider.getCurrency(),
-        tenant = trackCfg.tenantCode,
-        service = logCfg.service,
-        allowMockLocations = uiState.trackingOptions["Allow Mock Locations"] == true,
-    )
+    val snapshot =
+        buildConfigSnapshot(
+            uiState = uiState,
+            trackMilesV2 = trackCfg.trackMilesV2,
+            geoCheckIn = trackCfg.geoCheckInEnabled,
+            manualCheckIn = trackCfg.allowManualCheckIn,
+            currency = configProvider.getCurrency(),
+            tenant = trackCfg.tenantCode,
+            service = logCfg.service,
+            allowMockLocations = uiState.trackingOptions["Allow Mock Locations"] == true,
+        )
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        ),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -384,9 +388,10 @@ private fun ConfigSnapshotCard(
 
             snapshot.forEach { (key, value) ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 3.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
@@ -420,16 +425,17 @@ fun buildConfigSnapshot(
     tenant: String,
     service: String,
     allowMockLocations: Boolean,
-): Map<String, String> = buildMap {
-    put("Tenant", tenant.ifBlank { "—" })
-    put("Currency", currency.ifBlank { "—" })
-    put("Service", service.ifBlank { "—" })
-    put("Track Miles V2", if (trackMilesV2) "enabled" else "disabled")
-    put("Geo check-in", if (geoCheckIn) "on" else "off")
-    put("Manual check-in", if (manualCheckIn) "on" else "off")
-    put("Mock locations (debug)", if (allowMockLocations) "allowed" else "blocked")
-    put("Debug flags active", uiState.enabledOptionsCount.toString())
-}
+): Map<String, String> =
+    buildMap {
+        put("Tenant", tenant.ifBlank { "—" })
+        put("Currency", currency.ifBlank { "—" })
+        put("Service", service.ifBlank { "—" })
+        put("Track Miles V2", if (trackMilesV2) "enabled" else "disabled")
+        put("Geo check-in", if (geoCheckIn) "on" else "off")
+        put("Manual check-in", if (manualCheckIn) "on" else "off")
+        put("Mock locations (debug)", if (allowMockLocations) "allowed" else "blocked")
+        put("Debug flags active", uiState.enabledOptionsCount.toString())
+    }
 
 // ---------------------------------------------------------------------------
 // Performance card — GC trigger + memory readout
@@ -528,16 +534,18 @@ private fun ProfilePresetsCard(
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                     },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(
-                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                            enabled = true,
+                    colors =
+                        ExposedDropdownMenuDefaults.textFieldColors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(
+                                type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                                enabled = true,
+                            ),
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -785,16 +793,18 @@ fun DebugSectionCard(
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
     ) {
         Column {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = !expanded }
+                        .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -883,8 +893,10 @@ private fun DebugActionRow(
 // Helpers (pure, safe to unit-test)
 // ---------------------------------------------------------------------------
 
-fun searchMatches(name: String, query: String): Boolean =
-    query.isBlank() || name.contains(query, ignoreCase = true)
+fun searchMatches(
+    name: String,
+    query: String,
+): Boolean = query.isBlank() || name.contains(query, ignoreCase = true)
 
 // ---------------------------------------------------------------------------
 // Previews

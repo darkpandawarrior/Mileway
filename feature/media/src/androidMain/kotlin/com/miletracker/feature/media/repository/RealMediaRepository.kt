@@ -30,45 +30,50 @@ import kotlinx.coroutines.tasks.await
  * [FakeMediaRepository] because those features are out of scope for this task.
  */
 class RealMediaRepository(private val context: Context) : MediaRepository {
-
     override suspend fun runOcr(uri: String): OcrResult {
         return try {
             val inputImage = InputImage.fromFilePath(context, Uri.parse(uri))
             val recogniser = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-            val textResult = try {
-                recogniser.process(inputImage).await()
-            } finally {
-                recogniser.close()
-            }
+            val textResult =
+                try {
+                    recogniser.process(inputImage).await()
+                } finally {
+                    recogniser.close()
+                }
 
             val rawText = textResult.text
-            val lines = textResult.textBlocks
-                .flatMap { block -> block.lines.map { it.text } }
+            val lines =
+                textResult.textBlocks
+                    .flatMap { block -> block.lines.map { it.text } }
 
             val detected = OdometerOcrParser.parse(lines)
-            val confidence = when {
-                detected == null -> 0f
-                isLabelledHit(lines, detected) -> 0.90f
-                else -> 0.65f
-            }
+            val confidence =
+                when {
+                    detected == null -> 0f
+                    isLabelledHit(lines, detected) -> 0.90f
+                    else -> 0.65f
+                }
 
             OcrResult(
                 rawText = rawText.ifBlank { "No text detected." },
                 detectedOdometer = detected,
                 confidence = confidence,
-                watermarkApplied = false
+                watermarkApplied = false,
             )
         } catch (e: Exception) {
             OcrResult(
                 rawText = "Recognition failed: ${e.message}",
                 detectedOdometer = null,
                 confidence = 0f,
-                watermarkApplied = false
+                watermarkApplied = false,
             )
         }
     }
 
-    override suspend fun applyWatermark(uri: String, text: String): String {
+    override suspend fun applyWatermark(
+        uri: String,
+        text: String,
+    ): String {
         // Stub: watermarking is out of scope for offline OCR task.
         return "$uri#watermarked"
     }
@@ -86,7 +91,10 @@ class RealMediaRepository(private val context: Context) : MediaRepository {
      * Returns true when the detected reading appears on a line that also contains an
      * odometer-related label (km, odo, etc.), indicating a higher-confidence hit.
      */
-    private fun isLabelledHit(lines: List<String>, detected: String): Boolean {
+    private fun isLabelledHit(
+        lines: List<String>,
+        detected: String,
+    ): Boolean {
         val labels = setOf("odo", "odometer", "km", "miles", "mi", "reading", "mileage")
         return lines.any { line ->
             val lower = line.lowercase()

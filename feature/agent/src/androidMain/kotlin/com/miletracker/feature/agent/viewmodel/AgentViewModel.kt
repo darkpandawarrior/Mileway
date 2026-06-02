@@ -14,15 +14,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-private val THINKING_PHRASES = mapOf(
-    "travel" to "Checking your travel spend…",
-    "expense" to "Analysing your expenses…",
-    "mileage" to "Reviewing mileage data…",
-    "approval" to "Looking up approval status…",
-    "advance" to "Checking advance records…",
-    "card" to "Fetching card balance…",
-    "policy" to "Reviewing policy rules…",
-)
+private val THINKING_PHRASES =
+    mapOf(
+        "travel" to "Checking your travel spend…",
+        "expense" to "Analysing your expenses…",
+        "mileage" to "Reviewing mileage data…",
+        "approval" to "Looking up approval status…",
+        "advance" to "Checking advance records…",
+        "card" to "Fetching card balance…",
+        "policy" to "Reviewing policy rules…",
+    )
 private const val DEFAULT_THINKING = "Thinking…"
 private const val TIMESTAMP_SEED_MS = 1_700_000_000_000L
 
@@ -37,14 +38,14 @@ data class AgentUiState(
 )
 
 class AgentViewModel(private val repository: AgentRepository) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(
-        AgentUiState(
-            popularTab = repository.popularQuestions,
-            unansweredTab = repository.unansweredQuestions,
-            history = repository.conversations,
+    private val _uiState =
+        MutableStateFlow(
+            AgentUiState(
+                popularTab = repository.popularQuestions,
+                unansweredTab = repository.unansweredQuestions,
+                history = repository.conversations,
+            ),
         )
-    )
     val uiState: StateFlow<AgentUiState> = _uiState.asStateFlow()
 
     private var messageCounter = 0L
@@ -52,15 +53,17 @@ class AgentViewModel(private val repository: AgentRepository) : ViewModel() {
     fun sendMessage(text: String) {
         if (text.isBlank()) return
 
-        val userMsg = AgentMessage(
-            text = text.trim(),
-            isUser = true,
-            timestampMs = TIMESTAMP_SEED_MS + messageCounter * 5000L,
-        )
+        val userMsg =
+            AgentMessage(
+                text = text.trim(),
+                isUser = true,
+                timestampMs = TIMESTAMP_SEED_MS + messageCounter * 5000L,
+            )
         messageCounter++
 
-        val thinking = THINKING_PHRASES.entries.firstOrNull { text.lowercase().contains(it.key) }?.value
-            ?: DEFAULT_THINKING
+        val thinking =
+            THINKING_PHRASES.entries.firstOrNull { text.lowercase().contains(it.key) }?.value
+                ?: DEFAULT_THINKING
         val replyText = repository.quickReply(text)
 
         _uiState.update { it.copy(messages = it.messages + userMsg, isStreaming = true, streamedText = "", thinkingPhrase = thinking) }
@@ -74,11 +77,12 @@ class AgentViewModel(private val repository: AgentRepository) : ViewModel() {
                 _uiState.update { it.copy(streamedText = accumulated) }
                 delay(50L)
             }
-            val assistantMsg = AgentMessage(
-                text = replyText,
-                isUser = false,
-                timestampMs = TIMESTAMP_SEED_MS + messageCounter * 5000L,
-            )
+            val assistantMsg =
+                AgentMessage(
+                    text = replyText,
+                    isUser = false,
+                    timestampMs = TIMESTAMP_SEED_MS + messageCounter * 5000L,
+                )
             messageCounter++
             _uiState.update { it.copy(messages = it.messages + assistantMsg, isStreaming = false, streamedText = "") }
         }

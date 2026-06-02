@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length")
+
 package com.miletracker.core.data.dao
 
 import androidx.room.Dao
@@ -39,7 +41,9 @@ interface SavedTrackDao {
     @Query("SELECT * FROM saved_tracks WHERE isCompleted = 0 LIMIT 1")
     suspend fun getActiveTrack(): SavedTrack?
 
-    @Query("SELECT * FROM saved_tracks WHERE started_by_employee_code = :employeeCode AND isCompleted = 0 AND isDiscarded = 0 AND isDraft = 0 ORDER BY started_at_timestamp DESC LIMIT 1")
+    @Query(
+        "SELECT * FROM saved_tracks WHERE started_by_employee_code = :employeeCode AND isCompleted = 0 AND isDiscarded = 0 AND isDraft = 0 ORDER BY started_at_timestamp DESC LIMIT 1",
+    )
     suspend fun getActiveTrackByAccount(employeeCode: String): SavedTrack?
 
     @Query("SELECT * FROM saved_tracks WHERE started_by_employee_code = :employeeCode AND isCompleted = 0 AND isDraft = 0 ORDER BY started_at_timestamp DESC")
@@ -61,30 +65,61 @@ interface SavedTrackDao {
     fun getRetainedTracks(): Flow<List<SavedTrack>>
 
     @Query("SELECT * FROM saved_tracks WHERE createdAt >= :start AND createdAt < :end ORDER BY createdAt DESC")
-    fun getTracksInRange(start: Long, end: Long): Flow<List<SavedTrack>>
+    fun getTracksInRange(
+        start: Long,
+        end: Long,
+    ): Flow<List<SavedTrack>>
 
     @Query("SELECT * FROM saved_tracks WHERE createdAt >= :start AND createdAt < :end AND isRetained = 0 ORDER BY createdAt DESC")
-    fun getTracksInRangeExcludingRetained(start: Long, end: Long): Flow<List<SavedTrack>>
+    fun getTracksInRangeExcludingRetained(
+        start: Long,
+        end: Long,
+    ): Flow<List<SavedTrack>>
 
     @Query("SELECT COUNT(*) FROM saved_tracks WHERE createdAt >= :start AND createdAt < :end AND isRetained = 0")
-    suspend fun countInRangeExcludingRetained(start: Long, end: Long): Int
+    suspend fun countInRangeExcludingRetained(
+        start: Long,
+        end: Long,
+    ): Int
 
     @Query("UPDATE saved_tracks SET name = :name WHERE routeId = :routeId")
-    suspend fun updateTrackName(routeId: String, name: String)
+    suspend fun updateTrackName(
+        routeId: String,
+        name: String,
+    )
 
     @Query("UPDATE saved_tracks SET distance = :distance, duration = :duration WHERE routeId = :routeId AND isCompleted = 0")
-    suspend fun updateTrackLiveData(routeId: String, distance: Double, duration: Long)
+    suspend fun updateTrackLiveData(
+        routeId: String,
+        distance: Double,
+        duration: Long,
+    )
 
     @Query("UPDATE saved_tracks SET isDraft = 1, draftSavedAt = :draftSavedAt, isDiscarded = 0 WHERE routeId = :routeId")
-    suspend fun markTrackDraft(routeId: String, draftSavedAt: Long): Int
+    suspend fun markTrackDraft(
+        routeId: String,
+        draftSavedAt: Long,
+    ): Int
 
     @Query("UPDATE saved_tracks SET submissionTime = :submissionTime WHERE routeId = :routeId")
-    suspend fun updateSubmissionTime(routeId: String, submissionTime: Long): Int
+    suspend fun updateSubmissionTime(
+        routeId: String,
+        submissionTime: Long,
+    ): Int
 
-    @Query("UPDATE saved_tracks SET isCompleted = 1, endTime = :endTime, distance = :finalDistance, avgSpeed = :avgSpeed, maxSpeed = :maxSpeed WHERE routeId = :routeId")
-    suspend fun finalizeTrack(routeId: String, endTime: Long, finalDistance: Double, avgSpeed: Double, maxSpeed: Double)
+    @Query(
+        "UPDATE saved_tracks SET isCompleted = 1, endTime = :endTime, distance = :finalDistance, avgSpeed = :avgSpeed, maxSpeed = :maxSpeed WHERE routeId = :routeId",
+    )
+    suspend fun finalizeTrack(
+        routeId: String,
+        endTime: Long,
+        finalDistance: Double,
+        avgSpeed: Double,
+        maxSpeed: Double,
+    )
 
-    @Query("""
+    @Query(
+        """
         UPDATE saved_tracks
         SET isCompleted = 1, serverUploaded = 1, isDraft = 0, isDiscarded = 0, isRetained = 0,
             draftSavedAt = 0, submissionTime = :currentTime, trackingActivity = :trackingActivity,
@@ -92,14 +127,20 @@ interface SavedTrackDao {
             name = :newName, submittedAmount = :submittedAmount,
             submittedAmountCurrency = :submittedAmountCurrency, transId = :transId
         WHERE routeId = :routeId
-    """)
+    """,
+    )
     suspend fun markTrackCompleted(
-        routeId: String, trackingActivity: String, currentTime: Long,
-        newName: String, submittedAmount: Double = 0.0,
-        submittedAmountCurrency: String = "INR", transId: String? = null
+        routeId: String,
+        trackingActivity: String,
+        currentTime: Long,
+        newName: String,
+        submittedAmount: Double = 0.0,
+        submittedAmountCurrency: String = "INR",
+        transId: String? = null,
     ): Int
 
-    @Query("""
+    @Query(
+        """
         UPDATE saved_tracks
         SET isCompleted = 1, isDraft = 1, isDiscarded = 0, isRetained = 0,
             draftSavedAt = :currentTime, submissionTime = :currentTime,
@@ -107,8 +148,14 @@ interface SavedTrackDao {
             endTime = CASE WHEN endTime > 0 THEN endTime ELSE :currentTime END,
             name = :newName
         WHERE routeId = :routeId
-    """)
-    suspend fun markTrackEndedLocally(routeId: String, trackingActivity: String, currentTime: Long, newName: String): Int
+    """,
+    )
+    suspend fun markTrackEndedLocally(
+        routeId: String,
+        trackingActivity: String,
+        currentTime: Long,
+        newName: String,
+    ): Int
 
     @Query("UPDATE saved_tracks SET isRetained = 1 WHERE routeId IN (:routeIds)")
     suspend fun markRetained(routeIds: List<String>)
@@ -117,7 +164,10 @@ interface SavedTrackDao {
     suspend fun markRetainedBefore(threshold: Long): Int
 
     @Query("UPDATE saved_tracks SET isRetained = :retained WHERE routeId = :routeId")
-    suspend fun setRetained(routeId: String, retained: Boolean)
+    suspend fun setRetained(
+        routeId: String,
+        retained: Boolean,
+    )
 
     @Query("DELETE FROM saved_tracks WHERE routeId = '' OR routeId IS NULL")
     suspend fun deleteCorruptedTracks(): Int
@@ -129,7 +179,11 @@ interface SavedTrackDao {
     suspend fun deleteOlderThanExcludingRetained(threshold: Long): Int
 
     @Query("SELECT routeId FROM saved_tracks WHERE createdAt >= :start AND createdAt < :end AND isRetained = 0 ORDER BY createdAt DESC LIMIT :limit")
-    suspend fun getLastNRouteIdsFromRange(start: Long, end: Long, limit: Int): List<String>
+    suspend fun getLastNRouteIdsFromRange(
+        start: Long,
+        end: Long,
+        limit: Int,
+    ): List<String>
 
     @Query("SELECT AVG(distance) as avgDistance, AVG(duration) as avgDuration, AVG(avgSpeed) as avgSpeed, COUNT(*) as totalTracks FROM saved_tracks")
     suspend fun getAverageTrackMetrics(): TrackMetrics
@@ -137,7 +191,9 @@ interface SavedTrackDao {
     @Query("SELECT * FROM saved_tracks WHERE routeId != :routeId ORDER BY ABS(distance - (SELECT distance FROM saved_tracks WHERE routeId = :routeId)) LIMIT 1")
     suspend fun getPreviousSimilarTrack(routeId: String): SavedTrack?
 
-    @Query("SELECT * FROM saved_tracks WHERE routeId != :routeId AND (SELECT distance FROM saved_tracks WHERE routeId = :routeId) IS NOT NULL AND ABS(distance - (SELECT distance FROM saved_tracks WHERE routeId = :routeId)) / NULLIF((SELECT distance FROM saved_tracks WHERE routeId = :routeId), 0) < 0.2 ORDER BY ABS(distance - (SELECT distance FROM saved_tracks WHERE routeId = :routeId)) LIMIT 10")
+    @Query(
+        "SELECT * FROM saved_tracks WHERE routeId != :routeId AND (SELECT distance FROM saved_tracks WHERE routeId = :routeId) IS NOT NULL AND ABS(distance - (SELECT distance FROM saved_tracks WHERE routeId = :routeId)) / NULLIF((SELECT distance FROM saved_tracks WHERE routeId = :routeId), 0) < 0.2 ORDER BY ABS(distance - (SELECT distance FROM saved_tracks WHERE routeId = :routeId)) LIMIT 10",
+    )
     suspend fun getSimilarTracks(routeId: String): List<SavedTrack>
 
     @Query("SELECT routeId FROM saved_tracks WHERE serverUploaded = 1 AND isCompleted = 1 AND createdAt < :cutoffMillis AND has_local_data = 1")

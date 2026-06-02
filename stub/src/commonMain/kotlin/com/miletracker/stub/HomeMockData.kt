@@ -18,14 +18,14 @@ data class AtAGlanceCounts(
 data class ActionRequiredBanner(
     val amountText: String,
     val count: Int,
-    val message: String
+    val message: String,
 )
 
 /** A single card in the home-screen marketing carousel. */
 data class MarketingCarouselItem(
     val title: String,
     val subtitle: String,
-    val badge: String
+    val badge: String,
 )
 
 /**
@@ -34,7 +34,7 @@ data class MarketingCarouselItem(
  */
 data class DemoAuthTokens(
     val accessToken: String,
-    val refreshToken: String
+    val refreshToken: String,
 )
 
 /**
@@ -42,43 +42,46 @@ data class DemoAuthTokens(
  * constant — no time, no randomness — so UI snapshots and unit tests stay stable.
  */
 object HomeMockData {
-
-    fun atAGlance(): AtAGlanceCounts = AtAGlanceCounts(
-        unreportedTransactions = 835,
-        upcomingTrips = 12,
-        pendingInvoices = 47,
-        pendingExpenses = 23,
-        vouchersToFile = 6
-    )
-
-    fun actionRequiredBanner(): ActionRequiredBanner = ActionRequiredBanner(
-        amountText = "₹12,480.00",
-        count = 9,
-        message = "9 expenses are awaiting your action"
-    )
-
-    fun carouselItems(): List<MarketingCarouselItem> = listOf(
-        MarketingCarouselItem(
-            title = "Track every mile, automatically",
-            subtitle = "Background tracking captures your business trips hands-free",
-            badge = "NEW"
-        ),
-        MarketingCarouselItem(
-            title = "Snap receipts on the go",
-            subtitle = "Receipt capture extracts amount, date and merchant for you",
-            badge = "BETA"
-        ),
-        MarketingCarouselItem(
-            title = "Monthly mileage report",
-            subtitle = "One tap to export everything your finance team needs",
-            badge = "TIP"
+    fun atAGlance(): AtAGlanceCounts =
+        AtAGlanceCounts(
+            unreportedTransactions = 835,
+            upcomingTrips = 12,
+            pendingInvoices = 47,
+            pendingExpenses = 23,
+            vouchersToFile = 6,
         )
-    )
+
+    fun actionRequiredBanner(): ActionRequiredBanner =
+        ActionRequiredBanner(
+            amountText = "₹12,480.00",
+            count = 9,
+            message = "9 expenses are awaiting your action",
+        )
+
+    fun carouselItems(): List<MarketingCarouselItem> =
+        listOf(
+            MarketingCarouselItem(
+                title = "Track every mile, automatically",
+                subtitle = "Background tracking captures your business trips hands-free",
+                badge = "NEW",
+            ),
+            MarketingCarouselItem(
+                title = "Snap receipts on the go",
+                subtitle = "Receipt capture extracts amount, date and merchant for you",
+                badge = "BETA",
+            ),
+            MarketingCarouselItem(
+                title = "Monthly mileage report",
+                subtitle = "One tap to export everything your finance team needs",
+                badge = "TIP",
+            ),
+        )
 
     fun notificationCount(): Int = 4
 
-    fun authTokens(): DemoAuthTokens = DemoAuthTokens(
-        accessToken = "demo-access-token-not-a-real-credential",
-        refreshToken = "demo-refresh-token-not-a-real-credential"
-    )
+    fun authTokens(): DemoAuthTokens =
+        DemoAuthTokens(
+            accessToken = "demo-access-token-not-a-real-credential",
+            refreshToken = "demo-refresh-token-not-a-real-credential",
+        )
 }

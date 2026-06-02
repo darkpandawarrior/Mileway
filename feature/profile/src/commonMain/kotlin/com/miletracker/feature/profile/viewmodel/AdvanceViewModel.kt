@@ -14,7 +14,7 @@ enum class AdvanceTabFilter { ALL, PENDING, SETTLED }
 
 data class AdvanceListState(
     val records: List<AdvanceRecord> = emptyList(),
-    val activeTab: AdvanceTabFilter = AdvanceTabFilter.ALL
+    val activeTab: AdvanceTabFilter = AdvanceTabFilter.ALL,
 )
 
 data class AdvanceFormState(
@@ -25,18 +25,17 @@ data class AdvanceFormState(
     val declarationChecked: Boolean = false,
     val submitted: Boolean = false,
     val submittedId: String = "",
-    val autoApproved: Boolean = false
+    val autoApproved: Boolean = false,
 )
 
 data class CardsState(
     val cards: List<CorporateCard> = emptyList(),
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
 )
 
 class AdvanceViewModel(
-    private val repository: AdvanceRepository
+    private val repository: AdvanceRepository,
 ) : ViewModel() {
-
     private val _listState = MutableStateFlow(AdvanceListState(records = repository.advanceRecords))
     val listState: StateFlow<AdvanceListState> = _listState.asStateFlow()
 
@@ -47,22 +46,29 @@ class AdvanceViewModel(
     val cardsState: StateFlow<CardsState> = _cardsState.asStateFlow()
 
     fun setTab(tab: AdvanceTabFilter) {
-        val filtered = when (tab) {
-            AdvanceTabFilter.ALL -> repository.advanceRecords
-            AdvanceTabFilter.PENDING -> repository.advanceRecords.filter {
-                it.status in listOf(AdvanceStatus.PENDING, AdvanceStatus.UNDER_REVIEW, AdvanceStatus.APPROVED)
+        val filtered =
+            when (tab) {
+                AdvanceTabFilter.ALL -> repository.advanceRecords
+                AdvanceTabFilter.PENDING ->
+                    repository.advanceRecords.filter {
+                        it.status in listOf(AdvanceStatus.PENDING, AdvanceStatus.UNDER_REVIEW, AdvanceStatus.APPROVED)
+                    }
+                AdvanceTabFilter.SETTLED ->
+                    repository.advanceRecords.filter {
+                        it.status in listOf(AdvanceStatus.DISBURSED, AdvanceStatus.REJECTED)
+                    }
             }
-            AdvanceTabFilter.SETTLED -> repository.advanceRecords.filter {
-                it.status in listOf(AdvanceStatus.DISBURSED, AdvanceStatus.REJECTED)
-            }
-        }
         _listState.update { it.copy(records = filtered, activeTab = tab) }
     }
 
     fun setAmount(text: String) = _formState.update { it.copy(amountText = text) }
+
     fun setPurpose(text: String) = _formState.update { it.copy(purpose = text) }
+
     fun setRequiredByDate(date: String) = _formState.update { it.copy(requiredByDate = date) }
+
     fun setDeclaration(checked: Boolean) = _formState.update { it.copy(declarationChecked = checked) }
+
     fun goToStep(step: Int) = _formState.update { it.copy(step = step) }
 
     fun submitAdvance() {
@@ -73,23 +79,32 @@ class AdvanceViewModel(
         _formState.update { it.copy(submitted = true, submittedId = id, autoApproved = autoApproved) }
     }
 
-    fun resetForm() { _formState.value = AdvanceFormState() }
+    fun resetForm() {
+        _formState.value = AdvanceFormState()
+    }
 
     fun getCardById(id: String) = repository.getCardById(id)
+
     fun getTransactionsForCard(cardId: String) = repository.getTransactionsForCard(cardId)
 
     fun toggleCardBlock(cardId: String) {
         _cardsState.update { state ->
             state.copy(
-                cards = state.cards.map { card ->
-                    if (card.id == cardId) {
-                        val newStatus = if (card.status == com.miletracker.feature.profile.model.CardStatus.ACTIVE)
-                            com.miletracker.feature.profile.model.CardStatus.BLOCKED
-                        else com.miletracker.feature.profile.model.CardStatus.ACTIVE
-                        card.copy(status = newStatus)
-                    } else card
-                },
-                snackbarMessage = "Card ${cardId.takeLast(4)} status updated"
+                cards =
+                    state.cards.map { card ->
+                        if (card.id == cardId) {
+                            val newStatus =
+                                if (card.status == com.miletracker.feature.profile.model.CardStatus.ACTIVE) {
+                                    com.miletracker.feature.profile.model.CardStatus.BLOCKED
+                                } else {
+                                    com.miletracker.feature.profile.model.CardStatus.ACTIVE
+                                }
+                            card.copy(status = newStatus)
+                        } else {
+                            card
+                        }
+                    },
+                snackbarMessage = "Card ${cardId.takeLast(4)} status updated",
             )
         }
     }

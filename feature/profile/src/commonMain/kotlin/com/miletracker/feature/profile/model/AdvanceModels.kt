@@ -8,10 +8,11 @@ data class AdvanceRecord(
     val purpose: String,
     val status: AdvanceStatus,
     val requestedDateMs: Long,
-    val requiredByDate: String
+    val requiredByDate: String,
 )
 
 enum class CardType { VISA, MASTERCARD }
+
 enum class CardStatus { ACTIVE, BLOCKED }
 
 data class CorporateCard(
@@ -22,7 +23,7 @@ data class CorporateCard(
     val balanceRupees: Double,
     val status: CardStatus,
     val expiryDate: String,
-    val creditLimitRupees: Double
+    val creditLimitRupees: Double,
 )
 
 data class CardTransaction(
@@ -31,5 +32,5 @@ data class CardTransaction(
     val merchantName: String,
     val amountRupees: Double,
     val dateMs: Long,
-    val category: String
+    val category: String,
 )

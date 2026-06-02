@@ -34,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,14 +43,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.logging.model.ExpenseRecord
 import com.miletracker.feature.logging.model.ExpenseStatus
 import com.miletracker.feature.logging.viewmodel.ExpenseFilter
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
-import com.miletracker.core.common.formatDecimal
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -60,32 +59,36 @@ fun ExpenseHistoryScreen(
     onBack: () -> Unit,
     onOpenDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ExpenseViewModel = koinViewModel()
+    viewModel: ExpenseViewModel = koinViewModel(),
 ) {
     val state by viewModel.listState.collectAsState()
 
-    val grouped = state.records
-        .sortedByDescending { it.dateMs }
-        .groupBy { dateBucket(it.dateMs) }
+    val grouped =
+        state.records
+            .sortedByDescending { it.dateMs }
+            .groupBy { dateBucket(it.dateMs) }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             Box(
-                modifier = Modifier
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF6A1B9A), Color(0xFFAB47BC))))
-                    .windowInsetsPadding(WindowInsets.statusBars)
+                modifier =
+                    Modifier
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF6A1B9A), Color(0xFFAB47BC))))
+                        .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -95,69 +98,74 @@ fun ExpenseHistoryScreen(
                             text = "Expense History",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
                         )
                         Text(
                             text = "${state.records.size} expense${if (state.records.size != 1) "s" else ""}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.85f)
+                            color = Color.White.copy(alpha = 0.85f),
                         )
                     }
                 }
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.s),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.s),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 ExpenseFilter.entries.forEach { filter ->
                     FilterChip(
                         selected = state.activeFilter == filter,
                         onClick = { viewModel.setFilter(filter) },
                         label = { Text(filter.name.lowercase().replaceFirstChar { it.uppercase() }) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                     )
                 }
             }
 
             if (state.records.isEmpty()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(DesignTokens.Spacing.xl),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(DesignTokens.Spacing.xl),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Filled.Receipt,
                             contentDescription = null,
                             modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                         )
                         Spacer(Modifier.height(DesignTokens.Spacing.l))
                         Text(
                             text = "No expenses found",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .navigationBarsPadding(),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = DesignTokens.Spacing.l,
-                        vertical = DesignTokens.Spacing.m
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding(),
+                    contentPadding =
+                        androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = DesignTokens.Spacing.l,
+                            vertical = DesignTokens.Spacing.m,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                 ) {
                     grouped.forEach { (bucket, records) ->
                         item(key = bucket) {
@@ -166,13 +174,13 @@ fun ExpenseHistoryScreen(
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(vertical = DesignTokens.Spacing.s)
+                                modifier = Modifier.padding(vertical = DesignTokens.Spacing.s),
                             )
                         }
                         items(records, key = { it.id }) { expense ->
                             ExpenseCard(
                                 expense = expense,
-                                onClick = { onOpenDetail(expense.id) }
+                                onClick = { onOpenDetail(expense.id) },
                             )
                         }
                     }
@@ -185,37 +193,40 @@ fun ExpenseHistoryScreen(
 @Composable
 private fun ExpenseCard(
     expense: ExpenseRecord,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(DesignTokens.Shape.roundedMd)
-            .clickable(onClick = onClick),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(DesignTokens.Shape.roundedMd)
+                .clickable(onClick = onClick),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(
-                        MaterialTheme.colorScheme.secondaryContainer,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(44.dp)
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer,
+                            CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = expense.category.icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
 
@@ -224,12 +235,12 @@ private fun ExpenseCard(
                     text = expense.merchantName,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    maxLines = 1
+                    maxLines = 1,
                 )
                 Text(
                     text = "${expense.category.label} · ${formatDate(expense.dateMs)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -237,7 +248,7 @@ private fun ExpenseCard(
                 Text(
                     text = "₹${expense.amountRupees.toLong()}",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(4.dp))
                 ExpenseStatusChip(status = expense.status)
@@ -248,34 +259,35 @@ private fun ExpenseCard(
 
 @Composable
 private fun ExpenseStatusChip(status: ExpenseStatus) {
-    val (label, color) = when (status) {
-        ExpenseStatus.DRAFT -> "Draft" to StatusColors.neutral
-        ExpenseStatus.PENDING -> "Pending" to StatusColors.warning
-        ExpenseStatus.APPROVED -> "Approved" to StatusColors.success
-        ExpenseStatus.REJECTED -> "Rejected" to StatusColors.error
-    }
+    val (label, color) =
+        when (status) {
+            ExpenseStatus.DRAFT -> "Draft" to StatusColors.neutral
+            ExpenseStatus.PENDING -> "Pending" to StatusColors.warning
+            ExpenseStatus.APPROVED -> "Approved" to StatusColors.success
+            ExpenseStatus.REJECTED -> "Rejected" to StatusColors.error
+        }
     Surface(
         color = color.copy(alpha = 0.15f),
-        shape = RoundedCornerShape(6.dp)
+        shape = RoundedCornerShape(6.dp),
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = color,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
         )
     }
 }
 
 private fun dateBucket(ms: Long): String {
-    val MONTHS = arrayOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    val months = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     val ldt = Instant.fromEpochMilliseconds(ms).toLocalDateTime(TimeZone.currentSystemDefault())
-    return "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]} ${ldt.year}"
+    return "${ldt.dayOfMonth} ${months[ldt.monthNumber - 1]} ${ldt.year}"
 }
 
 private fun formatDate(ms: Long): String {
-    val MONTHS = arrayOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    val months = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     val ldt = Instant.fromEpochMilliseconds(ms).toLocalDateTime(TimeZone.currentSystemDefault())
-    return "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]}"
+    return "${ldt.dayOfMonth} ${months[ldt.monthNumber - 1]}"
 }

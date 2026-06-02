@@ -7,7 +7,7 @@ data class ReceiptExtraction(
     val amount: Double,
     /** ISO-8601 date (yyyy-MM-dd), derived from the seed — never from the clock. */
     val date: String,
-    val merchant: String
+    val merchant: String,
 )
 
 /** Per-file outcome of a batch receipt upload. Mirrors the four real-world outcomes. */
@@ -15,7 +15,7 @@ enum class OcrBatchStatus {
     SUCCESS,
     DUPLICATE,
     NOT_RECEIPT,
-    FAILED
+    FAILED,
 }
 
 /**
@@ -24,7 +24,6 @@ enum class OcrBatchStatus {
  * input always produces the same extraction/status on every platform and every run.
  */
 object OcrMockData {
-
     /**
      * Odometer readings that differ from the device value by more than this many
      * units are treated as a discrepancy the user must confirm.
@@ -34,16 +33,17 @@ object OcrMockData {
     /** Injected server-side offset for the discrepancy path (> threshold by design). */
     const val ODOMETER_DISCREPANCY_OFFSET = 37
 
-    private val merchants = listOf(
-        "City Fuel Station",
-        "Highway Diner",
-        "Metro Parking Co.",
-        "Grand Hotel & Suites",
-        "QuickMart Convenience",
-        "Airport Taxi Services",
-        "Office Supplies Depot",
-        "Riverside Cafe"
-    )
+    private val merchants =
+        listOf(
+            "City Fuel Station",
+            "Highway Diner",
+            "Metro Parking Co.",
+            "Grand Hotel & Suites",
+            "QuickMart Convenience",
+            "Airport Taxi Services",
+            "Office Supplies Depot",
+            "Riverside Cafe",
+        )
 
     /**
      * Deterministic receipt key-value extraction for the given [fileName] (or any
@@ -59,7 +59,7 @@ object OcrMockData {
         return ReceiptExtraction(
             amount = amount,
             date = date,
-            merchant = merchants[hash % merchants.size]
+            merchant = merchants[hash % merchants.size],
         )
     }
 
@@ -67,12 +67,13 @@ object OcrMockData {
      * Deterministic batch status for the given [seed], weighted towards SUCCESS:
      * hash bucket 0–6 → SUCCESS, 7 → DUPLICATE, 8 → NOT_RECEIPT, 9 → FAILED.
      */
-    fun batchStatusFor(seed: String): OcrBatchStatus = when (stableHash(seed) % 10) {
-        7 -> OcrBatchStatus.DUPLICATE
-        8 -> OcrBatchStatus.NOT_RECEIPT
-        9 -> OcrBatchStatus.FAILED
-        else -> OcrBatchStatus.SUCCESS
-    }
+    fun batchStatusFor(seed: String): OcrBatchStatus =
+        when (stableHash(seed) % 10) {
+            7 -> OcrBatchStatus.DUPLICATE
+            8 -> OcrBatchStatus.NOT_RECEIPT
+            9 -> OcrBatchStatus.FAILED
+            else -> OcrBatchStatus.SUCCESS
+        }
 
     /**
      * Mock "server" odometer reading for the triple-reading verification flow
@@ -82,12 +83,17 @@ object OcrMockData {
      * reachable on demand (e.g. enter 14000 to trigger it, 14001 to avoid it).
      */
     fun serverReadingFor(deviceReading: Int): Int =
-        if (deviceReading % 7 == 0) deviceReading + ODOMETER_DISCREPANCY_OFFSET
-        else deviceReading
+        if (deviceReading % 7 == 0) {
+            deviceReading + ODOMETER_DISCREPANCY_OFFSET
+        } else {
+            deviceReading
+        }
 
     /** True when the device/server readings differ by more than the threshold. */
-    fun isDiscrepancy(deviceReading: Int, serverReading: Int): Boolean =
-        abs(deviceReading - serverReading) > ODOMETER_DISCREPANCY_THRESHOLD
+    fun isDiscrepancy(
+        deviceReading: Int,
+        serverReading: Int,
+    ): Boolean = abs(deviceReading - serverReading) > ODOMETER_DISCREPANCY_THRESHOLD
 
     /**
      * Stable non-negative 31-polynomial string hash. Implemented locally (rather

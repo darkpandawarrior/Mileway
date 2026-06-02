@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:property-naming")
+
 package com.miletracker.feature.approvals.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -28,7 +30,6 @@ data class ApprovalDetailState(
 )
 
 class ApprovalsViewModel : ViewModel() {
-
     private val _list = MutableStateFlow(ApprovalsUiState())
     val listState: StateFlow<ApprovalsUiState> = _list.asStateFlow()
 
@@ -39,10 +40,11 @@ class ApprovalsViewModel : ViewModel() {
 
     fun openDetail(id: String) {
         val item = _list.value.items.firstOrNull { it.id == id } ?: return
-        _detail.value = ApprovalDetailState(
-            item = item,
-            thread = ApprovalsRepository.clarificationThread(id),
-        )
+        _detail.value =
+            ApprovalDetailState(
+                item = item,
+                thread = ApprovalsRepository.clarificationThread(id),
+            )
     }
 
     fun approve() {
@@ -58,7 +60,9 @@ class ApprovalsViewModel : ViewModel() {
     }
 
     fun openClarificationSheet() = _detail.update { it.copy(showClarificationSheet = true) }
+
     fun closeClarificationSheet() = _detail.update { it.copy(showClarificationSheet = false) }
+
     fun setDraftMessage(text: String) = _detail.update { it.copy(draftMessage = text) }
 
     fun sendClarification() {
