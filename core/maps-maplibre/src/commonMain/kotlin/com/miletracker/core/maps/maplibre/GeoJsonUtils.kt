@@ -8,8 +8,7 @@ internal fun List<MapCoordinate>.toLineStringJson(): String {
     return """{"type":"LineString","coordinates":[$coords]}"""
 }
 
-internal fun MapCoordinate.toPointJson(): String =
-    """{"type":"Point","coordinates":[${lng},${lat}]}"""
+internal fun MapCoordinate.toPointJson(): String = """{"type":"Point","coordinates":[$lng,$lat]}"""
 
 internal fun List<MapCoordinate>.toMultiPointJson(): String {
     if (isEmpty()) return """{"type":"MultiPoint","coordinates":[]}"""

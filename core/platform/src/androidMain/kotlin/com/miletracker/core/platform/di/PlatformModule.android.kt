@@ -17,9 +17,10 @@ import org.koin.dsl.module
  * 2.2a: Location, Notification. 2.2b: TextRecognizer. 2.2c: BackgroundScheduler.
  * (Biometric/DocScan/Permissions → 2.2d.)
  */
-actual fun platformModule(): Module = module {
-    single<LocationTracker> { AndroidLocationTracker(androidContext()) }
-    single<NotificationScheduler> { AndroidNotificationScheduler(androidContext()) }
-    single<TextRecognizer> { AndroidTextRecognizer() }
-    single<BackgroundScheduler> { AndroidBackgroundScheduler(androidContext()) }
-}
+actual fun platformModule(): Module =
+    module {
+        single<LocationTracker> { AndroidLocationTracker(androidContext()) }
+        single<NotificationScheduler> { AndroidNotificationScheduler(androidContext()) }
+        single<TextRecognizer> { AndroidTextRecognizer() }
+        single<BackgroundScheduler> { AndroidBackgroundScheduler(androidContext()) }
+    }

@@ -12,15 +12,18 @@ internal actual fun detectRootSignals(): List<String> {
 }
 
 private fun isSuBinaryPresent(): Boolean {
-    val paths = listOf(
-        "/system/bin/su", "/system/xbin/su", "/sbin/su",
-        "/data/local/su", "/data/local/bin/su", "/data/local/xbin/su",
-    )
+    val paths =
+        listOf(
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/sbin/su",
+            "/data/local/su",
+            "/data/local/bin/su",
+            "/data/local/xbin/su",
+        )
     return paths.any { File(it).exists() }
 }
 
-private fun isTestKeysBuild(): Boolean =
-    Build.TAGS?.contains("test-keys") == true
+private fun isTestKeysBuild(): Boolean = Build.TAGS?.contains("test-keys") == true
 
-private fun isMagiskPresent(): Boolean =
-    File("/sbin/.magisk").exists() || File("/data/adb/magisk").exists()
+private fun isMagiskPresent(): Boolean = File("/sbin/.magisk").exists() || File("/data/adb/magisk").exists()

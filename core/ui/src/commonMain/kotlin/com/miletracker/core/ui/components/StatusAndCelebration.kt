@@ -54,11 +54,11 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.theme.DesignTokens
+import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-import kotlinx.coroutines.delay
 
 /**
  * Represents the current network connectivity state.
@@ -100,13 +100,10 @@ enum class NetworkType {
 data class NetworkInfo(
     /** Current connectivity state */
     val state: NetworkConnectivityState,
-
     /** Type of network connection */
     val type: NetworkType = NetworkType.UNKNOWN,
-
     /** Whether the connection is metered (e.g., mobile data with data limits) */
     val isMetered: Boolean = false,
-
     /** Signal strength on a scale of 0-4 (0 = no signal, 4 = excellent) */
     val signalStrength: Int = 0,
 )
@@ -131,13 +128,14 @@ fun NetworkStatusIndicator(
     label: String? = null,
 ) {
     // State-based colors derived from theme
-    val targetColor = when {
-        isAirplaneMode -> MaterialTheme.colorScheme.error
-        networkInfo.state == NetworkConnectivityState.CONNECTED -> MaterialTheme.colorScheme.primary
-        networkInfo.state == NetworkConnectivityState.DISCONNECTED -> MaterialTheme.colorScheme.tertiary
-        networkInfo.state == NetworkConnectivityState.CONNECTING -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val targetColor =
+        when {
+            isAirplaneMode -> MaterialTheme.colorScheme.error
+            networkInfo.state == NetworkConnectivityState.CONNECTED -> MaterialTheme.colorScheme.primary
+            networkInfo.state == NetworkConnectivityState.DISCONNECTED -> MaterialTheme.colorScheme.tertiary
+            networkInfo.state == NetworkConnectivityState.CONNECTING -> MaterialTheme.colorScheme.secondary
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     if (label == null) {
         NetworkStatusBadge(
@@ -185,79 +183,88 @@ private fun NetworkStatusBadge(
     val animatedColor by infiniteTransition.animateColor(
         initialValue = targetColor,
         targetValue = targetColor.copy(alpha = 0.7f),
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = if (networkInfo.state == NetworkConnectivityState.CONNECTING) 800 else 2000,
-                easing = FastOutSlowInEasing
+        animationSpec =
+            infiniteRepeatable(
+                animation =
+                    tween(
+                        durationMillis = if (networkInfo.state == NetworkConnectivityState.CONNECTING) 800 else 2000,
+                        easing = FastOutSlowInEasing,
+                    ),
+                repeatMode = RepeatMode.Reverse,
             ),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "color_pulse"
+        label = "color_pulse",
     )
 
     // Scale animation for connection state changes
-    val targetScale = when (networkInfo.state) {
-        NetworkConnectivityState.CONNECTED -> 1f
-        NetworkConnectivityState.CONNECTING -> 1.2f
-        NetworkConnectivityState.DISCONNECTED -> 0.8f
-        NetworkConnectivityState.UNKNOWN -> 0.9f
-    }
+    val targetScale =
+        when (networkInfo.state) {
+            NetworkConnectivityState.CONNECTED -> 1f
+            NetworkConnectivityState.CONNECTING -> 1.2f
+            NetworkConnectivityState.DISCONNECTED -> 0.8f
+            NetworkConnectivityState.UNKNOWN -> 0.9f
+        }
 
     val animatedScale by animateFloatAsState(
         targetValue = targetScale,
         animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
-        label = "scale_animation"
+        label = "scale_animation",
     )
 
     // Connecting animation (rotating dots)
     val connectingRotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "connecting_rotation"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "connecting_rotation",
     )
 
     // Accessibility description for screen readers
-    val statusDesc = when {
-        isAirplaneMode -> "Airplane mode"
-        else -> when (networkInfo.state) {
-            NetworkConnectivityState.CONNECTED -> "Connected"
-            NetworkConnectivityState.DISCONNECTED -> "Disconnected"
-            NetworkConnectivityState.CONNECTING -> "Connecting"
-            NetworkConnectivityState.UNKNOWN -> "Unknown"
+    val statusDesc =
+        when {
+            isAirplaneMode -> "Airplane mode"
+            else ->
+                when (networkInfo.state) {
+                    NetworkConnectivityState.CONNECTED -> "Connected"
+                    NetworkConnectivityState.DISCONNECTED -> "Disconnected"
+                    NetworkConnectivityState.CONNECTING -> "Connecting"
+                    NetworkConnectivityState.UNKNOWN -> "Unknown"
+                }
         }
-    }
-    val typeDesc = when (networkInfo.type) {
-        NetworkType.WIFI -> "WiFi"
-        NetworkType.CELLULAR -> "Cellular"
-        NetworkType.ETHERNET -> "Ethernet"
-        NetworkType.UNKNOWN -> "Unknown network type"
-    }
+    val typeDesc =
+        when (networkInfo.type) {
+            NetworkType.WIFI -> "WiFi"
+            NetworkType.CELLULAR -> "Cellular"
+            NetworkType.ETHERNET -> "Ethernet"
+            NetworkType.UNKNOWN -> "Unknown network type"
+        }
 
     Box(
-        modifier = modifier
-            .size(size)
-            .semantics { stateDescription = "$statusDesc. $typeDesc" },
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .size(size)
+                .semantics { stateDescription = "$statusDesc. $typeDesc" },
+        contentAlignment = Alignment.Center,
     ) {
         when {
             isAirplaneMode -> {
                 // Airplane mode connected-state visual: flight icon on prominent background
                 Box(
-                    modifier = Modifier
-                        .size(size)
-                        .clip(CircleShape)
-                        .background(animatedColor),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(size)
+                            .clip(CircleShape)
+                            .background(animatedColor),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Flight,
                         contentDescription = "Airplane mode",
                         tint = Color.White,
-                        modifier = Modifier.size(size * 0.6f)
+                        modifier = Modifier.size(size * 0.6f),
                     )
                 }
             }
@@ -267,32 +274,36 @@ private fun NetworkStatusBadge(
                 if (showIcon) {
                     // Background circle to improve legibility of small icons
                     Box(
-                        modifier = Modifier
-                            .size(size)
-                            .scale(animatedScale)
-                            .clip(CircleShape)
-                            .background(animatedColor),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .size(size)
+                                .scale(animatedScale)
+                                .clip(CircleShape)
+                                .background(animatedColor),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = getNetworkTypeIcon(
-                                networkInfo.type,
-                                networkInfo.signalStrength
-                            ),
+                            imageVector =
+                                getNetworkTypeIcon(
+                                    networkInfo.type,
+                                    networkInfo.signalStrength,
+                                ),
                             contentDescription = "Network Connected",
                             tint = Color.White,
-                            modifier = Modifier
-                                .size(size * 0.6f)
+                            modifier =
+                                Modifier
+                                    .size(size * 0.6f),
                         )
                     }
                 } else {
                     // Simple dot with pulse
                     Box(
-                        modifier = Modifier
-                            .size(size * 0.4f)
-                            .scale(animatedScale)
-                            .clip(CircleShape)
-                            .background(animatedColor)
+                        modifier =
+                            Modifier
+                                .size(size * 0.4f)
+                                .scale(animatedScale)
+                                .clip(CircleShape)
+                                .background(animatedColor),
                     )
                 }
             }
@@ -300,12 +311,13 @@ private fun NetworkStatusBadge(
             networkInfo.state == NetworkConnectivityState.CONNECTING -> {
                 // Connecting: Animated rotating dots over faded background
                 Box(
-                    modifier = Modifier
-                        .size(size)
-                        .scale(animatedScale)
-                        .clip(CircleShape)
-                        .background(animatedColor.copy(alpha = 0.18f)),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(size)
+                            .scale(animatedScale)
+                            .clip(CircleShape)
+                            .background(animatedColor.copy(alpha = 0.18f)),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Canvas(modifier = Modifier.size(size)) {
                         val center = Offset(size.toPx() / 2, size.toPx() / 2)
@@ -320,7 +332,7 @@ private fun NetworkStatusBadge(
                             drawCircle(
                                 color = animatedColor,
                                 radius = dotRadius,
-                                center = Offset(x, y)
+                                center = Offset(x, y),
                             )
                         }
                     }
@@ -332,27 +344,29 @@ private fun NetworkStatusBadge(
                 if (showIcon) {
                     // Clear centered close icon with colored circular background for better legibility
                     Box(
-                        modifier = Modifier
-                            .size(size)
-                            .scale(animatedScale)
-                            .clip(CircleShape)
-                            .background(animatedColor),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .size(size)
+                                .scale(animatedScale)
+                                .clip(CircleShape)
+                                .background(animatedColor),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Network Disconnected",
                             tint = Color.White,
-                            modifier = Modifier.size(size * 0.5f)
+                            modifier = Modifier.size(size * 0.5f),
                         )
                     }
                 } else {
                     Box(
-                        modifier = Modifier
-                            .size(size * 0.4f)
-                            .scale(animatedScale)
-                            .clip(CircleShape)
-                            .background(animatedColor)
+                        modifier =
+                            Modifier
+                                .size(size * 0.4f)
+                                .scale(animatedScale)
+                                .clip(CircleShape)
+                                .background(animatedColor),
                     )
                 }
             }
@@ -361,28 +375,31 @@ private fun NetworkStatusBadge(
                 // Unknown: Network icon instead of question mark
                 if (showIcon) {
                     Box(
-                        modifier = Modifier
-                            .size(size)
-                            .scale(animatedScale)
-                            .clip(CircleShape)
-                            .background(animatedColor),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .size(size)
+                                .scale(animatedScale)
+                                .clip(CircleShape)
+                                .background(animatedColor),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Default.NetworkCheck,
                             contentDescription = "Network Status Unknown",
                             tint = Color.White,
-                            modifier = Modifier
-                                .size(size * 0.6f)
+                            modifier =
+                                Modifier
+                                    .size(size * 0.6f),
                         )
                     }
                 } else {
                     Box(
-                        modifier = Modifier
-                            .size(size * 0.4f)
-                            .scale(animatedScale)
-                            .clip(CircleShape)
-                            .background(animatedColor)
+                        modifier =
+                            Modifier
+                                .size(size * 0.4f)
+                                .scale(animatedScale)
+                                .clip(CircleShape)
+                                .background(animatedColor),
                     )
                 }
             }
@@ -393,19 +410,24 @@ private fun NetworkStatusBadge(
 /**
  * Get the appropriate network type icon based on type and signal strength.
  */
-private fun getNetworkTypeIcon(type: NetworkType, signalStrength: Int): ImageVector {
+private fun getNetworkTypeIcon(
+    type: NetworkType,
+    signalStrength: Int,
+): ImageVector {
     return when (type) {
-        NetworkType.WIFI -> when (signalStrength) {
-            0 -> Icons.Default.SignalWifi0Bar
-            in 1..2 -> Icons.Default.Wifi // Medium strength
-            else -> Icons.Default.SignalWifi4Bar // High strength
-        }
+        NetworkType.WIFI ->
+            when (signalStrength) {
+                0 -> Icons.Default.SignalWifi0Bar
+                in 1..2 -> Icons.Default.Wifi // Medium strength
+                else -> Icons.Default.SignalWifi4Bar // High strength
+            }
 
-        NetworkType.CELLULAR -> when (signalStrength) {
-            0 -> Icons.Default.SignalCellular0Bar
-            in 1..2 -> Icons.Default.SignalCellularAlt // Medium strength
-            else -> Icons.Default.SignalCellular4Bar // High strength
-        }
+        NetworkType.CELLULAR ->
+            when (signalStrength) {
+                0 -> Icons.Default.SignalCellular0Bar
+                in 1..2 -> Icons.Default.SignalCellularAlt // Medium strength
+                else -> Icons.Default.SignalCellular4Bar // High strength
+            }
 
         NetworkType.ETHERNET -> Icons.Default.NetworkCheck
         NetworkType.UNKNOWN -> Icons.Default.NetworkCheck
@@ -422,13 +444,14 @@ private fun getNetworkTypeIcon(type: NetworkType, signalStrength: Int): ImageVec
 @Composable
 fun ConfettiBurst(
     modifier: Modifier = Modifier,
-    colorPalette: List<Color> = listOf(
-        Color(0xFFFFC107), // Amber
-        Color(0xFFFF5722), // Deep Orange
-        Color(0xFF8BC34A), // Light Green
-        Color(0xFF03A9F4), // Light Blue
-        Color(0xFFE91E63)  // Pink
-    ),
+    colorPalette: List<Color> =
+        listOf(
+            Color(0xFFFFC107),
+            Color(0xFFFF5722),
+            Color(0xFF8BC34A),
+            Color(0xFF03A9F4),
+            Color(0xFFE91E63),
+        ),
     particleCount: Int = 45,
     durationMs: Long = 1600,
     seed: Int = 0x5EED,
@@ -445,18 +468,20 @@ fun ConfettiBurst(
             val anim by infinite.animateFloat(
                 initialValue = 0f,
                 targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMs.toInt(), easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "confetti_fall"
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(durationMs.toInt(), easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Restart,
+                    ),
+                label = "confetti_fall",
             )
 
             // Deterministic pseudo-random seeds so particles remain consistent during this burst
-            val seeds = remember(seed, particleCount) {
-                val rng = Random(seed)
-                List(particleCount) { rng.nextFloat() to rng.nextFloat() }
-            }
+            val seeds =
+                remember(seed, particleCount) {
+                    val rng = Random(seed)
+                    List(particleCount) { rng.nextFloat() to rng.nextFloat() }
+                }
 
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val width = size.width
@@ -475,11 +500,11 @@ fun ConfettiBurst(
                         if (idx % 3 == 0) {
                             rotate(
                                 degrees = (anim + idx * 0.07f) * 360f,
-                                pivot = Offset(sizePx / 2f, sizePx / 2f)
+                                pivot = Offset(sizePx / 2f, sizePx / 2f),
                             ) {
                                 drawRect(
                                     color = color,
-                                    size = Size(sizePx, sizePx)
+                                    size = Size(sizePx, sizePx),
                                 )
                             }
                         } else {

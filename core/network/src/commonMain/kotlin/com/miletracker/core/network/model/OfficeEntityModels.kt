@@ -9,7 +9,7 @@ data class Office(
     @SerialName("code") val code: String = "",
     @SerialName("name") val name: String = "",
     @SerialName("address") val address: String = "",
-    @SerialName("gstin") val gstin: String = ""
+    @SerialName("gstin") val gstin: String = "",
 )
 
 /** A business entity (legal company) that owns vouchers and transactions. */
@@ -17,5 +17,5 @@ data class Office(
 data class BusinessEntity(
     @SerialName("name") val name: String = "",
     @SerialName("country") val country: String = "",
-    @SerialName("currencySymbol") val currencySymbol: String = ""
+    @SerialName("currencySymbol") val currencySymbol: String = "",
 )

@@ -69,10 +69,11 @@ fun VehiclePickerSheet(
     val filtered = vehicles.filter { it.name.contains(query, ignoreCase = true) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
         ) {
             Text(
                 text = "Choose Vehicle Type",
@@ -106,7 +107,10 @@ fun VehiclePickerSheet(
 }
 
 @Composable
-private fun VehicleCard(vehicle: VehicleOption, onClick: () -> Unit) {
+private fun VehicleCard(
+    vehicle: VehicleOption,
+    onClick: () -> Unit,
+) {
     Surface(
         shape = DesignTokens.Shape.roundedSm,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
@@ -162,16 +166,18 @@ fun VendorPickerSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
-    val filtered = centers.filter {
-        it.name.contains(query, ignoreCase = true) ||
-            (it.address?.contains(query, ignoreCase = true) == true)
-    }
+    val filtered =
+        centers.filter {
+            it.name.contains(query, ignoreCase = true) ||
+                (it.address?.contains(query, ignoreCase = true) == true)
+        }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, modifier = modifier) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(bottom = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(bottom = DesignTokens.Spacing.xl),
         ) {
             Text(
                 text = "List of Centers",
@@ -203,24 +209,30 @@ fun VendorPickerSheet(
 }
 
 @Composable
-private fun CenterRow(center: CenterOption, onClick: () -> Unit, onOpenMaps: () -> Unit) {
+private fun CenterRow(
+    center: CenterOption,
+    onClick: () -> Unit,
+    onOpenMaps: () -> Unit,
+) {
     Surface(
         shape = DesignTokens.Shape.roundedSm,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape),
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(

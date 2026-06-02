@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 package com.miletracker.feature.profile.ui.screens
 
 import androidx.compose.foundation.background
@@ -34,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +44,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.profile.model.AdvanceRecord
@@ -58,7 +60,7 @@ fun AdvanceHistoryScreen(
     onBack: () -> Unit,
     onRequestAdvance: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AdvanceViewModel = koinViewModel()
+    viewModel: AdvanceViewModel = koinViewModel(),
 ) {
     val state by viewModel.listState.collectAsState()
 
@@ -67,26 +69,29 @@ fun AdvanceHistoryScreen(
             ExtendedFloatingActionButton(
                 onClick = onRequestAdvance,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("Request Advance") }
+                text = { Text("Request Advance") },
             )
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             Box(
-                modifier = Modifier
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF1A237E), Color(0xFF3949AB))))
-                    .windowInsetsPadding(WindowInsets.statusBars)
+                modifier =
+                    Modifier
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF1A237E), Color(0xFF3949AB))))
+                        .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -99,34 +104,38 @@ fun AdvanceHistoryScreen(
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.s),
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.s),
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 AdvanceTabFilter.entries.forEach { tab ->
                     FilterChip(
                         selected = state.activeTab == tab,
                         onClick = { viewModel.setTab(tab) },
                         label = { Text(tab.name.lowercase().replaceFirstChar { it.uppercase() }) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        colors =
+                            FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            ),
                     )
                 }
             }
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .navigationBarsPadding(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    horizontal = DesignTokens.Spacing.l,
-                    vertical = DesignTokens.Spacing.m
-                ),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding(),
+                contentPadding =
+                    androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = DesignTokens.Spacing.l,
+                        vertical = DesignTokens.Spacing.m,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 items(state.records, key = { it.id }) { record ->
                     AdvanceCard(record = record)
@@ -139,43 +148,58 @@ fun AdvanceHistoryScreen(
 
 @Composable
 private fun AdvanceCard(record: AdvanceRecord) {
-    val (statusLabel, statusColor) = when (record.status) {
-        AdvanceStatus.PENDING -> "Pending" to StatusColors.warning
-        AdvanceStatus.UNDER_REVIEW -> "Under Review" to StatusColors.info
-        AdvanceStatus.APPROVED -> "Approved" to StatusColors.success
-        AdvanceStatus.DISBURSED -> "Disbursed" to Color(0xFF2196F3)
-        AdvanceStatus.REJECTED -> "Rejected" to StatusColors.error
-    }
-    val MONTHS = arrayOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    val (statusLabel, statusColor) =
+        when (record.status) {
+            AdvanceStatus.PENDING -> "Pending" to StatusColors.warning
+            AdvanceStatus.UNDER_REVIEW -> "Under Review" to StatusColors.info
+            AdvanceStatus.APPROVED -> "Approved" to StatusColors.success
+            AdvanceStatus.DISBURSED -> "Disbursed" to Color(0xFF2196F3)
+            AdvanceStatus.REJECTED -> "Rejected" to StatusColors.error
+        }
+    val MONTHS = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Icon(
                 imageVector = Icons.Filled.MonetizationOn,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(record.id, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(record.purpose, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                Text(Instant.fromEpochMilliseconds(record.requestedDateMs).toLocalDateTime(TimeZone.currentSystemDefault()).let { ldt -> "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]} ${ldt.year}" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    Instant.fromEpochMilliseconds(record.requestedDateMs).toLocalDateTime(TimeZone.currentSystemDefault()).let {
+                            ldt ->
+                        "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]} ${ldt.year}"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text("₹${record.amountRupees.toLong()}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Surface(color = statusColor.copy(alpha = 0.15f), shape = RoundedCornerShape(6.dp)) {
-                    Text(statusLabel, style = MaterialTheme.typography.labelSmall, color = statusColor, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                    Text(
+                        statusLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
                 }
             }
         }

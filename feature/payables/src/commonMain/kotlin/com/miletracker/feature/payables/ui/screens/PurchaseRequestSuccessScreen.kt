@@ -13,12 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -36,32 +36,33 @@ fun PurchaseRequestSuccessScreen(
     onCreateAnother: () -> Unit,
     onBackToPayables: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PayablesViewModel = koinViewModel()
+    viewModel: PayablesViewModel = koinViewModel(),
 ) {
     val form by viewModel.formState.collectAsState()
 
     Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0)) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = DesignTokens.Spacing.xl)
-                .navigationBarsPadding(),
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = DesignTokens.Spacing.xl)
+                    .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.CheckCircle,
                 contentDescription = null,
                 tint = Color(0xFF4CAF50),
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(80.dp),
             )
             Spacer(Modifier.height(DesignTokens.Spacing.xl))
             Text(
                 text = "Purchase Request Submitted!",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(DesignTokens.Spacing.s))
             Text(
@@ -69,14 +70,14 @@ fun PurchaseRequestSuccessScreen(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(DesignTokens.Spacing.s))
             Text(
                 text = "Your request has been sent to the procurement team for review. You'll be notified once it's approved.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(DesignTokens.Spacing.xxl))
             Button(
@@ -84,14 +85,14 @@ fun PurchaseRequestSuccessScreen(
                     viewModel.resetForm()
                     onCreateAnother()
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Create Another Request")
             }
             Spacer(Modifier.height(DesignTokens.Spacing.s))
             OutlinedButton(
                 onClick = onBackToPayables,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Back to Payables")
             }

@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:function-naming")
+
 package com.miletracker.feature.logging.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -41,32 +43,34 @@ fun TapFieldRow(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-    isPlaceholder: Boolean = false
+    isPlaceholder: Boolean = false,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             label,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.size(DesignTokens.Spacing.s))
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = DesignTokens.Shape.roundedMd,
             color = MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-            ),
-            onClick = onClick
+            border =
+                androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                ),
+            onClick = onClick,
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     leadingIcon?.let {
@@ -74,25 +78,26 @@ fun TapFieldRow(
                             it,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                            modifier = Modifier.size(DesignTokens.IconSize.navigation),
                         )
                         Spacer(Modifier.size(DesignTokens.Spacing.m))
                     }
                     Text(
                         value,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = if (isPlaceholder) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
+                        color =
+                            if (isPlaceholder) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                     )
                 }
                 Icon(
                     trailingIcon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                    modifier = Modifier.size(DesignTokens.IconSize.navigation),
                 )
             }
         }
@@ -107,25 +112,25 @@ fun TapFieldRow(
 fun StepHeaderCard(
     title: String,
     subtitle: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.size(DesignTokens.Spacing.xs))
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

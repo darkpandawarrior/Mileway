@@ -39,60 +39,63 @@ fun MetricCard(
     icon: ImageVector,
     color: Color,
     trend: MetricTrend? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.1f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = color.copy(alpha = 0.1f),
+            ),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 // Icon with colored background
                 Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(color.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(color.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = color,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
 
                 // Content
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = value,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = color
+                        color = color,
                     )
                     if (subtitle != null) {
                         Text(
                             text = subtitle,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
                     }
                 }
@@ -112,19 +115,20 @@ fun MetricCard(
 @Composable
 fun TrendIndicator(
     trend: MetricTrend,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val (icon, color) = when (trend) {
-        MetricTrend.Good -> Icons.Default.CheckCircle to Color(0xFF4CAF50)
-        MetricTrend.Warning -> Icons.Default.Warning to Color(0xFFFF9800)
-        MetricTrend.Poor -> Icons.Default.Warning to Color(0xFFE91E63)
-    }
+    val (icon, color) =
+        when (trend) {
+            MetricTrend.Good -> Icons.Default.CheckCircle to Color(0xFF4CAF50)
+            MetricTrend.Warning -> Icons.Default.Warning to Color(0xFFFF9800)
+            MetricTrend.Poor -> Icons.Default.Warning to Color(0xFFE91E63)
+        }
 
     Icon(
         imageVector = icon,
         contentDescription = trend.name,
         tint = color,
-        modifier = modifier.size(20.dp)
+        modifier = modifier.size(20.dp),
     )
 }
 
@@ -135,35 +139,36 @@ fun TrendIndicator(
 fun SystemStatusCard(
     title: String,
     issues: List<SystemIssue>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (issues.isEmpty()) return
 
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+            ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
 
@@ -183,30 +188,32 @@ fun SystemStatusCard(
 @Composable
 fun SystemIssueItem(
     issue: SystemIssue,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = issue.severity.color.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .background(
-                issue.severity.color.copy(alpha = 0.1f),
-                RoundedCornerShape(8.dp)
-            )
-            .padding(12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = issue.severity.color.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(8.dp),
+                )
+                .background(
+                    issue.severity.color.copy(alpha = 0.1f),
+                    RoundedCornerShape(8.dp),
+                )
+                .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // Severity indicator
         Box(
-            modifier = Modifier
-                .size(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(issue.severity.color)
+            modifier =
+                Modifier
+                    .size(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(issue.severity.color),
         )
 
         // Issue description
@@ -214,13 +221,13 @@ fun SystemIssueItem(
             Text(
                 text = issue.message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             if (issue.impact.isNotEmpty()) {
                 Text(
                     text = issue.impact,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -230,12 +237,13 @@ fun SystemIssueItem(
             text = issue.severity.displayName,
             style = MaterialTheme.typography.bodySmall,
             color = issue.severity.color,
-            modifier = Modifier
-                .background(
-                    issue.severity.color.copy(alpha = 0.2f),
-                    RoundedCornerShape(4.dp)
-                )
-                .padding(horizontal = 6.dp, vertical = 2.dp)
+            modifier =
+                Modifier
+                    .background(
+                        issue.severity.color.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp),
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
         )
     }
 }

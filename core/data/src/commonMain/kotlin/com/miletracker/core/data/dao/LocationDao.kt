@@ -14,7 +14,11 @@ interface LocationDao {
     fun getLocationsByToken(token: String): Flow<List<LocationData>>
 
     @Query("SELECT * FROM locations WHERE token = :token ORDER BY date ASC LIMIT :limit OFFSET :offset")
-    suspend fun getLocationsByTokenPaged(token: String, limit: Int, offset: Int): List<LocationData>
+    suspend fun getLocationsByTokenPaged(
+        token: String,
+        limit: Int,
+        offset: Int,
+    ): List<LocationData>
 
     @Query("SELECT COUNT(*) FROM locations WHERE token = :token")
     suspend fun countLocationsByToken(token: String): Int
@@ -29,7 +33,10 @@ interface LocationDao {
     fun getLocationsByActivity(activity: String): Flow<List<LocationData>>
 
     @Query("SELECT * FROM locations WHERE date BETWEEN :startDate AND :endDate ORDER BY date ASC")
-    fun getLocationsByDateRange(startDate: Long, endDate: Long): Flow<List<LocationData>>
+    fun getLocationsByDateRange(
+        startDate: Long,
+        endDate: Long,
+    ): Flow<List<LocationData>>
 
     @Query("SELECT * FROM locations WHERE token = :token AND checkInType != 'NONE' ORDER BY date ASC")
     fun getCheckInLocationsByToken(token: String): Flow<List<LocationData>>
@@ -44,10 +51,16 @@ interface LocationDao {
     suspend fun updateLocation(location: LocationData)
 
     @Query("UPDATE locations SET uploaded = :uploaded WHERE id = :id")
-    suspend fun updateUploadStatus(id: Long, uploaded: Boolean)
+    suspend fun updateUploadStatus(
+        id: Long,
+        uploaded: Boolean,
+    )
 
     @Query("UPDATE locations SET uploaded = :uploaded WHERE token = :token")
-    suspend fun updateUploadStatusByToken(token: String, uploaded: Boolean)
+    suspend fun updateUploadStatusByToken(
+        token: String,
+        uploaded: Boolean,
+    )
 
     @Delete
     suspend fun deleteLocation(location: LocationData)
@@ -74,7 +87,11 @@ interface LocationDao {
     suspend fun getUnsyncedLocationsByToken(token: String): List<LocationData>
 
     @Query("SELECT * FROM locations WHERE token = :token AND uploaded = 0 ORDER BY date ASC LIMIT :limit OFFSET :offset")
-    suspend fun getUnsyncedLocationsByTokenPaged(token: String, limit: Int, offset: Int): List<LocationData>
+    suspend fun getUnsyncedLocationsByTokenPaged(
+        token: String,
+        limit: Int,
+        offset: Int,
+    ): List<LocationData>
 
     @Query("UPDATE locations SET uploaded = 1 WHERE id IN (:locationIds)")
     suspend fun markLocationsAsSynced(locationIds: List<Long>)

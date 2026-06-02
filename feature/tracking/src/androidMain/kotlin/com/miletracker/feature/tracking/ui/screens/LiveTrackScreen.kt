@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.miletracker.core.data.state.UiState
 import com.miletracker.feature.tracking.ui.components.LiveHealthMonitorCard
 import com.miletracker.feature.tracking.ui.components.LiveSyncStatusCard
 import com.miletracker.feature.tracking.ui.components.LiveTrackingOverviewCard
@@ -42,7 +41,7 @@ fun LiveTrackScreen(
     routeId: String,
     onBack: () -> Unit,
     onOpenMap: () -> Unit,
-    viewModel: LiveTrackViewModel = koinViewModel()
+    viewModel: LiveTrackViewModel = koinViewModel(),
 ) {
     LaunchedEffect(Unit) { viewModel.refreshTrackingData() }
 
@@ -57,14 +56,14 @@ fun LiveTrackScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onOpenMap) {
                 Icon(Icons.Default.Map, contentDescription = "Open Map")
             }
-        }
+        },
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (val state = liveState) {
@@ -75,29 +74,30 @@ fun LiveTrackScreen(
                     Text(
                         state.message,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center).padding(16.dp)
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
                     )
 
                 is LiveTrackingUiState.Success -> {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         LiveTrackingOverviewCard(state.trackData, modifier = Modifier.fillMaxWidth())
 
                         LiveHealthMonitorCard(
                             locationCount = state.locationPoints.size,
                             unsyncedCount = state.trackData.unsyncedLocationPoints,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
                         LiveSyncStatusCard(
                             total = state.trackData.totalLocationPoints,
                             unsynced = state.trackData.unsyncedLocationPoints,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
                         if (hardwareEvents.isNotEmpty()) {

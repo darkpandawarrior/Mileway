@@ -5,5 +5,5 @@ enum class EventAudience {
     SUPPORT,
     DEBUG,
     SUMMARY,
-    UNKNOWN
+    UNKNOWN,
 }

@@ -6,8 +6,9 @@ import com.miletracker.stub.DemoConfigManager
 import com.miletracker.stub.FakeTrackingNetworkApi
 import org.koin.dsl.module
 
-val stubModule = module {
-    single { DemoConfigManager() }
-    single<ConfigProvider> { get<DemoConfigManager>() }
-    single<MileTrackerNetworkApi> { FakeTrackingNetworkApi() }
-}
+val stubModule =
+    module {
+        single { DemoConfigManager() }
+        single<ConfigProvider> { get<DemoConfigManager>() }
+        single<MileTrackerNetworkApi> { FakeTrackingNetworkApi() }
+    }

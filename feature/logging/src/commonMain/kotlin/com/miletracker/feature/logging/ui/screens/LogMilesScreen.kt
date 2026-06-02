@@ -1,5 +1,9 @@
 package com.miletracker.feature.logging.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,13 +31,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.common.pad2
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.components.pickers.WheelDatePickerDialog
@@ -51,7 +50,6 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.logging.ui.components.MapPreviewCard
-import com.miletracker.feature.tracking.ui.components.StaticPolylineThumbnail
 import com.miletracker.feature.logging.ui.components.StepHeaderCard
 import com.miletracker.feature.logging.ui.components.TapFieldRow
 import com.miletracker.feature.logging.ui.components.TravelledLocationsActions
@@ -61,6 +59,7 @@ import com.miletracker.feature.logging.ui.model.LocationEntry
 import com.miletracker.feature.logging.ui.sheets.LocationSearchSheet
 import com.miletracker.feature.logging.ui.sheets.VehiclePickerSheet
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
+import com.miletracker.feature.tracking.ui.components.StaticPolylineThumbnail
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Bottom padding so Step 1 content floats above the ~100dp bubble bottom bar. */
@@ -98,7 +97,7 @@ private sealed interface LocationTarget {
 fun LogMilesScreen(
     viewModel: LogMilesViewModel = koinViewModel(),
     onNext: () -> Unit = {},
-    onOpenHistory: () -> Unit = {}
+    onOpenHistory: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -134,140 +133,146 @@ fun LogMilesScreen(
                     IconButton(onClick = onOpenHistory) {
                         Icon(Icons.Filled.History, contentDescription = "Log Miles history")
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         AnimatedVisibility(
             visible = contentVisible,
-            enter = slideInVertically(initialOffsetY = { it / 6 }, animationSpec = tween(280)) +
-                    fadeIn(animationSpec = tween(280))
+            enter =
+                slideInVertically(initialOffsetY = { it / 6 }, animationSpec = tween(280)) +
+                    fadeIn(animationSpec = tween(280)),
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .imePadding()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(top = DesignTokens.Spacing.l, bottom = HomeBottomPadding),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
-        ) {
-            StepHeaderCard(
-                title = "Step 1 of 2",
-                subtitle = "Add travelled locations and basics"
-            )
-
-            if (uiState.stops.size >= 2) {
-                StaticPolylineThumbnail(
-                    latLngs = uiState.stops.map { it.entry.lat to it.entry.lng }
-                )
-            } else {
-                MapPreviewCard(stopCount = uiState.stops.size)
-            }
-
-            TapFieldRow(
-                label = "Journey Date",
-                value = uiState.journeyDateMillis?.let { DateUtils.epochToDisplayDate(it) }
-                    ?: "Select journey date",
-                isPlaceholder = uiState.journeyDateMillis == null,
-                leadingIcon = Icons.Filled.CalendarMonth,
-                trailingIcon = Icons.Filled.CalendarMonth,
-                onClick = { showDatePicker = true }
-            )
-
-            TapFieldRow(
-                label = "Journey Completion Time",
-                value = uiState.journeyTimeMinutes?.let { formatMinutes(it) } ?: "Select time",
-                isPlaceholder = uiState.journeyTimeMinutes == null,
-                leadingIcon = Icons.Filled.Schedule,
-                trailingIcon = Icons.Filled.Schedule,
-                onClick = { showTimePicker = true }
-            )
-
-            TapFieldRow(
-                label = "Vehicle Type",
-                value = uiState.selectedVehicle?.vehicleName ?: "Select vehicle type",
-                isPlaceholder = uiState.selectedVehicle == null,
-                leadingIcon = Icons.Filled.DirectionsCar,
-                onClick = { showVehicleSheet = true }
-            )
-
-            TravelledLocationsCard(
-                stops = uiState.stops,
-                totalDistanceKm = uiState.distanceKm,
-                pricePerKm = uiState.pricePerKm,
-                amount = uiState.reimbursableAmount,
-                isRoundTrip = uiState.isRoundTrip,
-                actions = TravelledLocationsActions(
-                    onEdit = { stopId -> locationTarget = LocationTarget.Edit(stopId) },
-                    onRemove = viewModel::removeStop,
-                    onMoveUp = viewModel::moveStopUp,
-                    onMoveDown = viewModel::moveStopDown,
-                    onInsertAfter = { index -> locationTarget = LocationTarget.InsertAfter(index) },
-                    onToggleRoundTrip = viewModel::setRoundTrip,
-                    onAddLocation = { locationTarget = LocationTarget.Append },
-                    onUseCurrent = { locationTarget = LocationTarget.Append },
-                    onVerifyDistance = { showVerifyDistance = true }
-                )
-            )
-
-            // Save-as-draft toggle.
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = DesignTokens.Shape.roundedMd,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                        .imePadding()
+                        .padding(horizontal = DesignTokens.Spacing.l)
+                        .padding(top = DesignTokens.Spacing.l, bottom = HomeBottomPadding),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(DesignTokens.Spacing.l),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                StepHeaderCard(
+                    title = "Step 1 of 2",
+                    subtitle = "Add travelled locations and basics",
+                )
+
+                if (uiState.stops.size >= 2) {
+                    StaticPolylineThumbnail(
+                        latLngs = uiState.stops.map { it.entry.lat to it.entry.lng },
+                    )
+                } else {
+                    MapPreviewCard(stopCount = uiState.stops.size)
+                }
+
+                TapFieldRow(
+                    label = "Journey Date",
+                    value =
+                        uiState.journeyDateMillis?.let { DateUtils.epochToDisplayDate(it) }
+                            ?: "Select journey date",
+                    isPlaceholder = uiState.journeyDateMillis == null,
+                    leadingIcon = Icons.Filled.CalendarMonth,
+                    trailingIcon = Icons.Filled.CalendarMonth,
+                    onClick = { showDatePicker = true },
+                )
+
+                TapFieldRow(
+                    label = "Journey Completion Time",
+                    value = uiState.journeyTimeMinutes?.let { formatMinutes(it) } ?: "Select time",
+                    isPlaceholder = uiState.journeyTimeMinutes == null,
+                    leadingIcon = Icons.Filled.Schedule,
+                    trailingIcon = Icons.Filled.Schedule,
+                    onClick = { showTimePicker = true },
+                )
+
+                TapFieldRow(
+                    label = "Vehicle Type",
+                    value = uiState.selectedVehicle?.vehicleName ?: "Select vehicle type",
+                    isPlaceholder = uiState.selectedVehicle == null,
+                    leadingIcon = Icons.Filled.DirectionsCar,
+                    onClick = { showVehicleSheet = true },
+                )
+
+                TravelledLocationsCard(
+                    stops = uiState.stops,
+                    totalDistanceKm = uiState.distanceKm,
+                    pricePerKm = uiState.pricePerKm,
+                    amount = uiState.reimbursableAmount,
+                    isRoundTrip = uiState.isRoundTrip,
+                    actions =
+                        TravelledLocationsActions(
+                            onEdit = { stopId -> locationTarget = LocationTarget.Edit(stopId) },
+                            onRemove = viewModel::removeStop,
+                            onMoveUp = viewModel::moveStopUp,
+                            onMoveDown = viewModel::moveStopDown,
+                            onInsertAfter = { index -> locationTarget = LocationTarget.InsertAfter(index) },
+                            onToggleRoundTrip = viewModel::setRoundTrip,
+                            onAddLocation = { locationTarget = LocationTarget.Append },
+                            onUseCurrent = { locationTarget = LocationTarget.Append },
+                            onVerifyDistance = { showVerifyDistance = true },
+                        ),
+                )
+
+                // Save-as-draft toggle.
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = DesignTokens.Shape.roundedMd,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Save as draft",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            "Store step 1 and finish later",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(DesignTokens.Spacing.l),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Save as draft",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                "Store step 1 and finish later",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(checked = uiState.saveAsDraft, onCheckedChange = viewModel::setSaveAsDraft)
                     }
-                    Switch(checked = uiState.saveAsDraft, onCheckedChange = viewModel::setSaveAsDraft)
+                }
+
+                Text(
+                    "You can save a draft after Step 1. Odometer details can be completed later.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Button(
+                    onClick = {
+                        if (uiState.saveAsDraft) viewModel.saveDraft()
+                        onNext()
+                    },
+                    enabled = uiState.canProceedToStep2,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    shape = DesignTokens.Shape.roundedMd,
+                ) {
+                    Text("Next")
+                    Spacer(Modifier.size(DesignTokens.Spacing.s))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(DesignTokens.IconSize.inline),
+                    )
                 }
             }
-
-            Text(
-                "You can save a draft after Step 1. Odometer details can be completed later.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Button(
-                onClick = {
-                    if (uiState.saveAsDraft) viewModel.saveDraft()
-                    onNext()
-                },
-                enabled = uiState.canProceedToStep2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = DesignTokens.Shape.roundedMd
-            ) {
-                Text("Next")
-                Spacer(Modifier.size(DesignTokens.Spacing.s))
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(DesignTokens.IconSize.inline)
-                )
-            }
-        }
         } // AnimatedVisibility
     }
 
@@ -282,7 +287,7 @@ fun LogMilesScreen(
                 com.miletracker.feature.logging.ui.model.CityCatalog.all.firstOrNull()?.let(::handlePick)
             },
             onClearRecent = viewModel::clearRecentLocations,
-            onDismiss = { locationTarget = null }
+            onDismiss = { locationTarget = null },
         )
     }
 
@@ -293,7 +298,7 @@ fun LogMilesScreen(
                 viewModel.selectVehicle(it)
                 showVehicleSheet = false
             },
-            onDismiss = { showVehicleSheet = false }
+            onDismiss = { showVehicleSheet = false },
         )
     }
 
@@ -329,7 +334,7 @@ fun LogMilesScreen(
                 viewModel.overrideDistance(it)
                 showVerifyDistance = false
             },
-            onDismiss = { showVerifyDistance = false }
+            onDismiss = { showVerifyDistance = false },
         )
     }
 }
@@ -339,10 +344,11 @@ private fun formatMinutes(totalMinutes: Int): String {
     val hour = totalMinutes / 60
     val minute = totalMinutes % 60
     val amPm = if (hour < 12) "AM" else "PM"
-    val hour12 = when {
-        hour == 0 -> 12
-        hour > 12 -> hour - 12
-        else -> hour
-    }
+    val hour12 =
+        when {
+            hour == 0 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
     return "$hour12:${minute.pad2()} $amPm"
 }

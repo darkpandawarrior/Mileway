@@ -12,14 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Battery5Bar
 import androidx.compose.material.icons.filled.GpsFixed
@@ -37,38 +35,41 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.data.model.db.CurrentTrackData
-import com.miletracker.core.data.model.db.LocationData
 import kotlin.time.Clock
 
 @Composable
 fun LiveTrackingOverviewCard(
     trackData: CurrentTrackData,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val glassGradient = Brush.verticalGradient(
-        listOf(Color(0xFF0D2137).copy(alpha = 0.92f), Color(0xFF1A237E).copy(alpha = 0.88f))
-    )
-    val glassBorder = Brush.linearGradient(
-        listOf(Color.White.copy(alpha = 0.25f), Color.White.copy(alpha = 0.06f))
-    )
+    val glassGradient =
+        Brush.verticalGradient(
+            listOf(Color(0xFF0D2137).copy(alpha = 0.92f), Color(0xFF1A237E).copy(alpha = 0.88f)),
+        )
+    val glassBorder =
+        Brush.linearGradient(
+            listOf(Color.White.copy(alpha = 0.25f), Color.White.copy(alpha = 0.06f)),
+        )
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .border(width = 1.dp, brush = glassBorder, shape = RoundedCornerShape(16.dp))
-            .background(glassGradient, RoundedCornerShape(16.dp)),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .border(width = 1.dp, brush = glassBorder, shape = RoundedCornerShape(16.dp))
+                .background(glassGradient, RoundedCornerShape(16.dp)),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     "Live Tracking",
@@ -81,25 +82,25 @@ fun LiveTrackingOverviewCard(
             Spacer(Modifier.height(16.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 LiveMetric(
                     label = "Distance",
                     value = "${(trackData.distance / 1000.0).formatDecimal(2)} km",
                     icon = Icons.Default.GpsFixed,
-                    color = Color(0xFF80DEEA)
+                    color = Color(0xFF80DEEA),
                 )
                 LiveMetric(
                     label = "Duration",
                     value = formatDuration(Clock.System.now().toEpochMilliseconds() - trackData.startTime),
                     icon = Icons.Default.Timer,
-                    color = Color(0xFFB39DDB)
+                    color = Color(0xFFB39DDB),
                 )
                 LiveMetric(
                     label = "Speed",
                     value = "${(trackData.speed * 3.6).formatDecimal(1)} km/h",
                     icon = Icons.Default.Speed,
-                    color = Color(0xFF69F0AE)
+                    color = Color(0xFF69F0AE),
                 )
             }
         }
@@ -110,12 +111,12 @@ fun LiveTrackingOverviewCard(
 fun LiveHealthMonitorCard(
     locationCount: Int,
     unsyncedCount: Long,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("System Health", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -130,13 +131,17 @@ fun LiveHealthMonitorCard(
 }
 
 @Composable
-fun LiveSyncStatusCard(total: Long, unsynced: Long, modifier: Modifier = Modifier) {
+fun LiveSyncStatusCard(
+    total: Long,
+    unsynced: Long,
+    modifier: Modifier = Modifier,
+) {
     val synced = (total - unsynced).coerceAtLeast(0)
     val progress = if (total > 0) synced.toFloat() / total else 1f
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -148,25 +153,28 @@ fun LiveSyncStatusCard(total: Long, unsynced: Long, modifier: Modifier = Modifie
                 progress = { progress },
                 modifier = Modifier.fillMaxWidth().height(6.dp),
                 strokeCap = StrokeCap.Round,
-                color = if (unsynced == 0L) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                color = if (unsynced == 0L) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 if (unsynced == 0L) "All points synced" else "$unsynced points pending sync",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
 @Composable
-fun RecentEventsCard(events: List<Pair<String, Long>>, modifier: Modifier = Modifier) {
+fun RecentEventsCard(
+    events: List<Pair<String, Long>>,
+    modifier: Modifier = Modifier,
+) {
     if (events.isEmpty()) return
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Recent Events", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -180,7 +188,12 @@ fun RecentEventsCard(events: List<Pair<String, Long>>, modifier: Modifier = Modi
 }
 
 @Composable
-private fun LiveMetric(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) {
+private fun LiveMetric(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(20.dp))
         Spacer(Modifier.height(4.dp))
@@ -190,7 +203,12 @@ private fun LiveMetric(label: String, value: String, icon: androidx.compose.ui.g
 }
 
 @Composable
-private fun HealthIndicator(label: String, value: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+private fun HealthIndicator(
+    label: String,
+    value: String,
+    color: Color,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(20.dp))
         Spacer(Modifier.height(2.dp))
@@ -200,7 +218,10 @@ private fun HealthIndicator(label: String, value: String, color: Color, icon: an
 }
 
 @Composable
-private fun RecentEventItem(text: String, time: Long) {
+private fun RecentEventItem(
+    text: String,
+    time: Long,
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("•", color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(16.dp))
         Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
@@ -212,13 +233,15 @@ private fun RecentEventItem(text: String, time: Long) {
 fun LiveIndicatorBadge(isPaused: Boolean) {
     val infinite = rememberInfiniteTransition(label = "live_pulse")
     val alpha by infinite.animateFloat(
-        initialValue = 1f, targetValue = 0.3f,
-        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "pulse_alpha"
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+        label = "pulse_alpha",
     )
     StatusBadge(
         text = if (isPaused) "PAUSED" else "ACTIVE",
         color = if (isPaused) Color(0xFFFF9800) else Color(0xFF4CAF50),
-        modifier = if (isPaused) Modifier else Modifier.alpha(alpha)
+        modifier = if (isPaused) Modifier else Modifier.alpha(alpha),
     )
 }
 

@@ -10,9 +10,10 @@ import com.miletracker.feature.media.viewmodel.MediaViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val mediaModule = module {
-    single<MediaRepository> { RealMediaRepository(get<Context>()) }
-    single { MediaLibraryRepository(get<MediaLibraryDao>()) }
-    viewModelOf(::MediaViewModel)
-    viewModelOf(::CloudLibraryViewModel)
-}
+val mediaModule =
+    module {
+        single<MediaRepository> { RealMediaRepository(get<Context>()) }
+        single { MediaLibraryRepository(get<MediaLibraryDao>()) }
+        viewModelOf(::MediaViewModel)
+        viewModelOf(::CloudLibraryViewModel)
+    }

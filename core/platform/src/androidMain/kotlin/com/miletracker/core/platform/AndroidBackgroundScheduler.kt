@@ -19,12 +19,15 @@ import java.util.concurrent.TimeUnit
  * scheduler decoupled from concrete worker classes. The iOS counterpart (Phase 4) uses BGTaskScheduler.
  */
 class AndroidBackgroundScheduler(private val context: Context) : BackgroundScheduler {
-
-    override fun schedulePeriodic(uniqueName: String, intervalMinutes: Long) {
-        val request = PeriodicWorkRequestBuilder<PlatformBackgroundWorker>(intervalMinutes, TimeUnit.MINUTES)
-            .setInputData(workDataOf(KEY_TASK to uniqueName))
-            .addTag(uniqueName)
-            .build()
+    override fun schedulePeriodic(
+        uniqueName: String,
+        intervalMinutes: Long,
+    ) {
+        val request =
+            PeriodicWorkRequestBuilder<PlatformBackgroundWorker>(intervalMinutes, TimeUnit.MINUTES)
+                .setInputData(workDataOf(KEY_TASK to uniqueName))
+                .addTag(uniqueName)
+                .build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             uniqueName,
             ExistingPeriodicWorkPolicy.UPDATE,
@@ -50,7 +53,6 @@ class PlatformBackgroundWorker(
     appContext: Context,
     params: WorkerParameters,
 ) : CoroutineWorker(appContext, params), KoinComponent {
-
     override suspend fun doWork(): Result {
         val name = inputData.getString(AndroidBackgroundScheduler.KEY_TASK) ?: return Result.failure()
         val task = getKoin().getOrNull<BackgroundTask>(named(name)) ?: return Result.success()

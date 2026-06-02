@@ -36,9 +36,8 @@ class CheckInViewModel(
     /** Geofence locations to validate against for geo check-in. */
     private val geoCheckInLocations: List<CheckInLocation>,
     /** Default radius in metres used when a location has no per-location override. */
-    private val defaultRadiusMeters: Double = 100.0
+    private val defaultRadiusMeters: Double = 100.0,
 ) : ViewModel() {
-
     companion object {
         private const val TAG = "CheckInViewModel"
     }
@@ -58,7 +57,7 @@ class CheckInViewModel(
         // Geo check-in sheet
         val showGeoCheckInSheet: Boolean = false,
         // Current route token for log records
-        val currentToken: String = ""
+        val currentToken: String = "",
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -100,60 +99,64 @@ class CheckInViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
             try {
-                val token = snapshot.currentToken.ifBlank {
-                    currentTrackRepository.currentTrackFlow.first().token
-                }
+                val token =
+                    snapshot.currentToken.ifBlank {
+                        currentTrackRepository.currentTrackFlow.first().token
+                    }
                 if (token.isBlank()) {
                     _uiState.update { it.copy(isSubmitting = false, error = "No active tracking session found.") }
                     return@launch
                 }
 
                 // Grab the last persisted location for this trip
-                val lastLocation: LocationData? = try {
-                    locationRepo.locationsForToken(token).first().lastOrNull()
-                } catch (e: Exception) {
-                    null
-                }
+                val lastLocation: LocationData? =
+                    try {
+                        locationRepo.locationsForToken(token).first().lastOrNull()
+                    } catch (e: Exception) {
+                        null
+                    }
 
                 val now = System.currentTimeMillis()
-                val checkInRecord = if (lastLocation != null) {
-                    lastLocation.copy(
-                        id = 0,
-                        date = now,
-                        uploaded = false,
-                        wasCheckInPoint = true,
-                        checkInType = "MANUAL",
-                        reason = snapshot.manualReason.take(200)
-                    )
-                } else {
-                    // No previous location yet — create a minimal placeholder record
-                    LocationData(
-                        token = token,
-                        lat = 0.0, lng = 0.0,
-                        activity = "MANUAL_CHECK_IN",
-                        speed = 0f,
-                        batteryPercentage = 0.0,
-                        date = now,
-                        uploaded = false,
-                        wasCheckInPoint = true,
-                        checkInType = "MANUAL",
-                        reason = snapshot.manualReason.take(200)
-                    )
-                }
+                val checkInRecord =
+                    if (lastLocation != null) {
+                        lastLocation.copy(
+                            id = 0,
+                            date = now,
+                            uploaded = false,
+                            wasCheckInPoint = true,
+                            checkInType = "MANUAL",
+                            reason = snapshot.manualReason.take(200),
+                        )
+                    } else {
+                        // No previous location yet — create a minimal placeholder record
+                        LocationData(
+                            token = token,
+                            lat = 0.0, lng = 0.0,
+                            activity = "MANUAL_CHECK_IN",
+                            speed = 0f,
+                            batteryPercentage = 0.0,
+                            date = now,
+                            uploaded = false,
+                            wasCheckInPoint = true,
+                            checkInType = "MANUAL",
+                            reason = snapshot.manualReason.take(200),
+                        )
+                    }
 
                 locationRepo.insert(checkInRecord)
 
                 // Log a HardwareEvent for the audit trail
-                val hwEvent = HardwareEvent(
-                    token = token,
-                    eventType = EventType.CHECK_IN,
-                    event = "Manual check-in recorded",
-                    lat = checkInRecord.lat.takeIf { it != 0.0 },
-                    lng = checkInRecord.lng.takeIf { it != 0.0 },
-                    time = now,
-                    audience = EventAudience.USER,
-                    metadata = if (snapshot.manualReason.isNotBlank()) "Reason: ${snapshot.manualReason}" else null
-                )
+                val hwEvent =
+                    HardwareEvent(
+                        token = token,
+                        eventType = EventType.CHECK_IN,
+                        event = "Manual check-in recorded",
+                        lat = checkInRecord.lat.takeIf { it != 0.0 },
+                        lng = checkInRecord.lng.takeIf { it != 0.0 },
+                        time = now,
+                        audience = EventAudience.USER,
+                        metadata = if (snapshot.manualReason.isNotBlank()) "Reason: ${snapshot.manualReason}" else null,
+                    )
                 hardwareEventRepo.insert(hwEvent)
 
                 Log.i(TAG, "Manual check-in saved for token=${token.take(8)}…")
@@ -163,7 +166,7 @@ class CheckInViewModel(
                         showManualCheckInSheet = false,
                         manualReason = "",
                         checkInSuccess = true,
-                        successMessage = "Manual check-in recorded."
+                        successMessage = "Manual check-in recorded.",
                     )
                 }
             } catch (e: Exception) {
@@ -189,18 +192,22 @@ class CheckInViewModel(
      * - Within radius  → records a GEO check-in immediately.
      * - Outside radius → shows the radius-warning sheet with the distance outside.
      */
-    fun validateAndGeoCheckIn(userLat: Double, userLng: Double) {
+    fun validateAndGeoCheckIn(
+        userLat: Double,
+        userLng: Double,
+    ) {
         if (geoCheckInLocations.isEmpty()) {
             _uiState.update { it.copy(error = "No check-in locations configured.", showGeoCheckInSheet = false) }
             return
         }
 
-        val result = CheckInValidator.validate(
-            userLat = userLat,
-            userLng = userLng,
-            candidates = geoCheckInLocations,
-            defaultRadiusMeters = defaultRadiusMeters
-        )
+        val result =
+            CheckInValidator.validate(
+                userLat = userLat,
+                userLng = userLng,
+                candidates = geoCheckInLocations,
+                defaultRadiusMeters = defaultRadiusMeters,
+            )
 
         if (result.withinRadius) {
             persistGeoCheckIn(result)
@@ -212,7 +219,7 @@ class CheckInViewModel(
                     showGeoCheckInSheet = false,
                     showRadiusWarning = true,
                     radiusWarningMessage = message,
-                    pendingValidationResult = result
+                    pendingValidationResult = result,
                 )
             }
         }
@@ -244,16 +251,20 @@ class CheckInViewModel(
 
     // ── Private helpers ──────────────────────────────────────────────────────────
 
-    private fun persistGeoCheckIn(result: CheckInValidator.ValidationResult, isOverride: Boolean = false) {
+    private fun persistGeoCheckIn(
+        result: CheckInValidator.ValidationResult,
+        isOverride: Boolean = false,
+    ) {
         val snapshot = _uiState.value
         if (snapshot.isSubmitting) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
             try {
-                val token = snapshot.currentToken.ifBlank {
-                    currentTrackRepository.currentTrackFlow.first().token
-                }
+                val token =
+                    snapshot.currentToken.ifBlank {
+                        currentTrackRepository.currentTrackFlow.first().token
+                    }
                 if (token.isBlank()) {
                     _uiState.update { it.copy(isSubmitting = false, error = "No active tracking session found.") }
                     return@launch
@@ -261,38 +272,41 @@ class CheckInViewModel(
 
                 val now = System.currentTimeMillis()
                 val checkInType = if (isOverride) "GEO_OVERRIDE" else "GEO"
-                val checkInRecord = LocationData(
-                    token = token,
-                    lat = result.userLat,
-                    lng = result.userLng,
-                    activity = "GEO_CHECK_IN",
-                    speed = 0f,
-                    batteryPercentage = 0.0,
-                    date = now,
-                    uploaded = false,
-                    wasCheckInPoint = true,
-                    checkInType = checkInType,
-                    miscellaneous = result.nearestLocation.name,
-                    reason = if (isOverride) "Override: ${result.distanceOutside.toInt()} m outside radius" else ""
-                )
+                val checkInRecord =
+                    LocationData(
+                        token = token,
+                        lat = result.userLat,
+                        lng = result.userLng,
+                        activity = "GEO_CHECK_IN",
+                        speed = 0f,
+                        batteryPercentage = 0.0,
+                        date = now,
+                        uploaded = false,
+                        wasCheckInPoint = true,
+                        checkInType = checkInType,
+                        miscellaneous = result.nearestLocation.name,
+                        reason = if (isOverride) "Override: ${result.distanceOutside.toInt()} m outside radius" else "",
+                    )
 
                 locationRepo.insert(checkInRecord)
 
-                val hwEvent = HardwareEvent(
-                    token = token,
-                    eventType = EventType.CHECK_IN,
-                    event = if (isOverride) "Geo check-in recorded (override)" else "Geo check-in recorded",
-                    lat = result.userLat,
-                    lng = result.userLng,
-                    time = now,
-                    audience = EventAudience.USER,
-                    metadata = buildString {
-                        append("Location: ${result.nearestLocation.name}")
-                        append(", Distance: ${result.distanceMeters.toInt()} m")
-                        append(", Radius: ${result.effectiveRadius.toInt()} m")
-                        if (isOverride) append(", Override: ${result.distanceOutside.toInt()} m outside")
-                    }
-                )
+                val hwEvent =
+                    HardwareEvent(
+                        token = token,
+                        eventType = EventType.CHECK_IN,
+                        event = if (isOverride) "Geo check-in recorded (override)" else "Geo check-in recorded",
+                        lat = result.userLat,
+                        lng = result.userLng,
+                        time = now,
+                        audience = EventAudience.USER,
+                        metadata =
+                            buildString {
+                                append("Location: ${result.nearestLocation.name}")
+                                append(", Distance: ${result.distanceMeters.toInt()} m")
+                                append(", Radius: ${result.effectiveRadius.toInt()} m")
+                                if (isOverride) append(", Override: ${result.distanceOutside.toInt()} m outside")
+                            },
+                    )
                 hardwareEventRepo.insert(hwEvent)
 
                 Log.i(TAG, "Geo check-in ($checkInType) saved for token=${token.take(8)}… at ${result.nearestLocation.name}")
@@ -301,7 +315,7 @@ class CheckInViewModel(
                         isSubmitting = false,
                         showGeoCheckInSheet = false,
                         checkInSuccess = true,
-                        successMessage = "Checked in at ${result.nearestLocation.name}."
+                        successMessage = "Checked in at ${result.nearestLocation.name}.",
                     )
                 }
             } catch (e: Exception) {

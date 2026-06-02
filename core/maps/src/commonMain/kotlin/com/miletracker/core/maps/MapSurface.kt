@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
  *  - `gms`   → KrossMapSurface   (Google Maps on Android, MapKit on iOS)
  *  - `noGms` → MapLibreSurface   (MapLibre Native on both platforms, OSM tiles, no API key)
  */
+@Suppress("ktlint:standard:function-naming")
 interface MapSurface {
-
     /**
      * Renders a static map centred on [latitude]/[longitude] with a single pin.
      * Gestures (pan, zoom) are intentionally disabled — this is a preview, not an interactive map.

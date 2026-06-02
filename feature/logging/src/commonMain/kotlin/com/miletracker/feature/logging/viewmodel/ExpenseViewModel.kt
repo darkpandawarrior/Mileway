@@ -15,7 +15,7 @@ enum class ExpenseFilter { ALL, DRAFTS, PENDING, SETTLED }
 data class ExpenseListState(
     val records: List<ExpenseRecord> = emptyList(),
     val activeFilter: ExpenseFilter = ExpenseFilter.ALL,
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
 )
 
 data class ExpenseFormState(
@@ -26,13 +26,12 @@ data class ExpenseFormState(
     val note: String = "",
     val submitted: Boolean = false,
     val submittedAmount: Double = 0.0,
-    val submittedId: String = ""
+    val submittedId: String = "",
 )
 
 class ExpenseViewModel(
-    private val repository: ExpenseRepository
+    private val repository: ExpenseRepository,
 ) : ViewModel() {
-
     private val _listState = MutableStateFlow(ExpenseListState(records = repository.getAll()))
     val listState: StateFlow<ExpenseListState> = _listState.asStateFlow()
 
@@ -40,12 +39,13 @@ class ExpenseViewModel(
     val formState: StateFlow<ExpenseFormState> = _formState.asStateFlow()
 
     fun setFilter(filter: ExpenseFilter) {
-        val filtered = when (filter) {
-            ExpenseFilter.ALL -> repository.getAll()
-            ExpenseFilter.DRAFTS -> repository.filterByStatus(ExpenseStatus.DRAFT)
-            ExpenseFilter.PENDING -> repository.filterByStatus(ExpenseStatus.PENDING)
-            ExpenseFilter.SETTLED -> repository.filterByStatus(ExpenseStatus.APPROVED)
-        }
+        val filtered =
+            when (filter) {
+                ExpenseFilter.ALL -> repository.getAll()
+                ExpenseFilter.DRAFTS -> repository.filterByStatus(ExpenseStatus.DRAFT)
+                ExpenseFilter.PENDING -> repository.filterByStatus(ExpenseStatus.PENDING)
+                ExpenseFilter.SETTLED -> repository.filterByStatus(ExpenseStatus.APPROVED)
+            }
         _listState.update { it.copy(records = filtered, activeFilter = filter) }
     }
 
@@ -54,7 +54,9 @@ class ExpenseViewModel(
     }
 
     fun setAmount(text: String) = _formState.update { it.copy(amountText = text) }
+
     fun setMerchant(name: String) = _formState.update { it.copy(merchantName = name) }
+
     fun setNote(note: String) = _formState.update { it.copy(note = note) }
 
     fun submitExpense() {

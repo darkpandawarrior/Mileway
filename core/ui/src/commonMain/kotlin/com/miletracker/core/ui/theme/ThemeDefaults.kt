@@ -28,7 +28,8 @@ object ThemeDefaults {
  * Palette-style names selectable in Settings. Mirrors `com.materialkolor.PaletteStyle` —
  * kept as strings so feature modules don't need the generator library on their classpath.
  */
-val PaletteStyleNames: List<String> = listOf(
-    "TonalSpot", "Neutral", "Vibrant", "Expressive",
-    "Rainbow", "FruitSalad", "Monochrome", "Fidelity", "Content",
-)
+val PaletteStyleNames: List<String> =
+    listOf(
+        "TonalSpot", "Neutral", "Vibrant", "Expressive",
+        "Rainbow", "FruitSalad", "Monochrome", "Fidelity", "Content",
+    )

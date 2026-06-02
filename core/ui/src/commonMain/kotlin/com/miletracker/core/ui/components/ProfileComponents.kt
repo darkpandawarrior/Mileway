@@ -75,7 +75,7 @@ enum class ProfileItemStatus {
     NEEDS_ATTENTION,
 
     /** Item is currently being updated (shows loading indicator) */
-    UPDATING
+    UPDATING,
 }
 
 /**
@@ -117,7 +117,7 @@ data class ProfileGridItem(
     val gradientColors: List<Color>? = null,
     val animatePulse: Boolean = false,
     val animateShimmer: Boolean = false,
-    val action: () -> Unit
+    val action: () -> Unit,
 )
 
 /**
@@ -132,7 +132,7 @@ data class ProfileGridItem(
 fun GridProfileTile(
     item: ProfileGridItem,
     modifier: Modifier = Modifier,
-    compact: Boolean = false
+    compact: Boolean = false,
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -141,153 +141,171 @@ fun GridProfileTile(
     val pulse by infinite.animateFloat(
         initialValue = 0.98f,
         targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_scale"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(1000),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "pulse_scale",
     )
 
     // Shimmer animation for updating state or custom shimmer
     val shimmer by infinite.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmer_offset"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(2000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "shimmer_offset",
     )
 
     // Determine colors based on status
-    val (baseContainerColor, baseContentColor, baseBorderColor) = when (item.status) {
-        ProfileItemStatus.COMPLETE -> Triple(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.onPrimaryContainer,
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-        )
-        ProfileItemStatus.INCOMPLETE -> Triple(
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            MaterialTheme.colorScheme.onSurfaceVariant,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        )
-        ProfileItemStatus.NEEDS_ATTENTION -> Triple(
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-            MaterialTheme.colorScheme.onErrorContainer,
-            MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-        )
-        ProfileItemStatus.UPDATING -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.onSecondaryContainer,
-            MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
-        )
-    }
+    val (baseContainerColor, baseContentColor, baseBorderColor) =
+        when (item.status) {
+            ProfileItemStatus.COMPLETE ->
+                Triple(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.onPrimaryContainer,
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                )
+            ProfileItemStatus.INCOMPLETE ->
+                Triple(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                )
+            ProfileItemStatus.NEEDS_ATTENTION ->
+                Triple(
+                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                    MaterialTheme.colorScheme.onErrorContainer,
+                    MaterialTheme.colorScheme.error.copy(alpha = 0.5f),
+                )
+            ProfileItemStatus.UPDATING ->
+                Triple(
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                    MaterialTheme.colorScheme.onSecondaryContainer,
+                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f),
+                )
+        }
 
     val containerColor = item.customContainerColor ?: baseContainerColor
     val contentColor = item.customContentColor ?: baseContentColor
-    val borderColor = if (item.customContainerColor != null || item.gradientColors != null) {
-        contentColor.copy(alpha = 0.3f)
-    } else {
-        baseBorderColor
-    }
+    val borderColor =
+        if (item.customContainerColor != null || item.gradientColors != null) {
+            contentColor.copy(alpha = 0.3f)
+        } else {
+            baseBorderColor
+        }
 
     // Gradient background
-    val backgroundBrush = item.gradientColors?.let { colors ->
-        if (item.animateShimmer) {
-            Brush.horizontalGradient(
-                colors = colors,
-                startX = shimmer * 1000f,
-                endX = (shimmer + 1f) * 1000f
-            )
-        } else {
-            Brush.linearGradient(colors)
+    val backgroundBrush =
+        item.gradientColors?.let { colors ->
+            if (item.animateShimmer) {
+                Brush.horizontalGradient(
+                    colors = colors,
+                    startX = shimmer * 1000f,
+                    endX = (shimmer + 1f) * 1000f,
+                )
+            } else {
+                Brush.linearGradient(colors)
+            }
         }
-    }
 
     Card(
-        modifier = modifier
-            .aspectRatio(if (compact) 1.18f else 1f)
-            .scale(if (item.status == ProfileItemStatus.NEEDS_ATTENTION || item.animatePulse) pulse else 1f)
-            .clickable(enabled = item.isEnabled && item.status != ProfileItemStatus.UPDATING) {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                item.action()
-            }
-            .border(
-                width = if (item.status == ProfileItemStatus.INCOMPLETE) 2.dp else 1.dp,
-                color = borderColor,
-                shape = DesignTokens.Shape.roundedMd
-            ),
+        modifier =
+            modifier
+                .aspectRatio(if (compact) 1.18f else 1f)
+                .scale(if (item.status == ProfileItemStatus.NEEDS_ATTENTION || item.animatePulse) pulse else 1f)
+                .clickable(enabled = item.isEnabled && item.status != ProfileItemStatus.UPDATING) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    item.action()
+                }
+                .border(
+                    width = if (item.status == ProfileItemStatus.INCOMPLETE) 2.dp else 1.dp,
+                    color = borderColor,
+                    shape = DesignTokens.Shape.roundedMd,
+                ),
         shape = DesignTokens.Shape.roundedMd,
-        colors = CardDefaults.cardColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = containerColor,
+                contentColor = contentColor,
+            ),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .then(
-                    if (backgroundBrush != null) {
-                        Modifier.background(backgroundBrush)
-                    } else {
-                        Modifier
-                    }
-                )
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (backgroundBrush != null) {
+                            Modifier.background(backgroundBrush)
+                        } else {
+                            Modifier
+                        },
+                    ),
         ) {
             // Shimmer effect for updating state (standard overlay)
             if (item.status == ProfileItemStatus.UPDATING && item.gradientColors == null) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                    Color.Transparent
-                                ),
-                                startX = shimmer * 500f,
-                                endX = (shimmer + 1f) * 500f
-                            )
-                        )
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush =
+                                    Brush.horizontalGradient(
+                                        colors =
+                                            listOf(
+                                                Color.Transparent,
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                Color.Transparent,
+                                            ),
+                                        startX = shimmer * 500f,
+                                        endX = (shimmer + 1f) * 500f,
+                                    ),
+                            ),
                 )
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(if (compact) 10.dp else 12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(if (compact) 10.dp else 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 // Icon with background and badge
-                val iconBaseColor = if (item.customContentColor != null) {
-                    item.customContentColor
-                } else if (item.status == ProfileItemStatus.COMPLETE) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    contentColor
-                }
+                val iconBaseColor =
+                    if (item.customContentColor != null) {
+                        item.customContentColor
+                    } else if (item.status == ProfileItemStatus.COMPLETE) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        contentColor
+                    }
 
                 Box(
                     modifier = Modifier.wrapContentSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     // Circular background for icon
                     Box(
-                        modifier = Modifier
-                            .size(if (compact) 36.dp else 40.dp)
-                            .background(
-                                color = iconBaseColor.copy(alpha = 0.12f),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .size(if (compact) 36.dp else 40.dp)
+                                .background(
+                                    color = iconBaseColor.copy(alpha = 0.12f),
+                                    shape = CircleShape,
+                                ),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.title,
                             modifier = Modifier.size(if (compact) 18.dp else 20.dp),
-                            tint = iconBaseColor
+                            tint = iconBaseColor,
                         )
                     }
 
@@ -295,20 +313,22 @@ fun GridProfileTile(
                     item.badgeCount?.let { count ->
                         if (count > 0) {
                             // Calculate offset based on badge width (larger counts need more offset)
-                            val horizontalOffset = when {
-                                count > 99 -> 10.dp  // "99+" badge is wider
-                                count > 9 -> 8.dp    // Double digit
-                                else -> 7.dp         // Single digit
-                            }
+                            val horizontalOffset =
+                                when {
+                                    count > 99 -> 10.dp // "99+" badge is wider
+                                    count > 9 -> 8.dp // Double digit
+                                    else -> 7.dp // Single digit
+                                }
 
                             Badge(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = horizontalOffset, y = (-6).dp)
+                                modifier =
+                                    Modifier
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = horizontalOffset, y = (-6).dp),
                             ) {
                                 Text(
                                     text = if (count > 99) "99+" else count.toString(),
-                                    style = MaterialTheme.typography.labelSmall
+                                    style = MaterialTheme.typography.labelSmall,
                                 )
                             }
                         }
@@ -318,23 +338,25 @@ fun GridProfileTile(
                     when (item.status) {
                         ProfileItemStatus.NEEDS_ATTENTION -> {
                             Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 4.dp, y = (-4).dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.error)
-                                    .border(1.5.dp, containerColor, CircleShape)
+                                modifier =
+                                    Modifier
+                                        .size(12.dp)
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = 4.dp, y = (-4).dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.error)
+                                        .border(1.5.dp, containerColor, CircleShape),
                             )
                         }
                         ProfileItemStatus.UPDATING -> {
                             CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 4.dp, y = (-4).dp),
+                                modifier =
+                                    Modifier
+                                        .size(16.dp)
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = 4.dp, y = (-4).dp),
                                 strokeWidth = 2.dp,
-                                color = iconBaseColor
+                                color = iconBaseColor,
                             )
                         }
                         else -> {}
@@ -351,7 +373,7 @@ fun GridProfileTile(
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = contentColor
+                    color = contentColor,
                 )
 
                 Spacer(modifier = Modifier.height(if (compact) 2.dp else 3.dp))
@@ -363,7 +385,7 @@ fun GridProfileTile(
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = contentColor.copy(alpha = 0.7f)
+                    color = contentColor.copy(alpha = 0.7f),
                 )
             }
         }
@@ -384,14 +406,15 @@ fun ProfileSectionHeader(
     title: String,
     itemCount: Int? = null,
     icon: ImageVector? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = DesignTokens.Spacing.s, horizontal = DesignTokens.Spacing.xs),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = DesignTokens.Spacing.s, horizontal = DesignTokens.Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         // Optional contextual icon
         if (icon != null) {
@@ -399,7 +422,7 @@ fun ProfileSectionHeader(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                modifier = Modifier.size(DesignTokens.IconSize.navigation),
             )
         }
 
@@ -408,24 +431,25 @@ fun ProfileSectionHeader(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         // Optional item count badge
         itemCount?.let { count ->
             Surface(
                 shape = DesignTokens.Shape.roundedSm,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(
                     text = count.toString(),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(
-                        horizontal = DesignTokens.Spacing.s,
-                        vertical = DesignTokens.Spacing.xs
-                    )
+                    modifier =
+                        Modifier.padding(
+                            horizontal = DesignTokens.Spacing.s,
+                            vertical = DesignTokens.Spacing.xs,
+                        ),
                 )
             }
         }
@@ -438,7 +462,7 @@ fun ProfileSectionHeader(
 data class MissingItemDisplay(
     val id: String,
     val title: String,
-    val isRequired: Boolean
+    val isRequired: Boolean,
 )
 
 /**
@@ -449,7 +473,7 @@ data class CategoryCompletionDisplay(
     val completedCount: Int,
     val totalCount: Int,
     val percentage: Int,
-    val isRequiredCategory: Boolean
+    val isRequiredCategory: Boolean,
 )
 
 /**
@@ -479,36 +503,38 @@ fun ProfileCompletionBanner(
     expanded: Boolean = false,
     onExpandToggle: () -> Unit = {},
     onCompleteClick: () -> Unit = {},
-    onMissingItemClick: ((String) -> Unit)? = null
+    onMissingItemClick: ((String) -> Unit)? = null,
 ) {
     // Pulsing animation for incomplete state
     val infinite = rememberInfiniteTransition(label = "completion_pulse")
     val pulse by infinite.animateFloat(
         initialValue = 0.95f,
         targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_scale"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(1500),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "pulse_scale",
     )
 
     // Glow effect for progress ring
     val glow by infinite.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glow_alpha"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(2000),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "glow_alpha",
     )
 
     // Progress animation
     val animatedProgress by animateFloatAsState(
         targetValue = completionPercentage / 100f,
         animationSpec = tween(1000, easing = FastOutSlowInEasing),
-        label = "progress_animation"
+        label = "progress_animation",
     )
 
     val isComplete = completionPercentage >= 100
@@ -516,76 +542,86 @@ fun ProfileCompletionBanner(
     val hasMissingItems = missingItems.isNotEmpty()
 
     // Dynamic colors based on progress
-    val progressColor = when {
-        isComplete -> MaterialTheme.colorScheme.primary
-        isHighProgress -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
-    }
+    val progressColor =
+        when {
+            isComplete -> MaterialTheme.colorScheme.primary
+            isHighProgress -> MaterialTheme.colorScheme.tertiary
+            else -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+        }
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize()
-            .clickable(enabled = hasMissingItems && !expanded) { onCompleteClick() },
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .animateContentSize()
+                .clickable(enabled = hasMissingItems && !expanded) { onCompleteClick() },
         shape = DesignTokens.Shape.roundedLg,
-        colors = CardDefaults.cardColors(
-            containerColor = if (isComplete) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer
-            }
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (isComplete) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    },
+            ),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             // Gradient background accent
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = if (isComplete) {
-                                listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary
-                                )
-                            } else {
-                                listOf(
-                                    progressColor.copy(alpha = 0.7f),
-                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
-                                )
-                            }
-                        )
-                    )
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .background(
+                            brush =
+                                Brush.horizontalGradient(
+                                    colors =
+                                        if (isComplete) {
+                                            listOf(
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.tertiary,
+                                            )
+                                        } else {
+                                            listOf(
+                                                progressColor.copy(alpha = 0.7f),
+                                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
+                                            )
+                                        },
+                                ),
+                        ),
             )
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(DesignTokens.Spacing.l)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(DesignTokens.Spacing.l),
             ) {
                 // Main banner row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+                    horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
                 ) {
                     // Circular progress indicator with glow effect
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(68.dp)
-                            .scale(if (!isComplete && isHighProgress) pulse else 1f)
+                        modifier =
+                            Modifier
+                                .size(68.dp)
+                                .scale(if (!isComplete && isHighProgress) pulse else 1f),
                     ) {
                         // Glow background layer
                         if (!isComplete) {
                             CircularProgressIndicator(
                                 progress = { animatedProgress },
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .scale(1.1f),
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .scale(1.1f),
                                 color = progressColor.copy(alpha = glow * 0.3f),
                                 strokeWidth = 8.dp,
-                                trackColor = Color.Transparent
+                                trackColor = Color.Transparent,
                             )
                         }
 
@@ -595,7 +631,7 @@ fun ProfileCompletionBanner(
                             modifier = Modifier.fillMaxSize(),
                             color = progressColor,
                             strokeWidth = 6.dp,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                         )
 
                         if (isComplete) {
@@ -604,27 +640,28 @@ fun ProfileCompletionBanner(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = "Profile Complete",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .scale(pulse)
+                                modifier =
+                                    Modifier
+                                        .size(36.dp)
+                                        .scale(pulse),
                             )
                         } else {
                             // Percentage text
                             Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text(
                                     text = "$completionPercentage%",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 )
                                 if (isHighProgress) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                                         contentDescription = "Almost there",
                                         tint = MaterialTheme.colorScheme.tertiary,
-                                        modifier = Modifier.size(12.dp)
+                                        modifier = Modifier.size(12.dp),
                                     )
                                 }
                             }
@@ -634,54 +671,58 @@ fun ProfileCompletionBanner(
                     // Text content
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs)
+                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
                     ) {
                         Text(
-                            text = when {
-                                isComplete -> "🎉 Profile Complete!"
-                                isHighProgress -> "Almost There!"
-                                else -> "Complete Your Profile"
-                            },
+                            text =
+                                when {
+                                    isComplete -> "🎉 Profile Complete!"
+                                    isHighProgress -> "Almost There!"
+                                    else -> "Complete Your Profile"
+                                },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = if (isComplete) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            }
+                            color =
+                                if (isComplete) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSecondaryContainer
+                                },
                         )
 
                         // X of Y complete counter
                         Text(
                             text = "$completedCount of $totalCount complete",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = if (isComplete) {
-                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            } else {
-                                MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                            }
+                            color =
+                                if (isComplete) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                } else {
+                                    MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                                },
                         )
 
                         // Missing items summary (only when not expanded)
                         if (!isComplete && !expanded && hasMissingItems) {
                             val requiredMissing = missingItems.filter { it.isRequired }
-                            val text = if (requiredMissing.isNotEmpty()) {
-                                "${requiredMissing.size} required items remaining"
-                            } else {
-                                "${missingItems.size} optional items available"
-                            }
+                            val text =
+                                if (requiredMissing.isNotEmpty()) {
+                                    "${requiredMissing.size} required items remaining"
+                                } else {
+                                    "${missingItems.size} optional items available"
+                                }
                             Text(
                                 text = text,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         } else if (isComplete) {
                             Text(
                                 text = "All profile information is up to date",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                             )
                         }
                     }
@@ -689,24 +730,25 @@ fun ProfileCompletionBanner(
                     // Expand/Collapse or Action indicator
                     if (hasMissingItems) {
                         Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (isHighProgress) {
-                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
-                                    } else {
-                                        MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                                    }
-                                )
-                                .clickable { onExpandToggle() },
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isHighProgress) {
+                                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                                        } else {
+                                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                                        },
+                                    )
+                                    .clickable { onExpandToggle() },
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                 contentDescription = if (expanded) "Hide checklist" else "Show checklist",
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(DesignTokens.IconSize.header)
+                                modifier = Modifier.size(DesignTokens.IconSize.header),
                             )
                         }
                     }
@@ -718,12 +760,12 @@ fun ProfileCompletionBanner(
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                     ) {
                         categories.forEach { category ->
                             CategoryPill(
                                 category = category,
-                                isComplete = isComplete
+                                isComplete = isComplete,
                             )
                         }
                     }
@@ -735,18 +777,19 @@ fun ProfileCompletionBanner(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = DesignTokens.Shape.roundedSm,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
                     ) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(DesignTokens.Spacing.m)
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(DesignTokens.Spacing.m),
                         ) {
                             Text(
                                 text = "Profile Checklist",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Spacer(modifier = Modifier.height(DesignTokens.Spacing.s))
 
@@ -759,13 +802,13 @@ fun ProfileCompletionBanner(
                                     text = "Required",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
                                 )
                                 Spacer(modifier = Modifier.height(DesignTokens.Spacing.xs))
                                 requiredItems.forEach { item ->
                                     MissingItemRow(
                                         item = item,
-                                        onClick = { onMissingItemClick?.invoke(item.id) }
+                                        onClick = { onMissingItemClick?.invoke(item.id) },
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(DesignTokens.Spacing.s))
@@ -776,13 +819,13 @@ fun ProfileCompletionBanner(
                                     text = "Optional",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
                                 )
                                 Spacer(modifier = Modifier.height(DesignTokens.Spacing.xs))
                                 optionalItems.take(5).forEach { item ->
                                     MissingItemRow(
                                         item = item,
-                                        onClick = { onMissingItemClick?.invoke(item.id) }
+                                        onClick = { onMissingItemClick?.invoke(item.id) },
                                     )
                                 }
                                 if (optionalItems.size > 5) {
@@ -790,7 +833,7 @@ fun ProfileCompletionBanner(
                                         text = "+${optionalItems.size - 5} more items",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                        modifier = Modifier.padding(start = 32.dp, top = 4.dp)
+                                        modifier = Modifier.padding(start = 32.dp, top = 4.dp),
                                     )
                                 }
                             }
@@ -808,41 +851,43 @@ fun ProfileCompletionBanner(
 @Composable
 private fun CategoryPill(
     category: CategoryCompletionDisplay,
-    isComplete: Boolean
+    isComplete: Boolean,
 ) {
-    val backgroundColor = when {
-        isComplete -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-        category.percentage >= 75 -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-        category.percentage >= 50 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
-        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    }
+    val backgroundColor =
+        when {
+            isComplete -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            category.percentage >= 75 -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+            category.percentage >= 50 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        }
 
-    val textColor = when {
-        isComplete -> MaterialTheme.colorScheme.primary
-        category.percentage >= 75 -> MaterialTheme.colorScheme.tertiary
-        category.percentage >= 50 -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val textColor =
+        when {
+            isComplete -> MaterialTheme.colorScheme.primary
+            category.percentage >= 75 -> MaterialTheme.colorScheme.tertiary
+            category.percentage >= 50 -> MaterialTheme.colorScheme.secondary
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
 
     Surface(
         shape = DesignTokens.Shape.roundedMd,
-        color = backgroundColor
+        color = backgroundColor,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.xs),
         ) {
             Text(
                 text = "${category.completedCount}/${category.totalCount}",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = textColor
+                color = textColor,
             )
             Text(
                 text = category.categoryLabel,
                 style = MaterialTheme.typography.labelSmall,
-                color = textColor.copy(alpha = 0.9f)
+                color = textColor.copy(alpha = 0.9f),
             )
         }
     }
@@ -854,64 +899,68 @@ private fun CategoryPill(
 @Composable
 private fun MissingItemRow(
     item: MissingItemDisplay,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 6.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
     ) {
         // Status indicator
         Box(
-            modifier = Modifier
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(
-                    if (item.isRequired) {
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    }
-                ),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (item.isRequired) {
+                            MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                    ),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = if (item.isRequired) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.size(14.dp)
+                tint =
+                    if (item.isRequired) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                modifier = Modifier.size(14.dp),
             )
         }
 
         Text(
             text = item.title,
             style = MaterialTheme.typography.bodySmall,
-            color = if (item.isRequired) {
-                MaterialTheme.colorScheme.onSurface
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
+            color =
+                if (item.isRequired) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             fontWeight = if (item.isRequired) FontWeight.Medium else FontWeight.Normal,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         if (item.isRequired) {
             Surface(
                 shape = RoundedCornerShape(4.dp),
-                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
             ) {
                 Text(
                     text = "Required",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                 )
             }
         }

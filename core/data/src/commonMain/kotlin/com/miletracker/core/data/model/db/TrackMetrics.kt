@@ -4,5 +4,5 @@ data class TrackMetrics(
     val avgDistance: Double,
     val avgDuration: Long,
     val avgSpeed: Float,
-    val totalTracks: Int
+    val totalTracks: Int,
 )

@@ -75,10 +75,11 @@ fun ExpandableStatsCard(
         tonalElevation = 1.dp,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onToggle)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggle)
+                    .padding(DesignTokens.Spacing.l),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -114,9 +115,10 @@ fun ExpandableStatsCard(
                 Column(Modifier.padding(top = DesignTokens.Spacing.m)) {
                     stats.chunked(2).forEach { rowItems ->
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = DesignTokens.Spacing.xs),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = DesignTokens.Spacing.xs),
                             horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
                         ) {
                             rowItems.forEach { StatColumn(it, Modifier.weight(1f)) }
@@ -130,7 +132,10 @@ fun ExpandableStatsCard(
 }
 
 @Composable
-private fun StatColumn(item: StatItem, modifier: Modifier = Modifier) {
+private fun StatColumn(
+    item: StatItem,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             item.icon?.let {
@@ -171,11 +176,12 @@ data class StatusChip(
     val level: StatusLevel,
 )
 
-private fun StatusLevel.color(): Color = when (this) {
-    StatusLevel.OK -> DesignTokens.StatusColors.success
-    StatusLevel.WARN -> DesignTokens.StatusColors.warning
-    StatusLevel.BAD -> DesignTokens.StatusColors.error
-}
+private fun StatusLevel.color(): Color =
+    when (this) {
+        StatusLevel.OK -> DesignTokens.StatusColors.success
+        StatusLevel.WARN -> DesignTokens.StatusColors.warning
+        StatusLevel.BAD -> DesignTokens.StatusColors.error
+    }
 
 /**
  * A horizontal row of compact, color-coded status chips (GPS, battery, network, accuracy).
@@ -193,10 +199,11 @@ fun CompactSystemStatusIndicator(
         chips.forEach { chip ->
             val tint = chip.level.color()
             Row(
-                modifier = Modifier
-                    .clip(DesignTokens.Shape.chip)
-                    .background(tint.copy(alpha = 0.12f))
-                    .padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
+                modifier =
+                    Modifier
+                        .clip(DesignTokens.Shape.chip)
+                        .background(tint.copy(alpha = 0.12f))
+                        .padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {

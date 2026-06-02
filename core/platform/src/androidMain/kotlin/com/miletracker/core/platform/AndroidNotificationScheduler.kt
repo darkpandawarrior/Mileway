@@ -14,7 +14,6 @@ import androidx.core.app.NotificationManagerCompat
  * actually requesting the runtime permission is [PermissionsProvider]'s job, since it needs an Activity.
  */
 class AndroidNotificationScheduler(private val context: Context) : NotificationScheduler {
-
     init {
         ensureChannel()
     }
@@ -24,23 +23,27 @@ class AndroidNotificationScheduler(private val context: Context) : NotificationS
             val mgr = context.getSystemService(NotificationManager::class.java) ?: return
             if (mgr.getNotificationChannel(CHANNEL_ID) == null) {
                 mgr.createNotificationChannel(
-                    NotificationChannel(CHANNEL_ID, "MileTracker", NotificationManager.IMPORTANCE_DEFAULT)
+                    NotificationChannel(CHANNEL_ID, "MileTracker", NotificationManager.IMPORTANCE_DEFAULT),
                 )
             }
         }
     }
 
-    override suspend fun ensurePermission(): Boolean =
-        NotificationManagerCompat.from(context).areNotificationsEnabled()
+    override suspend fun ensurePermission(): Boolean = NotificationManagerCompat.from(context).areNotificationsEnabled()
 
-    override fun notify(id: Int, title: String, body: String) {
+    override fun notify(
+        id: Int,
+        title: String,
+        body: String,
+    ) {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setAutoCancel(true)
-            .build()
+        val notification =
+            NotificationCompat.Builder(context, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setAutoCancel(true)
+                .build()
         try {
             NotificationManagerCompat.from(context).notify(id, notification)
         } catch (_: SecurityException) {

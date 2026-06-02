@@ -8,10 +8,11 @@ import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val loggingModule = module {
-    single { LogMilesServiceRepository(get()) }
-    single { LogMilesDraftRepository(get()) }
-    single { ExpenseRepository() }
-    viewModel { LogMilesViewModel(get(), get(), get(), get()) }
-    viewModel { ExpenseViewModel(get()) }
-}
+val loggingModule =
+    module {
+        single { LogMilesServiceRepository(get()) }
+        single { LogMilesDraftRepository(get()) }
+        single { ExpenseRepository() }
+        viewModel { LogMilesViewModel(get(), get(), get(), get()) }
+        viewModel { ExpenseViewModel(get()) }
+    }

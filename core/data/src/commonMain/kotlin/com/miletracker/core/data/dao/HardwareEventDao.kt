@@ -27,22 +27,35 @@ interface HardwareEventDao {
     fun observeEventsByToken(token: String): Flow<List<HardwareEvent>>
 
     @Query("SELECT * FROM hardware_events WHERE token = :token AND eventType IN (:types) ORDER BY time ASC")
-    suspend fun getEventsByTokenAndTypes(token: String, types: List<EventType>): List<HardwareEvent>
+    suspend fun getEventsByTokenAndTypes(
+        token: String,
+        types: List<EventType>,
+    ): List<HardwareEvent>
 
     @Query("SELECT * FROM hardware_events WHERE token = :token AND audience IN (:audiences) ORDER BY time ASC")
-    suspend fun getEventsByTokenAndAudience(token: String, audiences: List<EventAudience>): List<HardwareEvent>
+    suspend fun getEventsByTokenAndAudience(
+        token: String,
+        audiences: List<EventAudience>,
+    ): List<HardwareEvent>
 
     @Query("SELECT * FROM hardware_events WHERE token = :token AND lat IS NOT NULL AND lng IS NOT NULL ORDER BY time ASC")
     suspend fun getEventsWithLocationByToken(token: String): List<HardwareEvent>
 
     @Query("SELECT * FROM hardware_events WHERE token = :token AND time BETWEEN :startTime AND :endTime ORDER BY time ASC")
-    suspend fun getEventsByTokenAndTimeRange(token: String, startTime: Long, endTime: Long): List<HardwareEvent>
+    suspend fun getEventsByTokenAndTimeRange(
+        token: String,
+        startTime: Long,
+        endTime: Long,
+    ): List<HardwareEvent>
 
     @Query("SELECT COUNT(*) FROM hardware_events WHERE token = :token")
     suspend fun getEventCountByToken(token: String): Int
 
     @Query("SELECT COUNT(*) FROM hardware_events WHERE token = :token AND eventType = :eventType")
-    suspend fun getEventCountByTokenAndType(token: String, eventType: EventType): Int
+    suspend fun getEventCountByTokenAndType(
+        token: String,
+        eventType: EventType,
+    ): Int
 
     @Query("DELETE FROM hardware_events WHERE time < :cutoffTime")
     suspend fun deleteEventsOlderThan(cutoffTime: Long): Int

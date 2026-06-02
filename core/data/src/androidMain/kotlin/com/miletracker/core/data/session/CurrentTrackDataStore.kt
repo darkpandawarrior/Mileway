@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.map
 private val Context.currentTrackDataStore by preferencesDataStore(name = "current_track_session")
 
 class CurrentTrackDataStore(private val context: Context) {
-
     companion object {
         val KEY_TOKEN = stringPreferencesKey("token")
         val KEY_IS_TRACKING = booleanPreferencesKey("is_tracking")
@@ -40,32 +39,33 @@ class CurrentTrackDataStore(private val context: Context) {
         val KEY_STARTED_AT = longPreferencesKey("started_at")
     }
 
-    val currentTrackFlow: Flow<CurrentTrackData> = context.currentTrackDataStore.data.map { prefs ->
-        CurrentTrackData(
-            token = prefs[KEY_TOKEN] ?: "",
-            isTracking = prefs[KEY_IS_TRACKING] ?: false,
-            isPaused = prefs[KEY_IS_PAUSED] ?: false,
-            startLatitude = prefs[KEY_START_LAT] ?: 0.0,
-            startLongitude = prefs[KEY_START_LNG] ?: 0.0,
-            endLatitude = prefs[KEY_END_LAT] ?: 0.0,
-            endLongitude = prefs[KEY_END_LNG] ?: 0.0,
-            startTime = prefs[KEY_START_TIME] ?: 0L,
-            endTime = prefs[KEY_END_TIME] ?: 0L,
-            distance = prefs[KEY_DISTANCE] ?: 0.0,
-            selectedVehicleType = prefs[KEY_VEHICLE_TYPE] ?: "",
-            vehiclePricing = prefs[KEY_VEHICLE_PRICING] ?: 0.0,
-            service = prefs[KEY_SERVICE] ?: "",
-            speed = prefs[KEY_SPEED] ?: 0.0,
-            avgSpeed = prefs[KEY_AVG_SPEED] ?: 0.0,
-            maxSpeed = prefs[KEY_MAX_SPEED] ?: 0.0,
-            totalLocationPoints = prefs[KEY_TOTAL_POINTS] ?: 0L,
-            unsyncedLocationPoints = prefs[KEY_UNSYNCED_POINTS] ?: 0L,
-            lastHardwareEventText = prefs[KEY_LAST_HW_EVENT] ?: "",
-            lastHardwareEventTime = prefs[KEY_LAST_HW_EVENT_TIME] ?: -1L,
-            wasEverPaused = prefs[KEY_WAS_PAUSED] ?: false,
-            startedAtTimestamp = prefs[KEY_STARTED_AT] ?: 0L
-        )
-    }
+    val currentTrackFlow: Flow<CurrentTrackData> =
+        context.currentTrackDataStore.data.map { prefs ->
+            CurrentTrackData(
+                token = prefs[KEY_TOKEN] ?: "",
+                isTracking = prefs[KEY_IS_TRACKING] ?: false,
+                isPaused = prefs[KEY_IS_PAUSED] ?: false,
+                startLatitude = prefs[KEY_START_LAT] ?: 0.0,
+                startLongitude = prefs[KEY_START_LNG] ?: 0.0,
+                endLatitude = prefs[KEY_END_LAT] ?: 0.0,
+                endLongitude = prefs[KEY_END_LNG] ?: 0.0,
+                startTime = prefs[KEY_START_TIME] ?: 0L,
+                endTime = prefs[KEY_END_TIME] ?: 0L,
+                distance = prefs[KEY_DISTANCE] ?: 0.0,
+                selectedVehicleType = prefs[KEY_VEHICLE_TYPE] ?: "",
+                vehiclePricing = prefs[KEY_VEHICLE_PRICING] ?: 0.0,
+                service = prefs[KEY_SERVICE] ?: "",
+                speed = prefs[KEY_SPEED] ?: 0.0,
+                avgSpeed = prefs[KEY_AVG_SPEED] ?: 0.0,
+                maxSpeed = prefs[KEY_MAX_SPEED] ?: 0.0,
+                totalLocationPoints = prefs[KEY_TOTAL_POINTS] ?: 0L,
+                unsyncedLocationPoints = prefs[KEY_UNSYNCED_POINTS] ?: 0L,
+                lastHardwareEventText = prefs[KEY_LAST_HW_EVENT] ?: "",
+                lastHardwareEventTime = prefs[KEY_LAST_HW_EVENT_TIME] ?: -1L,
+                wasEverPaused = prefs[KEY_WAS_PAUSED] ?: false,
+                startedAtTimestamp = prefs[KEY_STARTED_AT] ?: 0L,
+            )
+        }
 
     suspend fun saveSession(data: CurrentTrackData) {
         context.currentTrackDataStore.edit { prefs ->
@@ -94,7 +94,12 @@ class CurrentTrackDataStore(private val context: Context) {
         }
     }
 
-    suspend fun updateDistance(token: String, distanceMeters: Double, speed: Double, avgSpeed: Double) {
+    suspend fun updateDistance(
+        token: String,
+        distanceMeters: Double,
+        speed: Double,
+        avgSpeed: Double,
+    ) {
         context.currentTrackDataStore.edit { prefs ->
             if (prefs[KEY_TOKEN] == token) {
                 prefs[KEY_DISTANCE] = distanceMeters
@@ -105,7 +110,11 @@ class CurrentTrackDataStore(private val context: Context) {
         }
     }
 
-    suspend fun updateLocationCount(token: String, total: Long, unsynced: Long) {
+    suspend fun updateLocationCount(
+        token: String,
+        total: Long,
+        unsynced: Long,
+    ) {
         context.currentTrackDataStore.edit { prefs ->
             if (prefs[KEY_TOKEN] == token) {
                 prefs[KEY_TOTAL_POINTS] = total
@@ -114,7 +123,11 @@ class CurrentTrackDataStore(private val context: Context) {
         }
     }
 
-    suspend fun markPaused(token: String, lat: Double, lng: Double) {
+    suspend fun markPaused(
+        token: String,
+        lat: Double,
+        lng: Double,
+    ) {
         context.currentTrackDataStore.edit { prefs ->
             if (prefs[KEY_TOKEN] == token) {
                 prefs[KEY_IS_PAUSED] = true
@@ -129,7 +142,11 @@ class CurrentTrackDataStore(private val context: Context) {
         }
     }
 
-    suspend fun markStopped(token: String, endLat: Double, endLng: Double) {
+    suspend fun markStopped(
+        token: String,
+        endLat: Double,
+        endLng: Double,
+    ) {
         context.currentTrackDataStore.edit { prefs ->
             if (prefs[KEY_TOKEN] == token) {
                 prefs[KEY_IS_TRACKING] = false
@@ -145,7 +162,10 @@ class CurrentTrackDataStore(private val context: Context) {
         context.currentTrackDataStore.edit { it.clear() }
     }
 
-    suspend fun updateLastHardwareEvent(token: String, eventText: String) {
+    suspend fun updateLastHardwareEvent(
+        token: String,
+        eventText: String,
+    ) {
         context.currentTrackDataStore.edit { prefs ->
             if (prefs[KEY_TOKEN] == token) {
                 prefs[KEY_LAST_HW_EVENT] = eventText

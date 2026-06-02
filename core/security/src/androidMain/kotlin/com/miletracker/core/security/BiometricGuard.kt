@@ -12,7 +12,6 @@ import androidx.fragment.app.FragmentActivity
  * Phase 3.4 (feature:profile); this remains the Android implementation detail.
  */
 object BiometricGuard {
-
     enum class Availability { Available, NoHardware, NoneEnrolled, Unavailable }
 
     fun checkAvailability(context: Context): Availability {
@@ -33,26 +32,33 @@ object BiometricGuard {
         onFailure: (String) -> Unit,
     ) {
         val executor = ContextCompat.getMainExecutor(activity)
-        val prompt = BiometricPrompt(
-            activity,
-            executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    onSuccess()
-                }
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    onFailure(errString.toString())
-                }
-                override fun onAuthenticationFailed() {
-                    onFailure("Authentication failed — try again.")
-                }
-            },
-        )
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(title)
-            .setSubtitle(subtitle)
-            .setNegativeButtonText("Cancel")
-            .build()
+        val prompt =
+            BiometricPrompt(
+                activity,
+                executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        onSuccess()
+                    }
+
+                    override fun onAuthenticationError(
+                        errorCode: Int,
+                        errString: CharSequence,
+                    ) {
+                        onFailure(errString.toString())
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        onFailure("Authentication failed — try again.")
+                    }
+                },
+            )
+        val promptInfo =
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(title)
+                .setSubtitle(subtitle)
+                .setNegativeButtonText("Cancel")
+                .build()
         prompt.authenticate(promptInfo)
     }
 }

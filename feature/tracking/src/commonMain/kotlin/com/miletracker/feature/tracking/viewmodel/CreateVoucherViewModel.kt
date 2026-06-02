@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 data class CreateVoucherUiState(
     val step: Int = 0,
@@ -32,7 +32,6 @@ class CreateVoucherViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val voucherRepository: VoucherRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(CreateVoucherUiState())
     val uiState: StateFlow<CreateVoucherUiState> = _uiState.asStateFlow()
 
@@ -42,13 +41,15 @@ class CreateVoucherViewModel(
 
     private fun loadExpenses() {
         viewModelScope.launch {
-            val tracks = savedTrackRepository.completedTracksFlow().first()
-                .filter { it.isSubmitted && it.reimbursableAmount > 0 }
-            val defaultTitle = run {
-                val ldt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                val monthName = ldt.month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
-                "Voucher — $monthName ${ldt.year}"
-            }
+            val tracks =
+                savedTrackRepository.completedTracksFlow().first()
+                    .filter { it.isSubmitted && it.reimbursableAmount > 0 }
+            val defaultTitle =
+                run {
+                    val ldt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                    val monthName = ldt.month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
+                    "Voucher — $monthName ${ldt.year}"
+                }
             _uiState.update { it.copy(expenses = tracks, title = defaultTitle, isLoading = false) }
         }
     }
@@ -70,7 +71,9 @@ class CreateVoucherViewModel(
     }
 
     fun setTitle(v: String) = _uiState.update { it.copy(title = v) }
+
     fun setCategory(v: String) = _uiState.update { it.copy(category = v) }
+
     fun setNotes(v: String) = _uiState.update { it.copy(notes = v) }
 
     fun goToStep(step: Int) = _uiState.update { it.copy(step = step) }
@@ -80,9 +83,10 @@ class CreateVoucherViewModel(
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
             val number = "V-${Clock.System.now().toEpochMilliseconds() % 10_000}"
-            val total = state.expenses
-                .filter { state.selectedTokens.contains(it.token) }
-                .sumOf { it.reimbursableAmount }
+            val total =
+                state.expenses
+                    .filter { state.selectedTokens.contains(it.token) }
+                    .sumOf { it.reimbursableAmount }
             voucherRepository.save(
                 VoucherRecord(
                     voucherNumber = number,
@@ -92,7 +96,7 @@ class CreateVoucherViewModel(
                     notes = state.notes,
                     expenseRouteIds = state.selectedTokens.toList(),
                     createdAtMs = Clock.System.now().toEpochMilliseconds(),
-                )
+                ),
             )
             _uiState.update { it.copy(isSubmitting = false, submittedVoucherNumber = number, step = 3) }
         }

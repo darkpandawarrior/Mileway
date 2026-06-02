@@ -19,13 +19,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
@@ -46,15 +46,16 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun LogMilesSuccessScreen(
     viewModel: LogMilesViewModel = koinViewModel(),
-    onLogAnother: () -> Unit = {}
+    onLogAnother: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val result = uiState.submissionResult
 
     val amount = result?.reimbursableAmount ?: result?.amount ?: uiState.reimbursableAmount
-    val transactionId = result?.transId
-        ?: result?.transaction?.id?.takeIf { it.isNotBlank() }
-        ?: result?.voucher?.transId
+    val transactionId =
+        result?.transId
+            ?: result?.transaction?.id?.takeIf { it.isNotBlank() }
+            ?: result?.voucher?.transId
 
     Scaffold(
         bottomBar = {
@@ -64,33 +65,35 @@ fun LogMilesSuccessScreen(
                         viewModel.resetSubmission()
                         onLogAnother()
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(DesignTokens.Spacing.l)
-                        .height(56.dp),
-                    shape = DesignTokens.Shape.roundedMd
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(DesignTokens.Spacing.l)
+                            .height(56.dp),
+                    shape = DesignTokens.Shape.roundedMd,
                 ) { Text("Log Another") }
             }
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = DesignTokens.Spacing.xl),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = DesignTokens.Spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Surface(
                 shape = androidx.compose.foundation.shape.CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             ) {
                 Icon(
                     Icons.Filled.CheckCircle,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(DesignTokens.Spacing.l).size(72.dp)
+                    modifier = Modifier.padding(DesignTokens.Spacing.l).size(72.dp),
                 )
             }
             Spacer(Modifier.size(DesignTokens.Spacing.l))
@@ -98,14 +101,14 @@ fun LogMilesSuccessScreen(
                 "Miles Logged!",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.size(DesignTokens.Spacing.s))
             Text(
                 "Your mileage expense has been submitted successfully.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Spacer(Modifier.size(DesignTokens.Spacing.xl))
@@ -113,7 +116,7 @@ fun LogMilesSuccessScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedMd,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ) {
                 Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
                     SummaryRow(label = "Reimbursable amount", value = "₹${amount.formatDecimal(2)}")
@@ -128,22 +131,25 @@ fun LogMilesSuccessScreen(
 }
 
 @Composable
-private fun SummaryRow(label: String, value: String) {
+private fun SummaryRow(
+    label: String,
+    value: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             value,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

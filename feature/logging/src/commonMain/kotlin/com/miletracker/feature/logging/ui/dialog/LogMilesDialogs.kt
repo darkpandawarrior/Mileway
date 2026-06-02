@@ -51,7 +51,7 @@ fun VerifyDistanceDialog(
     calculatedKm: Double,
     currentKm: Double,
     onSave: (Double) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     var text by remember { mutableStateOf(currentKm.formatDecimal(2)) }
     val parsed = text.toDoubleOrNull()
@@ -64,18 +64,19 @@ fun VerifyDistanceDialog(
                 Text(
                     "We calculated your journey distance. You can keep it or adjust if needed.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Surface(
                     shape = DesignTokens.Shape.roundedMd,
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(DesignTokens.Spacing.l),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(DesignTokens.Spacing.l),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         LabeledValue("Calculated", "${calculatedKm.formatDecimal(2)} km")
                         LabeledValue("Current", "${currentKm.formatDecimal(2)} km", alignEnd = true)
@@ -87,29 +88,33 @@ fun VerifyDistanceDialog(
                     label = { Text("Update distance (km)") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
         confirmButton = {
             TextButton(
                 onClick = { parsed?.let(onSave) },
-                enabled = parsed != null && parsed >= 0.0
+                enabled = parsed != null && parsed >= 0.0,
             ) { Text("Save") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
 @Composable
-private fun LabeledValue(label: String, value: String, alignEnd: Boolean = false) {
+private fun LabeledValue(
+    label: String,
+    value: String,
+    alignEnd: Boolean = false,
+) {
     Column(horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             value,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -126,7 +131,7 @@ fun TaggedEmployeesDialog(
     allEmployees: List<String>,
     initiallySelected: List<String>,
     onConfirm: (List<String>) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val selected: SnapshotStateList<String> = remember { initiallySelected.toMutableStateList() }
 
@@ -135,23 +140,25 @@ fun TaggedEmployeesDialog(
         title = { Text("Tag Employees") },
         text = {
             Column(
-                modifier = Modifier
-                    .heightIn(max = 320.dp)
-                    .verticalScroll(rememberScrollState())
+                modifier =
+                    Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState()),
             ) {
                 allEmployees.forEach { name ->
                     val isChecked = name in selected
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = DesignTokens.Spacing.xs),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = DesignTokens.Spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Checkbox(
                             checked = isChecked,
                             onCheckedChange = {
                                 if (it) selected.add(name) else selected.remove(name)
-                            }
+                            },
                         )
                         Spacer(Modifier.size(DesignTokens.Spacing.s))
                         Text(name, style = MaterialTheme.typography.bodyLarge)
@@ -162,7 +169,7 @@ fun TaggedEmployeesDialog(
         confirmButton = {
             TextButton(onClick = { onConfirm(selected.toList()) }) { Text("Done") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
@@ -174,12 +181,13 @@ fun TaggedEmployeesDialog(
 @Composable
 fun ViolationDialog(
     response: ExpenseSubmissionResponse,
-    onAcknowledge: () -> Unit
+    onAcknowledge: () -> Unit,
 ) {
-    val messages: List<String> = buildList {
-        response.violations.forEach { add(it.message.ifBlank { it.title }) }
-        response.policyViolations.orEmpty().forEach { it.error?.let(::add) }
-    }.filter { it.isNotBlank() }.ifEmpty { listOf("This submission has policy violations.") }
+    val messages: List<String> =
+        buildList {
+            response.violations.forEach { add(it.message.ifBlank { it.title }) }
+            response.policyViolations.orEmpty().forEach { it.error?.let(::add) }
+        }.filter { it.isNotBlank() }.ifEmpty { listOf("This submission has policy violations.") }
 
     AlertDialog(
         onDismissRequest = onAcknowledge,
@@ -187,7 +195,7 @@ fun ViolationDialog(
             Icon(
                 Icons.Filled.WarningAmber,
                 contentDescription = null,
-                tint = DesignTokens.StatusColors.warning
+                tint = DesignTokens.StatusColors.warning,
             )
         },
         title = { Text("Policy Violations") },
@@ -196,7 +204,7 @@ fun ViolationDialog(
                 Text(
                     "Your submission was recorded with ${messages.size} violation${if (messages.size == 1) "" else "s"}:",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 messages.forEach { msg ->
                     Row(verticalAlignment = Alignment.Top) {
@@ -206,6 +214,6 @@ fun ViolationDialog(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onAcknowledge) { Text("Acknowledge") } }
+        confirmButton = { TextButton(onClick = onAcknowledge) { Text("Acknowledge") } },
     )
 }

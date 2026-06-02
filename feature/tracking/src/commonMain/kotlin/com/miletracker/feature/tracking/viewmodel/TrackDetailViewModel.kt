@@ -25,15 +25,14 @@ data class TrackDetailUiState(
     val locations: List<LocationData> = emptyList(),
     val attachments: List<TripAttachmentEntity> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
 )
 
 class TrackDetailViewModel(
     private val trackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,
-    private val attachmentRepository: TripAttachmentRepository
+    private val attachmentRepository: TripAttachmentRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(TrackDetailUiState())
     val uiState: StateFlow<TrackDetailUiState> = _uiState.asStateFlow()
 

@@ -16,5 +16,5 @@ data class QuickActionItem(
     val enabled: Boolean = true,
     val customColor: Color? = null,
     val description: String? = null,
-    val badgeCount: Int? = null
+    val badgeCount: Int? = null,
 )

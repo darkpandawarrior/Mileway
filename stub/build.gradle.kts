@@ -10,7 +10,6 @@ kotlin {
         minSdk = 30
     }
 
-
     sourceSets {
         commonMain.dependencies {
             implementation(libs.koin.core)

@@ -10,15 +10,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class DemoSettingsViewModel(
-    private val repository: DemoSettingsRepository
+    private val repository: DemoSettingsRepository,
 ) : ViewModel() {
-
-    val settings: StateFlow<DemoSettings> = repository.settings
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DemoSettings())
+    val settings: StateFlow<DemoSettings> =
+        repository.settings
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DemoSettings())
 
     fun toggleSimulateRoot() = viewModelScope.launch { repository.toggleSimulateRoot() }
+
     fun toggleSimulateOffline() = viewModelScope.launch { repository.toggleSimulateOffline() }
+
     fun toggleBiometricGuard() = viewModelScope.launch { repository.toggleBiometricGuard() }
+
     fun toggleGpsDrift() = viewModelScope.launch { repository.toggleGpsDrift() }
+
     fun toggleAutoDiscard() = viewModelScope.launch { repository.toggleAutoDiscard() }
 }

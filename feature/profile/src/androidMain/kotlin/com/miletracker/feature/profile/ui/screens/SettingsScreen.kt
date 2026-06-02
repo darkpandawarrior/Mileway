@@ -20,11 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.NotificationsNone
@@ -60,7 +60,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.ui.components.dialog.ColorWheelDialog
@@ -73,6 +72,7 @@ import com.miletracker.core.ui.theme.PaletteStyleNames
 import com.miletracker.core.ui.theme.parseHexColor
 import com.miletracker.feature.profile.model.SettingsUiState
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,17 +122,18 @@ fun SettingsScreen(
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
         ) {
             PermissionHealthSection(
                 onPermissionToggle = {
                     permScope.launch {
                         permSnackbarState.showSnackbar("Permission changes require system settings.")
                     }
-                }
+                },
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
             SettingsSectionLabel("Account")
@@ -203,14 +204,15 @@ fun SettingsScreen(
                 },
                 trailingContent = {
                     Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(
-                                parseHexColor(customSeedHex)
-                                    ?: parseHexColor(accentPalette.seedHex)
-                                    ?: MaterialTheme.colorScheme.primary
-                            ),
+                        modifier =
+                            Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    parseHexColor(customSeedHex)
+                                        ?: parseHexColor(accentPalette.seedHex)
+                                        ?: MaterialTheme.colorScheme.primary,
+                                ),
                     )
                 },
                 modifier = Modifier.clickable { showPalettePicker = true },
@@ -332,10 +334,11 @@ fun SettingsScreen(
                 text = "Demo build — mock data only, no network calls.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(
-                    horizontal = DesignTokens.Spacing.l,
-                    vertical = DesignTokens.Spacing.s,
-                ),
+                modifier =
+                    Modifier.padding(
+                        horizontal = DesignTokens.Spacing.l,
+                        vertical = DesignTokens.Spacing.s,
+                    ),
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.s))
@@ -382,9 +385,10 @@ fun SettingsScreen(
 
     if (showColorWheel) {
         ColorWheelDialog(
-            selectedColor = parseHexColor(customSeedHex)
-                ?: parseHexColor(accentPalette.seedHex)
-                ?: MaterialTheme.colorScheme.primary,
+            selectedColor =
+                parseHexColor(customSeedHex)
+                    ?: parseHexColor(accentPalette.seedHex)
+                    ?: MaterialTheme.colorScheme.primary,
             showHexcode = true,
             title = "Custom theme color",
             onDismiss = { showColorWheel = false },
@@ -421,7 +425,7 @@ fun SettingsScreen(
                     viewModel.setLanguage(picked)
                     // Wire per-app locale via AppCompatDelegate — persisted by the platform.
                     AppCompatDelegate.setApplicationLocales(
-                        LocaleListCompat.forLanguageTags(picked.tag)
+                        LocaleListCompat.forLanguageTags(picked.tag),
                     )
                 }
             },
@@ -439,7 +443,7 @@ fun SettingsScreen(
                     viewModel.resetCustomization()
                     // Also reset locale to English
                     AppCompatDelegate.setApplicationLocales(
-                        LocaleListCompat.forLanguageTags(AppLanguage.ENGLISH.tag)
+                        LocaleListCompat.forLanguageTags(AppLanguage.ENGLISH.tag),
                     )
                 }) {
                     Text("Reset")
@@ -473,11 +477,20 @@ private fun SimpleSelectionDialog(
                     ) {
                         Text(
                             text = option,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface,
-                            style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                            ) else MaterialTheme.typography.bodyMedium,
+                            color =
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
+                            style =
+                                if (isSelected) {
+                                    MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                    )
+                                } else {
+                                    MaterialTheme.typography.bodyMedium
+                                },
                         )
                     }
                 }
@@ -495,10 +508,11 @@ private fun SettingsSectionLabel(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(
-            horizontal = DesignTokens.Spacing.l,
-            vertical = DesignTokens.Spacing.s,
-        ),
+        modifier =
+            Modifier.padding(
+                horizontal = DesignTokens.Spacing.l,
+                vertical = DesignTokens.Spacing.s,
+            ),
     )
 }
 
@@ -509,15 +523,16 @@ private data class PermissionEntry(
     val isGranted: Boolean,
 )
 
-private val PERMISSIONS = listOf(
-    PermissionEntry("Location (Precise)", Icons.Filled.LocationOn, isRequired = true, isGranted = true),
-    PermissionEntry("Location (Background)", Icons.Filled.PinDrop, isRequired = true, isGranted = true),
-    PermissionEntry("Camera", Icons.Filled.Camera, isRequired = true, isGranted = true),
-    PermissionEntry("Storage", Icons.Filled.Folder, isRequired = true, isGranted = true),
-    PermissionEntry("Notifications", Icons.Filled.NotificationsNone, isRequired = false, isGranted = true),
-    PermissionEntry("Activity Recognition", Icons.AutoMirrored.Filled.DirectionsRun, isRequired = false, isGranted = true),
-    PermissionEntry("Bluetooth", Icons.Filled.Bluetooth, isRequired = false, isGranted = false),
-)
+private val PERMISSIONS =
+    listOf(
+        PermissionEntry("Location (Precise)", Icons.Filled.LocationOn, isRequired = true, isGranted = true),
+        PermissionEntry("Location (Background)", Icons.Filled.PinDrop, isRequired = true, isGranted = true),
+        PermissionEntry("Camera", Icons.Filled.Camera, isRequired = true, isGranted = true),
+        PermissionEntry("Storage", Icons.Filled.Folder, isRequired = true, isGranted = true),
+        PermissionEntry("Notifications", Icons.Filled.NotificationsNone, isRequired = false, isGranted = true),
+        PermissionEntry("Activity Recognition", Icons.AutoMirrored.Filled.DirectionsRun, isRequired = false, isGranted = true),
+        PermissionEntry("Bluetooth", Icons.Filled.Bluetooth, isRequired = false, isGranted = false),
+    )
 
 @Composable
 private fun PermissionHealthSection(onPermissionToggle: () -> Unit) {
@@ -527,18 +542,20 @@ private fun PermissionHealthSection(onPermissionToggle: () -> Unit) {
     SettingsSectionLabel("Permission Health")
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
                 androidx.compose.foundation.Canvas(modifier = Modifier.size(80.dp)) {
@@ -549,28 +566,28 @@ private fun PermissionHealthSection(onPermissionToggle: () -> Unit) {
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
-                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                     )
                     drawArc(
                         color = primaryColor,
                         startAngle = -90f,
                         sweepAngle = sweep,
                         useCenter = false,
-                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                     )
                 }
                 Text(
                     "90%",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "90% — All required permissions granted",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(DesignTokens.Spacing.s))
                 Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
@@ -589,39 +606,46 @@ private fun PermissionHealthSection(onPermissionToggle: () -> Unit) {
 }
 
 @Composable
-private fun PermChip(label: String, color: androidx.compose.ui.graphics.Color) {
+private fun PermChip(
+    label: String,
+    color: androidx.compose.ui.graphics.Color,
+) {
     Surface(
         color = color.copy(alpha = 0.15f),
-        shape = DesignTokens.Shape.chip
+        shape = DesignTokens.Shape.chip,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = color,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         )
     }
 }
 
 @Composable
-private fun PermissionCard(entry: PermissionEntry, onToggle: () -> Unit) {
+private fun PermissionCard(
+    entry: PermissionEntry,
+    onToggle: () -> Unit,
+) {
     val grantedColor = if (entry.isGranted) DesignTokens.StatusColors.success else DesignTokens.StatusColors.error
     val grantedLabel = if (entry.isGranted) "GRANTED" else "DENIED"
     ListItem(
         leadingContent = {
             Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = entry.icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
         },
@@ -629,25 +653,25 @@ private fun PermissionCard(entry: PermissionEntry, onToggle: () -> Unit) {
         supportingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
             ) {
                 Surface(
                     color = grantedColor.copy(alpha = 0.12f),
-                    shape = DesignTokens.Shape.chip
+                    shape = DesignTokens.Shape.chip,
                 ) {
                     Text(
                         text = grantedLabel,
                         style = MaterialTheme.typography.labelSmall,
                         color = grantedColor,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                     )
                 }
                 if (!entry.isRequired) {
                     Text(
                         "recommended",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
                 }
             }
@@ -655,8 +679,8 @@ private fun PermissionCard(entry: PermissionEntry, onToggle: () -> Unit) {
         trailingContent = {
             Switch(
                 checked = entry.isGranted,
-                onCheckedChange = { onToggle() }
+                onCheckedChange = { onToggle() },
             )
-        }
+        },
     )
 }

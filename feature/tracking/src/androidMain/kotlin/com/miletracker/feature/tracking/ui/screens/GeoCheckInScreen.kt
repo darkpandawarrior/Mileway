@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 package com.miletracker.feature.tracking.ui.screens
 
 import android.content.ClipData
@@ -8,10 +10,8 @@ import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,8 +35,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -61,10 +60,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import com.miletracker.core.maps.MapSurface
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
+import com.miletracker.core.maps.MapSurface
 import com.miletracker.core.ui.components.SectionCard
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
@@ -108,14 +107,16 @@ fun GeoCheckInScreen(
     var isSubmitting by remember { mutableStateOf(false) }
 
     // Sort vendors by Haversine distance from demo location
-    val sortedVendors = remember(demoLat, demoLng) {
-        vendors.sortedBy { haversineMeters(demoLat, demoLng, it.lat, it.lng) }
-    }
+    val sortedVendors =
+        remember(demoLat, demoLng) {
+            vendors.sortedBy { haversineMeters(demoLat, demoLng, it.lat, it.lng) }
+        }
     val selectedVendor = sortedVendors.firstOrNull { it.id == selectedVendorId }
     val vendorDistanceM = selectedVendor?.let { haversineMeters(demoLat, demoLng, it.lat, it.lng) }
-    val formSchema = remember(selectedType) {
-        selectedType?.let { configManager.getCheckInFormSchema(it) } ?: emptyList()
-    }
+    val formSchema =
+        remember(selectedType) {
+            selectedType?.let { configManager.getCheckInFormSchema(it) } ?: emptyList()
+        }
     val formValid = formSchema.isEmpty() || formSchema.all { (key, _) -> !formValues[key].isNullOrBlank() }
     val canCheckIn = selectedType != null && formValid
 
@@ -143,8 +144,8 @@ fun GeoCheckInScreen(
                     time = System.currentTimeMillis(),
                     lat = demoLat,
                     lng = demoLng,
-                    event = "Geo check-in at $locationLabel ($selectedType)"
-                )
+                    event = "Geo check-in at $locationLabel ($selectedType)",
+                ),
             )
             isSubmitting = false
             snackbarHostState.showSnackbar("Checked in at $locationLabel ✓")
@@ -163,7 +164,7 @@ fun GeoCheckInScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -172,20 +173,21 @@ fun GeoCheckInScreen(
                     SectionCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier.padding(DesignTokens.Spacing.m),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(
                                 Icons.Default.Warning,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.dp),
                             )
                             Spacer(Modifier.width(DesignTokens.Spacing.s))
                             Text(
-                                text = "You are ${vendorDistanceM.toInt()} m away from ${selectedVendor.name}. " +
-                                    "Check-in radius is ${checkInRadius.toInt()} m.",
+                                text =
+                                    "You are ${vendorDistanceM.toInt()} m away from ${selectedVendor.name}. " +
+                                        "Check-in radius is ${checkInRadius.toInt()} m.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
                             )
                         }
                     }
@@ -194,41 +196,48 @@ fun GeoCheckInScreen(
                         OutlinedButton(
                             onClick = { doCheckIn() },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                         ) { Text("Override & Check In") }
                         Button(
                             onClick = { doCheckIn() },
                             modifier = Modifier.weight(1f),
-                            enabled = canCheckIn && !isSubmitting
+                            enabled = canCheckIn && !isSubmitting,
                         ) {
-                            if (isSubmitting) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                            else Text("Check In")
+                            if (isSubmitting) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                            } else {
+                                Text("Check In")
+                            }
                         }
                     }
                 } else {
                     Button(
                         onClick = { doCheckIn() },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = canCheckIn && !isSubmitting
+                        enabled = canCheckIn && !isSubmitting,
                     ) {
-                        if (isSubmitting) CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                        else Text("Check In")
+                        if (isSubmitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        } else {
+                            Text("Check In")
+                        }
                     }
                 }
             }
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             // ── Location Card ───────────────────────────────────────────────
             SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -238,13 +247,13 @@ fun GeoCheckInScreen(
                             Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(DesignTokens.Spacing.s))
                         Text(
                             "Current Location",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
@@ -252,21 +261,22 @@ fun GeoCheckInScreen(
                     mapSurface.LocationPinMap(
                         latitude = demoLat,
                         longitude = demoLng,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(8.dp)),
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     Text(
                         text = "%.6f, %.6f".format(demoLat, demoLng),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     )
                     Text(
                         text = configManager.getDemoAccuracyLabel(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     Row(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
@@ -290,25 +300,26 @@ fun GeoCheckInScreen(
                     Text(
                         "Check-In Type",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     ExposedDropdownMenuBox(
                         expanded = typeExpanded,
-                        onExpandedChange = { typeExpanded = it }
+                        onExpandedChange = { typeExpanded = it },
                     ) {
                         OutlinedTextField(
                             value = selectedType ?: "Select type",
                             onValueChange = {},
                             readOnly = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                         )
                         ExposedDropdownMenu(
                             expanded = typeExpanded,
-                            onDismissRequest = { typeExpanded = false }
+                            onDismissRequest = { typeExpanded = false },
                         ) {
                             checkInTypes.forEach { type ->
                                 DropdownMenuItem(
@@ -317,7 +328,7 @@ fun GeoCheckInScreen(
                                         selectedType = type
                                         typeExpanded = false
                                         formValues = emptyMap()
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -331,14 +342,15 @@ fun GeoCheckInScreen(
                     Text(
                         "Nearby Locations",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.s))
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                     ) {
                         sortedVendors.take(7).forEach { vendor ->
                             val distM = haversineMeters(demoLat, demoLng, vendor.lat, vendor.lng)
@@ -354,15 +366,20 @@ fun GeoCheckInScreen(
                                         Text(
                                             "%.0f m".format(distM),
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                            color =
+                                                if (isSelected) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                                },
                                         )
                                     }
                                 },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                                colors =
+                                    FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
                             )
                         }
                     }
@@ -372,17 +389,17 @@ fun GeoCheckInScreen(
             // ── Custom Form ─────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = selectedType != null && formSchema.isNotEmpty(),
-                enter = fadeIn() + expandVertically()
+                enter = fadeIn() + expandVertically(),
             ) {
                 SectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.padding(DesignTokens.Spacing.m),
-                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                     ) {
                         Text(
                             "Additional Details",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
                         )
                         formSchema.forEach { (label, hint) ->
                             val value = formValues[label] ?: ""
@@ -396,9 +413,9 @@ fun GeoCheckInScreen(
                                 supportingText = {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.End
+                                        horizontalArrangement = Arrangement.End,
                                     ) { Text("${value.length}/100") }
-                                }
+                                },
                             )
                         }
                     }
@@ -410,11 +427,17 @@ fun GeoCheckInScreen(
     }
 }
 
-private fun haversineMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+private fun haversineMeters(
+    lat1: Double,
+    lon1: Double,
+    lat2: Double,
+    lon2: Double,
+): Double {
     val R = 6_371_000.0
     val dLat = Math.toRadians(lat2 - lat1)
     val dLon = Math.toRadians(lon2 - lon1)
-    val a = sin(dLat / 2).let { it * it } +
-        cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).let { it * it }
+    val a =
+        sin(dLat / 2).let { it * it } +
+            cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).let { it * it }
     return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 }

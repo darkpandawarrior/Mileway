@@ -19,16 +19,18 @@ import kotlinx.coroutines.launch
 
 sealed class LiveTrackingUiState {
     object Initial : LiveTrackingUiState()
+
     object Loading : LiveTrackingUiState()
+
     data class Success(val trackData: CurrentTrackData, val locationPoints: List<LocationData>) : LiveTrackingUiState()
+
     data class Error(val message: String) : LiveTrackingUiState()
 }
 
 class LiveTrackViewModel(
     private val locationRepository: LocationRepository,
-    private val currentTrackRepository: CurrentTrackRepository
+    private val currentTrackRepository: CurrentTrackRepository,
 ) : ViewModel() {
-
     companion object {
         private const val TAG = "LiveTrackViewModel"
         private const val AUTO_REFRESH_INTERVAL_MS = 5000L
@@ -106,22 +108,23 @@ class LiveTrackViewModel(
             onFailure = { e ->
                 Log.e(TAG, "Failed to load track data", e)
                 _currentTrackState.value = UiState.Error("Failed to load: ${e.message}")
-            }
+            },
         )
     }
 
     private fun startLocationObservation(token: String) {
         locationObserverJob?.cancel()
-        locationObserverJob = viewModelScope.launch {
-            _locationPointsState.value = UiState.Loading
-            locationRepository.locationsForToken(token)
-                .catch { e ->
-                    _locationPointsState.value = UiState.Error("Failed to load locations: ${e.message}")
-                }
-                .collect { locations ->
-                    _locationPointsState.value = UiState.Success(locations)
-                }
-        }
+        locationObserverJob =
+            viewModelScope.launch {
+                _locationPointsState.value = UiState.Loading
+                locationRepository.locationsForToken(token)
+                    .catch { e ->
+                        _locationPointsState.value = UiState.Error("Failed to load locations: ${e.message}")
+                    }
+                    .collect { locations ->
+                        _locationPointsState.value = UiState.Success(locations)
+                    }
+            }
     }
 
     private fun stopLocationObservation() {
@@ -132,15 +135,18 @@ class LiveTrackViewModel(
 
     private fun startAutoRefresh() {
         autoRefreshJob?.cancel()
-        autoRefreshJob = viewModelScope.launch {
-            while (true) {
-                delay(AUTO_REFRESH_INTERVAL_MS)
-                val state = _currentTrackState.value
-                if (state is UiState.Success && state.data.isTracking) {
-                    refreshCurrentTrackData()
-                } else break
+        autoRefreshJob =
+            viewModelScope.launch {
+                while (true) {
+                    delay(AUTO_REFRESH_INTERVAL_MS)
+                    val state = _currentTrackState.value
+                    if (state is UiState.Success && state.data.isTracking) {
+                        refreshCurrentTrackData()
+                    } else {
+                        break
+                    }
+                }
             }
-        }
     }
 
     private fun stopAutoRefresh() {
@@ -164,7 +170,7 @@ class LiveTrackViewModel(
                 currentTrackRepository.getHardwareEventQueueSnapshot()
                     .onSuccess { _hardwareEventsState.value = it }
             },
-            onFailure = { Log.w(TAG, "Refresh failed") }
+            onFailure = { Log.w(TAG, "Refresh failed") },
         )
     }
 

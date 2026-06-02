@@ -6,7 +6,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class RootDetectorTest {
-
     @Test
     fun check_returns_a_non_null_result() {
         val result = RootDetector.check()

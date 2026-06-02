@@ -7,7 +7,7 @@ import platform.Foundation.NSHomeDirectory
 
 fun buildMileTrackerDatabase(): MileTrackerDatabase =
     Room.databaseBuilder<MileTrackerDatabase>(
-        name = NSHomeDirectory() + "/Documents/miletracker.db"
+        name = NSHomeDirectory() + "/Documents/miletracker.db",
     )
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)

@@ -41,5 +41,5 @@ data class LogMilesDraftEntity(
     val mjpId: String? = null,
     val mjpItemId: Long? = null,
     val force: Long? = null,
-    val provider: String? = null
+    val provider: String? = null,
 )

@@ -47,9 +47,7 @@ import com.miletracker.core.ui.theme.DesignTokens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrackCustomizationScreen(
-    onBack: () -> Unit,
-) {
+fun TrackCustomizationScreen(onBack: () -> Unit) {
     var kalmanEnabled by remember { mutableStateOf(true) }
     var gapDetectionEnabled by remember { mutableStateOf(true) }
     var motionStabilityEnabled by remember { mutableStateOf(false) }
@@ -72,11 +70,12 @@ fun TrackCustomizationScreen(
         },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(padding)
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(padding)
+                    .padding(DesignTokens.Spacing.l),
             verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             CollapsibleSectionCard(
@@ -145,13 +144,14 @@ fun TrackCustomizationScreen(
 
             // Amber disclaimer card
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
-                        shape = RoundedCornerShape(12.dp),
-                    )
-                    .padding(DesignTokens.Spacing.m),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .padding(DesignTokens.Spacing.m),
                 horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                 verticalAlignment = Alignment.Top,
             ) {
@@ -224,11 +224,12 @@ private fun CustomizationToggleRow(
                             modifier = Modifier.padding(0.dp),
                         )
                     },
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        iconContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
+                    colors =
+                        SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            iconContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
                 )
             }
         }

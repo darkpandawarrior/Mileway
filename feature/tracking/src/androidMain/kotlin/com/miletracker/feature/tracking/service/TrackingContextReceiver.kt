@@ -8,16 +8,17 @@ import android.net.ConnectivityManager
 import android.os.BatteryManager
 import android.os.PowerManager
 import android.util.Log
-import com.miletracker.core.data.model.db.EventAudience
-import com.miletracker.core.data.model.db.HardwareEvent
 
 class TrackingContextReceiver : BroadcastReceiver() {
-
     companion object {
         private const val TAG = "TrackingContextReceiver"
     }
 
-    override fun onReceive(context: Context, intent: Intent) {
+    @Suppress("DEPRECATION")
+    override fun onReceive(
+        context: Context,
+        intent: Intent,
+    ) {
         when (intent.action) {
             PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> {
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -26,7 +27,6 @@ class TrackingContextReceiver : BroadcastReceiver() {
                 broadcastHardwareEvent(context, if (enabled) "Power Saver Mode Enabled" else "Power Saver Mode Disabled")
             }
 
-            @Suppress("DEPRECATION")
             ConnectivityManager.CONNECTIVITY_ACTION -> {
                 Log.d(TAG, "Network connectivity changed")
             }
@@ -61,12 +61,16 @@ class TrackingContextReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun broadcastHardwareEvent(context: Context, eventText: String) {
-        val broadcastIntent = Intent(LocationTrackingConstants.ACTION_TRACKING_STARTED).apply {
-            setPackage(context.packageName)
-            putExtra("hw_event_text", eventText)
-            putExtra("hw_event_time", System.currentTimeMillis())
-        }
+    private fun broadcastHardwareEvent(
+        context: Context,
+        eventText: String,
+    ) {
+        val broadcastIntent =
+            Intent(LocationTrackingConstants.ACTION_TRACKING_STARTED).apply {
+                setPackage(context.packageName)
+                putExtra("hw_event_text", eventText)
+                putExtra("hw_event_time", System.currentTimeMillis())
+            }
         context.sendBroadcast(broadcastIntent)
     }
 }

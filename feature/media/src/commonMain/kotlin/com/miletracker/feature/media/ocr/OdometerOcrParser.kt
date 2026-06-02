@@ -26,14 +26,16 @@ package com.miletracker.feature.media.ocr
  *    numeric, to avoid corrupting real words in the raw text.
  */
 object OdometerOcrParser {
-
     // Odometer-related labels that hint the adjacent number is a reading.
     private val ODO_LABELS = setOf("odo", "odometer", "km", "miles", "mi", "reading", "mileage")
 
     // Words that indicate a number is NOT an odometer (dates, times, prices, etc.).
-    private val NOISE_PREFIXES = setOf("$", "€", "£", "₹", "rs", "price", "total", "fuel",
-        "litres", "liters", "ltr", "l", "gal", "gallons", "tax", "receipt", "date", "time",
-        "trip a", "trip b", "trip")
+    private val NOISE_PREFIXES =
+        setOf(
+            "$", "€", "£", "₹", "rs", "price", "total", "fuel",
+            "litres", "liters", "ltr", "l", "gal", "gallons", "tax", "receipt", "date", "time",
+            "trip a", "trip b", "trip",
+        )
 
     // Regex: a sequence of 4 to 7 consecutive digits, optionally with comma/period as
     //        thousands separators (e.g. "12,345" or "12.345").
@@ -49,7 +51,7 @@ object OdometerOcrParser {
      * Main entry point.
      *
      * @param lines  Lines of text as returned by ML Kit (one entry per text block line).
-     * @return       The extracted odometer string (digits only, no separators), or null.
+     * @return The extracted odometer string (digits only, no separators), or null.
      */
     fun parse(lines: List<String>): String? {
         if (lines.isEmpty()) return null
@@ -96,11 +98,12 @@ object OdometerOcrParser {
         // Collapse whitespace variants.
         var s = raw.replace(Regex("\\s+"), " ").trim()
         // Replace lookalike when preceded OR followed by a digit.
-        s = s.replace(Regex("(?<=\\d)[Oo]|[Oo](?=\\d)"), "0")
-            .replace(Regex("(?<=\\d)[Il]|[Il](?=\\d)"), "1")
-            .replace(Regex("(?<=\\d)[Ss]|[Ss](?=\\d)"), "5")
-            .replace(Regex("(?<=\\d)[Bb]|[Bb](?=\\d)"), "8")
-            .replace(Regex("(?<=\\d)[Zz]|[Zz](?=\\d)"), "2")
+        s =
+            s.replace(Regex("(?<=\\d)[Oo]|[Oo](?=\\d)"), "0")
+                .replace(Regex("(?<=\\d)[Il]|[Il](?=\\d)"), "1")
+                .replace(Regex("(?<=\\d)[Ss]|[Ss](?=\\d)"), "5")
+                .replace(Regex("(?<=\\d)[Bb]|[Bb](?=\\d)"), "8")
+                .replace(Regex("(?<=\\d)[Zz]|[Zz](?=\\d)"), "2")
         return s
     }
 
@@ -121,10 +124,11 @@ object OdometerOcrParser {
      * digits-only string if the result is 4-7 digits long.
      */
     private fun extractDigitGroup(line: String): String? {
-        val matches = DIGIT_GROUP.findAll(line)
-            .map { it.groupValues[1].replace(Regex("[,._]"), "") }
-            .filter { it.length in 4..7 && it.all { c -> c.isDigit() } }
-            .toList()
+        val matches =
+            DIGIT_GROUP.findAll(line)
+                .map { it.groupValues[1].replace(Regex("[,._]"), "") }
+                .filter { it.length in 4..7 && it.all { c -> c.isDigit() } }
+                .toList()
         // Prefer the longest match on this line.
         return matches.maxByOrNull { it.length }
     }

@@ -26,8 +26,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,6 +41,7 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,13 +52,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.tracking.viewmodel.CreateVoucherUiState
 import com.miletracker.feature.tracking.viewmodel.CreateVoucherViewModel
-import com.miletracker.core.common.formatDecimal
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -70,25 +70,29 @@ private val CATEGORIES = listOf("Travel", "Fuel", "Maintenance", "Other")
 fun CreateVoucherScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CreateVoucherViewModel = koinViewModel()
+    viewModel: CreateVoucherViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         modifier = modifier,
         topBar = {
             DepthAwareTopBar(
-                title = when (uiState.step) {
-                    0 -> "Select Expenses"
-                    1 -> "Voucher Details"
-                    2 -> "Confirmation"
-                    else -> "Voucher Created"
-                },
+                title =
+                    when (uiState.step) {
+                        0 -> "Select Expenses"
+                        1 -> "Voucher Details"
+                        2 -> "Confirmation"
+                        else -> "Voucher Created"
+                    },
                 depth = NavigationDepth.LEVEL_2,
                 navigationIcon = {
                     IconButton(onClick = {
-                        if (uiState.step == 0 || uiState.step == 3) onBack()
-                        else viewModel.goToStep(uiState.step - 1)
+                        if (uiState.step == 0 || uiState.step == 3) {
+                            onBack()
+                        } else {
+                            viewModel.goToStep(uiState.step - 1)
+                        }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
@@ -96,28 +100,35 @@ fun CreateVoucherScreen(
                 actions = {
                     if (uiState.step == 0) {
                         TextButton(onClick = {
-                            if (uiState.selectedTokens.size == uiState.expenses.size) viewModel.deselectAll()
-                            else viewModel.selectAll()
+                            if (uiState.selectedTokens.size == uiState.expenses.size) {
+                                viewModel.deselectAll()
+                            } else {
+                                viewModel.selectAll()
+                            }
                         }) {
                             Text(
-                                if (uiState.selectedTokens.size == uiState.expenses.size) "Deselect All"
-                                else "Select All"
+                                if (uiState.selectedTokens.size == uiState.expenses.size) {
+                                    "Deselect All"
+                                } else {
+                                    "Select All"
+                                },
                             )
                         }
                     }
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             if (uiState.step < 3) {
                 LinearProgressIndicator(
                     progress = { (uiState.step + 1) / 3f },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -136,7 +147,7 @@ fun CreateVoucherScreen(
 @Composable
 private fun StepSelectExpenses(
     uiState: CreateVoucherUiState,
-    viewModel: CreateVoucherViewModel
+    viewModel: CreateVoucherViewModel,
 ) {
     if (uiState.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -149,16 +160,24 @@ private fun StepSelectExpenses(
         if (uiState.expenses.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
-                    Icon(Icons.Default.Receipt, contentDescription = null,
-                        modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.Default.Receipt,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     Spacer(Modifier.height(12.dp))
-                    Text("No submitted expenses found",
+                    Text(
+                        "No submitted expenses found",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center)
-                    Text("Submit a journey first to include it in a voucher.",
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        "Submit a journey first to include it in a voucher.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center)
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         } else {
@@ -167,7 +186,7 @@ private fun StepSelectExpenses(
                     ExpenseRow(
                         expense = expense,
                         selected = uiState.selectedTokens.contains(expense.token),
-                        onToggle = { viewModel.toggleSelection(expense.token) }
+                        onToggle = { viewModel.toggleSelection(expense.token) },
                     )
                     HorizontalDivider()
                 }
@@ -179,13 +198,13 @@ private fun StepSelectExpenses(
                         "Total: ₹${viewModel.totalAmount.formatDecimal(2)}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
                 }
                 Button(
                     onClick = { viewModel.goToStep(1) },
                     enabled = uiState.selectedTokens.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Next — Voucher Details")
                 }
@@ -198,21 +217,23 @@ private fun StepSelectExpenses(
 private fun ExpenseRow(
     expense: TrackDisplayData,
     selected: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
 ) {
     ListItem(
         headlineContent = { Text(expense.name ?: "Journey ${expense.token.take(6)}") },
         supportingContent = {
             Text(
                 run {
-                    val ldt = Instant.fromEpochMilliseconds(expense.startTime)
-                        .toLocalDateTime(TimeZone.currentSystemDefault())
-                    val monthName = ldt.month.name.lowercase()
-                        .replaceFirstChar { it.uppercase() }.take(3)
+                    val ldt =
+                        Instant.fromEpochMilliseconds(expense.startTime)
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
+                    val monthName =
+                        ldt.month.name.lowercase()
+                            .replaceFirstChar { it.uppercase() }.take(3)
                     "${ldt.dayOfMonth} $monthName ${ldt.year}"
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
         leadingContent = {
@@ -221,9 +242,9 @@ private fun ExpenseRow(
         trailingContent = {
             SuggestionChip(
                 onClick = {},
-                label = { Text("₹${expense.reimbursableAmount.formatDecimal(0)}") }
+                label = { Text("₹${expense.reimbursableAmount.formatDecimal(0)}") },
             )
-        }
+        },
     )
 }
 
@@ -231,28 +252,29 @@ private fun ExpenseRow(
 @Composable
 private fun StepVoucherDetails(
     uiState: CreateVoucherUiState,
-    viewModel: CreateVoucherViewModel
+    viewModel: CreateVoucherViewModel,
 ) {
     var categoryExpanded by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         OutlinedTextField(
             value = uiState.title,
             onValueChange = viewModel::setTitle,
             label = { Text("Voucher Title") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
         )
 
         ExposedDropdownMenuBox(
             expanded = categoryExpanded,
-            onExpandedChange = { categoryExpanded = it }
+            onExpandedChange = { categoryExpanded = it },
         ) {
             OutlinedTextField(
                 value = uiState.category,
@@ -260,28 +282,31 @@ private fun StepVoucherDetails(
                 readOnly = true,
                 label = { Text("Expense Category") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(categoryExpanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(
                 expanded = categoryExpanded,
-                onDismissRequest = { categoryExpanded = false }
+                onDismissRequest = { categoryExpanded = false },
             ) {
                 CATEGORIES.forEach { cat ->
                     DropdownMenuItem(
                         text = { Text(cat) },
-                        onClick = { viewModel.setCategory(cat); categoryExpanded = false }
+                        onClick = {
+                            viewModel.setCategory(cat)
+                            categoryExpanded = false
+                        },
                     )
                 }
             }
         }
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text("Total Amount", style = MaterialTheme.typography.labelMedium)
@@ -289,13 +314,13 @@ private fun StepVoucherDetails(
                         "₹${viewModel.totalAmount.formatDecimal(2)}",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
                 Text(
                     "${uiState.selectedTokens.size} expense${if (uiState.selectedTokens.size != 1) "s" else ""}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
@@ -305,7 +330,7 @@ private fun StepVoucherDetails(
             onValueChange = viewModel::setNotes,
             label = { Text("Notes (optional)") },
             modifier = Modifier.fillMaxWidth().height(100.dp),
-            maxLines = 4
+            maxLines = 4,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -313,7 +338,7 @@ private fun StepVoucherDetails(
         Button(
             onClick = { viewModel.goToStep(2) },
             enabled = uiState.title.isNotBlank(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Next — Review")
         }
@@ -323,16 +348,17 @@ private fun StepVoucherDetails(
 @Composable
 private fun StepConfirmation(
     uiState: CreateVoucherUiState,
-    viewModel: CreateVoucherViewModel
+    viewModel: CreateVoucherViewModel,
 ) {
     var declared by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("Review & Submit", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
 
@@ -351,7 +377,7 @@ private fun StepConfirmation(
             Text(
                 "I confirm these expenses are valid and complete.",
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier.padding(start = 4.dp),
             )
         }
 
@@ -360,7 +386,7 @@ private fun StepConfirmation(
         Button(
             onClick = { viewModel.submit() },
             enabled = declared && !uiState.isSubmitting,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (uiState.isSubmitting) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -372,17 +398,20 @@ private fun StepConfirmation(
 }
 
 @Composable
-private fun StepSuccess(uiState: CreateVoucherUiState, onBack: () -> Unit) {
+private fun StepSuccess(
+    uiState: CreateVoucherUiState,
+    onBack: () -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             Icons.Default.CheckCircle,
             contentDescription = null,
             modifier = Modifier.size(72.dp),
-            tint = Color(0xFF4CAF50)
+            tint = Color(0xFF4CAF50),
         )
         Spacer(Modifier.height(16.dp))
         Text("Voucher Created!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
@@ -392,14 +421,14 @@ private fun StepSuccess(uiState: CreateVoucherUiState, onBack: () -> Unit) {
                 number,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
         Spacer(Modifier.height(4.dp))
         Text(
             "Your voucher has been saved locally.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(32.dp))
         Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
@@ -409,7 +438,10 @@ private fun StepSuccess(uiState: CreateVoucherUiState, onBack: () -> Unit) {
 }
 
 @Composable
-private fun SummaryRow(label: String, value: String) {
+private fun SummaryRow(
+    label: String,
+    value: String,
+) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)

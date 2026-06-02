@@ -7,15 +7,16 @@ import com.miletracker.core.data.settings.DemoSettingsRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-val coreDataModule = module {
-    single<MileTrackerDatabase> { buildMileTrackerDatabase(androidContext()) }
-    single { get<MileTrackerDatabase>().locationDao() }
-    single { get<MileTrackerDatabase>().savedTrackDao() }
-    single { get<MileTrackerDatabase>().hardwareEventDao() }
-    single { get<MileTrackerDatabase>().logMilesDraftDao() }
-    single { get<MileTrackerDatabase>().logMilesFrequentRouteDao() }
-    single { get<MileTrackerDatabase>().tripAttachmentDao() }
-    single { get<MileTrackerDatabase>().mediaLibraryDao() }
-    single { CurrentTrackDataStore(androidContext()) }
-    single { DemoSettingsRepository(androidContext()) }
-}
+val coreDataModule =
+    module {
+        single<MileTrackerDatabase> { buildMileTrackerDatabase(androidContext()) }
+        single { get<MileTrackerDatabase>().locationDao() }
+        single { get<MileTrackerDatabase>().savedTrackDao() }
+        single { get<MileTrackerDatabase>().hardwareEventDao() }
+        single { get<MileTrackerDatabase>().logMilesDraftDao() }
+        single { get<MileTrackerDatabase>().logMilesFrequentRouteDao() }
+        single { get<MileTrackerDatabase>().tripAttachmentDao() }
+        single { get<MileTrackerDatabase>().mediaLibraryDao() }
+        single { CurrentTrackDataStore(androidContext()) }
+        single { DemoSettingsRepository(androidContext()) }
+    }

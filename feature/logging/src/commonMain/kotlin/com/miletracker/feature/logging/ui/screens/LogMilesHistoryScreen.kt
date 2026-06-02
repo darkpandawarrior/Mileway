@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.theme.DesignTokens
@@ -69,7 +69,7 @@ private enum class HistoryTab { DRAFTS, SUBMITTED }
 fun LogMilesHistoryScreen(
     viewModel: LogMilesViewModel = koinViewModel(),
     onBack: () -> Unit = {},
-    onOpenDraft: (String) -> Unit = {}
+    onOpenDraft: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var tab by remember { mutableStateOf(HistoryTab.DRAFTS) }
@@ -82,15 +82,16 @@ fun LogMilesHistoryScreen(
             draftCount = uiState.drafts.size,
             submittedCount = uiState.submitted.size,
             onSelect = { tab = it },
-            modifier = Modifier.padding(DesignTokens.Spacing.l)
+            modifier = Modifier.padding(DesignTokens.Spacing.l),
         )
 
         when (tab) {
-            HistoryTab.DRAFTS -> DraftsTab(
-                drafts = uiState.drafts,
-                onOpen = onOpenDraft,
-                onDelete = viewModel::deleteDraft
-            )
+            HistoryTab.DRAFTS ->
+                DraftsTab(
+                    drafts = uiState.drafts,
+                    onOpen = onOpenDraft,
+                    onDelete = viewModel::deleteDraft,
+                )
 
             HistoryTab.SUBMITTED -> SubmittedTab(vouchers = uiState.submitted)
         }
@@ -101,32 +102,34 @@ fun LogMilesHistoryScreen(
 private fun HistoryHeader(onBack: () -> Unit) {
     // Gradient banner that owns the status-bar inset exactly once.
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(DesignTokens.topBarGradientBrush())
-            .windowInsetsPadding(WindowInsets.statusBars)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(DesignTokens.topBarGradientBrush())
+                .windowInsetsPadding(WindowInsets.statusBars),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = DesignTokens.Spacing.s,
-                    vertical = DesignTokens.Spacing.m
-                ),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = DesignTokens.Spacing.s,
+                        vertical = DesignTokens.Spacing.m,
+                    ),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = Color.White,
                 )
             }
             Icon(
                 Icons.Filled.ReceiptLong,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(DesignTokens.IconSize.header)
+                modifier = Modifier.size(DesignTokens.IconSize.header),
             )
             Spacer(Modifier.size(DesignTokens.Spacing.m))
             Column {
@@ -134,12 +137,12 @@ private fun HistoryHeader(onBack: () -> Unit) {
                     "Log Miles History",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    color = Color.White,
                 )
                 Text(
                     "Drafts and submitted log miles",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = Color.White.copy(alpha = 0.85f),
                 )
             }
         }
@@ -152,16 +155,17 @@ private fun SegmentedControl(
     draftCount: Int,
     submittedCount: Int,
     onSelect: (HistoryTab) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(50),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-        ),
-        color = MaterialTheme.colorScheme.surface
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            ),
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             SegmentButton(
@@ -169,14 +173,14 @@ private fun SegmentedControl(
                 selected = selected == HistoryTab.DRAFTS,
                 showCheck = selected == HistoryTab.DRAFTS,
                 onClick = { onSelect(HistoryTab.DRAFTS) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             SegmentButton(
                 label = "Submitted ($submittedCount)",
                 selected = selected == HistoryTab.SUBMITTED,
                 showCheck = selected == HistoryTab.SUBMITTED,
                 onClick = { onSelect(HistoryTab.SUBMITTED) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -188,7 +192,7 @@ private fun SegmentButton(
     selected: Boolean,
     showCheck: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val container = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent
     val content = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -196,14 +200,14 @@ private fun SegmentButton(
         Row(
             modifier = Modifier.padding(vertical = DesignTokens.Spacing.m),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showCheck) {
                 Icon(
                     Icons.Filled.Check,
                     contentDescription = null,
                     tint = content,
-                    modifier = Modifier.size(DesignTokens.IconSize.inline)
+                    modifier = Modifier.size(DesignTokens.IconSize.inline),
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.s))
             }
@@ -216,23 +220,24 @@ private fun SegmentButton(
 private fun DraftsTab(
     drafts: List<LogMilesDraftUi>,
     onOpen: (String) -> Unit,
-    onDelete: (String) -> Unit
+    onDelete: (String) -> Unit,
 ) {
     if (drafts.isEmpty()) {
         EmptyState(
             title = "No drafts yet",
-            body = "Start a new log miles journey to save a draft"
+            body = "Start a new log miles journey to save a draft",
         )
         return
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = DesignTokens.Spacing.l,
-            end = DesignTokens.Spacing.l,
-            bottom = DesignTokens.Spacing.xxl
-        ),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        contentPadding =
+            androidx.compose.foundation.layout.PaddingValues(
+                start = DesignTokens.Spacing.l,
+                end = DesignTokens.Spacing.l,
+                bottom = DesignTokens.Spacing.xxl,
+            ),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         items(drafts, key = { it.id }) { draft ->
             DraftCard(draft = draft, onOpen = { onOpen(draft.id) }, onDelete = { onDelete(draft.id) })
@@ -241,25 +246,30 @@ private fun DraftsTab(
 }
 
 @Composable
-private fun DraftCard(draft: LogMilesDraftUi, onOpen: () -> Unit, onDelete: () -> Unit) {
+private fun DraftCard(
+    draft: LogMilesDraftUi,
+    onOpen: () -> Unit,
+    onDelete: () -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
         color = MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-        onClick = onOpen
+        onClick = onOpen,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 Icons.Filled.DirectionsCar,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(DesignTokens.IconSize.header)
+                modifier = Modifier.size(DesignTokens.IconSize.header),
             )
             Spacer(Modifier.size(DesignTokens.Spacing.m))
             Column(modifier = Modifier.weight(1f)) {
@@ -267,25 +277,25 @@ private fun DraftCard(draft: LogMilesDraftUi, onOpen: () -> Unit, onDelete: () -
                     draft.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     "${draft.stopCount} stops · ${draft.distanceKm.formatDecimal(1)} km" +
                         (draft.vehicleName?.let { " · $it" } ?: ""),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     "Updated ${DateUtils.epochToDisplayDate(draft.updatedAtMillis)}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Filled.DeleteOutline,
                     contentDescription = "Delete draft",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -299,18 +309,20 @@ private fun SubmittedTab(vouchers: List<SubmittedVoucher>) {
         return
     }
     // Group by expense day, newest first, with a date header per group.
-    val grouped = vouchers
-        .sortedByDescending { it.expenseDateMillis }
-        .groupBy { dayKey(it.expenseDateMillis) }
+    val grouped =
+        vouchers
+            .sortedByDescending { it.expenseDateMillis }
+            .groupBy { dayKey(it.expenseDateMillis) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = DesignTokens.Spacing.l,
-            end = DesignTokens.Spacing.l,
-            bottom = DesignTokens.Spacing.xxl
-        ),
-        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+        contentPadding =
+            androidx.compose.foundation.layout.PaddingValues(
+                start = DesignTokens.Spacing.l,
+                end = DesignTokens.Spacing.l,
+                bottom = DesignTokens.Spacing.xxl,
+            ),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         grouped.forEach { (_, group) ->
             item(key = "header-${group.first().id}") {
@@ -319,7 +331,7 @@ private fun SubmittedTab(vouchers: List<SubmittedVoucher>) {
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = DesignTokens.Spacing.s)
+                    modifier = Modifier.padding(top = DesignTokens.Spacing.s),
                 )
             }
             items(group, key = { it.id }) { voucher -> VoucherCard(voucher = voucher) }
@@ -333,14 +345,15 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
         color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            if (voucher.violationCount > 0) {
-                DesignTokens.StatusColors.warning.copy(alpha = 0.5f)
-            } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            }
-        )
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                if (voucher.violationCount > 0) {
+                    DesignTokens.StatusColors.warning.copy(alpha = 0.5f)
+                } else {
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                },
+            ),
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -348,7 +361,7 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
                     Icons.Filled.DirectionsCar,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(DesignTokens.IconSize.header)
+                    modifier = Modifier.size(DesignTokens.IconSize.header),
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
                 Column(modifier = Modifier.weight(1f)) {
@@ -356,17 +369,17 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
                         "#${voucher.id}",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         voucher.voucherState,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                     Text(
                         voucher.payment,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -381,7 +394,7 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
                         text = "${voucher.violationCount} Violation${if (voucher.violationCount == 1) "" else "s"}",
                         container = DesignTokens.StatusColors.warning.copy(alpha = 0.15f),
                         content = DesignTokens.StatusColors.warning,
-                        leadingWarning = true
+                        leadingWarning = true,
                     )
                 }
             }
@@ -395,19 +408,19 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
                     "₹ ${voucher.amount.formatDecimal(2)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Pill(
                     text = voucher.serviceTag,
                     container = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                    content = MaterialTheme.colorScheme.primary
+                    content = MaterialTheme.colorScheme.primary,
                 )
             }
 
             Spacer(Modifier.size(DesignTokens.Spacing.m))
             androidx.compose.material3.HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
             )
             Spacer(Modifier.size(DesignTokens.Spacing.m))
 
@@ -415,12 +428,12 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
                 LabelValue(
                     label = "Expense date",
                     value = DateUtils.epochToDisplayDate(voucher.expenseDateMillis),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 LabelValue(
                     label = "Expense Id",
                     value = voucher.expenseId,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
             Spacer(Modifier.size(DesignTokens.Spacing.s))
@@ -428,12 +441,12 @@ private fun VoucherCard(voucher: SubmittedVoucher) {
                 LabelValue(
                     label = "Submitted on",
                     value = DateUtils.epochToDisplayDate(voucher.submittedOnMillis),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 LabelValue(
                     label = "Policy violation",
                     value = if (voucher.violationCount > 0) "${voucher.violationCount}" else "None",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -445,19 +458,19 @@ private fun Pill(
     text: String,
     container: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
     content: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    leadingWarning: Boolean = false
+    leadingWarning: Boolean = false,
 ) {
     Surface(shape = DesignTokens.Shape.chip, color = container) {
         Row(
             modifier = Modifier.padding(horizontal = DesignTokens.Spacing.s, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (leadingWarning) {
                 Icon(
                     Icons.Filled.WarningAmber,
                     contentDescription = null,
                     tint = content,
-                    modifier = Modifier.size(12.dp)
+                    modifier = Modifier.size(12.dp),
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.xs))
             }
@@ -467,38 +480,46 @@ private fun Pill(
 }
 
 @Composable
-private fun LabelValue(label: String, value: String, modifier: Modifier = Modifier) {
+private fun LabelValue(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
 
 @Composable
-private fun EmptyState(title: String, body: String) {
+private fun EmptyState(
+    title: String,
+    body: String,
+) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(DesignTokens.Spacing.xxl),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(DesignTokens.Spacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.size(DesignTokens.Spacing.s))
         Text(
             body,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

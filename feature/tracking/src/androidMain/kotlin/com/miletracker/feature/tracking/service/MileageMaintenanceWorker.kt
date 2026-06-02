@@ -10,9 +10,8 @@ import org.koin.core.component.inject
 /** Runs weekly to purge stale unsynced location rows older than 90 days. */
 class MileageMaintenanceWorker(
     appContext: Context,
-    params: WorkerParameters
+    params: WorkerParameters,
 ) : CoroutineWorker(appContext, params), KoinComponent {
-
     private val locationDao: LocationDao by inject()
 
     override suspend fun doWork(): Result {

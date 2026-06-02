@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class CloudLibraryViewModel(
-    private val repository: MediaLibraryRepository
+    private val repository: MediaLibraryRepository,
 ) : ViewModel() {
-
-    val entries: StateFlow<List<MediaLibraryEntry>> = repository
-        .observeLibrary()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val entries: StateFlow<List<MediaLibraryEntry>> =
+        repository
+            .observeLibrary()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun delete(entry: MediaLibraryEntry) {
         viewModelScope.launch { repository.delete(entry) }

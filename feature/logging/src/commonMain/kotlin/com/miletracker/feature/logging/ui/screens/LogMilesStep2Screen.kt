@@ -18,11 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material3.Button
@@ -37,9 +37,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.components.pickers.WheelDatePickerDialog
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
@@ -56,11 +55,11 @@ import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.logging.ui.components.TravelledLocationsActions
 import com.miletracker.feature.logging.ui.components.TravelledLocationsCard
-import com.miletracker.feature.tracking.ui.components.SubmissionTabChips
 import com.miletracker.feature.logging.ui.dialog.TaggedEmployeesDialog
 import com.miletracker.feature.logging.ui.dialog.ViolationDialog
 import com.miletracker.feature.logging.ui.model.SubmittedVoucherSamples
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
+import com.miletracker.feature.tracking.ui.components.SubmissionTabChips
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -83,7 +82,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun LogMilesStep2Screen(
     viewModel: LogMilesViewModel = koinViewModel(),
     onBack: () -> Unit = {},
-    onSubmitted: () -> Unit = {}
+    onSubmitted: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -117,64 +116,66 @@ fun LogMilesStep2Screen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
             Step2Footer(
                 isSubmitting = uiState.isSubmitting,
                 onBack = onBack,
-                onSubmit = viewModel::submit
+                onSubmit = viewModel::submit,
             )
-        }
+        },
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .imePadding()
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .padding(top = DesignTokens.Spacing.l, bottom = DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .imePadding()
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .padding(top = DesignTokens.Spacing.l, bottom = DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             // Checklist header.
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedMd,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ) {
                 Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             "Step 2 of 2: Expense Details",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             if (remaining == 0) "All set" else "$remaining remaining",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     Spacer(Modifier.size(DesignTokens.Spacing.s))
                     Surface(
                         shape = DesignTokens.Shape.chip,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                     ) {
                         Text(
                             if (remaining == 0) "Ready to submit" else "Complete required fields",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(
-                                horizontal = DesignTokens.Spacing.m,
-                                vertical = DesignTokens.Spacing.s
-                            )
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = DesignTokens.Spacing.m,
+                                    vertical = DesignTokens.Spacing.s,
+                                ),
                         )
                     }
                     Spacer(Modifier.size(DesignTokens.Spacing.m))
@@ -201,17 +202,18 @@ fun LogMilesStep2Screen(
                     amount = uiState.reimbursableAmount,
                     isRoundTrip = uiState.isRoundTrip,
                     compact = true,
-                    actions = TravelledLocationsActions(
-                        onEdit = {},
-                        onRemove = viewModel::removeStop,
-                        onMoveUp = viewModel::moveStopUp,
-                        onMoveDown = viewModel::moveStopDown,
-                        onInsertAfter = {},
-                        onToggleRoundTrip = viewModel::setRoundTrip,
-                        onAddLocation = {},
-                        onUseCurrent = {},
-                        onVerifyDistance = {}
-                    )
+                    actions =
+                        TravelledLocationsActions(
+                            onEdit = {},
+                            onRemove = viewModel::removeStop,
+                            onMoveUp = viewModel::moveStopUp,
+                            onMoveDown = viewModel::moveStopDown,
+                            onInsertAfter = {},
+                            onToggleRoundTrip = viewModel::setRoundTrip,
+                            onAddLocation = {},
+                            onUseCurrent = {},
+                            onVerifyDistance = {},
+                        ),
                 )
             }
 
@@ -235,11 +237,11 @@ fun LogMilesStep2Screen(
                     invoiceDateText = uiState.invoiceDateMillis?.let { DateUtils.epochToDisplayDate(it) },
                     onPickInvoiceDate = { showInvoiceDatePicker = true },
                     note = uiState.logMilesNote,
-                    onNoteChange = viewModel::setLogMilesNote
+                    onNoteChange = viewModel::setLogMilesNote,
                 )
                 TaggedEmployeesCard(
                     taggedCount = uiState.taggedEmployees.size,
-                    onTap = { showEmployeesDialog = true }
+                    onTap = { showEmployeesDialog = true },
                 )
             }
 
@@ -247,7 +249,7 @@ fun LogMilesStep2Screen(
             if (selectedStep2Tab == "Attachments") {
                 AttachmentsCard(
                     attachmentCount = uiState.attachmentCount,
-                    onAdd = viewModel::addAttachment
+                    onAdd = viewModel::addAttachment,
                 )
             }
         }
@@ -275,7 +277,7 @@ fun LogMilesStep2Screen(
                 viewModel.setTaggedEmployees(it)
                 showEmployeesDialog = false
             },
-            onDismiss = { showEmployeesDialog = false }
+            onDismiss = { showEmployeesDialog = false },
         )
     }
 
@@ -286,15 +288,20 @@ fun LogMilesStep2Screen(
                 onAcknowledge = {
                     viewModel.dismissViolationDialog()
                     onSubmitted()
-                }
+                },
             )
         }
     }
 }
 
-private val SERVICE_OPTIONS = listOf(
-    "Client Visit", "Office Travel", "Training", "Medical", "Other"
-)
+private val SERVICE_OPTIONS =
+    listOf(
+        "Client Visit",
+        "Office Travel",
+        "Training",
+        "Medical",
+        "Other",
+    )
 
 @Composable
 private fun ExpenseDetailsSection(
@@ -331,9 +338,10 @@ private fun ExpenseDetailsSection(
                 onClick = { serviceExpanded = true },
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(DesignTokens.Spacing.m),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(DesignTokens.Spacing.m),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -368,9 +376,16 @@ private fun ExpenseDetailsSection(
                         SERVICE_OPTIONS.forEach { svc ->
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                color = if (svc == selectedService) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                                        else androidx.compose.ui.graphics.Color.Transparent,
-                                onClick = { onServiceSelect(svc); serviceExpanded = false },
+                                color =
+                                    if (svc == selectedService) {
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                    } else {
+                                        androidx.compose.ui.graphics.Color.Transparent
+                                    },
+                                onClick = {
+                                    onServiceSelect(svc)
+                                    serviceExpanded = false
+                                },
                             ) {
                                 Text(
                                     svc,
@@ -414,29 +429,29 @@ private fun AdditionalDetailsCard(
     invoiceDateText: String?,
     onPickInvoiceDate: () -> Unit,
     note: String,
-    onNoteChange: (String) -> Unit
+    onNoteChange: (String) -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
                     ) {
                         Icon(
                             Icons.Filled.ReceiptLong,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier.padding(8.dp),
                         )
                     }
                     Spacer(Modifier.size(DesignTokens.Spacing.m))
@@ -445,12 +460,12 @@ private fun AdditionalDetailsCard(
                             "Additional Details (2)",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                         Text(
                             "Required expense fields before submission",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -466,7 +481,7 @@ private fun AdditionalDetailsCard(
                     "Invoice date *",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.s))
                 Surface(
@@ -474,37 +489,39 @@ private fun AdditionalDetailsCard(
                     shape = DesignTokens.Shape.roundedMd,
                     color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
-                    onClick = onPickInvoiceDate
+                    onClick = onPickInvoiceDate,
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(DesignTokens.Spacing.l),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(DesignTokens.Spacing.l),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 Icons.Filled.CalendarMonth,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                                modifier = Modifier.size(DesignTokens.IconSize.navigation),
                             )
                             Spacer(Modifier.size(DesignTokens.Spacing.m))
                             Text(
                                 invoiceDateText ?: "Invoice date",
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = if (invoiceDateText == null) {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                }
+                                color =
+                                    if (invoiceDateText == null) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
                             )
                         }
                         Icon(
                             Icons.Filled.KeyboardArrowDown,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -513,7 +530,7 @@ private fun AdditionalDetailsCard(
                     Text(
                         "Invoice date is required",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
 
@@ -523,7 +540,7 @@ private fun AdditionalDetailsCard(
                     "log miles",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.size(DesignTokens.Spacing.s))
                 OutlinedTextField(
@@ -532,7 +549,7 @@ private fun AdditionalDetailsCard(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("log miles") },
                     minLines = 2,
-                    shape = DesignTokens.Shape.roundedMd
+                    shape = DesignTokens.Shape.roundedMd,
                 )
             }
         }
@@ -540,23 +557,26 @@ private fun AdditionalDetailsCard(
 }
 
 @Composable
-private fun TaggedEmployeesCard(taggedCount: Int, onTap: () -> Unit) {
+private fun TaggedEmployeesCard(
+    taggedCount: Int,
+    onTap: () -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
                 ) {
                     Icon(
                         Icons.Filled.Group,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(8.dp),
                     )
                 }
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
@@ -565,12 +585,12 @@ private fun TaggedEmployeesCard(taggedCount: Int, onTap: () -> Unit) {
                         "Tagged Employees",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
                         "Add teammates linked to this journey",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -579,26 +599,27 @@ private fun TaggedEmployeesCard(taggedCount: Int, onTap: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedMd,
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                onClick = onTap
+                onClick = onTap,
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(DesignTokens.Spacing.l),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(DesignTokens.Spacing.l),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.Filled.PersonAdd,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(DesignTokens.IconSize.navigation)
+                        modifier = Modifier.size(DesignTokens.IconSize.navigation),
                     )
                     Spacer(Modifier.size(DesignTokens.Spacing.s))
                     Text(
                         if (taggedCount == 0) "Tap to add employees" else "$taggedCount tagged · tap to edit",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -607,23 +628,26 @@ private fun TaggedEmployeesCard(taggedCount: Int, onTap: () -> Unit) {
 }
 
 @Composable
-private fun AttachmentsCard(attachmentCount: Int, onAdd: () -> Unit) {
+private fun AttachmentsCard(
+    attachmentCount: Int,
+    onAdd: () -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        color = MaterialTheme.colorScheme.surface
+        color = MaterialTheme.colorScheme.surface,
     ) {
         Column(modifier = Modifier.padding(DesignTokens.Spacing.l)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
                 ) {
                     Icon(
                         Icons.Filled.Add,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(8.dp),
                     )
                 }
                 Spacer(Modifier.size(DesignTokens.Spacing.m))
@@ -631,14 +655,14 @@ private fun AttachmentsCard(attachmentCount: Int, onAdd: () -> Unit) {
                     "Attachments",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             Spacer(Modifier.size(DesignTokens.Spacing.s))
             Text(
                 "Add bills, invoices, docs…",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(Modifier.size(DesignTokens.Spacing.m))
 
@@ -647,31 +671,32 @@ private fun AttachmentsCard(attachmentCount: Int, onAdd: () -> Unit) {
                 shape = DesignTokens.Shape.roundedMd,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                onClick = onAdd
+                onClick = onAdd,
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = DesignTokens.Spacing.xl),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = DesignTokens.Spacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(
                         Icons.Filled.Add,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(DesignTokens.IconSize.header)
+                        modifier = Modifier.size(DesignTokens.IconSize.header),
                     )
                     Spacer(Modifier.size(DesignTokens.Spacing.xs))
                     Text(
                         if (attachmentCount == 0) "Add Receipt" else "$attachmentCount added · Add more",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
                         "Use camera or gallery",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -683,49 +708,52 @@ private fun AttachmentsCard(attachmentCount: Int, onAdd: () -> Unit) {
 private fun Step2Footer(
     isSubmitting: Boolean,
     onBack: () -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
+        tonalElevation = 3.dp,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(DesignTokens.Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(DesignTokens.Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             OutlinedButton(
                 onClick = onBack,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = DesignTokens.Shape.roundedMd
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                shape = DesignTokens.Shape.roundedMd,
             ) { Text("Back") }
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = DesignTokens.Shape.roundedMd,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(DesignTokens.Spacing.m),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(DesignTokens.Spacing.m),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.Filled.Info,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(DesignTokens.IconSize.inline)
+                        modifier = Modifier.size(DesignTokens.IconSize.inline),
                     )
                     Spacer(Modifier.size(DesignTokens.Spacing.s))
                     Text(
                         "Review the filled details before you submit this mileage expense.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -733,17 +761,18 @@ private fun Step2Footer(
             Button(
                 onClick = onSubmit,
                 enabled = !isSubmitting,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = DesignTokens.Shape.roundedMd
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                shape = DesignTokens.Shape.roundedMd,
             ) {
                 if (isSubmitting) {
                     Box(contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 } else {

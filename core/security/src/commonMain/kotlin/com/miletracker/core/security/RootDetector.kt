@@ -6,7 +6,6 @@ package com.miletracker.core.security
  * iOS jailbreak heuristic in iosMain).
  */
 object RootDetector {
-
     data class RootCheckResult(
         val isRooted: Boolean,
         val signals: List<String>,

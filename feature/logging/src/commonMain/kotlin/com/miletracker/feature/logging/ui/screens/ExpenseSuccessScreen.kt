@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
@@ -41,28 +41,29 @@ fun ExpenseSuccessScreen(
     onAddAnother: () -> Unit,
     onViewHistory: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ExpenseViewModel = koinViewModel()
+    viewModel: ExpenseViewModel = koinViewModel(),
 ) {
     val form by viewModel.formState.collectAsState()
     val requiresApproval = form.submittedAmount > 5000.0
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = DesignTokens.Spacing.xl)
-                .navigationBarsPadding(),
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = DesignTokens.Spacing.xl)
+                    .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.CheckCircle,
                 contentDescription = null,
                 tint = Color(0xFF4CAF50),
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(80.dp),
             )
 
             Spacer(Modifier.height(DesignTokens.Spacing.xl))
@@ -71,7 +72,7 @@ fun ExpenseSuccessScreen(
                 text = "Expense Submitted!",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Spacer(Modifier.height(DesignTokens.Spacing.s))
@@ -81,43 +82,43 @@ fun ExpenseSuccessScreen(
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Text(
                 text = "Expense ID: ${form.submittedId}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             if (requiresApproval) {
                 Spacer(Modifier.height(DesignTokens.Spacing.l))
                 Surface(
                     color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = DesignTokens.Shape.roundedMd
+                    shape = DesignTokens.Shape.roundedMd,
                 ) {
                     Column(
                         modifier = Modifier.padding(DesignTokens.Spacing.l),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Warning,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                         Text(
                             text = "Approval Required",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                         Text(
                             text = "This expense exceeds ₹5,000 and has been sent to your manager for approval.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }
@@ -130,7 +131,7 @@ fun ExpenseSuccessScreen(
                     viewModel.resetForm()
                     onAddAnother()
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Add Another Expense")
             }
@@ -139,7 +140,7 @@ fun ExpenseSuccessScreen(
 
             OutlinedButton(
                 onClick = onViewHistory,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("View Expense History")
             }

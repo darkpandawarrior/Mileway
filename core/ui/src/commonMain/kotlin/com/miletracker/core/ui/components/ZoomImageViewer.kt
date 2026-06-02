@@ -72,79 +72,83 @@ fun ZoomImageViewer(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { showControls = !showControls },
-                        onDoubleTap = {
-                            if (scale > MIN_SCALE) {
-                                scale = MIN_SCALE
-                                offset = Offset.Zero
-                            } else {
-                                scale = DOUBLE_TAP_SCALE
-                            }
-                        }
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectTransformGestures(
-                        onGesture = { _, pan, zoom, _ ->
-                            // Apply zoom constraints (min 1x, max 5x)
-                            scale = (scale * zoom).coerceIn(MIN_SCALE, MAX_SCALE)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { showControls = !showControls },
+                            onDoubleTap = {
+                                if (scale > MIN_SCALE) {
+                                    scale = MIN_SCALE
+                                    offset = Offset.Zero
+                                } else {
+                                    scale = DOUBLE_TAP_SCALE
+                                }
+                            },
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectTransformGestures(
+                            onGesture = { _, pan, zoom, _ ->
+                                // Apply zoom constraints (min 1x, max 5x)
+                                scale = (scale * zoom).coerceIn(MIN_SCALE, MAX_SCALE)
 
-                            if (scale > MIN_SCALE) {
-                                // Apply offset, clamped so the image stays within bounds
-                                val maxX = (size.width * (scale - 1f)) / 2f
-                                val maxY = (size.height * (scale - 1f)) / 2f
-                                offset = Offset(
-                                    x = (offset.x + pan.x).coerceIn(-maxX, maxX),
-                                    y = (offset.y + pan.y).coerceIn(-maxY, maxY),
-                                )
-                            } else {
-                                // Reset offset when not zoomed
-                                offset = Offset.Zero
-                            }
+                                if (scale > MIN_SCALE) {
+                                    // Apply offset, clamped so the image stays within bounds
+                                    val maxX = (size.width * (scale - 1f)) / 2f
+                                    val maxY = (size.height * (scale - 1f)) / 2f
+                                    offset =
+                                        Offset(
+                                            x = (offset.x + pan.x).coerceIn(-maxX, maxX),
+                                            y = (offset.y + pan.y).coerceIn(-maxY, maxY),
+                                        )
+                                } else {
+                                    // Reset offset when not zoomed
+                                    offset = Offset.Zero
+                                }
 
-                            // Hide controls during interaction
-                            showControls = false
-                        }
-                    )
-                }
+                                // Hide controls during interaction
+                                showControls = false
+                            },
+                        )
+                    },
         ) {
             // Image with zoom/pan behavior
             Image(
                 painter = painter,
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = offset.x
-                        translationY = offset.y
-                    }
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        },
             )
 
             // Close button with fade in/out effect
             Row(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-                    .alpha(if (showControls) 1f else 0f)
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .alpha(if (showControls) 1f else 0f),
             ) {
                 Surface(
                     modifier = Modifier.size(40.dp),
                     shape = CircleShape,
-                    color = Color.Black.copy(alpha = 0.6f)
+                    color = Color.Black.copy(alpha = 0.6f),
                 ) {
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = Color.White
+                            tint = Color.White,
                         )
                     }
                 }

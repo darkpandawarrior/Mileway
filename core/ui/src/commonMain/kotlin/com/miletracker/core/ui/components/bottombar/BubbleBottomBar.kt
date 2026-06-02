@@ -111,7 +111,10 @@ private fun normalizeAngle(angleDegrees: Float): Float {
     return if (normalized < 0f) normalized + 360f else normalized
 }
 
-private fun angleDistanceDegrees(first: Float, second: Float): Float {
+private fun angleDistanceDegrees(
+    first: Float,
+    second: Float,
+): Float {
     val delta = abs(normalizeAngle(first) - normalizeAngle(second))
     return if (delta > 180f) 360f - delta else delta
 }
@@ -140,7 +143,7 @@ data class BubbleNavItem(
     val unselectedIcon: ImageVector? = null,
     val painter: (@Composable () -> Painter)? = null,
     val badgeCount: Int? = null,
-    val isHome: Boolean = false
+    val isHome: Boolean = false,
 )
 
 /**
@@ -148,15 +151,16 @@ data class BubbleNavItem(
  * The cutout smoothly moves to follow the selected item.
  */
 private class CutoutPillShape(
-    private val cutoutCenterXFraction: Float, // 0f to 1f, position of cutout center
+    // 0f to 1f, position of cutout center
+    private val cutoutCenterXFraction: Float,
     private val cutoutRadius: Dp,
     private val cutoutDepth: Dp,
-    private val cornerRadius: Dp
+    private val cornerRadius: Dp,
 ) : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
+        density: Density,
     ): Outline {
         val cutoutRadiusPx = with(density) { cutoutRadius.toPx() }
         val cutoutDepthPx = with(density) { cutoutDepth.toPx() }
@@ -164,37 +168,45 @@ private class CutoutPillShape(
 
         val cutoutCenterX = size.width * cutoutCenterXFraction
 
-        val path = Path().apply {
-            // Start with the main rounded rectangle
-            addRoundRect(
-                RoundRect(
-                    rect = Rect(0f, 0f, size.width, size.height),
-                    cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
+        val path =
+            Path().apply {
+                // Start with the main rounded rectangle
+                addRoundRect(
+                    RoundRect(
+                        rect = Rect(0f, 0f, size.width, size.height),
+                        cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
+                    ),
                 )
-            )
 
-            // Create the curved cutout at the top
-            val cutoutPath = Path().apply {
-                moveTo(cutoutCenterX - cutoutRadiusPx - cutoutDepthPx, 0f)
-                // Curve down into the cutout (left side)
-                cubicTo(
-                    cutoutCenterX - cutoutRadiusPx, 0f,
-                    cutoutCenterX - cutoutRadiusPx, cutoutDepthPx,
-                    cutoutCenterX, cutoutDepthPx
-                )
-                // Curve up from the cutout (right side)
-                cubicTo(
-                    cutoutCenterX + cutoutRadiusPx, cutoutDepthPx,
-                    cutoutCenterX + cutoutRadiusPx, 0f,
-                    cutoutCenterX + cutoutRadiusPx + cutoutDepthPx, 0f
-                )
-                lineTo(cutoutCenterX - cutoutRadiusPx - cutoutDepthPx, 0f)
-                close()
+                // Create the curved cutout at the top
+                val cutoutPath =
+                    Path().apply {
+                        moveTo(cutoutCenterX - cutoutRadiusPx - cutoutDepthPx, 0f)
+                        // Curve down into the cutout (left side)
+                        cubicTo(
+                            cutoutCenterX - cutoutRadiusPx,
+                            0f,
+                            cutoutCenterX - cutoutRadiusPx,
+                            cutoutDepthPx,
+                            cutoutCenterX,
+                            cutoutDepthPx,
+                        )
+                        // Curve up from the cutout (right side)
+                        cubicTo(
+                            cutoutCenterX + cutoutRadiusPx,
+                            cutoutDepthPx,
+                            cutoutCenterX + cutoutRadiusPx,
+                            0f,
+                            cutoutCenterX + cutoutRadiusPx + cutoutDepthPx,
+                            0f,
+                        )
+                        lineTo(cutoutCenterX - cutoutRadiusPx - cutoutDepthPx, 0f)
+                        close()
+                    }
+
+                // Subtract the cutout from the main shape
+                op(this, cutoutPath, PathOperation.Difference)
             }
-
-            // Subtract the cutout from the main shape
-            op(this, cutoutPath, PathOperation.Difference)
-        }
 
         return Outline.Generic(path)
     }
@@ -236,7 +248,7 @@ fun BubbleBottomBar(
     onCollapseRequested: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     showLabels: Boolean = true,
-    enableDragToSelect: Boolean = true
+    enableDragToSelect: Boolean = true,
 ) {
     val haptics = LocalHapticFeedback.current
     val density = LocalDensity.current
@@ -252,10 +264,11 @@ fun BubbleBottomBar(
     val selectedItem = items.getOrNull(selectedItemIndex)
 
     BoxWithConstraints(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         val screenWidth = maxWidth
         val isCompact = screenWidth < 360.dp
@@ -265,16 +278,18 @@ fun BubbleBottomBar(
         val hasLotsOfItems = items.size >= 6
 
         // Adjust padding and sizes based on item count
-        val barHeight = when {
-            hasLotsOfItems -> if (showLabels) 68.dp else 60.dp
-            else -> if (showLabels) 72.dp else 64.dp
-        }
+        val barHeight =
+            when {
+                hasLotsOfItems -> if (showLabels) 68.dp else 60.dp
+                else -> if (showLabels) 72.dp else 64.dp
+            }
 
-        val fabSize = when {
-            hasLotsOfItems -> if (isCompact) 50.dp else 56.dp
-            isCompact -> 54.dp
-            else -> 60.dp
-        }
+        val fabSize =
+            when {
+                hasLotsOfItems -> if (isCompact) 50.dp else 56.dp
+                isCompact -> 54.dp
+                else -> 60.dp
+            }
 
         val cutoutRadius = fabSize / 2 + 8.dp
         val cutoutDepth = 12.dp
@@ -282,56 +297,62 @@ fun BubbleBottomBar(
         val itemCount = items.size
 
         // Calculate cutout center position based on selected index or drag position
-        val targetCutoutPosition = if (isDragging && hoveredIndex != null) {
-            (hoveredIndex!! + 0.5f) / itemCount
-        } else {
-            (selectedItemIndex + 0.5f) / itemCount
-        }
+        val targetCutoutPosition =
+            if (isDragging && hoveredIndex != null) {
+                (hoveredIndex!! + 0.5f) / itemCount
+            } else {
+                (selectedItemIndex + 0.5f) / itemCount
+            }
 
         // Animate the cutout position with spring animation
         val animatedCutoutPosition by animateFloatAsState(
             targetValue = targetCutoutPosition,
-            animationSpec = spring(
-                dampingRatio = if (isDragging) Spring.DampingRatioLowBouncy else Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessVeryLow
-            ),
-            label = "cutout_position"
+            animationSpec =
+                spring(
+                    dampingRatio = if (isDragging) Spring.DampingRatioLowBouncy else Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessVeryLow,
+                ),
+            label = "cutout_position",
         )
 
         // Calculate FAB offset in dp
-        val fabOffsetX = with(density) {
-            val totalWidthPx = screenWidth.toPx()
-            val centerPx = totalWidthPx / 2
-            val targetPx = totalWidthPx * animatedCutoutPosition
-            (targetPx - centerPx).toDp()
-        }
+        val fabOffsetX =
+            with(density) {
+                val totalWidthPx = screenWidth.toPx()
+                val centerPx = totalWidthPx / 2
+                val targetPx = totalWidthPx * animatedCutoutPosition
+                (targetPx - centerPx).toDp()
+            }
 
         CompositionLocalProvider(LocalItemCount provides items.size) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.BottomCenter
+                contentAlignment = Alignment.BottomCenter,
             ) {
                 // Main pill-shaped bar with animated cutout
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(barHeight),
-                    shape = CutoutPillShape(
-                        cutoutCenterXFraction = animatedCutoutPosition,
-                        cutoutRadius = cutoutRadius,
-                        cutoutDepth = cutoutDepth,
-                        cornerRadius = 36.dp
-                    ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(barHeight),
+                    shape =
+                        CutoutPillShape(
+                            cutoutCenterXFraction = animatedCutoutPosition,
+                            cutoutRadius = cutoutRadius,
+                            cutoutDepth = cutoutDepth,
+                            cornerRadius = 36.dp,
+                        ),
                     color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 12.dp,
-                    tonalElevation = 3.dp
+                    tonalElevation = 3.dp,
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = if (hasLotsOfItems) 2.dp else 4.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = if (hasLotsOfItems) 2.dp else 4.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         items.forEachIndexed { index, item ->
                             val isSelected = selectedItemIndex == index
@@ -353,7 +374,7 @@ fun BubbleBottomBar(
                                     onClick = {
                                         haptics.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         onItemSelected(index)
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -363,11 +384,12 @@ fun BubbleBottomBar(
                 // Floating FAB shows the currently selected item
                 if (selectedItem != null) {
                     DraggableFloatingFab(
-                        currentItem = if (isDragging && hoveredIndex != null) {
-                            items.getOrNull(hoveredIndex!!) ?: selectedItem
-                        } else {
-                            selectedItem
-                        },
+                        currentItem =
+                            if (isDragging && hoveredIndex != null) {
+                                items.getOrNull(hoveredIndex!!) ?: selectedItem
+                            } else {
+                                selectedItem
+                            },
                         fabSize = fabSize,
                         offsetX = fabOffsetX,
                         isDragging = isDragging,
@@ -429,16 +451,18 @@ fun BubbleBottomBar(
                             haptics.performHapticFeedback(HapticFeedbackType.VirtualKey)
                             onItemReselected?.invoke(selectedItemIndex)
                         },
-                        onCollapseClick = collapseAction?.let { action ->
-                            {
-                                haptics.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                action()
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = (-16).dp)
-                            .zIndex(1f)
+                        onCollapseClick =
+                            collapseAction?.let { action ->
+                                {
+                                    haptics.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                    action()
+                                }
+                            },
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = (-16).dp)
+                                .zIndex(1f),
                     )
                 }
             }
@@ -471,7 +495,7 @@ fun DraggableFloatingFab(
     onDragEnd: (thrownUp: Boolean, collapsedDown: Boolean) -> Unit,
     onClick: () -> Unit,
     onCollapseClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -486,112 +510,119 @@ fun DraggableFloatingFab(
     // Scale up slightly when dragging for visual feedback
     val scale by animateFloatAsState(
         targetValue = if (isDragging) 1.25f else 1.1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "fab_scale"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+        label = "fab_scale",
     )
 
     // Increase shadow when dragging
     val shadowElevation by animateDpAsState(
         targetValue = if (isDragging) 24.dp else 16.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "fab_shadow"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "fab_shadow",
     )
 
     // Animate the horizontal offset when not dragging
     val animatedOffsetX by animateDpAsState(
         targetValue = offsetX,
-        animationSpec = spring(
-            dampingRatio = if (isDragging) Spring.DampingRatioLowBouncy else Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessVeryLow
-        ),
-        label = "fab_offset_x"
+        animationSpec =
+            spring(
+                dampingRatio = if (isDragging) Spring.DampingRatioLowBouncy else Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessVeryLow,
+            ),
+        label = "fab_offset_x",
     )
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .offset(x = animatedOffsetX)
-            .offset { IntOffset(currentDragOffset.roundToInt(), 0) }
-            .then(
-                if (enableDragToSelect) {
-                    Modifier.pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = {
-                                currentDragOffset = 0f
-                                cumulativeDragY = 0f
-                                onDragStart()
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                // Track vertical movement for throw-up detection
-                                cumulativeDragY += dragAmount.y
-                                // Apply drag sensitivity for slower, more controlled movement
-                                currentDragOffset += dragAmount.x * dragSensitivity
-                                onDrag(currentDragOffset)
-                            },
-                            onDragEnd = {
-                                val verticalDominant = abs(cumulativeDragY) > abs(currentDragOffset) * 1.2f
-                                // Negative Y = upward drag; positive Y = downward drag
-                                val thrownUp = verticalDominant &&
-                                    cumulativeDragY < -FAB_THROW_UP_THRESHOLD_PX
-                                val collapsedDown = verticalDominant &&
-                                    cumulativeDragY > FAB_COLLAPSE_DOWN_THRESHOLD_PX
-                                currentDragOffset = 0f
-                                cumulativeDragY = 0f
-                                onDragEnd(thrownUp, collapsedDown)
-                            },
-                            onDragCancel = {
-                                currentDragOffset = 0f
-                                cumulativeDragY = 0f
-                                onDragEnd(false, false)
-                            }
-                        )
-                    }
-                } else {
-                    Modifier
-                }
-            )
+        modifier =
+            modifier
+                .offset(x = animatedOffsetX)
+                .offset { IntOffset(currentDragOffset.roundToInt(), 0) }
+                .then(
+                    if (enableDragToSelect) {
+                        Modifier.pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = {
+                                    currentDragOffset = 0f
+                                    cumulativeDragY = 0f
+                                    onDragStart()
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    // Track vertical movement for throw-up detection
+                                    cumulativeDragY += dragAmount.y
+                                    // Apply drag sensitivity for slower, more controlled movement
+                                    currentDragOffset += dragAmount.x * dragSensitivity
+                                    onDrag(currentDragOffset)
+                                },
+                                onDragEnd = {
+                                    val verticalDominant = abs(cumulativeDragY) > abs(currentDragOffset) * 1.2f
+                                    // Negative Y = upward drag; positive Y = downward drag
+                                    val thrownUp =
+                                        verticalDominant &&
+                                            cumulativeDragY < -FAB_THROW_UP_THRESHOLD_PX
+                                    val collapsedDown =
+                                        verticalDominant &&
+                                            cumulativeDragY > FAB_COLLAPSE_DOWN_THRESHOLD_PX
+                                    currentDragOffset = 0f
+                                    cumulativeDragY = 0f
+                                    onDragEnd(thrownUp, collapsedDown)
+                                },
+                                onDragCancel = {
+                                    currentDragOffset = 0f
+                                    cumulativeDragY = 0f
+                                    onDragEnd(false, false)
+                                },
+                            )
+                        }
+                    } else {
+                        Modifier
+                    },
+                ),
     ) {
         BadgedBox(
             badge = {
                 if (currentItem.badgeCount != null && currentItem.badgeCount > 0) {
                     Badge(
                         containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
+                        contentColor = MaterialTheme.colorScheme.onError,
                     ) {
                         Text(
                             text = if (currentItem.badgeCount > 99) "99+" else currentItem.badgeCount.toString(),
                             fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                 }
-            }
+            },
         ) {
             Box(
-                modifier = Modifier
-                    .size(fabSize)
-                    .scale(scale)
-                    .shadow(
-                        elevation = shadowElevation,
-                        shape = CircleShape,
-                        clip = false
-                    )
-                    .clip(CircleShape)
-                    .background(primaryColor)
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = onClick,
-                        enabled = !isDragging
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(fabSize)
+                        .scale(scale)
+                        .shadow(
+                            elevation = shadowElevation,
+                            shape = CircleShape,
+                            clip = false,
+                        )
+                        .clip(CircleShape)
+                        .background(primaryColor)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = onClick,
+                            enabled = !isDragging,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 // Support both ImageVector and painter-slot icons
                 when {
@@ -600,7 +631,7 @@ fun DraggableFloatingFab(
                             imageVector = currentItem.selectedIcon,
                             contentDescription = currentItem.label,
                             modifier = Modifier.size(28.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                     currentItem.painter != null -> {
@@ -609,7 +640,7 @@ fun DraggableFloatingFab(
                             painter = currentItem.painter.invoke(),
                             contentDescription = currentItem.label,
                             modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }
@@ -618,22 +649,23 @@ fun DraggableFloatingFab(
         if (showCollapseAffordance && !isDragging && onCollapseClick != null) {
             Spacer(modifier = Modifier.height(6.dp))
             Box(
-                modifier = Modifier
-                    .size(18.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onCollapseClick
-                    ),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onCollapseClick,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "Collapse bottom navigation",
                     modifier = Modifier.size(12.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -653,30 +685,33 @@ fun CollapsedBottomPuck(
     selectedItemIndex: Int,
     onExpand: () -> Unit,
     onItemSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val haptics = LocalHapticFeedback.current
     val density = LocalDensity.current
     val interactionSource = remember { MutableInteractionSource() }
     val selectedItem = items.getOrNull(selectedItemIndex) ?: return
-    val wheelItemIndexes = remember(items, selectedItemIndex) {
-        items.indices.filter { it != selectedItemIndex }
-    }
-    val wheelItemAngles = remember(wheelItemIndexes) {
-        if (wheelItemIndexes.isEmpty()) {
-            emptyMap()
-        } else {
-            val step = if (wheelItemIndexes.size == 1) {
-                0f
-            } else {
-                (COLLAPSED_WHEEL_END_ANGLE_DEGREES - COLLAPSED_WHEEL_START_ANGLE_DEGREES) /
-                    (wheelItemIndexes.size - 1).toFloat()
-            }
-            wheelItemIndexes.mapIndexed { index, itemIndex ->
-                itemIndex to (COLLAPSED_WHEEL_START_ANGLE_DEGREES + (index * step))
-            }.toMap()
+    val wheelItemIndexes =
+        remember(items, selectedItemIndex) {
+            items.indices.filter { it != selectedItemIndex }
         }
-    }
+    val wheelItemAngles =
+        remember(wheelItemIndexes) {
+            if (wheelItemIndexes.isEmpty()) {
+                emptyMap()
+            } else {
+                val step =
+                    if (wheelItemIndexes.size == 1) {
+                        0f
+                    } else {
+                        (COLLAPSED_WHEEL_END_ANGLE_DEGREES - COLLAPSED_WHEEL_START_ANGLE_DEGREES) /
+                            (wheelItemIndexes.size - 1).toFloat()
+                    }
+                wheelItemIndexes.mapIndexed { index, itemIndex ->
+                    itemIndex to (COLLAPSED_WHEEL_START_ANGLE_DEGREES + (index * step))
+                }.toMap()
+            }
+        }
     val puckSize = 56.dp
     val wheelDiameter = 176.dp
     val wheelRadius = 74.dp
@@ -717,9 +752,10 @@ fun CollapsedBottomPuck(
                 hoveredItemIndex = null
             } else {
                 val angle = normalizeAngle(radiansToDegrees(atan2(deltaY, deltaX)))
-                val nextHoveredIndex = wheelItemAngles.minByOrNull { (_, targetAngle) ->
-                    angleDistanceDegrees(angle, targetAngle)
-                }?.key
+                val nextHoveredIndex =
+                    wheelItemAngles.minByOrNull { (_, targetAngle) ->
+                        angleDistanceDegrees(angle, targetAngle)
+                    }?.key
                 if (nextHoveredIndex != hoveredItemIndex) {
                     hoveredItemIndex = nextHoveredIndex
                     if (nextHoveredIndex != null && nextHoveredIndex != lastHapticItemIndex) {
@@ -731,82 +767,97 @@ fun CollapsedBottomPuck(
         }
     }
     Box(
-        modifier = modifier
-            .navigationBarsPadding()
-            .padding(end = 16.dp, bottom = 16.dp)
-            .size(puckSize),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .navigationBarsPadding()
+                .padding(end = 16.dp, bottom = 16.dp)
+                .size(puckSize),
+        contentAlignment = Alignment.Center,
     ) {
         AnimatedVisibility(
             visible = isWheelVisible && wheelItemIndexes.isNotEmpty(),
-            enter = fadeIn(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            ) + scaleIn(
-                initialScale = 0.65f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessVeryLow
-                )
-            ),
-            exit = fadeOut(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
-            ) + scaleOut(
-                targetScale = 0.75f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
-            ),
-            modifier = Modifier
-                .requiredSize(wheelDiameter)
-                .offset(x = -wheelOffset, y = -wheelOffset)
+            enter =
+                fadeIn(
+                    animationSpec =
+                        spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow,
+                        ),
+                ) +
+                    scaleIn(
+                        initialScale = 0.65f,
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessVeryLow,
+                            ),
+                    ),
+            exit =
+                fadeOut(
+                    animationSpec =
+                        spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                ) +
+                    scaleOut(
+                        targetScale = 0.75f,
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                    ),
+            modifier =
+                Modifier
+                    .requiredSize(wheelDiameter)
+                    .offset(x = -wheelOffset, y = -wheelOffset),
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(wheelDiameter)
-                        .clip(CircleShape)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
+                    modifier =
+                        Modifier
+                            .size(wheelDiameter)
+                            .clip(CircleShape)
+                            .background(
+                                brush =
+                                    Brush.radialGradient(
+                                        colors =
+                                            listOf(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                                Color.Transparent,
+                                            ),
+                                    ),
+                            ),
                 )
                 Canvas(
-                    modifier = Modifier.size((wheelRadius * 2) + 34.dp)
+                    modifier = Modifier.size((wheelRadius * 2) + 34.dp),
                 ) {
                     drawArc(
                         color = wheelArcPrimaryColor,
                         startAngle = COLLAPSED_WHEEL_START_ANGLE_DEGREES,
                         sweepAngle = wheelSweepAngle,
                         useCenter = false,
-                        style = Stroke(
-                            width = 4.dp.toPx(),
-                            cap = StrokeCap.Round
-                        )
+                        style =
+                            Stroke(
+                                width = 4.dp.toPx(),
+                                cap = StrokeCap.Round,
+                            ),
                     )
                     drawArc(
                         color = wheelArcInnerColor,
                         startAngle = COLLAPSED_WHEEL_START_ANGLE_DEGREES + 2f,
                         sweepAngle = wheelSweepAngle - 4f,
                         useCenter = false,
-                        style = Stroke(
-                            width = 2.dp.toPx(),
-                            cap = StrokeCap.Round
-                        )
+                        style =
+                            Stroke(
+                                width = 2.dp.toPx(),
+                                cap = StrokeCap.Round,
+                            ),
                     )
                 }
                 wheelItemIndexes.forEach { itemIndex ->
@@ -818,52 +869,57 @@ fun CollapsedBottomPuck(
                     val isHovered = hoveredItemIndex == itemIndex
                     val chipScale by animateFloatAsState(
                         targetValue = if (isHovered) 1.14f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "collapsed_wheel_chip_scale"
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow,
+                            ),
+                        label = "collapsed_wheel_chip_scale",
                     )
                     Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .offset { IntOffset(x, y) }
-                            .size(if (isHovered) hoveredChipSize else chipSize)
-                            .scale(chipScale)
-                            .clip(CircleShape)
-                            .background(
-                                brush = Brush.radialGradient(
-                                    colors = if (isHovered) {
-                                        listOf(
-                                            MaterialTheme.colorScheme.primary,
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.88f)
-                                        )
-                                    } else {
-                                        listOf(
-                                            MaterialTheme.colorScheme.surface,
-                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.52f)
-                                        )
-                                    }
+                        modifier =
+                            Modifier
+                                .align(Alignment.Center)
+                                .offset { IntOffset(x, y) }
+                                .size(if (isHovered) hoveredChipSize else chipSize)
+                                .scale(chipScale)
+                                .clip(CircleShape)
+                                .background(
+                                    brush =
+                                        Brush.radialGradient(
+                                            colors =
+                                                if (isHovered) {
+                                                    listOf(
+                                                        MaterialTheme.colorScheme.primary,
+                                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.88f),
+                                                    )
+                                                } else {
+                                                    listOf(
+                                                        MaterialTheme.colorScheme.surface,
+                                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.52f),
+                                                    )
+                                                },
+                                        ),
                                 )
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = if (isHovered) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
-                                } else {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-                                },
-                                shape = CircleShape
-                            )
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {
-                                    hoveredItemIndex = itemIndex
-                                    commitSelection()
-                                }
-                            ),
-                        contentAlignment = Alignment.Center
+                                .border(
+                                    width = 1.dp,
+                                    color =
+                                        if (isHovered) {
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                                        } else {
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                                        },
+                                    shape = CircleShape,
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = {
+                                        hoveredItemIndex = itemIndex
+                                        commitSelection()
+                                    },
+                                ),
+                        contentAlignment = Alignment.Center,
                     ) {
                         when {
                             item.selectedIcon != null -> {
@@ -871,11 +927,12 @@ fun CollapsedBottomPuck(
                                     imageVector = item.selectedIcon,
                                     contentDescription = "Switch to ${item.label}",
                                     modifier = Modifier.size(if (isHovered) 22.dp else 19.dp),
-                                    tint = if (isHovered) {
-                                        MaterialTheme.colorScheme.onPrimary
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    }
+                                    tint =
+                                        if (isHovered) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.primary
+                                        },
                                 )
                             }
                             item.painter != null -> {
@@ -883,11 +940,12 @@ fun CollapsedBottomPuck(
                                     painter = item.painter.invoke(),
                                     contentDescription = "Switch to ${item.label}",
                                     modifier = Modifier.size(if (isHovered) 24.dp else 20.dp),
-                                    tint = if (isHovered) {
-                                        MaterialTheme.colorScheme.onPrimary
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    }
+                                    tint =
+                                        if (isHovered) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.primary
+                                        },
                                 )
                             }
                         }
@@ -896,77 +954,83 @@ fun CollapsedBottomPuck(
             }
         }
         Surface(
-            modifier = Modifier
-                .size(puckSize)
-                .pointerInput(wheelItemIndexes, wheelItemAngles, selectedItemIndex) {
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = { dragStartOffset ->
-                            if (wheelItemIndexes.isEmpty()) return@detectDragGesturesAfterLongPress
-                            isWheelVisible = true
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            updateHoveredSelection(dragStartOffset.x, dragStartOffset.y)
-                        },
-                        onDrag = { change, _ ->
-                            if (!isWheelVisible) return@detectDragGesturesAfterLongPress
-                            change.consume()
-                            updateHoveredSelection(change.position.x, change.position.y)
-                        },
-                        onDragEnd = {
+            modifier =
+                Modifier
+                    .size(puckSize)
+                    .pointerInput(wheelItemIndexes, wheelItemAngles, selectedItemIndex) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { dragStartOffset ->
+                                if (wheelItemIndexes.isEmpty()) return@detectDragGesturesAfterLongPress
+                                isWheelVisible = true
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                updateHoveredSelection(dragStartOffset.x, dragStartOffset.y)
+                            },
+                            onDrag = { change, _ ->
+                                if (!isWheelVisible) return@detectDragGesturesAfterLongPress
+                                change.consume()
+                                updateHoveredSelection(change.position.x, change.position.y)
+                            },
+                            onDragEnd = {
+                                if (isWheelVisible) {
+                                    commitSelection()
+                                }
+                            },
+                            onDragCancel = {
+                                closeWheel()
+                            },
+                        )
+                    }
+                    .combinedClickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = {
                             if (isWheelVisible) {
-                                commitSelection()
+                                closeWheel()
+                            } else {
+                                onExpand()
                             }
                         },
-                        onDragCancel = {
-                            closeWheel()
-                        }
-                    )
-                }
-                .combinedClickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = {
-                        if (isWheelVisible) {
-                            closeWheel()
-                        } else {
-                            onExpand()
-                        }
-                    },
-                    onLongClick = {
-                        if (wheelItemIndexes.isNotEmpty()) {
-                            isWheelVisible = true
-                            hoveredItemIndex = null
-                            lastHapticItemIndex = -1
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        }
-                    }
-                ),
+                        onLongClick = {
+                            if (wheelItemIndexes.isNotEmpty()) {
+                                isWheelVisible = true
+                                hoveredItemIndex = null
+                                lastHapticItemIndex = -1
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                        },
+                    ),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = if (isWheelVisible) 20.dp else 14.dp,
             tonalElevation = 2.dp,
-            border = BorderStroke(
-                width = if (isWheelVisible) 2.dp else 1.dp,
-                color = MaterialTheme.colorScheme.primary.copy(
-                    alpha = if (isWheelVisible) 0.62f else 0.34f
-                )
-            )
+            border =
+                BorderStroke(
+                    width = if (isWheelVisible) 2.dp else 1.dp,
+                    color =
+                        MaterialTheme.colorScheme.primary.copy(
+                            alpha = if (isWheelVisible) 0.62f else 0.34f,
+                        ),
+                ),
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
-                                    MaterialTheme.colorScheme.primary
-                                )
-                            )
-                        )
+                    modifier =
+                        Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(
+                                brush =
+                                    Brush.radialGradient(
+                                        colors =
+                                            listOf(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
+                                                MaterialTheme.colorScheme.primary,
+                                            ),
+                                    ),
+                            ),
                 )
                 when {
                     selectedItem.selectedIcon != null -> {
@@ -974,7 +1038,7 @@ fun CollapsedBottomPuck(
                             imageVector = selectedItem.selectedIcon,
                             contentDescription = "Collapsed navigation for ${selectedItem.label}",
                             modifier = Modifier.size(26.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                     selectedItem.painter != null -> {
@@ -982,7 +1046,7 @@ fun CollapsedBottomPuck(
                             painter = selectedItem.painter.invoke(),
                             contentDescription = "Collapsed navigation for ${selectedItem.label}",
                             modifier = Modifier.size(34.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }
@@ -1001,7 +1065,7 @@ fun DynamicNavItem(
     showLabel: Boolean,
     isCompact: Boolean,
     isHovered: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -1012,65 +1076,81 @@ fun DynamicNavItem(
 
     // Animate icon scale - scale up when hovered during drag
     val iconScale by animateFloatAsState(
-        targetValue = when {
-            isHovered -> 1.15f
-            isSelected -> if (hasLotsOfItems) 1.15f else 1.2f
-            else -> 1f
-        },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "icon_scale"
+        targetValue =
+            when {
+                isHovered -> 1.15f
+                isSelected -> if (hasLotsOfItems) 1.15f else 1.2f
+                else -> 1f
+            },
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "icon_scale",
     )
 
     // Animate dot size
     val dotSize by animateDpAsState(
-        targetValue = if (isSelected) if (hasLotsOfItems) 4.dp else 6.dp else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "dot_size"
+        targetValue =
+            if (isSelected) {
+                if (hasLotsOfItems) {
+                    4.dp
+                } else {
+                    6.dp
+                }
+            } else {
+                0.dp
+            },
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "dot_size",
     )
 
     // Animate icon alpha when hovered
     val iconAlpha by animateFloatAsState(
         targetValue = if (isHovered) 0.6f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "icon_alpha"
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessLow,
+            ),
+        label = "icon_alpha",
     )
 
     // Adjust sizes based on number of items
-    val iconSize = when {
-        hasLotsOfItems -> if (isCompact) 22.dp else 24.dp
-        isCompact -> 24.dp
-        else -> 26.dp
-    }
+    val iconSize =
+        when {
+            hasLotsOfItems -> if (isCompact) 22.dp else 24.dp
+            isCompact -> 24.dp
+            else -> 26.dp
+        }
 
     // Make items narrower when we have many
-    val itemWidth = when {
-        hasLotsOfItems -> if (isCompact) 46.dp else 52.dp
-        isCompact -> 52.dp
-        else -> 60.dp
-    }
+    val itemWidth =
+        when {
+            hasLotsOfItems -> if (isCompact) 46.dp else 52.dp
+            isCompact -> 52.dp
+            else -> 60.dp
+        }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-            .padding(
-                horizontal = if (hasLotsOfItems) 1.dp else 2.dp,
-                vertical = if (hasLotsOfItems) 5.dp else 6.dp
-            )
-            .width(itemWidth)
+        modifier =
+            Modifier
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onClick,
+                )
+                .padding(
+                    horizontal = if (hasLotsOfItems) 1.dp else 2.dp,
+                    vertical = if (hasLotsOfItems) 5.dp else 6.dp,
+                )
+                .width(itemWidth),
     ) {
         BadgedBox(
             badge = {
@@ -1078,16 +1158,16 @@ fun DynamicNavItem(
                     Badge(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError,
-                        modifier = Modifier.offset(x = (-2).dp, y = 2.dp)
+                        modifier = Modifier.offset(x = (-2).dp, y = 2.dp),
                     ) {
                         Text(
                             text = if (item.badgeCount > 99) "99+" else item.badgeCount.toString(),
                             fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                 }
-            }
+            },
         ) {
             // Support both ImageVector and painter-slot icons
             when {
@@ -1095,34 +1175,38 @@ fun DynamicNavItem(
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = item.label,
-                        modifier = Modifier
-                            .size(iconSize)
-                            .scale(iconScale)
-                            .graphicsLayer {
-                                alpha = iconAlpha
+                        modifier =
+                            Modifier
+                                .size(iconSize)
+                                .scale(iconScale)
+                                .graphicsLayer {
+                                    alpha = iconAlpha
+                                },
+                        tint =
+                            if (isSelected || isHovered) {
+                                primaryColor
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             },
-                        tint = if (isSelected || isHovered) {
-                            primaryColor
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
                     )
                 }
                 item.painter != null -> {
                     Icon(
                         painter = item.painter.invoke(),
                         contentDescription = item.label,
-                        modifier = Modifier
-                            .size(iconSize)
-                            .scale(iconScale)
-                            .graphicsLayer {
-                                alpha = iconAlpha
+                        modifier =
+                            Modifier
+                                .size(iconSize)
+                                .scale(iconScale)
+                                .graphicsLayer {
+                                    alpha = iconAlpha
+                                },
+                        tint =
+                            if (isSelected || isHovered) {
+                                primaryColor
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             },
-                        tint = if (isSelected || isHovered) {
-                            primaryColor
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
                     )
                 }
             }
@@ -1133,30 +1217,33 @@ fun DynamicNavItem(
 
             Text(
                 text = item.label,
-                fontSize = when {
-                    hasLotsOfItems -> if (isCompact) 8.sp else 9.sp
-                    isCompact -> 9.sp
-                    else -> 10.sp
-                },
+                fontSize =
+                    when {
+                        hasLotsOfItems -> if (isCompact) 8.sp else 9.sp
+                        isCompact -> 9.sp
+                        else -> 10.sp
+                    },
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected || isHovered) {
-                    primaryColor.copy(alpha = if (isHovered) 0.6f else 1f)
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                },
+                color =
+                    if (isSelected || isHovered) {
+                        primaryColor.copy(alpha = if (isHovered) 0.6f else 1f)
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.height(2.dp))
 
             // Animated dot indicator
             Box(
-                modifier = Modifier
-                    .size(dotSize)
-                    .clip(CircleShape)
-                    .background(primaryColor)
+                modifier =
+                    Modifier
+                        .size(dotSize)
+                        .clip(CircleShape)
+                        .background(primaryColor),
             )
         }
     }

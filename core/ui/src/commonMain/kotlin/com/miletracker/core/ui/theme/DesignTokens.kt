@@ -126,11 +126,11 @@ object DesignTokens {
      * Prefer these over the loose top-level constants in Color.kt.
      */
     object StatusColors {
-        val success = Color(0xFF22C55E)    // Green - approved, active, completed
-        val warning = Color(0xFFF59E0B)    // Amber - pending, low balance
-        val error = Color(0xFFEF4444)      // Red - rejected, critical, overdue
-        val info = Color(0xFF3B82F6)       // Blue - informational, processing
-        val neutral = Color(0xFF6B7280)    // Gray - draft, inactive
+        val success = Color(0xFF22C55E) // Green - approved, active, completed
+        val warning = Color(0xFFF59E0B) // Amber - pending, low balance
+        val error = Color(0xFFEF4444) // Red - rejected, critical, overdue
+        val info = Color(0xFF3B82F6) // Blue - informational, processing
+        val neutral = Color(0xFF6B7280) // Gray - draft, inactive
 
         /** Badge background color for counts */
         val badgeRed = Color(0xFFDC2626)
@@ -152,7 +152,7 @@ object DesignTokens {
         ROOT,
         LEVEL_1,
         LEVEL_2,
-        LEVEL_3_PLUS
+        LEVEL_3_PLUS,
     }
 
     /**
@@ -168,10 +168,12 @@ object DesignTokens {
         val secondary = colorScheme.secondary
         val primaryContainer = colorScheme.primaryContainer
 
-        val end = if (isLight)
-            lerpColor(secondary, primaryContainer, 0.25f)
-        else
-            secondary
+        val end =
+            if (isLight) {
+                lerpColor(secondary, primaryContainer, 0.25f)
+            } else {
+                secondary
+            }
 
         return Brush.horizontalGradient(listOf(primary, end))
     }
@@ -221,7 +223,7 @@ object DesignTokens {
             useGradient = shouldUseGradient(depth),
             containerColor = topBarContainerColor(depth),
             gradientBrush = if (shouldUseGradient(depth)) topBarGradientBrush() else null,
-            textColors = topBarTextColors(depth)
+            textColors = topBarTextColors(depth),
         )
     }
 
@@ -230,7 +232,7 @@ object DesignTokens {
         val useGradient: Boolean,
         val containerColor: Color,
         val gradientBrush: Brush?,
-        val textColors: TopBarTextColors
+        val textColors: TopBarTextColors,
     )
 
     /**
@@ -242,29 +244,33 @@ object DesignTokens {
         val colorScheme = MaterialTheme.colorScheme
 
         return when (depth) {
-            NavigationDepth.ROOT -> TopBarTextColors(
-                titleColor = Color.White,
-                subtitleColor = Color.White.copy(alpha = 0.85f),
-                iconColor = Color.White
-            )
-            NavigationDepth.LEVEL_1 -> TopBarTextColors(
-                titleColor = colorScheme.onSecondary,
-                subtitleColor = colorScheme.onSecondary.copy(alpha = 0.8f),
-                iconColor = colorScheme.onSecondary
-            )
+            NavigationDepth.ROOT ->
+                TopBarTextColors(
+                    titleColor = Color.White,
+                    subtitleColor = Color.White.copy(alpha = 0.85f),
+                    iconColor = Color.White,
+                )
+            NavigationDepth.LEVEL_1 ->
+                TopBarTextColors(
+                    titleColor = colorScheme.onSecondary,
+                    subtitleColor = colorScheme.onSecondary.copy(alpha = 0.8f),
+                    iconColor = colorScheme.onSecondary,
+                )
             NavigationDepth.LEVEL_2,
-            NavigationDepth.LEVEL_3_PLUS -> TopBarTextColors(
-                titleColor = colorScheme.onSurface,
-                subtitleColor = colorScheme.onSurfaceVariant,
-                iconColor = colorScheme.onSurface
-            )
+            NavigationDepth.LEVEL_3_PLUS,
+            ->
+                TopBarTextColors(
+                    titleColor = colorScheme.onSurface,
+                    subtitleColor = colorScheme.onSurfaceVariant,
+                    iconColor = colorScheme.onSurface,
+                )
         }
     }
 
     data class TopBarTextColors(
         val titleColor: Color,
         val subtitleColor: Color,
-        val iconColor: Color
+        val iconColor: Color,
     )
 }
 
@@ -274,7 +280,11 @@ private fun androidx.compose.material3.ColorScheme.isLight(): Boolean {
 }
 
 /** Linear interpolate two colors (ARGB). */
-private fun lerpColor(start: Color, end: Color, fraction: Float): Color {
+private fun lerpColor(
+    start: Color,
+    end: Color,
+    fraction: Float,
+): Color {
     val a = start.alpha + (end.alpha - start.alpha) * fraction
     val r = start.red + (end.red - start.red) * fraction
     val g = start.green + (end.green - start.green) * fraction
@@ -285,8 +295,11 @@ private fun lerpColor(start: Color, end: Color, fraction: Float): Color {
 /** Compute relative luminance roughly for the light/dark heuristic. */
 private fun Color.luminance(): Float {
     fun channel(c: Float): Float {
-        return if (c <= 0.03928f) c / 12.92f
-        else ((c + 0.055f) / 1.055f).toDouble().pow(2.4).toFloat()
+        return if (c <= 0.03928f) {
+            c / 12.92f
+        } else {
+            ((c + 0.055f) / 1.055f).toDouble().pow(2.4).toFloat()
+        }
     }
     return 0.2126f * channel(this.red) + 0.7152f * channel(this.green) + 0.0722f * channel(this.blue)
 }

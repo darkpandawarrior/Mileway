@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 package com.miletracker.feature.profile.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,13 +43,12 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
+import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import com.miletracker.core.common.formatDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +56,7 @@ fun AskAdvanceFormScreen(
     onBack: () -> Unit,
     onSubmitted: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AdvanceViewModel = koinViewModel()
+    viewModel: AdvanceViewModel = koinViewModel(),
 ) {
     val form by viewModel.formState.collectAsState()
 
@@ -66,7 +68,7 @@ fun AskAdvanceFormScreen(
             onDone = {
                 viewModel.resetForm()
                 onBack()
-            }
+            },
         )
         return
     }
@@ -86,47 +88,53 @@ fun AskAdvanceFormScreen(
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
             )
         },
         bottomBar = {
             Surface(shadowElevation = 8.dp) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
                 ) {
-                    val enabled = when (form.step) {
-                        1 -> form.amountText.isNotBlank() && form.purpose.isNotBlank() && form.requiredByDate.isNotBlank()
-                        2 -> true
-                        3 -> form.declarationChecked
-                        else -> false
-                    }
+                    val enabled =
+                        when (form.step) {
+                            1 -> form.amountText.isNotBlank() && form.purpose.isNotBlank() && form.requiredByDate.isNotBlank()
+                            2 -> true
+                            3 -> form.declarationChecked
+                            else -> false
+                        }
                     Button(
                         onClick = {
-                            if (form.step < 3) viewModel.goToStep(form.step + 1)
-                            else viewModel.submitAdvance()
+                            if (form.step < 3) {
+                                viewModel.goToStep(form.step + 1)
+                            } else {
+                                viewModel.submitAdvance()
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = enabled
+                        enabled = enabled,
                     ) {
                         Text(if (form.step == 3) "Submit Advance Request" else "Continue")
                     }
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = DesignTokens.Spacing.l)
-                .imePadding()
-                .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = DesignTokens.Spacing.l)
+                    .imePadding()
+                    .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.l),
         ) {
             Spacer(Modifier.height(DesignTokens.Spacing.s))
 
@@ -141,20 +149,20 @@ fun AskAdvanceFormScreen(
                         prefix = { Text("₹") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
 
                     val amount = form.amountText.toDoubleOrNull() ?: 0.0
                     if (amount >= 10_000.0) {
                         Surface(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
-                            shape = DesignTokens.Shape.roundedSm
+                            shape = DesignTokens.Shape.roundedSm,
                         ) {
                             Text(
                                 "Advances ≥ ₹10,000 require manager approval (1–2 business days).",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(DesignTokens.Spacing.m)
+                                modifier = Modifier.padding(DesignTokens.Spacing.m),
                             )
                         }
                     }
@@ -167,7 +175,7 @@ fun AskAdvanceFormScreen(
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         minLines = 2,
                         maxLines = 4,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
 
                     OutlinedTextField(
@@ -176,7 +184,7 @@ fun AskAdvanceFormScreen(
                         label = { Text("Required By Date") },
                         placeholder = { Text("e.g. 2024-02-15") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
 
@@ -185,22 +193,28 @@ fun AskAdvanceFormScreen(
 
                     Surface(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        shape = DesignTokens.Shape.roundedMd
+                        shape = DesignTokens.Shape.roundedMd,
                     ) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(DesignTokens.Spacing.xl),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(DesignTokens.Spacing.xl),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                            verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.CheckCircle,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                modifier = Modifier.size(48.dp)
+                                modifier = Modifier.size(48.dp),
                             )
-                            Text("No documents required for amounts below ₹25,000 (illustrative)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                            Text(
+                                "No documents required for amounts below ₹25,000 (illustrative)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
                         }
                     }
                 }
@@ -210,23 +224,23 @@ fun AskAdvanceFormScreen(
 
                     Surface(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                        shape = DesignTokens.Shape.roundedMd
+                        shape = DesignTokens.Shape.roundedMd,
                     ) {
                         Text(
                             "I hereby declare that the advance requested is for official purposes only, and I will submit proper receipts and expense claims within 7 working days of the expenditure.",
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(DesignTokens.Spacing.l)
+                            modifier = Modifier.padding(DesignTokens.Spacing.l),
                         )
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)
+                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
                     ) {
                         Checkbox(
                             checked = form.declarationChecked,
-                            onCheckedChange = viewModel::setDeclaration
+                            onCheckedChange = viewModel::setDeclaration,
                         )
                         Text("I agree to the above declaration", style = MaterialTheme.typography.bodyMedium)
                     }
@@ -243,27 +257,28 @@ private fun AdvanceSuccessContent(
     id: String,
     amount: Double,
     autoApproved: Boolean,
-    onDone: () -> Unit
+    onDone: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = if (autoApproved) Icons.Filled.CheckCircle else Icons.Filled.HourglassBottom,
             contentDescription = null,
             tint = if (autoApproved) Color(0xFF4CAF50) else Color(0xFFF59E0B),
-            modifier = Modifier.size(80.dp)
+            modifier = Modifier.size(80.dp),
         )
         Spacer(Modifier.height(24.dp))
         Text(
             text = if (autoApproved) "Advance Approved!" else "Request Submitted",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(8.dp))
         Text(
@@ -271,23 +286,25 @@ private fun AdvanceSuccessContent(
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Text(
             text = "Request ID: $id",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (autoApproved)
-                "Amount < ₹10,000 — auto-approved. Disbursement within 24 hours."
-            else
-                "Amount ≥ ₹10,000 — under manager review. Expected decision in 1–2 business days.",
+            text =
+                if (autoApproved) {
+                    "Amount < ₹10,000 — auto-approved. Disbursement within 24 hours."
+                } else {
+                    "Amount ≥ ₹10,000 — under manager review. Expected decision in 1–2 business days."
+                },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(32.dp))
         Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) {

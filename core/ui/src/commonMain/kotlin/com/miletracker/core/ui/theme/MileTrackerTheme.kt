@@ -34,26 +34,30 @@ fun MileTrackerTheme(
     customSeedHex: String = ThemeDefaults.CUSTOM_THEME,
     useSystemColors: Boolean = ThemeDefaults.USE_SYSTEM_COLORS,
     paletteStyle: String = ThemeDefaults.PALETTE_STYLE,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val seedColor = parseHexColor(customSeedHex)
-        ?: parseHexColor(palette.seedHex)
-        ?: Color(0xFF6367FA)
+    val seedColor =
+        parseHexColor(customSeedHex)
+            ?: parseHexColor(palette.seedHex)
+            ?: Color(0xFF6367FA)
 
-    val style = remember(paletteStyle) {
-        PaletteStyle.entries.firstOrNull { it.name == paletteStyle } ?: PaletteStyle.TonalSpot
-    }
+    val style =
+        remember(paletteStyle) {
+            PaletteStyle.entries.firstOrNull { it.name == paletteStyle } ?: PaletteStyle.TonalSpot
+        }
 
-    val generatedScheme = rememberDynamicColorScheme(
-        seedColor = seedColor,
-        isDark = darkTheme,
-        style = style,
-    )
-    val colorScheme = if (useSystemColors) {
-        systemDynamicColorScheme(darkTheme) ?: generatedScheme
-    } else {
-        generatedScheme
-    }
+    val generatedScheme =
+        rememberDynamicColorScheme(
+            seedColor = seedColor,
+            isDark = darkTheme,
+            style = style,
+        )
+    val colorScheme =
+        if (useSystemColors) {
+            systemDynamicColorScheme(darkTheme) ?: generatedScheme
+        } else {
+            generatedScheme
+        }
 
     MaterialTheme(
         colorScheme = colorScheme,

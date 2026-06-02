@@ -1,6 +1,5 @@
 package com.miletracker.feature.approvals.ui.sheets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,11 +50,12 @@ fun SeekClarificationSheet(
         sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .imePadding()
-                .padding(horizontal = 16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 16.dp),
         ) {
             Text(
                 text = "Seek Clarification",
@@ -67,9 +67,10 @@ fun SeekClarificationSheet(
             Spacer(Modifier.height(8.dp))
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(240.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(thread, key = { it.timestampMs }) { msg ->
@@ -99,9 +100,16 @@ fun SeekClarificationSheet(
                     enabled = draftMessage.isNotBlank(),
                     modifier = Modifier.size(48.dp),
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send",
-                        tint = if (draftMessage.isNotBlank()) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                        tint =
+                            if (draftMessage.isNotBlank()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                    )
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -114,16 +122,23 @@ private fun ChatBubble(message: ClarificationMessage) {
     val isApprover = !message.isFromRequester
     Box(modifier = Modifier.fillMaxWidth()) {
         Surface(
-            shape = RoundedCornerShape(
-                topStart = 12.dp, topEnd = 12.dp,
-                bottomStart = if (isApprover) 2.dp else 12.dp,
-                bottomEnd = if (isApprover) 12.dp else 2.dp,
-            ),
-            color = if (isApprover) Color(0xFF1AB090).copy(alpha = 0.15f)
-            else MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier
-                .align(if (isApprover) Alignment.CenterEnd else Alignment.CenterStart)
-                .fillMaxWidth(0.78f),
+            shape =
+                RoundedCornerShape(
+                    topStart = 12.dp,
+                    topEnd = 12.dp,
+                    bottomStart = if (isApprover) 2.dp else 12.dp,
+                    bottomEnd = if (isApprover) 12.dp else 2.dp,
+                ),
+            color =
+                if (isApprover) {
+                    Color(0xFF1AB090).copy(alpha = 0.15f)
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
+            modifier =
+                Modifier
+                    .align(if (isApprover) Alignment.CenterEnd else Alignment.CenterStart)
+                    .fillMaxWidth(0.78f),
         ) {
             Text(
                 text = message.text,

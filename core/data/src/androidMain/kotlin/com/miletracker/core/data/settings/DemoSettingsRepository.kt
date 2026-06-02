@@ -14,32 +14,36 @@ data class DemoSettings(
     val simulateOffline: Boolean = false,
     val biometricGuardEnabled: Boolean = false,
     val simulateGpsDrift: Boolean = false,
-    val autoDiscardEnabled: Boolean = false
+    val autoDiscardEnabled: Boolean = false,
 )
 
 class DemoSettingsRepository(private val context: Context) {
+    private val simulateRootKey = booleanPreferencesKey("demo_simulate_root")
+    private val simulateOfflineKey = booleanPreferencesKey("demo_simulate_offline")
+    private val biometricGuardKey = booleanPreferencesKey("demo_biometric_guard")
+    private val gpsDriftKey = booleanPreferencesKey("demo_simulate_gps_drift")
+    private val autoDiscardKey = booleanPreferencesKey("demo_auto_discard")
 
-    private val SIMULATE_ROOT = booleanPreferencesKey("demo_simulate_root")
-    private val SIMULATE_OFFLINE = booleanPreferencesKey("demo_simulate_offline")
-    private val BIOMETRIC_GUARD = booleanPreferencesKey("demo_biometric_guard")
-    private val GPS_DRIFT = booleanPreferencesKey("demo_simulate_gps_drift")
-    private val AUTO_DISCARD = booleanPreferencesKey("demo_auto_discard")
+    val settings: Flow<DemoSettings> =
+        context.demoSettingsDataStore.data.map { prefs ->
+            DemoSettings(
+                simulateRoot = prefs[simulateRootKey] ?: false,
+                simulateOffline = prefs[simulateOfflineKey] ?: false,
+                biometricGuardEnabled = prefs[biometricGuardKey] ?: false,
+                simulateGpsDrift = prefs[gpsDriftKey] ?: false,
+                autoDiscardEnabled = prefs[autoDiscardKey] ?: false,
+            )
+        }
 
-    val settings: Flow<DemoSettings> = context.demoSettingsDataStore.data.map { prefs ->
-        DemoSettings(
-            simulateRoot = prefs[SIMULATE_ROOT] ?: false,
-            simulateOffline = prefs[SIMULATE_OFFLINE] ?: false,
-            biometricGuardEnabled = prefs[BIOMETRIC_GUARD] ?: false,
-            simulateGpsDrift = prefs[GPS_DRIFT] ?: false,
-            autoDiscardEnabled = prefs[AUTO_DISCARD] ?: false
-        )
-    }
+    suspend fun toggleSimulateRoot() = toggle(simulateRootKey)
 
-    suspend fun toggleSimulateRoot() = toggle(SIMULATE_ROOT)
-    suspend fun toggleSimulateOffline() = toggle(SIMULATE_OFFLINE)
-    suspend fun toggleBiometricGuard() = toggle(BIOMETRIC_GUARD)
-    suspend fun toggleGpsDrift() = toggle(GPS_DRIFT)
-    suspend fun toggleAutoDiscard() = toggle(AUTO_DISCARD)
+    suspend fun toggleSimulateOffline() = toggle(simulateOfflineKey)
+
+    suspend fun toggleBiometricGuard() = toggle(biometricGuardKey)
+
+    suspend fun toggleGpsDrift() = toggle(gpsDriftKey)
+
+    suspend fun toggleAutoDiscard() = toggle(autoDiscardKey)
 
     private suspend fun toggle(key: androidx.datastore.preferences.core.Preferences.Key<Boolean>) {
         context.demoSettingsDataStore.edit { prefs -> prefs[key] = !(prefs[key] ?: false) }

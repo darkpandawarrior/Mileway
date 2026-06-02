@@ -8,10 +8,11 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import platform.Foundation.NSTemporaryDirectory
 
-actual val coreUiPlatformModule: Module = module {
-    single<DataStore<Preferences>> {
-        PreferenceDataStoreFactory.createWithPath(
-            produceFile = { (NSTemporaryDirectory() + "theme_prefs.preferences_pb").toPath() }
-        )
+actual val coreUiPlatformModule: Module =
+    module {
+        single<DataStore<Preferences>> {
+            PreferenceDataStoreFactory.createWithPath(
+                produceFile = { (NSTemporaryDirectory() + "theme_prefs.preferences_pb").toPath() },
+            )
+        }
     }
-}

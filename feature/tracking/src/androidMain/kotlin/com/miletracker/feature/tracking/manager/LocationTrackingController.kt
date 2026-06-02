@@ -10,17 +10,24 @@ import com.miletracker.feature.tracking.service.LocationTrackingService
  * Intent/Context plumbing directly. Held as a Koin singleton with the application context.
  */
 class LocationTrackingController(private val context: Context) {
-
     fun start(token: String) = send(LocationTrackingService.ACTION_START, token, foreground = true)
+
     fun pause(token: String) = send(LocationTrackingService.ACTION_PAUSE, token)
+
     fun resume(token: String) = send(LocationTrackingService.ACTION_RESUME, token)
+
     fun stop(token: String) = send(LocationTrackingService.ACTION_STOP, token)
 
-    private fun send(action: String, token: String, foreground: Boolean = false) {
-        val intent = Intent(context, LocationTrackingService::class.java).apply {
-            this.action = action
-            putExtra(LocationTrackingService.EXTRA_TOKEN, token)
-        }
+    private fun send(
+        action: String,
+        token: String,
+        foreground: Boolean = false,
+    ) {
+        val intent =
+            Intent(context, LocationTrackingService::class.java).apply {
+                this.action = action
+                putExtra(LocationTrackingService.EXTRA_TOKEN, token)
+            }
         if (foreground) {
             ContextCompat.startForegroundService(context, intent)
         } else {

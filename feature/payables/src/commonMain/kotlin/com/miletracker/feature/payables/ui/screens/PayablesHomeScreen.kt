@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming")
+
 package com.miletracker.feature.payables.ui.screens
 
 import androidx.compose.foundation.background
@@ -29,24 +31,22 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.payables.model.Invoice
@@ -58,14 +58,13 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
-import com.miletracker.core.common.formatDecimal
 
 @Composable
 fun PayablesHomeScreen(
     onNewRequest: () -> Unit,
     onOpenPo: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PayablesViewModel = koinViewModel()
+    viewModel: PayablesViewModel = koinViewModel(),
 ) {
     val state by viewModel.homeState.collectAsState()
 
@@ -78,45 +77,48 @@ fun PayablesHomeScreen(
             ExtendedFloatingActionButton(
                 onClick = onNewRequest,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("New Request") }
+                text = { Text("New Request") },
             )
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             // Gradient header
             Box(
-                modifier = Modifier
-                    .background(
-                        Brush.horizontalGradient(listOf(Color(0xFF00695C), Color(0xFF26A69A)))
-                    )
-                    .windowInsetsPadding(WindowInsets.statusBars)
+                modifier =
+                    Modifier
+                        .background(
+                            Brush.horizontalGradient(listOf(Color(0xFF00695C), Color(0xFF26A69A))),
+                        )
+                        .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
                     Text(
                         text = "Payables",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color.White,
                     )
                     Text(
                         text = "Purchase Requests & Invoices",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.85f)
+                        color = Color.White.copy(alpha = 0.85f),
                     )
                     Spacer(Modifier.height(DesignTokens.Spacing.l))
                     // Summary row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                        horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
                     ) {
                         SummaryMetric("Open POs", "$openPoCount", modifier = Modifier.weight(1f))
                         SummaryMetric("Pending Invoices", "$pendingInvoiceCount", modifier = Modifier.weight(1f))
@@ -126,18 +128,19 @@ fun PayablesHomeScreen(
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = DesignTokens.Spacing.l)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = DesignTokens.Spacing.l)
+                        .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
             ) {
                 Spacer(Modifier.height(DesignTokens.Spacing.l))
                 Text(
                     text = "Purchase Requests",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 state.purchaseOrders.forEach { po ->
                     PoCard(po = po, onClick = { onOpenPo(po.id) })
@@ -147,7 +150,7 @@ fun PayablesHomeScreen(
                 Text(
                     text = "Recent Invoices",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 state.invoices.forEach { inv ->
                     InvoiceCard(invoice = inv)
@@ -160,61 +163,71 @@ fun PayablesHomeScreen(
 }
 
 @Composable
-private fun SummaryMetric(label: String, value: String, modifier: Modifier = Modifier) {
+private fun SummaryMetric(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier = modifier,
         color = Color.White.copy(alpha = 0.15f),
-        shape = RoundedCornerShape(10.dp)
+        shape = RoundedCornerShape(10.dp),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.85f),
-                maxLines = 2
+                maxLines = 2,
             )
         }
     }
 }
 
 @Composable
-private fun PoCard(po: PurchaseOrder, onClick: () -> Unit) {
-    val (statusLabel, statusColor) = when (po.status) {
-        PoStatus.DRAFT -> "Draft" to StatusColors.neutral
-        PoStatus.PENDING_APPROVAL -> "Pending Approval" to StatusColors.warning
-        PoStatus.APPROVED -> "Approved" to StatusColors.success
-        PoStatus.REJECTED -> "Rejected" to StatusColors.error
-    }
+private fun PoCard(
+    po: PurchaseOrder,
+    onClick: () -> Unit,
+) {
+    val (statusLabel, statusColor) =
+        when (po.status) {
+            PoStatus.DRAFT -> "Draft" to StatusColors.neutral
+            PoStatus.PENDING_APPROVAL -> "Pending Approval" to StatusColors.warning
+            PoStatus.APPROVED -> "Approved" to StatusColors.success
+            PoStatus.REJECTED -> "Rejected" to StatusColors.error
+        }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(DesignTokens.Shape.roundedMd)
-            .clickable(onClick = onClick),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(DesignTokens.Shape.roundedMd)
+                .clickable(onClick = onClick),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Assignment,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(po.id, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -223,12 +236,12 @@ private fun PoCard(po: PurchaseOrder, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     "₹${po.totalAmount.toLong()} · ${po.lineItems.size} item${if (po.lineItems.size != 1) "s" else ""}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Surface(color = statusColor.copy(alpha = 0.15f), shape = RoundedCornerShape(6.dp)) {
@@ -237,7 +250,7 @@ private fun PoCard(po: PurchaseOrder, onClick: () -> Unit) {
                     style = MaterialTheme.typography.labelSmall,
                     color = statusColor,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
                 )
             }
         }
@@ -246,24 +259,26 @@ private fun PoCard(po: PurchaseOrder, onClick: () -> Unit) {
 
 @Composable
 private fun InvoiceCard(invoice: Invoice) {
-    val (icon, statusLabel, statusColor) = when (invoice.status) {
-        InvoiceStatus.UNMATCHED -> Triple(Icons.Filled.Warning, "Unmatched", StatusColors.warning)
-        InvoiceStatus.MATCHED -> Triple(Icons.Filled.Receipt, "Matched", StatusColors.info)
-        InvoiceStatus.PAID -> Triple(Icons.Filled.CheckCircle, "Paid", StatusColors.success)
-    }
-    val MONTHS = arrayOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    val (icon, statusLabel, statusColor) =
+        when (invoice.status) {
+            InvoiceStatus.UNMATCHED -> Triple(Icons.Filled.Warning, "Unmatched", StatusColors.warning)
+            InvoiceStatus.MATCHED -> Triple(Icons.Filled.Receipt, "Matched", StatusColors.info)
+            InvoiceStatus.PAID -> Triple(Icons.Filled.CheckCircle, "Paid", StatusColors.success)
+        }
+    val MONTHS = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignTokens.Shape.roundedMd,
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card)
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignTokens.Elevation.card),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignTokens.Spacing.l),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(DesignTokens.Spacing.l),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)
+            horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
         ) {
             Icon(icon, contentDescription = null, tint = statusColor, modifier = Modifier.size(28.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -273,14 +288,27 @@ private fun InvoiceCard(invoice: Invoice) {
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Text(Instant.fromEpochMilliseconds(invoice.dateMs).toLocalDateTime(TimeZone.currentSystemDefault()).let { ldt -> "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]} ${ldt.year}" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    Instant.fromEpochMilliseconds(invoice.dateMs).toLocalDateTime(TimeZone.currentSystemDefault()).let {
+                            ldt ->
+                        "${ldt.dayOfMonth} ${MONTHS[ldt.monthNumber - 1]} ${ldt.year}"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text("₹${invoice.amountRupees.toLong()}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Surface(color = statusColor.copy(alpha = 0.15f), shape = RoundedCornerShape(6.dp)) {
-                    Text(statusLabel, style = MaterialTheme.typography.labelSmall, color = statusColor, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
+                    Text(
+                        statusLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                    )
                 }
             }
         }

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,8 +31,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -68,10 +67,17 @@ import kotlinx.coroutines.launch
 
 private val DELEGATION_TYPES = listOf("View Only", "Approve", "Full Access")
 
-private val TEAM_MEMBERS = listOf(
-    "Priya Sharma", "Rahul Mehra", "Asha Verma", "Vikram Nair",
-    "Sunita Pillai", "Anil Kumar", "Deepa Nair", "Harish Reddy"
-)
+private val TEAM_MEMBERS =
+    listOf(
+        "Priya Sharma",
+        "Rahul Mehra",
+        "Asha Verma",
+        "Vikram Nair",
+        "Sunita Pillai",
+        "Anil Kumar",
+        "Deepa Nair",
+        "Harish Reddy",
+    )
 
 private data class DelegationEntry(
     val id: String,
@@ -88,16 +94,18 @@ private data class DelegatedByEntry(
     val until: String,
 )
 
-private val INITIAL_DELEGATIONS = listOf(
-    DelegationEntry("D001", "Priya Sharma", "Mileage & Expense", "30 Jun 2026", true),
-    DelegationEntry("D002", "Rahul Mehra", "All categories", "15 Jul 2026", true),
-    DelegationEntry("D003", "Kavitha Rao", "Travel only", "01 Jun 2026", false),
-)
+private val INITIAL_DELEGATIONS =
+    listOf(
+        DelegationEntry("D001", "Priya Sharma", "Mileage & Expense", "30 Jun 2026", true),
+        DelegationEntry("D002", "Rahul Mehra", "All categories", "15 Jul 2026", true),
+        DelegationEntry("D003", "Kavitha Rao", "Travel only", "01 Jun 2026", false),
+    )
 
-private val DELEGATED_TO_ME = listOf(
-    DelegatedByEntry("DB001", "Vikram Nair", "Travel", "Returning 20 Jun 2026"),
-    DelegatedByEntry("DB002", "Sunita Pillai", "Expense & Advance", "Returning 25 Jun 2026"),
-)
+private val DELEGATED_TO_ME =
+    listOf(
+        DelegatedByEntry("DB001", "Vikram Nair", "Travel", "Returning 20 Jun 2026"),
+        DelegatedByEntry("DB002", "Sunita Pillai", "Expense & Advance", "Returning 25 Jun 2026"),
+    )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,19 +126,22 @@ fun DelegationScreen(
         modifier = modifier,
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             Box(
-                modifier = Modifier
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF1565C0), Color(0xFF7B1FA2))))
-                    .windowInsetsPadding(WindowInsets.statusBars)
+                modifier =
+                    Modifier
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF1565C0), Color(0xFF7B1FA2))))
+                        .windowInsetsPadding(WindowInsets.statusBars),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onBack) {
@@ -167,11 +178,12 @@ fun DelegationScreen(
                                     entry = entry,
                                     isActive = active,
                                     onToggle = {
-                                        toggleStates.value = toggleStates.value.toMutableMap().also { map ->
-                                            map[entry.id] = !active
-                                        }
+                                        toggleStates.value =
+                                            toggleStates.value.toMutableMap().also { map ->
+                                                map[entry.id] = !active
+                                            }
                                     },
-                                    onRevoke = { revokeTarget = entry }
+                                    onRevoke = { revokeTarget = entry },
                                 )
                                 if (index < myDelegations.lastIndex) {
                                     HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
@@ -228,7 +240,7 @@ fun DelegationScreen(
     if (showAddSheet) {
         ModalBottomSheet(
             onDismissRequest = { showAddSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
         ) {
             AddDelegationSheet(
                 onSubmit = { name, delegationType ->
@@ -239,15 +251,15 @@ fun DelegationScreen(
                             name = name,
                             scope = delegationType,
                             expires = "31 Dec 2026",
-                            isActive = true
-                        )
+                            isActive = true,
+                        ),
                     )
                     toggleStates.value = toggleStates.value.toMutableMap().also { it[newId] = true }
                     scope.launch { sheetState.hide() }.invokeOnCompletion { showAddSheet = false }
                 },
                 onDismiss = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion { showAddSheet = false }
-                }
+                },
             )
         }
     }
@@ -263,14 +275,15 @@ fun DelegationScreen(
                         myDelegations.removeAll { it.id == target.id }
                         revokeTarget = null
                     },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                    colors =
+                        androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) { Text("Revoke") }
             },
             dismissButton = {
                 TextButton(onClick = { revokeTarget = null }) { Text("Cancel") }
-            }
+            },
         )
     }
 }
@@ -279,24 +292,25 @@ fun DelegationScreen(
 @Composable
 private fun AddDelegationSheet(
     onSubmit: (name: String, delegationType: String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     var memberExpanded by remember { mutableStateOf(false) }
     var selectedMember by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf(DELEGATION_TYPES[0]) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("Add Delegation", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
 
         ExposedDropdownMenuBox(
             expanded = memberExpanded,
-            onExpandedChange = { memberExpanded = it }
+            onExpandedChange = { memberExpanded = it },
         ) {
             OutlinedTextField(
                 value = selectedMember,
@@ -305,16 +319,19 @@ private fun AddDelegationSheet(
                 label = { Text("Delegate To") },
                 placeholder = { Text("Select team member") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(memberExpanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(
                 expanded = memberExpanded,
-                onDismissRequest = { memberExpanded = false }
+                onDismissRequest = { memberExpanded = false },
             ) {
                 TEAM_MEMBERS.forEach { member ->
                     DropdownMenuItem(
                         text = { Text(member) },
-                        onClick = { selectedMember = member; memberExpanded = false }
+                        onClick = {
+                            selectedMember = member
+                            memberExpanded = false
+                        },
                     )
                 }
             }
@@ -324,11 +341,11 @@ private fun AddDelegationSheet(
         DELEGATION_TYPES.forEach { type ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 RadioButton(
                     selected = selectedType == type,
-                    onClick = { selectedType = type }
+                    onClick = { selectedType = type },
                 )
                 Text(type, style = MaterialTheme.typography.bodyMedium)
             }
@@ -339,7 +356,7 @@ private fun AddDelegationSheet(
             Button(
                 onClick = { if (selectedMember.isNotBlank()) onSubmit(selectedMember, selectedType) },
                 enabled = selectedMember.isNotBlank(),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) { Text("Submit") }
         }
     }
@@ -356,10 +373,11 @@ private fun SectionHeader(
         horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
     ) {
         Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
+            modifier =
+                Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
@@ -379,16 +397,18 @@ private fun DelegationRow(
     onRevoke: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.secondaryContainer),
+            modifier =
+                Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -422,16 +442,18 @@ private fun DelegationRow(
 @Composable
 private fun DelegatedByRow(entry: DelegatedByEntry) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF6A1B9A).copy(alpha = 0.15f)),
+            modifier =
+                Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF6A1B9A).copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center,
         ) {
             Text(

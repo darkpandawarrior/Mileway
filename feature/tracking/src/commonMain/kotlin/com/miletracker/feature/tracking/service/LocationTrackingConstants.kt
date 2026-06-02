@@ -1,7 +1,6 @@
 package com.miletracker.feature.tracking.service
 
 object LocationTrackingConstants {
-
     const val NOTIF_UPDATE_MIN_INTERVAL_MS = 5_000L
     const val MIN_DISTANCE_DELTA_FOR_UPDATE_M = 10.0
     const val MIN_SPEED_DELTA_FOR_UPDATE_MPS = 0.5f

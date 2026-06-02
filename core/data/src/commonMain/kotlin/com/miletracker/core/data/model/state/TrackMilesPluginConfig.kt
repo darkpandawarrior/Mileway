@@ -27,7 +27,7 @@ data class TrackMilesPluginConfig(
     val trackMilesService: String = "Own Car",
     val logMilesEnabled: Boolean = true,
     val currency: String = "INR",
-    val profile: ProfileConfig? = null
+    val profile: ProfileConfig? = null,
 )
 
 data class LogMilesPluginConfig(
@@ -39,7 +39,7 @@ data class LogMilesPluginConfig(
     val service: String = "Own Car",
     val currency: String = "INR",
     val tenantCode: String = "DEMO",
-    val profile: ProfileConfig? = null
+    val profile: ProfileConfig? = null,
 )
 
 data class ProfileConfig(
@@ -47,5 +47,5 @@ data class ProfileConfig(
     val name: String = "Demo User",
     val email: String = "demo@miletracker.app",
     val tenant: String = "DEMO",
-    val currency: String = "INR"
+    val currency: String = "INR",
 )

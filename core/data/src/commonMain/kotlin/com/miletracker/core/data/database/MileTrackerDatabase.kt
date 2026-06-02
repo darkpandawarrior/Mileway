@@ -27,19 +27,25 @@ import com.miletracker.core.data.model.db.TripAttachmentEntity
         LogMilesDraftEntity::class,
         LogMilesFrequentRouteEntity::class,
         TripAttachmentEntity::class,
-        MediaLibraryEntry::class
+        MediaLibraryEntry::class,
     ],
     version = 3,
-    exportSchema = false
+    exportSchema = false,
 )
 @ConstructedBy(MileTrackerDatabaseConstructor::class)
 abstract class MileTrackerDatabase : RoomDatabase() {
     abstract fun locationDao(): LocationDao
+
     abstract fun savedTrackDao(): SavedTrackDao
+
     abstract fun hardwareEventDao(): HardwareEventDao
+
     abstract fun logMilesDraftDao(): LogMilesDraftDao
+
     abstract fun logMilesFrequentRouteDao(): LogMilesFrequentRouteDao
+
     abstract fun tripAttachmentDao(): TripAttachmentDao
+
     abstract fun mediaLibraryDao(): MediaLibraryDao
 }
 
