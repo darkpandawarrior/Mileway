@@ -8,6 +8,8 @@ materialIconsExtended = "1.7.3"
 runtime = "1.11.1"
 ui = "1.11.1"
 wear-tiles = "1.6.0"
+wear-complications = "1.2.1"
+wear-ongoing = "1.0.0"
 ksp = "2.3.9"
 room = "2.8.4"
 sqlite-bundled = "2.6.2"
@@ -140,6 +142,8 @@ koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4", version.ref = "koin" }
 wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "wear-tiles" }
 wear-tiles-material = { module = "androidx.wear.tiles:tiles-material", version.ref = "wear-tiles" }
+wear-complications-datasource = { module = "androidx.wear.watchface:watchface-complications-data-source-ktx", version.ref = "wear-complications" }
+wear-ongoing = { module = "androidx.wear:wear-ongoing", version.ref = "wear-ongoing" }
 room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 androidx-test-core = { module = "androidx.test:core-ktx", version = "1.7.0" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }

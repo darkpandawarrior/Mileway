@@ -17,6 +17,8 @@ android {
 dependencies {
     implementation(libs.wear.tiles)
     implementation(libs.wear.tiles.material)
+    implementation(libs.wear.complications.datasource)
+    implementation(libs.wear.ongoing)
     implementation(libs.core.ktx)
     implementation("com.google.guava:guava:33.4.0-android")
 }
