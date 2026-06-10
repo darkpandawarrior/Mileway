@@ -9,6 +9,7 @@ import com.miletracker.core.data.dao.LocationDao
 import com.miletracker.core.data.dao.LogMilesDraftDao
 import com.miletracker.core.data.dao.LogMilesFrequentRouteDao
 import com.miletracker.core.data.dao.SavedTrackDao
+import com.miletracker.core.data.dao.SubmitDraftDao
 import com.miletracker.core.data.dao.TripAttachmentDao
 import com.miletracker.core.data.library.MediaLibraryDao
 import com.miletracker.core.data.library.MediaLibraryEntry
@@ -17,6 +18,7 @@ import com.miletracker.core.data.model.db.LocationData
 import com.miletracker.core.data.model.db.LogMilesDraftEntity
 import com.miletracker.core.data.model.db.LogMilesFrequentRouteEntity
 import com.miletracker.core.data.model.db.SavedTrack
+import com.miletracker.core.data.model.db.SubmitDraftEntity
 import com.miletracker.core.data.model.db.TripAttachmentEntity
 
 @Database(
@@ -28,8 +30,9 @@ import com.miletracker.core.data.model.db.TripAttachmentEntity
         LogMilesFrequentRouteEntity::class,
         TripAttachmentEntity::class,
         MediaLibraryEntry::class,
+        SubmitDraftEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @ConstructedBy(MileTrackerDatabaseConstructor::class)
@@ -47,6 +50,8 @@ abstract class MileTrackerDatabase : RoomDatabase() {
     abstract fun tripAttachmentDao(): TripAttachmentDao
 
     abstract fun mediaLibraryDao(): MediaLibraryDao
+
+    abstract fun submitDraftDao(): SubmitDraftDao
 }
 
 @Suppress("NO_ACTUAL_FOR_EXPECT")

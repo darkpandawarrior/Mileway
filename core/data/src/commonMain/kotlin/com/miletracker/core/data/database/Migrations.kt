@@ -11,6 +11,26 @@ import androidx.sqlite.execSQL
  * track_token (= SavedTrack.routeId). The type column uses the AttachmentType enum
  * name (TEXT): RECEIPT, ODOMETER_START, ODOMETER_END.
  */
+val MIGRATION_3_4 =
+    object : Migration(3, 4) {
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `submit_drafts` (
+                    `formKey`      TEXT    NOT NULL,
+                    `uniqueKey`    TEXT    NOT NULL,
+                    `payloadJson`  TEXT    NOT NULL,
+                    `status`       TEXT    NOT NULL,
+                    `errorMessage` TEXT,
+                    `createdAt`    INTEGER NOT NULL,
+                    `updatedAt`    INTEGER NOT NULL,
+                    PRIMARY KEY(`formKey`, `uniqueKey`)
+                )
+                """.trimIndent(),
+            )
+        }
+    }
+
 val MIGRATION_2_3 =
     object : Migration(2, 3) {
         override fun migrate(connection: SQLiteConnection) {
