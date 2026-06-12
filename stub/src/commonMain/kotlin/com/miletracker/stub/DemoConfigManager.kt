@@ -4,13 +4,14 @@ import com.miletracker.core.data.model.network.UserConfigResponseV2
 import com.miletracker.core.data.model.state.LogMilesPluginConfig
 import com.miletracker.core.data.model.state.ProfileConfig
 import com.miletracker.core.data.model.state.TrackMilesPluginConfig
+import com.miletracker.core.data.result.NetworkError
 import com.miletracker.core.data.result.NetworkResult
 import com.miletracker.core.network.config.ConfigProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class DemoConfigManager : ConfigProvider {
-    val configState: StateFlow<NetworkResult<UserConfigResponseV2>> =
+    val configState: StateFlow<NetworkResult<UserConfigResponseV2, NetworkError>> =
         MutableStateFlow(NetworkResult.Success(DemoMockData.userConfig()))
 
     fun getConfig(): UserConfigResponseV2 = DemoMockData.userConfig()
