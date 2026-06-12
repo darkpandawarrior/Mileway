@@ -53,4 +53,10 @@ val trackingModule =
         viewModelOf(::ExportViewModel)
         viewModelOf(::DebugMenuComposeViewModel)
         viewModelOf(::CreateVoucherViewModel)
+
+        // Per-trip scope — open on trip-start, close on trip-end.
+        // Anything declared here is released when the scope closes.
+        scope<TrackingScope> {
+            scoped { get<com.miletracker.core.data.session.CurrentTrackDataStore>() }
+        }
     }
