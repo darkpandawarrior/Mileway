@@ -13,9 +13,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
-    // Storytale 0.0.4-alpha01+dev19 is incompatible with Kotlin 2.4.0 (HostManager.getHostIsSupported removed).
-    // Deferred until a Kotlin-2.4.0-compatible Storytale release is published. See PLAN_V11 Phase 7.
-    // alias(libs.plugins.storytale) apply false
+    alias(libs.plugins.storytale) apply false
 }
 
 // --------------------------------------------------------------------------

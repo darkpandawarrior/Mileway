@@ -48,7 +48,7 @@ ktor = "3.5.0"
 peekaboo = "0.5.2"
 jbNavigationCompose = "2.9.2"
 navigation3 = "1.1.2"
-storytale = "0.0.4-alpha01+dev19"
+storytale = "0.0.5-alpha01+dev24"
 navgraph = "0.1.2"
 # Phase 12 — Code quality
 detekt = "1.23.8"
