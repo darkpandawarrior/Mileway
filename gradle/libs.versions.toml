@@ -146,9 +146,11 @@ wear-complications-datasource = { module = "androidx.wear.watchface:watchface-co
 wear-ongoing = { module = "androidx.wear:wear-ongoing", version.ref = "wear-ongoing" }
 room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 androidx-test-core = { module = "androidx.test:core-ktx", version = "1.7.0" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version = "1.2.1" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 roborazzi-core = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
+roborazzi-preview-scanner = { module = "io.github.takahirom.roborazzi:roborazzi-compose-preview-scanner-support", version.ref = "roborazzi" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
@@ -209,6 +211,7 @@ room = { id = "androidx.room", version.ref = "room" }
 # V11: multiplatform catalog (Storytale) + nav-graph visualization
 storytale = { id = "org.jetbrains.compose.storytale", version.ref = "storytale" }
 navgraph = { id = "com.github.skydoves.navgraph", version.ref = "navgraph" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 # Phase 12: Code quality
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

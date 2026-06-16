@@ -1,0 +1,190 @@
+package com.miletracker
+
+import android.app.Application
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.takahirom.roborazzi.captureRoboImage
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemApproved
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemPending
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemRejected
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemWithViolation
+import com.miletracker.feature.payables.ui.previews.PreviewPoCardApproved
+import com.miletracker.feature.payables.ui.previews.PreviewPoCardPendingApproval
+import com.miletracker.feature.payables.ui.previews.PreviewPoLineItemsMatrix
+import com.miletracker.feature.payables.ui.previews.PreviewPoListMatrix
+import com.miletracker.feature.tracking.ui.previews.PreviewSetupGuideScreen
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackLoadingCustomMessage
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackLoadingDefault
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackSettingsScreen
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackingSuccessClean
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackingSuccessWithViolation
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackingSuccessWithVoucher
+import com.miletracker.feature.travel.ui.previews.PreviewBookingCardActiveFlight
+import com.miletracker.feature.travel.ui.previews.PreviewBookingCardCompletedFlight
+import com.miletracker.feature.travel.ui.previews.PreviewBookingCardUpcomingTrain
+import com.miletracker.feature.travel.ui.previews.PreviewBookingListMatrix
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import java.io.File
+
+// ---------------------------------------------------------------------------
+// Roborazzi component catalog — Storytale replacement.
+//
+// Renders public @Preview composables from all feature modules as PNGs.
+//
+// Generate / update screenshots:
+//   ./gradlew :app:recordRoborazziGmsDebug
+//
+// CI regression gate:
+//   ./gradlew :app:verifyRoborazziGmsDebug
+//
+// Output: docs/screenshots/<name>.png
+// ---------------------------------------------------------------------------
+
+@RunWith(AndroidJUnit4::class)
+@Config(sdk = [33], application = Application::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class ScreenshotCatalogTest {
+
+    @get:Rule
+    val composeRule = createComposeRule()
+
+    private fun capture(name: String) =
+        composeRule.onRoot().captureRoboImage(
+            File(screenshotsDir, "$name.png").absolutePath,
+        )
+
+    // ── feature:tracking ────────────────────────────────────────────────────
+
+    @Test
+    fun tracking_loadingScreen_default() {
+        composeRule.setContent { PreviewTrackLoadingDefault() }
+        capture("tracking_loadingScreen_default")
+    }
+
+    @Test
+    fun tracking_loadingScreen_subStatuses() {
+        composeRule.setContent { PreviewTrackLoadingCustomMessage() }
+        capture("tracking_loadingScreen_subStatuses")
+    }
+
+    @Test
+    fun tracking_successScreen_clean() {
+        composeRule.setContent { PreviewTrackingSuccessClean() }
+        capture("tracking_successScreen_clean")
+    }
+
+    @Test
+    fun tracking_successScreen_withViolation() {
+        composeRule.setContent { PreviewTrackingSuccessWithViolation() }
+        capture("tracking_successScreen_withViolation")
+    }
+
+    @Test
+    fun tracking_successScreen_withVoucher() {
+        composeRule.setContent { PreviewTrackingSuccessWithVoucher() }
+        capture("tracking_successScreen_withVoucher")
+    }
+
+    @Test
+    fun tracking_settingsScreen() {
+        composeRule.setContent { PreviewTrackSettingsScreen() }
+        capture("tracking_settingsScreen")
+    }
+
+    @Test
+    fun tracking_setupGuide() {
+        composeRule.setContent { PreviewSetupGuideScreen() }
+        capture("tracking_setupGuide")
+    }
+
+    // ── feature:approvals ───────────────────────────────────────────────────
+
+    @Test
+    fun approvals_item_pending() {
+        composeRule.setContent { PreviewApprovalItemPending() }
+        capture("approvals_item_pending")
+    }
+
+    @Test
+    fun approvals_item_withViolation() {
+        composeRule.setContent { PreviewApprovalItemWithViolation() }
+        capture("approvals_item_withViolation")
+    }
+
+    @Test
+    fun approvals_item_approved() {
+        composeRule.setContent { PreviewApprovalItemApproved() }
+        capture("approvals_item_approved")
+    }
+
+    @Test
+    fun approvals_item_rejected() {
+        composeRule.setContent { PreviewApprovalItemRejected() }
+        capture("approvals_item_rejected")
+    }
+
+    // ── feature:payables ────────────────────────────────────────────────────
+
+    @Test
+    fun payables_card_approved() {
+        composeRule.setContent { PreviewPoCardApproved() }
+        capture("payables_card_approved")
+    }
+
+    @Test
+    fun payables_card_pendingApproval() {
+        composeRule.setContent { PreviewPoCardPendingApproval() }
+        capture("payables_card_pendingApproval")
+    }
+
+    @Test
+    fun payables_list_matrix() {
+        composeRule.setContent { PreviewPoListMatrix() }
+        capture("payables_list_matrix")
+    }
+
+    @Test
+    fun payables_lineItems_matrix() {
+        composeRule.setContent { PreviewPoLineItemsMatrix() }
+        capture("payables_lineItems_matrix")
+    }
+
+    // ── feature:travel ───────────────────────────────────────────────────────
+
+    @Test
+    fun travel_bookingCard_activeFlight() {
+        composeRule.setContent { PreviewBookingCardActiveFlight() }
+        capture("travel_bookingCard_activeFlight")
+    }
+
+    @Test
+    fun travel_bookingCard_upcomingTrain() {
+        composeRule.setContent { PreviewBookingCardUpcomingTrain() }
+        capture("travel_bookingCard_upcomingTrain")
+    }
+
+    @Test
+    fun travel_bookingCard_completedFlight() {
+        composeRule.setContent { PreviewBookingCardCompletedFlight() }
+        capture("travel_bookingCard_completedFlight")
+    }
+
+    @Test
+    fun travel_bookingList_matrix() {
+        composeRule.setContent { PreviewBookingListMatrix() }
+        capture("travel_bookingList_matrix")
+    }
+
+    companion object {
+        private val screenshotsDir: File by lazy {
+            val moduleDir = File(System.getProperty("user.dir") ?: ".")
+            val repoRoot = if (moduleDir.name == "app") moduleDir.parentFile else moduleDir
+            File(repoRoot, "docs/screenshots").also { it.mkdirs() }
+        }
+    }
+}
