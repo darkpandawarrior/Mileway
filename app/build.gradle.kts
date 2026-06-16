@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.navgraph)
     alias(libs.plugins.kover)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -45,6 +46,14 @@ android {
         unitTests {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
+            all {
+                // JDK 21+ requires these opens for Robolectric + Compose rendering.
+                it.jvmArgs(
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                )
+            }
         }
     }
 }
@@ -124,6 +133,8 @@ dependencies {
     testImplementation(libs.koin.test.junit4)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.compose.ui.test.junit4)
     testImplementation(project(":core:platform"))
     testImplementation(libs.room.testing)
 
@@ -133,8 +144,10 @@ dependencies {
     ksp(libs.compose.nav.graph.annotations)
 
     // Roborazzi — JVM screenshot tests (no device needed)
+    // preview-scanner auto-discovers all @Preview functions across all feature modules
     testImplementation(libs.roborazzi.core)
     testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.preview.scanner)
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)

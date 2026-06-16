@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.storytale) apply false
+    alias(libs.plugins.roborazzi) apply false
 }
 
 // --------------------------------------------------------------------------
