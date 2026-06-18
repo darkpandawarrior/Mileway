@@ -26,7 +26,10 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.FlightTakeoff
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
@@ -63,7 +66,26 @@ import com.miletracker.feature.approvals.model.ApprovalType
 import com.miletracker.feature.profile.model.CardStatus
 import com.miletracker.feature.profile.model.CardType
 import com.miletracker.feature.profile.model.CorporateCard
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemApproved
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemPending
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemRejected
+import com.miletracker.feature.approvals.ui.previews.PreviewApprovalItemWithViolation
+import com.miletracker.feature.payables.ui.previews.PreviewPoCardApproved
+import com.miletracker.feature.payables.ui.previews.PreviewPoCardPendingApproval
+import com.miletracker.feature.payables.ui.previews.PreviewPoLineItemsMatrix
+import com.miletracker.feature.payables.ui.previews.PreviewPoListMatrix
 import com.miletracker.feature.tracking.debug.DebugSectionCard
+import com.miletracker.feature.tracking.ui.previews.PreviewSetupGuideScreen
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackLoadingCustomMessage
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackLoadingDefault
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackSettingsScreen
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackingSuccessClean
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackingSuccessWithViolation
+import com.miletracker.feature.tracking.ui.previews.PreviewTrackingSuccessWithVoucher
+import com.miletracker.feature.travel.ui.previews.PreviewBookingCardActiveFlight
+import com.miletracker.feature.travel.ui.previews.PreviewBookingCardCompletedFlight
+import com.miletracker.feature.travel.ui.previews.PreviewBookingCardUpcomingTrain
+import com.miletracker.feature.travel.ui.previews.PreviewBookingListMatrix
 
 // ---------------------------------------------------------------------------
 // Component metadata — each entry describes one showcaseable composable
@@ -221,6 +243,57 @@ val ALL_SHOWCASES: List<ShowcaseEntry> = listOf(
             }
         },
     ),
+
+    // ── Tracking ─────────────────────────────────────────────────────────────
+    ShowcaseEntry("Track Loading — default", "Tracking", "Loading screen with a single status message.") {
+        PreviewTrackLoadingDefault()
+    },
+    ShowcaseEntry("Track Loading — sub-statuses", "Tracking", "Loading screen with an animated list of sub-statuses.") {
+        PreviewTrackLoadingCustomMessage()
+    },
+    ShowcaseEntry("Success — clean", "Tracking", "Trip submitted without any violations or voucher.") {
+        PreviewTrackingSuccessClean()
+    },
+    ShowcaseEntry("Success — violation", "Tracking", "Trip submitted with a policy violation banner.") {
+        PreviewTrackingSuccessWithViolation()
+    },
+    ShowcaseEntry("Success — voucher", "Tracking", "Trip submitted with a voucher number and amount.") {
+        PreviewTrackingSuccessWithVoucher()
+    },
+    ShowcaseEntry("Track Settings", "Tracking", "GPS accuracy and sensor settings screen.") {
+        PreviewTrackSettingsScreen()
+    },
+    ShowcaseEntry("Setup Guide", "Tracking", "First-run guide for enabling location permissions.") {
+        PreviewSetupGuideScreen()
+    },
+
+    // ── Payables ─────────────────────────────────────────────────────────────
+    ShowcaseEntry("PO Card — approved", "Payables", "Purchase order card in the Approved state.") {
+        PreviewPoCardApproved()
+    },
+    ShowcaseEntry("PO Card — pending", "Payables", "Purchase order card awaiting approval.") {
+        PreviewPoCardPendingApproval()
+    },
+    ShowcaseEntry("PO List matrix", "Payables", "Two PO cards rendered side by side.") {
+        PreviewPoListMatrix()
+    },
+    ShowcaseEntry("PO Line items", "Payables", "Breakdown of individual line items in a PO.") {
+        PreviewPoLineItemsMatrix()
+    },
+
+    // ── Travel ───────────────────────────────────────────────────────────────
+    ShowcaseEntry("Flight — active", "Travel", "Active flight booking card with gate and boarding info.") {
+        PreviewBookingCardActiveFlight()
+    },
+    ShowcaseEntry("Train — upcoming", "Travel", "Upcoming train booking card.") {
+        PreviewBookingCardUpcomingTrain()
+    },
+    ShowcaseEntry("Flight — completed", "Travel", "Completed flight booking card.") {
+        PreviewBookingCardCompletedFlight()
+    },
+    ShowcaseEntry("Booking list", "Travel", "Full list of mixed bookings (flight, train).") {
+        PreviewBookingListMatrix()
+    },
 )
 
 // ---------------------------------------------------------------------------
@@ -390,6 +463,9 @@ private fun groupIcon(group: String): ImageVector = when (group) {
     "Debug" -> Icons.Default.BugReport
     "Home" -> Icons.Default.DirectionsCar
     "Profile" -> Icons.Default.AccountCircle
+    "Tracking" -> Icons.Default.Route
+    "Payables" -> Icons.Default.Payments
+    "Travel" -> Icons.Default.FlightTakeoff
     else -> Icons.Default.Widgets
 }
 
