@@ -84,6 +84,8 @@ import com.mikepenz.markdown.m3.markdownTypography
 import com.miletracker.feature.agent.model.AgentMessage
 import com.miletracker.feature.agent.model.PopularQuestion
 import com.miletracker.feature.agent.model.UnansweredQuestion
+import com.miletracker.feature.agent.viewmodel.AgentAction
+import com.miletracker.feature.agent.viewmodel.AgentEffect
 import com.miletracker.feature.agent.viewmodel.AgentViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -123,6 +125,18 @@ fun AgentChatScreen(
         if (count > 0) listState.animateScrollToItem(count - 1)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                AgentEffect.ScrollToBottom -> {
+                    val s = viewModel.uiState.value
+                    val count = s.messages.size + if (s.isStreaming) 1 else 0
+                    if (count > 0) listState.animateScrollToItem(count - 1)
+                }
+            }
+        }
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "cursor")
     val cursorAlpha by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -140,7 +154,7 @@ fun AgentChatScreen(
     fun sendText(text: String) {
         if (text.isBlank()) return
         inputText = ""
-        viewModel.sendMessage(text)
+        viewModel.onAction(AgentAction.SendMessage(text))
     }
 
     Scaffold(
