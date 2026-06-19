@@ -47,6 +47,7 @@ import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.profile.viewmodel.AdvanceAction
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -58,15 +59,16 @@ fun AskAdvanceFormScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
-    val form by viewModel.formState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val form = ui.form
 
-    if (form.submitted) {
+    if (ui.submitted) {
         AdvanceSuccessContent(
-            id = form.submittedId,
+            id = ui.lastSubmittedId,
             amount = form.amountText.toDoubleOrNull() ?: 0.0,
-            autoApproved = form.autoApproved,
+            autoApproved = ui.lastAutoApproved,
             onDone = {
-                viewModel.resetForm()
+                viewModel.onAction(AdvanceAction.ResetForm)
                 onBack()
             },
         )
@@ -83,7 +85,7 @@ fun AskAdvanceFormScreen(
                     IconButton(onClick = {
                         when (form.step) {
                             1 -> onBack()
-                            else -> viewModel.goToStep(form.step - 1)
+                            else -> viewModel.onAction(AdvanceAction.GoToStep(form.step - 1))
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -110,9 +112,9 @@ fun AskAdvanceFormScreen(
                     Button(
                         onClick = {
                             if (form.step < 3) {
-                                viewModel.goToStep(form.step + 1)
+                                viewModel.onAction(AdvanceAction.GoToStep(form.step + 1))
                             } else {
-                                viewModel.submitAdvance()
+                                viewModel.onAction(AdvanceAction.SubmitAdvance)
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -144,7 +146,7 @@ fun AskAdvanceFormScreen(
 
                     OutlinedTextField(
                         value = form.amountText,
-                        onValueChange = viewModel::setAmount,
+                        onValueChange = { viewModel.onAction(AdvanceAction.SetAmount(it)) },
                         label = { Text("Amount (₹)") },
                         prefix = { Text("₹") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -169,7 +171,7 @@ fun AskAdvanceFormScreen(
 
                     OutlinedTextField(
                         value = form.purpose,
-                        onValueChange = viewModel::setPurpose,
+                        onValueChange = { viewModel.onAction(AdvanceAction.SetPurpose(it)) },
                         label = { Text("Purpose") },
                         placeholder = { Text("Brief description of use…") },
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
@@ -180,7 +182,7 @@ fun AskAdvanceFormScreen(
 
                     OutlinedTextField(
                         value = form.requiredByDate,
-                        onValueChange = viewModel::setRequiredByDate,
+                        onValueChange = { viewModel.onAction(AdvanceAction.SetRequiredByDate(it)) },
                         label = { Text("Required By Date") },
                         placeholder = { Text("e.g. 2024-02-15") },
                         singleLine = true,
@@ -240,7 +242,7 @@ fun AskAdvanceFormScreen(
                     ) {
                         Checkbox(
                             checked = form.declarationChecked,
-                            onCheckedChange = viewModel::setDeclaration,
+                            onCheckedChange = { viewModel.onAction(AdvanceAction.SetDeclaration(it)) },
                         )
                         Text("I agree to the above declaration", style = MaterialTheme.typography.bodyMedium)
                     }
