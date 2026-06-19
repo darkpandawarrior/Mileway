@@ -1548,7 +1548,15 @@ fun EnhancedLiveControlPanel(
                                 onClick = { onTabChange(id) },
                                 text = {
                                     if (id == 1) {
-                                        val activeCount = listOf(speedHeatmap, showAccuracy, showBattery, showIssues, showOfflineTiles, showTraffic).count { it }
+                                        val activeCount =
+                                            listOf(
+                                                speedHeatmap,
+                                                showAccuracy,
+                                                showBattery,
+                                                showIssues,
+                                                showOfflineTiles,
+                                                showTraffic,
+                                            ).count { it }
                                         BadgedBox(badge = { if (activeCount > 0) Badge { Text(activeCount.toString()) } }) {
                                             Text(label, style = MaterialTheme.typography.labelLarge)
                                         }
