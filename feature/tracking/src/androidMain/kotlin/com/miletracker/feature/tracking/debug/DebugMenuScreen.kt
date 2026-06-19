@@ -92,10 +92,11 @@ fun DebugMenuScreen(
     viewModel: DebugMenuComposeViewModel = koinViewModel(),
     configProvider: ConfigProvider = koinInject(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val availableProfiles by viewModel.availableProfiles.collectAsStateWithLifecycle()
-    val selectedProfile by viewModel.selectedProfile.collectAsStateWithLifecycle()
+    val ui by viewModel.state.collectAsStateWithLifecycle()
+    val uiState = ui.debugMenuUiState
+    val searchQuery = ui.searchQuery
+    val availableProfiles = ui.availableProfiles
+    val selectedProfile = ui.selectedProfile
     val context = LocalContext.current
 
     var showRestartDialog by remember { mutableStateOf(false) }
@@ -145,7 +146,7 @@ fun DebugMenuScreen(
             item {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { viewModel.updateSearchQuery(it) },
+                    onValueChange = { viewModel.onAction(DebugMenuComposeAction.UpdateSearchQuery(it)) },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Search options") },
                     leadingIcon = {
@@ -153,7 +154,7 @@ fun DebugMenuScreen(
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                            IconButton(onClick = { viewModel.onAction(DebugMenuComposeAction.UpdateSearchQuery("")) }) {
                                 Icon(Icons.Default.Clear, contentDescription = "Clear")
                             }
                         }
@@ -181,7 +182,7 @@ fun DebugMenuScreen(
             // Performance / memory
             if (searchQuery.isEmpty()) {
                 item {
-                    PerformanceCard(onRunGc = { viewModel.runGarbageCollection() })
+                    PerformanceCard(onRunGc = { viewModel.onAction(DebugMenuComposeAction.RunGarbageCollection) })
                 }
             }
 
@@ -191,7 +192,7 @@ fun DebugMenuScreen(
                     ProfilePresetsCard(
                         profiles = availableProfiles,
                         selectedProfile = selectedProfile,
-                        onProfileSelected = { viewModel.selectProfile(it) },
+                        onProfileSelected = { viewModel.onAction(DebugMenuComposeAction.SelectProfile(it)) },
                     )
                 }
             }
@@ -208,7 +209,7 @@ fun DebugMenuScreen(
                                 DebugToggleRow(
                                     title = name,
                                     checked = enabled,
-                                    onCheckedChange = { viewModel.toggleTrackingOption(name) },
+                                    onCheckedChange = { viewModel.onAction(DebugMenuComposeAction.ToggleTrackingOption(name)) },
                                 )
                             }
                         }
@@ -228,7 +229,7 @@ fun DebugMenuScreen(
                                 DebugToggleRow(
                                     title = name,
                                     checked = enabled,
-                                    onCheckedChange = { viewModel.toggleFeatureOption(name) },
+                                    onCheckedChange = { viewModel.onAction(DebugMenuComposeAction.ToggleFeatureOption(name)) },
                                 )
                             }
                         }
@@ -305,7 +306,7 @@ fun DebugMenuScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.clearAllDebugSettings()
+                        viewModel.onAction(DebugMenuComposeAction.ClearAllDebugSettings)
                         showClearAllDialog = false
                     },
                     colors =
