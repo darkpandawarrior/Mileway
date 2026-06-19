@@ -1,6 +1,8 @@
 package com.miletracker
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
+import com.miletracker.core.common.AppLog
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -86,6 +88,8 @@ class MileTrackerApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
+        // KMP logging (Napier) — only base an antilog on debuggable builds; release stays silent.
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) AppLog.init()
         // Initialize WormaCeptor for HTTP inspection in debug builds (no-op in release).
         WormaCeptorHelper.init(this)
         // Initialize konnection for KMP network connectivity monitoring.
