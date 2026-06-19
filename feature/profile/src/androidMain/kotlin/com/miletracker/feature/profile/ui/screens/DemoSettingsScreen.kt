@@ -45,6 +45,7 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.feature.profile.ui.previews.LightDarkPreview
+import com.miletracker.feature.profile.viewmodel.DemoSettingsAction
 import com.miletracker.feature.profile.viewmodel.DemoSettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -118,35 +119,35 @@ fun DemoSettingsScreen(
                 title = "Simulate Root Detection",
                 subtitle = "App treats this device as rooted — shows RootGuardScreen on restart",
                 checked = settings.simulateRoot,
-                onToggle = { viewModel.toggleSimulateRoot() },
+                onToggle = { viewModel.onAction(DemoSettingsAction.ToggleSimulateRoot) },
             )
 
             DemoToggle(
                 title = "Simulate Offline Mode",
                 subtitle = "NetworkMonitor reports disconnected; data served from Room/DataStore",
                 checked = settings.simulateOffline,
-                onToggle = { viewModel.toggleSimulateOffline() },
+                onToggle = { viewModel.onAction(DemoSettingsAction.ToggleSimulateOffline) },
             )
 
             DemoToggle(
                 title = "Biometric Guard",
                 subtitle = "Require biometric auth before viewing Cards and Advance screens",
                 checked = settings.biometricGuardEnabled,
-                onToggle = { viewModel.toggleBiometricGuard() },
+                onToggle = { viewModel.onAction(DemoSettingsAction.ToggleBiometricGuard) },
             )
 
             DemoToggle(
                 title = "GPS Drift Simulation",
                 subtitle = "Tracking service adds ±30m noise to coordinates to demo spike detection",
                 checked = settings.simulateGpsDrift,
-                onToggle = { viewModel.toggleGpsDrift() },
+                onToggle = { viewModel.onAction(DemoSettingsAction.ToggleGpsDrift) },
             )
 
             DemoToggle(
                 title = "Auto-Discard at End of Day",
                 subtitle = "WorkManager discards any active journey at 22:00 — demo of AutoDiscardWorker",
                 checked = settings.autoDiscardEnabled,
-                onToggle = { viewModel.toggleAutoDiscard() },
+                onToggle = { viewModel.onAction(DemoSettingsAction.ToggleAutoDiscard) },
                 warningColor = Color(0xFFFF8F00),
             )
 
