@@ -23,7 +23,11 @@ class MileTrackerAndroidApplicationConventionPlugin : Plugin<Project> {
                 sourceCompatibility = JavaVersion.VERSION_11
                 targetCompatibility = JavaVersion.VERSION_11
             }
-            buildFeatures { compose = true }
+            buildFeatures {
+                compose = true
+                // BuildConfig disabled by default via gradle.properties; app can opt back in.
+                buildConfig = false
+            }
         }
     }
 }

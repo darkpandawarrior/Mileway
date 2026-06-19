@@ -58,6 +58,10 @@ navgraph = "0.1.2"
 detekt = "1.23.8"
 kover = "0.9.1"
 ktlint-plugin = "12.2.0"
+# Build health + dependency locking
+dependency-guard = "0.5.0"
+gradle-doctor = "0.12.0"
+profileinstaller = "1.4.1"
 
 [libraries]
 # Kotlin
@@ -157,6 +161,8 @@ roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose"
 roborazzi-preview-scanner = { module = "io.github.takahirom.roborazzi:roborazzi-compose-preview-scanner-support", version.ref = "roborazzi" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+# Baseline profiles — install compiled Dex profiles at APK install time for cold-start wins
+profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 
 # --- V12 KMP storage + security ---
 # multiplatform-settings (russhwolf) — KMP key-value store: NSUserDefaults/SharedPreferences plain,
@@ -232,3 +238,6 @@ roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }
+# Build health
+dependency-guard = { id = "com.dropbox.dependency-guard", version.ref = "dependency-guard" }
+gradle-doctor = { id = "com.osacky.doctor", version.ref = "gradle-doctor" }
