@@ -12,6 +12,7 @@ import com.miletracker.feature.media.ui.camera.CameraCaptureScreen
 import com.miletracker.feature.media.ui.screens.AttachmentPreviewScreen
 import com.miletracker.feature.media.ui.screens.AttachmentSelectionScreen
 import com.miletracker.feature.media.ui.screens.CloudLibraryScreen
+import com.miletracker.feature.media.viewmodel.MediaAction
 import com.miletracker.feature.media.viewmodel.MediaViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -67,12 +68,12 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
         val odometer = entry.arguments?.getBoolean(MediaRoutes.CAMERA_ARG_ODOMETER) ?: false
         CameraCaptureScreen(
             onCaptured = { uri ->
-                vm.onCaptured(uri)
+                vm.onAction(MediaAction.Captured(uri))
                 navController.navigate(MediaRoutes.PREVIEW)
             },
             isOdometerMode = odometer,
             flashMode = state.flashMode,
-            onCycleFlash = vm::cycleFlashMode,
+            onCycleFlash = { vm.onAction(MediaAction.CycleFlashMode) },
         )
     }
 
@@ -82,7 +83,7 @@ fun NavGraphBuilder.mediaGraph(navController: NavHostController) {
         CloudLibraryScreen(
             onNavigateBack = { navController.popBackStack() },
             onSelectUri = { uri ->
-                selVm.onPickedFromGallery(uri)
+                selVm.onAction(MediaAction.PickedFromGallery(uri))
                 navController.popBackStack(MediaRoutes.SELECTION, inclusive = false)
             },
         )
