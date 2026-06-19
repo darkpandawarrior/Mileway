@@ -48,12 +48,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.common.asString
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.profile.model.CardStatus
 import com.miletracker.feature.profile.model.CardTransaction
+import com.miletracker.feature.profile.viewmodel.AdvanceAction
+import com.miletracker.feature.profile.viewmodel.AdvanceEffect
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -68,17 +71,18 @@ fun CardDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
-    val state by viewModel.cardsState.collectAsState()
+    val state by viewModel.state.collectAsState()
     val card = state.cards.find { it.id == cardId }
     val transactions = remember(cardId) { viewModel.getTransactionsForCard(cardId) }
     val snackbarHostState = remember { SnackbarHostState() }
     var showBlockDialog by remember { mutableStateOf(false) }
     var showPinDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.snackbarMessage) {
-        state.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearSnackbar()
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is AdvanceEffect.ShowToast -> snackbarHostState.showSnackbar(effect.message.asString())
+            }
         }
     }
 
@@ -201,7 +205,7 @@ fun CardDetailScreen(
             },
             confirmButton = {
                 Button(onClick = {
-                    viewModel.toggleCardBlock(cardId)
+                    viewModel.onAction(AdvanceAction.ToggleCardBlock(cardId))
                     showBlockDialog = false
                 }) {
                     Text(if (card.status == CardStatus.ACTIVE) "Block" else "Unblock")
