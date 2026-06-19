@@ -50,6 +50,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
+import com.miletracker.feature.tracking.viewmodel.CheckInAction
+import com.miletracker.feature.tracking.viewmodel.CheckInUiState
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import kotlinx.coroutines.tasks.await
 
@@ -65,7 +67,7 @@ import kotlinx.coroutines.tasks.await
 @Composable
 fun ManualCheckInSheet(
     viewModel: CheckInViewModel,
-    uiState: CheckInViewModel.UiState,
+    uiState: CheckInUiState,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -119,7 +121,7 @@ fun ManualCheckInSheet(
             // Optional reason field
             OutlinedTextField(
                 value = uiState.manualReason,
-                onValueChange = { viewModel.updateManualReason(it) },
+                onValueChange = { viewModel.onAction(CheckInAction.UpdateManualReason(it)) },
                 label = { Text("Reason (optional)") },
                 placeholder = { Text("e.g. Arrived at client site") },
                 modifier = Modifier.fillMaxWidth(),
@@ -147,7 +149,7 @@ fun ManualCheckInSheet(
                 ) { Text("Cancel") }
 
                 Button(
-                    onClick = { viewModel.submitManualCheckIn() },
+                    onClick = { viewModel.onAction(CheckInAction.SubmitManualCheckIn) },
                     modifier = Modifier.weight(1f),
                     enabled = !uiState.isSubmitting,
                 ) {
@@ -183,7 +185,7 @@ fun ManualCheckInSheet(
 @Composable
 fun GeoCheckInSheet(
     viewModel: CheckInViewModel,
-    uiState: CheckInViewModel.UiState,
+    uiState: CheckInUiState,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -328,7 +330,7 @@ fun GeoCheckInSheet(
                 Button(
                     onClick = {
                         val loc = fetchedLocation ?: return@Button
-                        viewModel.validateAndGeoCheckIn(loc.latitude, loc.longitude)
+                        viewModel.onAction(CheckInAction.ValidateAndGeoCheckIn(loc.latitude, loc.longitude))
                     },
                     modifier = Modifier.weight(1f),
                     enabled = fetchedLocation != null && !isFetchingLocation && !uiState.isSubmitting,
@@ -366,7 +368,7 @@ fun GeoCheckInSheet(
 @Composable
 fun CheckInRadiusWarningSheet(
     viewModel: CheckInViewModel,
-    uiState: CheckInViewModel.UiState,
+    uiState: CheckInUiState,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -437,7 +439,7 @@ fun CheckInRadiusWarningSheet(
             ) {
                 // Override — record the check-in anyway (with type GEO_OVERRIDE)
                 Button(
-                    onClick = { viewModel.forceGeoCheckInDespiteRadius() },
+                    onClick = { viewModel.onAction(CheckInAction.ForceGeoCheckInDespiteRadius) },
                     modifier = Modifier.fillMaxWidth(),
                     colors =
                         ButtonDefaults.buttonColors(
