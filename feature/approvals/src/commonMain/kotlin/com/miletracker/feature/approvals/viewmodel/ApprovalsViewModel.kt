@@ -1,79 +1,137 @@
-@file:Suppress("ktlint:standard:property-naming")
-
 package com.miletracker.feature.approvals.viewmodel
 
-import androidx.lifecycle.ViewModel
+import com.miletracker.core.common.UiText
+import com.miletracker.core.ui.mvi.BaseViewModel
+import com.miletracker.core.ui.mvi.ScreenState
 import com.miletracker.feature.approvals.model.ApprovalItem
 import com.miletracker.feature.approvals.model.ApprovalStatus
 import com.miletracker.feature.approvals.model.ClarificationMessage
 import com.miletracker.feature.approvals.repository.ApprovalsRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 enum class ApprovalTabFilter { ALL, PENDING, APPROVED, REJECTED }
 
-data class ApprovalsUiState(
-    val items: List<ApprovalItem> = ApprovalsRepository.all,
-    val activeTab: ApprovalTabFilter = ApprovalTabFilter.ALL,
-    val snackbarMessage: String? = null,
-)
+sealed interface ApprovalsAction {
+    data object Refresh : ApprovalsAction
+
+    data class SetTab(val tab: ApprovalTabFilter) : ApprovalsAction
+
+    data class OpenDetail(val id: String) : ApprovalsAction
+
+    data object Approve : ApprovalsAction
+
+    data object Reject : ApprovalsAction
+
+    data object OpenClarificationSheet : ApprovalsAction
+
+    data object CloseClarificationSheet : ApprovalsAction
+
+    data class UpdateDraftMessage(val text: String) : ApprovalsAction
+
+    data object SendClarification : ApprovalsAction
+}
+
+sealed interface ApprovalsEffect {
+    data class ShowToast(val message: UiText) : ApprovalsEffect
+
+    data class NavigateToDetail(val id: String) : ApprovalsEffect
+
+    data object NavigateBack : ApprovalsEffect
+}
 
 data class ApprovalDetailState(
-    val item: ApprovalItem? = null,
+    val item: ApprovalItem,
     val thread: List<ClarificationMessage> = emptyList(),
-    val showClarificationSheet: Boolean = false,
     val draftMessage: String = "",
     val localStatus: ApprovalStatus? = null,
-    val snackbarMessage: String? = null,
+    val showClarificationSheet: Boolean = false,
 )
 
-class ApprovalsViewModel : ViewModel() {
-    private val _list = MutableStateFlow(ApprovalsUiState())
-    val listState: StateFlow<ApprovalsUiState> = _list.asStateFlow()
+data class ApprovalsUiState(
+    val listState: ScreenState<List<ApprovalItem>> = ScreenState.Content(ApprovalsRepository.all),
+    val detailState: ScreenState<ApprovalDetailState> = ScreenState.Empty,
+    val activeTab: ApprovalTabFilter = ApprovalTabFilter.ALL,
+)
 
-    private val _detail = MutableStateFlow(ApprovalDetailState())
-    val detailState: StateFlow<ApprovalDetailState> = _detail.asStateFlow()
+class ApprovalsViewModel :
+    BaseViewModel<ApprovalsUiState, ApprovalsEffect, ApprovalsAction>(ApprovalsUiState()) {
+    override fun onAction(action: ApprovalsAction) {
+        when (action) {
+            ApprovalsAction.Refresh ->
+                setState { copy(listState = ScreenState.Content(ApprovalsRepository.all)) }
+            is ApprovalsAction.SetTab -> setState { copy(activeTab = action.tab) }
+            is ApprovalsAction.OpenDetail -> openDetail(action.id)
+            ApprovalsAction.Approve -> resolve(ApprovalStatus.APPROVED, "Request approved")
+            ApprovalsAction.Reject -> resolve(ApprovalStatus.REJECTED, "Request rejected")
+            ApprovalsAction.OpenClarificationSheet -> updateDetail { copy(showClarificationSheet = true) }
+            ApprovalsAction.CloseClarificationSheet -> updateDetail { copy(showClarificationSheet = false) }
+            is ApprovalsAction.UpdateDraftMessage -> updateDetail { copy(draftMessage = action.text) }
+            ApprovalsAction.SendClarification -> sendClarification()
+        }
+    }
 
-    fun setTab(tab: ApprovalTabFilter) = _list.update { it.copy(activeTab = tab) }
-
-    fun openDetail(id: String) {
-        val item = _list.value.items.firstOrNull { it.id == id } ?: return
-        _detail.value =
-            ApprovalDetailState(
-                item = item,
-                thread = ApprovalsRepository.clarificationThread(id),
+    private fun openDetail(id: String) {
+        val item = ApprovalsRepository.getById(id) ?: return
+        setState {
+            copy(
+                detailState =
+                    ScreenState.Content(
+                        ApprovalDetailState(
+                            item = item,
+                            thread = ApprovalsRepository.clarificationThread(id),
+                        ),
+                    ),
             )
+        }
     }
 
-    fun approve() {
-        val id = _detail.value.item?.id ?: return
-        _detail.update { it.copy(localStatus = ApprovalStatus.APPROVED, snackbarMessage = "Request approved") }
-        _list.update { s -> s.copy(items = ApprovalsRepository.approve(id)) }
+    private fun currentDetail(): ApprovalDetailState? = (currentState.detailState as? ScreenState.Content)?.data
+
+    private fun updateDetail(reducer: ApprovalDetailState.() -> ApprovalDetailState) {
+        val detail = currentDetail() ?: return
+        setState { copy(detailState = ScreenState.Content(detail.reducer())) }
     }
 
-    fun reject() {
-        val id = _detail.value.item?.id ?: return
-        _detail.update { it.copy(localStatus = ApprovalStatus.REJECTED, snackbarMessage = "Request rejected") }
-        _list.update { s -> s.copy(items = ApprovalsRepository.reject(id)) }
+    private fun resolve(
+        status: ApprovalStatus,
+        toast: String,
+    ) {
+        val detail = currentDetail() ?: return
+        val updatedList =
+            if (status == ApprovalStatus.APPROVED) {
+                ApprovalsRepository.approve(detail.item.id)
+            } else {
+                ApprovalsRepository.reject(detail.item.id)
+            }
+        setState {
+            copy(
+                listState = ScreenState.Content(updatedList),
+                detailState = ScreenState.Content(detail.copy(localStatus = status)),
+            )
+        }
+        emitEffect(ApprovalsEffect.ShowToast(UiText.Static(toast)))
     }
 
-    fun openClarificationSheet() = _detail.update { it.copy(showClarificationSheet = true) }
-
-    fun closeClarificationSheet() = _detail.update { it.copy(showClarificationSheet = false) }
-
-    fun setDraftMessage(text: String) = _detail.update { it.copy(draftMessage = text) }
-
-    fun sendClarification() {
-        val text = _detail.value.draftMessage.trim()
+    private fun sendClarification() {
+        val detail = currentDetail() ?: return
+        val text = detail.draftMessage.trim()
         if (text.isBlank()) return
-        val newMsg = ClarificationMessage(text, isFromRequester = false, timestampMs = kotlin.time.Clock.System.now().toEpochMilliseconds())
-        _detail.update { it.copy(thread = it.thread + newMsg, draftMessage = "", showClarificationSheet = false) }
-    }
-
-    fun clearSnackbar() {
-        _list.update { it.copy(snackbarMessage = null) }
-        _detail.update { it.copy(snackbarMessage = null) }
+        val newMsg =
+            ClarificationMessage(
+                text,
+                isFromRequester = false,
+                timestampMs = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+            )
+        setState {
+            copy(
+                detailState =
+                    ScreenState.Content(
+                        detail.copy(
+                            thread = detail.thread + newMsg,
+                            draftMessage = "",
+                            showClarificationSheet = false,
+                        ),
+                    ),
+            )
+        }
     }
 }
