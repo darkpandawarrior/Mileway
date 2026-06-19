@@ -2,11 +2,11 @@ package com.miletracker.feature.tracking.viewmodel
 
 import android.util.Log
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.SavedTrack
 import com.miletracker.core.data.model.network.ApprovedVehicle
 import com.miletracker.core.data.model.state.TrackMilesPluginConfig
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.checkin.CheckInValidator.CheckInLocation
 import com.miletracker.feature.tracking.manager.LocationTrackingController
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
@@ -15,12 +15,9 @@ import com.miletracker.feature.tracking.repository.LocationRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -87,9 +84,9 @@ class TrackMilesViewModel(
     private val currentTrackRepo: CurrentTrackRepository,
     private val locationRepo: LocationRepository,
     private val geoCheckInLocations: List<CheckInLocation> = emptyList(),
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(TrackMilesUiState())
-    val uiState: StateFlow<TrackMilesUiState> = _uiState.asStateFlow()
+) : BaseViewModel<TrackMilesUiState, TrackMilesEffect, TrackMilesAction>(TrackMilesUiState()) {
+    /** Backwards-compatible alias; screens read [state]. */
+    val uiState: StateFlow<TrackMilesUiState> = state
 
     private var liveObserveJob: Job? = null
     private var sessionObserveJob: Job? = null
@@ -101,6 +98,35 @@ class TrackMilesViewModel(
         observeSession()
         restoreActiveTrack()
         loadWeekSummary()
+    }
+
+    /** Routes screen intents to the handlers below (handlers stay public for unit tests). */
+    override fun onAction(action: TrackMilesAction) {
+        when (action) {
+            TrackMilesAction.OpenJourneyGuide -> openJourneyGuide()
+            TrackMilesAction.DismissSheet -> dismissSheet()
+            TrackMilesAction.OpenVehiclePicker -> openVehiclePicker()
+            is TrackMilesAction.SetVehicleQuery -> setVehicleQuery(action.query)
+            is TrackMilesAction.PickVehicle -> pickVehicle(action.key)
+            is TrackMilesAction.SelectVehicle -> selectVehicle(action.vehicle)
+            TrackMilesAction.CaptureStartOdometer -> captureStartOdometer()
+            is TrackMilesAction.ToggleDraft -> toggleDraft(action.enabled)
+            TrackMilesAction.OpenVendorPicker -> openVendorPicker()
+            is TrackMilesAction.SetVendorQuery -> setVendorQuery(action.query)
+            is TrackMilesAction.PickVendor -> pickVendor(action.id)
+            TrackMilesAction.OpenPauseSheet -> openPauseSheet()
+            is TrackMilesAction.SetPauseReason -> setPauseReason(action.reason)
+            is TrackMilesAction.SetPauseCustomReason -> setPauseCustomReason(action.text)
+            is TrackMilesAction.ConfirmPause -> confirmPause(action.reason)
+            TrackMilesAction.OpenResumeSheet -> openResumeSheet()
+            is TrackMilesAction.SetResumeNotes -> setResumeNotes(action.notes)
+            TrackMilesAction.ConfirmResume -> confirmResume()
+            TrackMilesAction.RequestStartTracking -> requestStartTracking()
+            TrackMilesAction.AcceptConsentAndStart -> acceptConsentAndStart()
+            TrackMilesAction.StopTracking -> stopTracking()
+            TrackMilesAction.DiscardTracking -> discardTracking()
+            TrackMilesAction.ToggleGaugeMode -> toggleGaugeMode()
+        }
     }
 
     /**
@@ -119,8 +145,8 @@ class TrackMilesViewModel(
                             s.totalLocationPoints >= 3 -> TrackSignal.FAIR
                             else -> TrackSignal.POOR
                         }
-                    _uiState.update {
-                        it.copy(
+                    setState {
+                        copy(
                             speedKmh = s.speed * 3.6,
                             avgSpeedKmh = s.avgSpeed * 3.6,
                             maxSpeedKmh = s.maxSpeed * 3.6,
@@ -154,49 +180,45 @@ class TrackMilesViewModel(
                             else -> 0f
                         }
                     val locationLabel = "%.4f, %.4f".format(last.lat, last.lng)
-                    _uiState.update { it.copy(bearingDegrees = bearing, currentLocationLabel = locationLabel) }
+                    setState { copy(bearingDegrees = bearing, currentLocationLabel = locationLabel) }
                 }
                 .launchIn(viewModelScope)
     }
 
     private fun loadConfig() {
-        _uiState.update {
-            it.copy(config = configManager.getTrackMilesConfig(), centers = geoCheckInLocations)
-        }
+        setState { copy(config = configManager.getTrackMilesConfig(), centers = geoCheckInLocations) }
     }
 
     // ── Start-flow & sheet orchestration (MVI intents) ──────────────────────────
 
-    fun openJourneyGuide() = _uiState.update { it.copy(activeSheet = TrackSheet.JOURNEY_GUIDE) }
+    fun openJourneyGuide() = setState { copy(activeSheet = TrackSheet.JOURNEY_GUIDE) }
 
-    fun dismissSheet() = _uiState.update { it.copy(activeSheet = TrackSheet.NONE) }
+    fun dismissSheet() = setState { copy(activeSheet = TrackSheet.NONE) }
 
-    fun openVehiclePicker() = _uiState.update { it.copy(activeSheet = TrackSheet.VEHICLE_PICKER) }
+    fun openVehiclePicker() = setState { copy(activeSheet = TrackSheet.VEHICLE_PICKER) }
 
-    fun setVehicleQuery(q: String) = _uiState.update { it.copy(vehicleQuery = q) }
+    fun setVehicleQuery(q: String) = setState { copy(vehicleQuery = q) }
 
     /** Pick a vehicle by key from the [vehicles] list and return to the journey guide. */
     fun pickVehicle(key: String) {
-        val vehicle = _uiState.value.vehicles.firstOrNull { it.vehicleKey == key } ?: return
-        _uiState.update {
-            it.copy(selectedVehicle = vehicle, activeSheet = TrackSheet.JOURNEY_GUIDE, vehicleQuery = "")
-        }
+        val vehicle = currentState.vehicles.firstOrNull { it.vehicleKey == key } ?: return
+        setState { copy(selectedVehicle = vehicle, activeSheet = TrackSheet.JOURNEY_GUIDE, vehicleQuery = "") }
     }
 
     /** Simulate an odometer capture (the demo has no real OCR in this flow). */
     fun captureStartOdometer() {
         // Deterministic mock reading so the checklist completes without a camera round-trip.
-        val reading = 45_000 + (_uiState.value.vehicles.size * 57)
-        _uiState.update { it.copy(startOdometer = reading) }
+        val reading = 45_000 + (currentState.vehicles.size * 57)
+        setState { copy(startOdometer = reading) }
     }
 
-    fun toggleDraft(enabled: Boolean) = _uiState.update { it.copy(draftEnabled = enabled) }
+    fun toggleDraft(enabled: Boolean) = setState { copy(draftEnabled = enabled) }
 
     /** "Start Tracking" pressed in the guide: show consent if configured, else start now. */
     fun requestStartTracking() {
         val disclaimer = configManager.getJourneyDisclaimer()
         if (!disclaimer.isNullOrBlank()) {
-            _uiState.update { it.copy(activeSheet = TrackSheet.CONSENT) }
+            setState { copy(activeSheet = TrackSheet.CONSENT) }
         } else {
             beginTracking()
         }
@@ -205,39 +227,39 @@ class TrackMilesViewModel(
     fun acceptConsentAndStart() = beginTracking()
 
     private fun beginTracking() {
-        _uiState.update { it.copy(activeSheet = TrackSheet.NONE) }
+        setState { copy(activeSheet = TrackSheet.NONE) }
         startTracking()
     }
 
     // Pause / resume sheets
-    fun openPauseSheet() = _uiState.update { it.copy(activeSheet = TrackSheet.PAUSE) }
+    fun openPauseSheet() = setState { copy(activeSheet = TrackSheet.PAUSE) }
 
-    fun setPauseReason(reason: String?) = _uiState.update { it.copy(pauseSelectedReason = reason) }
+    fun setPauseReason(reason: String?) = setState { copy(pauseSelectedReason = reason) }
 
-    fun setPauseCustomReason(text: String) = _uiState.update { it.copy(pauseCustomReason = text) }
+    fun setPauseCustomReason(text: String) = setState { copy(pauseCustomReason = text) }
 
     fun confirmPause(reason: String) {
-        _uiState.update { it.copy(activeSheet = TrackSheet.NONE) }
+        setState { copy(activeSheet = TrackSheet.NONE) }
         pauseTracking(reason)
     }
 
-    fun openResumeSheet() = _uiState.update { it.copy(activeSheet = TrackSheet.RESUME) }
+    fun openResumeSheet() = setState { copy(activeSheet = TrackSheet.RESUME) }
 
-    fun setResumeNotes(notes: String) = _uiState.update { it.copy(resumeNotes = notes) }
+    fun setResumeNotes(notes: String) = setState { copy(resumeNotes = notes) }
 
     fun confirmResume() {
-        _uiState.update { it.copy(activeSheet = TrackSheet.NONE, resumeNotes = "") }
+        setState { copy(activeSheet = TrackSheet.NONE, resumeNotes = "") }
         resumeTracking()
     }
 
     // Vendor / center picker
-    fun openVendorPicker() = _uiState.update { it.copy(activeSheet = TrackSheet.VENDOR_PICKER) }
+    fun openVendorPicker() = setState { copy(activeSheet = TrackSheet.VENDOR_PICKER) }
 
-    fun setVendorQuery(q: String) = _uiState.update { it.copy(vendorQuery = q) }
+    fun setVendorQuery(q: String) = setState { copy(vendorQuery = q) }
 
     fun pickVendor(id: String) {
         // Selecting a center is acknowledged; the demo records it implicitly via check-in.
-        _uiState.update { it.copy(activeSheet = TrackSheet.NONE, vendorQuery = "") }
+        setState { copy(activeSheet = TrackSheet.NONE, vendorQuery = "") }
     }
 
     private fun loadWeekSummary() {
@@ -252,7 +274,7 @@ class TrackMilesViewModel(
                     } else {
                         "This Week: ${thisWeek.size} trip${if (thisWeek.size != 1) "s" else ""} • ${"%.1f".format(totalKm)} km"
                     }
-                _uiState.update { it.copy(weekSummaryText = text) }
+                setState { copy(weekSummaryText = text) }
             }
             .launchIn(viewModelScope)
     }
@@ -261,7 +283,7 @@ class TrackMilesViewModel(
         viewModelScope.launch {
             runCatching { vehicleRepo.getVehicles(trackMiles = true) }
                 .onSuccess { vehicles ->
-                    _uiState.update { it.copy(vehicles = vehicles, selectedVehicle = vehicles.firstOrNull()) }
+                    setState { copy(vehicles = vehicles, selectedVehicle = vehicles.firstOrNull()) }
                 }
                 .onFailure { Log.w("TrackMilesVM", "Failed to load vehicles", it) }
         }
@@ -270,8 +292,8 @@ class TrackMilesViewModel(
     private fun restoreActiveTrack() {
         viewModelScope.launch {
             val active = trackRepo.getActiveTrack() ?: return@launch
-            _uiState.update {
-                it.copy(
+            setState {
+                copy(
                     phase = TrackMilesPhase.TRACKING,
                     currentRouteId = active.routeId,
                     distanceKm = active.distance / 1000.0,
@@ -283,11 +305,11 @@ class TrackMilesViewModel(
     }
 
     fun selectVehicle(vehicle: ApprovedVehicle) {
-        _uiState.update { it.copy(selectedVehicle = vehicle) }
+        setState { copy(selectedVehicle = vehicle) }
     }
 
     fun startTracking() {
-        val vehicle = _uiState.value.selectedVehicle ?: return
+        val vehicle = currentState.selectedVehicle ?: return
         val routeId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         viewModelScope.launch {
@@ -305,8 +327,8 @@ class TrackMilesViewModel(
                     createdAt = now, startedAtTimestamp = now, startedByEmployeeCode = "EMP001",
                 )
             trackRepo.insert(track)
-            _uiState.update {
-                it.copy(phase = TrackMilesPhase.TRACKING, currentRouteId = routeId, distanceKm = 0.0, startTime = now)
+            setState {
+                copy(phase = TrackMilesPhase.TRACKING, currentRouteId = routeId, distanceKm = 0.0, startTime = now)
             }
             // Kick off the advanced foreground tracking service and observe its live writes.
             trackingController.start(routeId)
@@ -317,14 +339,10 @@ class TrackMilesViewModel(
 
     /** Toggle the hero gauge between the compass face and the activity timeline. */
     fun toggleGaugeMode() {
-        _uiState.update {
-            it.copy(
+        setState {
+            copy(
                 gaugeMode =
-                    if (it.gaugeMode == HeroGaugeMode.COMPASS) {
-                        HeroGaugeMode.ACTIVITY
-                    } else {
-                        HeroGaugeMode.COMPASS
-                    },
+                    if (gaugeMode == HeroGaugeMode.COMPASS) HeroGaugeMode.ACTIVITY else HeroGaugeMode.COMPASS,
             )
         }
     }
@@ -336,45 +354,39 @@ class TrackMilesViewModel(
             trackRepo.observeByRouteId(routeId)
                 .onEach { track ->
                     if (track == null) return@onEach
-                    val pricing = _uiState.value.selectedVehicle?.vehiclePricing ?: track.vehiclePricing
+                    val pricing = currentState.selectedVehicle?.vehiclePricing ?: track.vehiclePricing
                     val km = track.distance / 1000.0
-                    _uiState.update {
-                        it.copy(
-                            distanceKm = km,
-                            durationMs = track.duration,
-                            reimbursableAmount = km * pricing,
-                        )
-                    }
+                    setState { copy(distanceKm = km, durationMs = track.duration, reimbursableAmount = km * pricing) }
                 }
                 .launchIn(viewModelScope)
     }
 
     fun pauseTracking(reason: String? = null) {
-        _uiState.value.currentRouteId?.let { trackingController.pause(it) }
-        _uiState.update { it.copy(phase = TrackMilesPhase.PAUSED, pauseReason = reason) }
+        currentState.currentRouteId?.let { trackingController.pause(it) }
+        setState { copy(phase = TrackMilesPhase.PAUSED, pauseReason = reason) }
     }
 
     fun resumeTracking() {
-        _uiState.value.currentRouteId?.let { trackingController.resume(it) }
-        _uiState.update { it.copy(phase = TrackMilesPhase.TRACKING) }
+        currentState.currentRouteId?.let { trackingController.resume(it) }
+        setState { copy(phase = TrackMilesPhase.TRACKING) }
     }
 
     fun stopTracking() {
-        _uiState.value.currentRouteId?.let { trackingController.stop(it) }
+        currentState.currentRouteId?.let { trackingController.stop(it) }
         liveObserveJob?.cancel()
-        _uiState.update { it.copy(phase = TrackMilesPhase.STOPPED, endTime = System.currentTimeMillis()) }
+        setState { copy(phase = TrackMilesPhase.STOPPED, endTime = System.currentTimeMillis()) }
     }
 
     fun updateDistance(km: Double) {
-        val pricing = _uiState.value.selectedVehicle?.vehiclePricing ?: 0.0
-        _uiState.update { it.copy(distanceKm = km, reimbursableAmount = km * pricing) }
+        val pricing = currentState.selectedVehicle?.vehiclePricing ?: 0.0
+        setState { copy(distanceKm = km, reimbursableAmount = km * pricing) }
     }
 
     fun discardTracking() {
-        _uiState.value.currentRouteId?.let { trackingController.stop(it) }
+        currentState.currentRouteId?.let { trackingController.stop(it) }
         liveObserveJob?.cancel()
         bearingObserveJob?.cancel()
-        _uiState.update { TrackMilesUiState(config = it.config, vehicles = it.vehicles, selectedVehicle = it.selectedVehicle) }
+        setState { TrackMilesUiState(config = config, vehicles = vehicles, selectedVehicle = selectedVehicle) }
     }
 
     override fun onCleared() {
