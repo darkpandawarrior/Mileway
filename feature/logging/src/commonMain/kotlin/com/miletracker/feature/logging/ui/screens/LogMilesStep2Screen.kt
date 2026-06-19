@@ -58,6 +58,7 @@ import com.miletracker.feature.logging.ui.components.TravelledLocationsCard
 import com.miletracker.feature.logging.ui.dialog.TaggedEmployeesDialog
 import com.miletracker.feature.logging.ui.dialog.ViolationDialog
 import com.miletracker.feature.logging.ui.model.SubmittedVoucherSamples
+import com.miletracker.feature.logging.viewmodel.LogMilesAction
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import com.miletracker.feature.tracking.ui.components.SubmissionTabChips
 import org.koin.compose.viewmodel.koinViewModel
@@ -123,7 +124,7 @@ fun LogMilesStep2Screen(
             Step2Footer(
                 isSubmitting = uiState.isSubmitting,
                 onBack = onBack,
-                onSubmit = viewModel::submit,
+                onSubmit = { viewModel.onAction(LogMilesAction.Submit) },
             )
         },
     ) { padding ->
@@ -205,11 +206,11 @@ fun LogMilesStep2Screen(
                     actions =
                         TravelledLocationsActions(
                             onEdit = {},
-                            onRemove = viewModel::removeStop,
-                            onMoveUp = viewModel::moveStopUp,
-                            onMoveDown = viewModel::moveStopDown,
+                            onRemove = { viewModel.onAction(LogMilesAction.RemoveStop(it)) },
+                            onMoveUp = { viewModel.onAction(LogMilesAction.MoveStopUp(it)) },
+                            onMoveDown = { viewModel.onAction(LogMilesAction.MoveStopDown(it)) },
                             onInsertAfter = {},
-                            onToggleRoundTrip = viewModel::setRoundTrip,
+                            onToggleRoundTrip = { viewModel.onAction(LogMilesAction.SetRoundTrip(it)) },
                             onAddLocation = {},
                             onUseCurrent = {},
                             onVerifyDistance = {},
@@ -237,7 +238,7 @@ fun LogMilesStep2Screen(
                     invoiceDateText = uiState.invoiceDateMillis?.let { DateUtils.epochToDisplayDate(it) },
                     onPickInvoiceDate = { showInvoiceDatePicker = true },
                     note = uiState.logMilesNote,
-                    onNoteChange = viewModel::setLogMilesNote,
+                    onNoteChange = { viewModel.onAction(LogMilesAction.SetLogMilesNote(it)) },
                 )
                 TaggedEmployeesCard(
                     taggedCount = uiState.taggedEmployees.size,
@@ -249,7 +250,7 @@ fun LogMilesStep2Screen(
             if (selectedStep2Tab == "Attachments") {
                 AttachmentsCard(
                     attachmentCount = uiState.attachmentCount,
-                    onAdd = viewModel::addAttachment,
+                    onAdd = { viewModel.onAction(LogMilesAction.AddAttachment) },
                 )
             }
         }
@@ -262,7 +263,7 @@ fun LogMilesStep2Screen(
             initialDateMillis = uiState.invoiceDateMillis,
             title = "Invoice Date",
             onConfirm = {
-                viewModel.setInvoiceDate(it)
+                viewModel.onAction(LogMilesAction.SetInvoiceDate(it))
                 showInvoiceDatePicker = false
             },
             onDismiss = { showInvoiceDatePicker = false },
@@ -274,7 +275,7 @@ fun LogMilesStep2Screen(
             allEmployees = SubmittedVoucherSamples.taggableEmployees,
             initiallySelected = uiState.taggedEmployees,
             onConfirm = {
-                viewModel.setTaggedEmployees(it)
+                viewModel.onAction(LogMilesAction.SetTaggedEmployees(it))
                 showEmployeesDialog = false
             },
             onDismiss = { showEmployeesDialog = false },
@@ -286,7 +287,7 @@ fun LogMilesStep2Screen(
             ViolationDialog(
                 response = result,
                 onAcknowledge = {
-                    viewModel.dismissViolationDialog()
+                    viewModel.onAction(LogMilesAction.DismissViolationDialog)
                     onSubmitted()
                 },
             )
