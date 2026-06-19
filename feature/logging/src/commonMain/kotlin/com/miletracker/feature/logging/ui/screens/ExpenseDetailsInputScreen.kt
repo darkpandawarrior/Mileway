@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.logging.viewmodel.ExpenseAction
+import com.miletracker.feature.logging.viewmodel.ExpenseEffect
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -50,7 +53,18 @@ fun ExpenseDetailsInputScreen(
     modifier: Modifier = Modifier,
     viewModel: ExpenseViewModel = koinViewModel(),
 ) {
-    val form by viewModel.formState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val form = ui.form
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is ExpenseEffect.NavigateToSuccess -> onSubmitted()
+                ExpenseEffect.NavigateBack -> onBack()
+                is ExpenseEffect.ShowToast -> Unit
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -75,10 +89,7 @@ fun ExpenseDetailsInputScreen(
                             .padding(horizontal = DesignTokens.Spacing.l, vertical = DesignTokens.Spacing.l),
                 ) {
                     Button(
-                        onClick = {
-                            viewModel.submitExpense()
-                            onSubmitted()
-                        },
+                        onClick = { viewModel.onAction(ExpenseAction.SubmitExpense) },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = form.amountText.isNotBlank() && form.merchantName.isNotBlank(),
                     ) {
@@ -123,7 +134,7 @@ fun ExpenseDetailsInputScreen(
 
             OutlinedTextField(
                 value = form.amountText,
-                onValueChange = viewModel::setAmount,
+                onValueChange = { viewModel.onAction(ExpenseAction.SetAmount(it)) },
                 label = { Text("Amount (₹)") },
                 placeholder = { Text("0.00") },
                 prefix = { Text("₹") },
@@ -134,7 +145,7 @@ fun ExpenseDetailsInputScreen(
 
             OutlinedTextField(
                 value = form.merchantName,
-                onValueChange = viewModel::setMerchant,
+                onValueChange = { viewModel.onAction(ExpenseAction.SetMerchant(it)) },
                 label = { Text("Merchant / Vendor Name") },
                 placeholder = { Text("e.g. Swiggy, Ola Cabs") },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -144,7 +155,7 @@ fun ExpenseDetailsInputScreen(
 
             OutlinedTextField(
                 value = form.note,
-                onValueChange = viewModel::setNote,
+                onValueChange = { viewModel.onAction(ExpenseAction.SetNote(it)) },
                 label = { Text("Note (optional)") },
                 placeholder = { Text("Purpose of this expense…") },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
