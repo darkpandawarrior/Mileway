@@ -70,11 +70,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.common.asString
 import com.miletracker.core.common.formatDecimal
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.feature.approvals.model.ApprovalItem
 import com.miletracker.feature.approvals.model.ApprovalStatus
 import com.miletracker.feature.approvals.model.ApprovalType
 import com.miletracker.feature.approvals.repository.ApprovalsRepository
+import com.miletracker.feature.approvals.viewmodel.ApprovalsEffect
 import com.miletracker.feature.approvals.viewmodel.ApprovalsViewModel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -89,21 +92,25 @@ fun ApprovalsScreen(
     modifier: Modifier = Modifier,
     viewModel: ApprovalsViewModel = koinViewModel(),
 ) {
-    val state by viewModel.listState.collectAsState()
+    val ui by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectionMode by rememberSaveable { mutableStateOf(false) }
     val selectedIds = remember { mutableStateOf(setOf<String>()) }
 
-    LaunchedEffect(state.snackbarMessage) {
-        state.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearSnackbar()
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is ApprovalsEffect.ShowToast -> snackbarHostState.showSnackbar(effect.message.asString())
+                is ApprovalsEffect.NavigateToDetail -> onOpenDetail(effect.id)
+                ApprovalsEffect.NavigateBack -> Unit
+            }
         }
     }
 
-    val pendingItems = state.items.filter { it.status == ApprovalStatus.PENDING }
+    val items = ui.listState.dataOrNull ?: emptyList()
+    val pendingItems = items.filter { it.status == ApprovalStatus.PENDING }
     val pendingCount = pendingItems.size
 
     Scaffold(
