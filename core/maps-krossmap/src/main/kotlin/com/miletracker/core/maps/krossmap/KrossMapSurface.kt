@@ -72,6 +72,8 @@ class KrossMapSurface : MapSurface {
         autoCenterEnabled: Boolean,
         playbackCoord: MapCoordinate?,
         showIssueMarkers: Boolean,
+        showCompass: Boolean,
+        showTraffic: Boolean,
         modifier: Modifier,
     ) {
         val scope = rememberCoroutineScope()
@@ -179,8 +181,8 @@ class KrossMapSurface : MapSurface {
             modifier = modifier,
             mapState = mapState,
             cameraPositionState = cameraState,
-            // showTraffic=F, showCompass=T, showBuildings=F, showPOI=F, rotation=T, tilt=T, scroll=T
-        properties = KrossMapProperties(false, true, false, false, true, true, true),
+            // positional: showTraffic, showCompass, showBuildings, showPOI, rotation, tilt, scroll
+        properties = KrossMapProperties(showTraffic, showCompass, false, false, true, true, true),
         )
     }
 }
