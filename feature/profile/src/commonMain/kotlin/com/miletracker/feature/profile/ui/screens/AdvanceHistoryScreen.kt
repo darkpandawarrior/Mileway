@@ -44,6 +44,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.ui.mvi.DefaultEmptyState
+import com.miletracker.core.ui.mvi.ScreenStateContent
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.profile.model.AdvanceRecord
@@ -64,7 +67,6 @@ fun AdvanceHistoryScreen(
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
     val ui by viewModel.state.collectAsState()
-    val state = ui.list
 
     Scaffold(
         floatingActionButton = {
@@ -100,7 +102,11 @@ fun AdvanceHistoryScreen(
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text("My Advances", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
-                        Text("${state.records.size} records", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.85f))
+                        Text(
+                            "${ui.list.records.dataOrNull?.size ?: 0} records",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.85f),
+                        )
                     }
                 }
             }
@@ -115,7 +121,7 @@ fun AdvanceHistoryScreen(
             ) {
                 AdvanceTabFilter.entries.forEach { tab ->
                     FilterChip(
-                        selected = state.activeTab == tab,
+                        selected = ui.list.activeTab == tab,
                         onClick = { viewModel.onAction(AdvanceAction.SetTab(tab)) },
                         label = { Text(tab.name.lowercase().replaceFirstChar { it.uppercase() }) },
                         colors =
@@ -127,22 +133,33 @@ fun AdvanceHistoryScreen(
                 }
             }
 
-            LazyColumn(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .navigationBarsPadding(),
-                contentPadding =
-                    androidx.compose.foundation.layout.PaddingValues(
-                        horizontal = DesignTokens.Spacing.l,
-                        vertical = DesignTokens.Spacing.m,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-            ) {
-                items(state.records, key = { it.id }) { record ->
-                    AdvanceCard(record = record)
+            ScreenStateContent(
+                state = ui.list.records,
+                modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+                onRetry = { viewModel.onAction(AdvanceAction.Refresh) },
+                empty = {
+                    DefaultEmptyState(
+                        title = "No advances yet",
+                        subtitle = "Your advance requests will appear here.",
+                        ctaLabel = "Request Advance",
+                        onCta = onRequestAdvance,
+                    )
+                },
+            ) { records ->
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding =
+                        androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = DesignTokens.Spacing.l,
+                            vertical = DesignTokens.Spacing.m,
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+                ) {
+                    items(records, key = { it.id }) { record ->
+                        AdvanceCard(record = record)
+                    }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-                item { Spacer(Modifier.height(80.dp)) } // FAB clearance
             }
         }
     }

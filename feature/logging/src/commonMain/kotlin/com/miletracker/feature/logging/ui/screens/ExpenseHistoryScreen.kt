@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -43,6 +42,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.ui.mvi.DefaultEmptyState
+import com.miletracker.core.ui.mvi.ScreenStateContent
 import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
@@ -66,11 +67,6 @@ fun ExpenseHistoryScreen(
 ) {
     val ui by viewModel.state.collectAsState()
     val state = ui.listState.dataOrNull ?: ExpenseListData()
-
-    val grouped =
-        state.records
-            .sortedByDescending { it.dateMs }
-            .groupBy { dateBucket(it.dateMs) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -135,57 +131,46 @@ fun ExpenseHistoryScreen(
                 }
             }
 
-            if (state.records.isEmpty()) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(DesignTokens.Spacing.xl),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Filled.Receipt,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        )
-                        Spacer(Modifier.height(DesignTokens.Spacing.l))
-                        Text(
-                            text = "No expenses found",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .navigationBarsPadding(),
-                    contentPadding =
-                        androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = DesignTokens.Spacing.l,
-                            vertical = DesignTokens.Spacing.m,
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
-                ) {
-                    grouped.forEach { (bucket, records) ->
-                        item(key = bucket) {
-                            Text(
-                                text = bucket,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(vertical = DesignTokens.Spacing.s),
-                            )
-                        }
-                        items(records, key = { it.id }) { expense ->
-                            ExpenseCard(
-                                expense = expense,
-                                onClick = { onOpenDetail(expense.id) },
-                            )
+            ScreenStateContent(
+                state = ui.listState,
+                modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+                onRetry = { viewModel.onAction(ExpenseAction.Refresh) },
+            ) { data ->
+                if (data.records.isEmpty()) {
+                    DefaultEmptyState(
+                        title = "No expenses logged",
+                        subtitle = "Your expense records will appear here.",
+                    )
+                } else {
+                    val grouped =
+                        data.records
+                            .sortedByDescending { it.dateMs }
+                            .groupBy { dateBucket(it.dateMs) }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding =
+                            androidx.compose.foundation.layout.PaddingValues(
+                                horizontal = DesignTokens.Spacing.l,
+                                vertical = DesignTokens.Spacing.m,
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s),
+                    ) {
+                        grouped.forEach { (bucket, records) ->
+                            item(key = bucket) {
+                                Text(
+                                    text = bucket,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(vertical = DesignTokens.Spacing.s),
+                                )
+                            }
+                            items(records, key = { it.id }) { expense ->
+                                ExpenseCard(
+                                    expense = expense,
+                                    onClick = { onOpenDetail(expense.id) },
+                                )
+                            }
                         }
                     }
                 }
