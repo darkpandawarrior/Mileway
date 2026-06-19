@@ -1,17 +1,14 @@
 package com.miletracker.feature.media.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.media.model.AttachmentItem
 import com.miletracker.feature.media.model.AttachmentSource
 import com.miletracker.feature.media.model.FlashMode
 import com.miletracker.feature.media.model.UploadState
 import com.miletracker.feature.media.repository.MediaLibraryRepository
 import com.miletracker.feature.media.repository.MediaRepository
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -20,16 +17,6 @@ import kotlin.time.Clock
  * Single immutable UI state for the whole media-capture flow. Shared across the
  * selection -> camera/gallery -> preview -> OCR-sheet journey via a nav-graph
  * scoped ViewModel.
- *
- * @param attachments     confirmed attachments shown in the selection grid
- * @param selectedSource  the source tile last tapped (drives the camera/gallery launch)
- * @param pendingItem     the single in-flight capture awaiting preview/confirmation
- * @param pendingBatch    multi-capture buffer: every photo taken before the user confirms.
- *                        Drives the preview thumbnail grid + the "Use N photos" confirm bar.
- *                        The first entry mirrors [pendingItem] for the single-photo flow.
- * @param flashMode       current camera flash mode, cycled by the in-camera toggle
- * @param ocrSheetVisible whether the OCR result sheet is currently shown
- * @param isProcessing    a blocking op (OCR / upload) is running
  */
 data class MediaUiState(
     val attachments: List<AttachmentItem> = emptyList(),
@@ -41,108 +28,117 @@ data class MediaUiState(
     val isProcessing: Boolean = false,
 )
 
+sealed interface MediaAction {
+    data class SelectSource(val source: AttachmentSource) : MediaAction
+
+    data object CycleFlashMode : MediaAction
+
+    data class Captured(val uri: String) : MediaAction
+
+    data class PickedFromGallery(val uri: String) : MediaAction
+
+    data class RemoveFromBatch(val id: String) : MediaAction
+
+    data object RunOcr : MediaAction
+
+    data object ConfirmPending : MediaAction
+
+    data object Retake : MediaAction
+
+    data object DismissSheet : MediaAction
+}
+
+/** No one-shot effects; OCR-sheet visibility is state. Present to satisfy the MVI contract. */
+sealed interface MediaEffect
+
 class MediaViewModel(
     private val repository: MediaRepository,
     private val libraryRepository: MediaLibraryRepository,
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(MediaUiState())
-    val uiState: StateFlow<MediaUiState> = _uiState.asStateFlow()
+) : BaseViewModel<MediaUiState, MediaEffect, MediaAction>(MediaUiState()) {
+    /** Backwards-compatible alias; screens read [state]. */
+    val uiState: StateFlow<MediaUiState> = state
 
-    /** User tapped one of the source tiles (Camera / Gallery / Files). */
-    fun onSourceSelected(source: AttachmentSource) {
-        _uiState.update { it.copy(selectedSource = source) }
+    override fun onAction(action: MediaAction) {
+        when (action) {
+            is MediaAction.SelectSource -> setState { copy(selectedSource = action.source) }
+            MediaAction.CycleFlashMode -> cycleFlashMode()
+            is MediaAction.Captured -> onCaptured(action.uri)
+            is MediaAction.PickedFromGallery -> onPickedFromGallery(action.uri)
+            is MediaAction.RemoveFromBatch -> removeFromBatch(action.id)
+            MediaAction.RunOcr -> runOcr()
+            MediaAction.ConfirmPending -> confirmPending()
+            MediaAction.Retake ->
+                setState { copy(pendingItem = null, pendingBatch = emptyList(), ocrSheetVisible = false) }
+            MediaAction.DismissSheet -> setState { copy(ocrSheetVisible = false) }
+        }
     }
 
+    private fun newId(): String = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36)
+
     /** Cycle the camera flash mode AUTO -> ON -> OFF -> AUTO. */
-    fun cycleFlashMode() {
-        _uiState.update {
+    private fun cycleFlashMode() {
+        setState {
             val next =
-                when (it.flashMode) {
+                when (flashMode) {
                     FlashMode.AUTO -> FlashMode.ON
                     FlashMode.ON -> FlashMode.OFF
                     FlashMode.OFF -> FlashMode.AUTO
                 }
-            it.copy(flashMode = next)
+            copy(flashMode = next)
         }
     }
 
-    /**
-     * A photo was captured by the CameraX flow. Sets it as the pending item and
-     * appends it to the multi-capture [MediaUiState.pendingBatch] so the preview screen
-     * can offer a "review / use N photos" grid before any are committed.
-     */
-    fun onCaptured(uri: String) {
+    private fun onCaptured(uri: String) {
         val item =
             AttachmentItem(
-                id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
+                id = newId(),
                 uri = uri,
                 source = AttachmentSource.CAMERA,
                 capturedAtMillis = Clock.System.now().toEpochMilliseconds(),
             )
-        _uiState.update {
-            it.copy(
-                pendingItem = item,
-                pendingBatch = it.pendingBatch + item,
-                ocrSheetVisible = false,
-            )
-        }
+        setState { copy(pendingItem = item, pendingBatch = pendingBatch + item, ocrSheetVisible = false) }
     }
 
-    /** An image was picked from the gallery (or files). */
-    fun onPickedFromGallery(uri: String) {
-        _uiState.update {
+    private fun onPickedFromGallery(uri: String) {
+        setState {
             val item =
                 AttachmentItem(
-                    id = Clock.System.now().toEpochMilliseconds().toString(36) + "_" + Random.nextLong().toString(36),
+                    id = newId(),
                     uri = uri,
-                    source = it.selectedSource ?: AttachmentSource.GALLERY,
+                    source = selectedSource ?: AttachmentSource.GALLERY,
                     capturedAtMillis = Clock.System.now().toEpochMilliseconds(),
                 )
-            it.copy(
-                pendingItem = item,
-                pendingBatch = it.pendingBatch + item,
-                ocrSheetVisible = false,
-            )
+            copy(pendingItem = item, pendingBatch = pendingBatch + item, ocrSheetVisible = false)
         }
     }
 
-    /**
-     * Remove a single not-yet-confirmed capture from the multi-capture batch (delete
-     * overlay on a preview thumbnail). Keeps [MediaUiState.pendingItem] pointed at a
-     * surviving item, or clears it when the batch becomes empty.
-     */
-    fun removeFromBatch(id: String) {
-        _uiState.update { state ->
-            val batch = state.pendingBatch.filterNot { it.id == id }
-            state.copy(
+    private fun removeFromBatch(id: String) {
+        setState {
+            val batch = pendingBatch.filterNot { it.id == id }
+            copy(
                 pendingBatch = batch,
                 pendingItem =
                     when {
                         batch.isEmpty() -> null
-                        state.pendingItem?.id == id -> batch.last()
-                        else -> state.pendingItem
+                        pendingItem?.id == id -> batch.last()
+                        else -> pendingItem
                     },
-                ocrSheetVisible = state.ocrSheetVisible && batch.isNotEmpty(),
+                ocrSheetVisible = ocrSheetVisible && batch.isNotEmpty(),
             )
         }
     }
 
     /** Run the (mocked) OCR pass over the pending item and surface the result sheet. */
-    fun runOcr() {
-        val pending = _uiState.value.pendingItem ?: return
-        _uiState.update { it.copy(isProcessing = true) }
+    private fun runOcr() {
+        val pending = currentState.pendingItem ?: return
+        setState { copy(isProcessing = true) }
         viewModelScope.launch {
             val result = repository.runOcr(pending.uri)
-            _uiState.update { state ->
-                val updated = state.pendingItem?.copy(ocr = result)
-                state.copy(
+            setState {
+                val updated = pendingItem?.copy(ocr = result)
+                copy(
                     pendingItem = updated,
-                    // Keep the matching batch entry in sync so the OCR result rides along
-                    // when the whole batch is committed.
-                    pendingBatch =
-                        state.pendingBatch.map {
-                            if (updated != null && it.id == updated.id) updated else it
-                        },
+                    pendingBatch = pendingBatch.map { if (updated != null && it.id == updated.id) updated else it },
                     ocrSheetVisible = true,
                     isProcessing = false,
                 )
@@ -152,14 +148,13 @@ class MediaViewModel(
 
     /**
      * Confirm the pending capture(s): run the mocked upload over every item in the
-     * multi-capture batch (falling back to the single pending item), then add the
-     * finished items to the gallery list and clear the pending slot + sheet.
+     * multi-capture batch, persist them to the library, then clear the pending slot.
      */
-    fun confirmPending() {
-        val state = _uiState.value
-        val toUpload = state.pendingBatch.ifEmpty { listOfNotNull(state.pendingItem) }
+    private fun confirmPending() {
+        val s = currentState
+        val toUpload = s.pendingBatch.ifEmpty { listOfNotNull(s.pendingItem) }
         if (toUpload.isEmpty()) return
-        _uiState.update { it.copy(isProcessing = true) }
+        setState { copy(isProcessing = true) }
         viewModelScope.launch {
             val finished =
                 toUpload.map { item ->
@@ -168,9 +163,9 @@ class MediaViewModel(
                     uploading.copy(uploadState = done)
                 }
             finished.forEach { libraryRepository.save(it) }
-            _uiState.update { current ->
-                current.copy(
-                    attachments = current.attachments + finished,
+            setState {
+                copy(
+                    attachments = attachments + finished,
                     pendingItem = null,
                     pendingBatch = emptyList(),
                     ocrSheetVisible = false,
@@ -179,17 +174,5 @@ class MediaViewModel(
                 )
             }
         }
-    }
-
-    /** Discard the entire pending batch and let the user shoot again. */
-    fun retake() {
-        _uiState.update {
-            it.copy(pendingItem = null, pendingBatch = emptyList(), ocrSheetVisible = false)
-        }
-    }
-
-    /** Hide the OCR result sheet without discarding the pending item. */
-    fun dismissSheet() {
-        _uiState.update { it.copy(ocrSheetVisible = false) }
     }
 }

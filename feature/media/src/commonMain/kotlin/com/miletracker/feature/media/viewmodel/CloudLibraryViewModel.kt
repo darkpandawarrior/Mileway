@@ -1,23 +1,34 @@
 package com.miletracker.feature.media.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.library.MediaLibraryEntry
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.media.repository.MediaLibraryRepository
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+sealed interface CloudLibraryAction {
+    data class Delete(val entry: MediaLibraryEntry) : CloudLibraryAction
+}
+
+/** No one-shot effects. Present to satisfy the MVI contract. */
+sealed interface CloudLibraryEffect
 
 class CloudLibraryViewModel(
     private val repository: MediaLibraryRepository,
-) : ViewModel() {
-    val entries: StateFlow<List<MediaLibraryEntry>> =
-        repository
-            .observeLibrary()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+) : BaseViewModel<List<MediaLibraryEntry>, CloudLibraryEffect, CloudLibraryAction>(emptyList()) {
+    /** Backwards-compatible alias; screens read [state]. */
+    val entries: StateFlow<List<MediaLibraryEntry>> = state
 
-    fun delete(entry: MediaLibraryEntry) {
-        viewModelScope.launch { repository.delete(entry) }
+    init {
+        viewModelScope.launch {
+            repository.observeLibrary().collect { list -> setState { list } }
+        }
+    }
+
+    override fun onAction(action: CloudLibraryAction) {
+        when (action) {
+            is CloudLibraryAction.Delete -> viewModelScope.launch { repository.delete(action.entry) }
+        }
     }
 }

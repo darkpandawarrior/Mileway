@@ -53,6 +53,7 @@ import com.miletracker.core.ui.components.ZoomImageViewer
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.media.model.AttachmentItem
 import com.miletracker.feature.media.ui.sheets.OcrResultBottomSheet
+import com.miletracker.feature.media.viewmodel.MediaAction
 import com.miletracker.feature.media.viewmodel.MediaViewModel
 
 /**
@@ -92,14 +93,14 @@ fun AttachmentPreviewScreen(
                 isProcessing = state.isProcessing,
                 contentPadding = innerPadding,
                 onOpen = { viewerUri = it.uri },
-                onDelete = { viewModel.removeFromBatch(it.id) },
+                onDelete = { viewModel.onAction(MediaAction.RemoveFromBatch(it.id)) },
                 onAddMore = onAddMore,
                 onRetake = {
-                    viewModel.retake()
+                    viewModel.onAction(MediaAction.Retake)
                     onRetake()
                 },
                 onConfirm = {
-                    viewModel.confirmPending()
+                    viewModel.onAction(MediaAction.ConfirmPending)
                     onUsePhoto()
                 },
             )
@@ -110,12 +111,12 @@ fun AttachmentPreviewScreen(
                 contentPadding = innerPadding,
                 onPreviewTap = { uri -> viewerUri = uri },
                 onRetake = {
-                    viewModel.retake()
+                    viewModel.onAction(MediaAction.Retake)
                     onRetake()
                 },
-                onRunOcr = { viewModel.runOcr() },
+                onRunOcr = { viewModel.onAction(MediaAction.RunOcr) },
                 onUsePhoto = {
-                    viewModel.confirmPending()
+                    viewModel.onAction(MediaAction.ConfirmPending)
                     onUsePhoto()
                 },
             )
@@ -136,11 +137,11 @@ fun AttachmentPreviewScreen(
         OcrResultBottomSheet(
             result = ocr,
             onConfirm = {
-                viewModel.confirmPending()
+                viewModel.onAction(MediaAction.ConfirmPending)
                 onUsePhoto()
             },
-            onEdit = { viewModel.dismissSheet() },
-            onDismiss = { viewModel.dismissSheet() },
+            onEdit = { viewModel.onAction(MediaAction.DismissSheet) },
+            onDismiss = { viewModel.onAction(MediaAction.DismissSheet) },
         )
     }
 }
