@@ -48,6 +48,7 @@ import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.profile.model.AdvanceRecord
 import com.miletracker.feature.profile.model.AdvanceStatus
+import com.miletracker.feature.profile.viewmodel.AdvanceAction
 import com.miletracker.feature.profile.viewmodel.AdvanceTabFilter
 import com.miletracker.feature.profile.viewmodel.AdvanceViewModel
 import kotlinx.datetime.Instant
@@ -62,7 +63,8 @@ fun AdvanceHistoryScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
-    val state by viewModel.listState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val state = ui.list
 
     Scaffold(
         floatingActionButton = {
@@ -114,7 +116,7 @@ fun AdvanceHistoryScreen(
                 AdvanceTabFilter.entries.forEach { tab ->
                     FilterChip(
                         selected = state.activeTab == tab,
-                        onClick = { viewModel.setTab(tab) },
+                        onClick = { viewModel.onAction(AdvanceAction.SetTab(tab)) },
                         label = { Text(tab.name.lowercase().replaceFirstChar { it.uppercase() }) },
                         colors =
                             FilterChipDefaults.filterChipColors(
