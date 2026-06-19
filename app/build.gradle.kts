@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.navgraph)
     alias(libs.plugins.kover)
     alias(libs.plugins.roborazzi)
+    alias(libs.plugins.dependency.guard)
 }
 
 android {
@@ -37,7 +38,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -65,6 +67,29 @@ navgraph {
 
 ksp {
     arg("navgraph.annotatedOnly", "true")
+    // Room — faster incremental processing; only reprocesses changed DAOs.
+    arg("room.incremental", "true")
+    arg("room.expandProjection", "true")
+}
+
+// Compose compiler stability/recomposition reports — written to build/compose_metrics/.
+// Trigger via: ./gradlew assembleGmsRelease -PenableComposeMetrics=true
+// (debug builds add Live Literals noise; always run on release variant)
+if (project.findProperty("enableComposeMetrics") == "true") {
+    composeCompiler {
+        metricsDestination = layout.buildDirectory.dir("compose_metrics")
+        reportsDestination = layout.buildDirectory.dir("compose_metrics")
+        // Stability config: teach the compiler about third-party immutable types
+        // to prevent false "unstable" labels and unnecessary recompositions.
+        stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("compose_stability.conf"))
+    }
+}
+
+// Dependency Guard — baseline snapshot of releaseRuntimeClasspath to catch
+// silent transitive version bumps in CI. Run `./gradlew dependencyGuardBaseline`
+// after any intentional dep change, then commit the updated baseline file.
+dependencyGuard {
+    configuration("gmsReleaseRuntimeClasspath")
 }
 
 dependencies {
@@ -124,6 +149,10 @@ dependencies {
     // WormaCeptor — HTTP traffic inspector, DEBUG builds only (never in release; Android-only).
     debugImplementation(libs.wormaceptor.api)
     debugImplementation(libs.wormaceptor.impl)
+
+    // Baseline profiles — installs AOT-compiled Dex profile at install time for cold-start wins.
+    // The actual profile lives in :baselineprofile module (add when ready to generate).
+    implementation(libs.profileinstaller)
 
     // Tests
     testImplementation(libs.junit)

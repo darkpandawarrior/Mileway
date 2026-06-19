@@ -12,8 +12,11 @@ concurrency:
 
 jobs:
   quality:
-    name: ktlint · detekt · test · kover
+    name: ktlint · detekt · test · kover · dependency-guard
     runs-on: ubuntu-latest
+
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
     steps:
       - uses: actions/checkout@v4
@@ -24,10 +27,24 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-cleanup: on-success
+
+      # Kotlin/Native toolchain — needed for KMP iOS compilation during quality checks.
+      - name: Cache Kotlin/Native toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan-v1-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-v1-
+            ${{ runner.os }}-konan-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: Code style — ktlint
         run: ./gradlew ktlintCheck
@@ -36,12 +53,15 @@ jobs:
         run: ./gradlew detekt
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testGmsDebugUnitTest
 
       - name: Coverage report
         run: ./gradlew koverXmlReport
 
-      - name: Upload coverage to GitHub Artifacts
+      - name: Dependency guard
+        run: ./gradlew dependencyGuard
+
+      - name: Upload kover coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:

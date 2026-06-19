@@ -9,12 +9,15 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room) apply false
     alias(libs.plugins.navgraph) apply false
+    alias(libs.plugins.dependency.guard) apply false
     // Phase 12: Code quality
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.storytale) apply false
     alias(libs.plugins.roborazzi) apply false
+    // Build health — applied to root only
+    alias(libs.plugins.gradle.doctor)
 }
 
 // --------------------------------------------------------------------------
@@ -54,5 +57,45 @@ subprojects {
         config.setFrom(rootProject.files("config/detekt/detekt.yml"))
         buildUponDefaultConfig = true
         baseline = file("detekt-baseline.xml")
+    }
+}
+
+// --------------------------------------------------------------------------
+// Gradle Doctor — catches common build health issues (Rosetta, JDK mismatch,
+// Kotlin daemon fallback, Jetifier still on, etc.)
+// --------------------------------------------------------------------------
+doctor {
+    warnWhenJetifierEnabled = true
+    warnIfKotlinCompileDaemonFallback = true
+    javaHome {
+        ensureJavaHomeIsSet = true
+        ensureJavaHomeMatches = true
+        failOnError = false // warn only until team is aligned on JDK toolchain
+    }
+}
+
+// --------------------------------------------------------------------------
+// Workflow task aliases — mirrors the production Dice app conventions
+// --------------------------------------------------------------------------
+tasks.register("devBuild") {
+    description = "Clean + debug APK + unit tests — full local dev loop."
+    dependsOn(":app:clean", ":app:assembleGmsDebug", ":app:testGmsDebugUnitTest")
+}
+
+tasks.register("quickBuild") {
+    description = "Debug APK only (no tests) — fastest iteration cycle."
+    dependsOn(":app:assembleGmsDebug")
+}
+
+tasks.register("fullCheck") {
+    description = "ktlint + detekt + tests + kover coverage — all quality gates."
+    dependsOn("ktlintCheck", "detekt", ":app:testGmsDebugUnitTest", "koverXmlReport")
+}
+
+tasks.register("composeMetrics") {
+    description = "Generate Compose compiler stability/recomposition reports for :app (release)."
+    dependsOn(":app:assembleGmsRelease")
+    doLast {
+        println("Compose metrics written to: app/build/compose_metrics/")
     }
 }
