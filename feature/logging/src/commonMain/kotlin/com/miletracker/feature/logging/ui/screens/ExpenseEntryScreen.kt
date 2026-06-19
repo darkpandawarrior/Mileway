@@ -39,6 +39,7 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.logging.model.ExpenseCategory
+import com.miletracker.feature.logging.viewmodel.ExpenseAction
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -93,7 +94,7 @@ fun ExpenseEntryScreen(
                     CategoryTile(
                         category = category,
                         onClick = {
-                            viewModel.selectCategory(category)
+                            viewModel.onAction(ExpenseAction.SelectCategory(category))
                             onCategorySelected()
                         },
                     )

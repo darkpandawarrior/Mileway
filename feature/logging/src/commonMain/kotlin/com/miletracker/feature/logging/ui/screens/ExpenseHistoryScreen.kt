@@ -43,11 +43,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.logging.model.ExpenseRecord
 import com.miletracker.feature.logging.model.ExpenseStatus
+import com.miletracker.feature.logging.viewmodel.ExpenseAction
 import com.miletracker.feature.logging.viewmodel.ExpenseFilter
+import com.miletracker.feature.logging.viewmodel.ExpenseListData
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -61,7 +64,8 @@ fun ExpenseHistoryScreen(
     modifier: Modifier = Modifier,
     viewModel: ExpenseViewModel = koinViewModel(),
 ) {
-    val state by viewModel.listState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val state = ui.listState.dataOrNull ?: ExpenseListData()
 
     val grouped =
         state.records
@@ -120,7 +124,7 @@ fun ExpenseHistoryScreen(
                 ExpenseFilter.entries.forEach { filter ->
                     FilterChip(
                         selected = state.activeFilter == filter,
-                        onClick = { viewModel.setFilter(filter) },
+                        onClick = { viewModel.onAction(ExpenseAction.SetFilter(filter)) },
                         label = { Text(filter.name.lowercase().replaceFirstChar { it.uppercase() }) },
                         colors =
                             FilterChipDefaults.filterChipColors(

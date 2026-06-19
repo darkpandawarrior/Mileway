@@ -36,6 +36,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,11 +47,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.logging.model.ExpenseRecord
 import com.miletracker.feature.logging.model.ExpenseStatus
+import com.miletracker.feature.logging.viewmodel.ExpenseAction
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -63,7 +68,9 @@ fun ExpenseDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: ExpenseViewModel = koinViewModel(),
 ) {
-    val expense = viewModel.getExpense(expenseId)
+    val ui by viewModel.state.collectAsState()
+    LaunchedEffect(expenseId) { viewModel.onAction(ExpenseAction.OpenDetail(expenseId)) }
+    val expense = ui.detailState.dataOrNull
 
     Scaffold(
         topBar = {
