@@ -78,6 +78,7 @@ import com.miletracker.feature.tracking.ui.sheets.VehiclePickerSheet
 import com.miletracker.feature.tracking.ui.sheets.VendorPickerSheet
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import com.miletracker.feature.tracking.viewmodel.HeroGaugeMode
+import com.miletracker.feature.tracking.viewmodel.TrackMilesAction
 import com.miletracker.feature.tracking.viewmodel.TrackMilesPhase
 import com.miletracker.feature.tracking.viewmodel.TrackMilesUiState
 import com.miletracker.feature.tracking.viewmodel.TrackMilesViewModel
@@ -150,14 +151,14 @@ fun TrackMilesScreen(
     val permissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions(),
-        ) { viewModel.requestStartTracking() }
+        ) { viewModel.onAction(TrackMilesAction.RequestStartTracking) }
     val requestStartTracking = {
         val granted =
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_FINE_LOCATION,
             ) == PackageManager.PERMISSION_GRANTED
         if (granted) {
-            viewModel.requestStartTracking()
+            viewModel.onAction(TrackMilesAction.RequestStartTracking)
         } else {
             permissionLauncher.launch(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
@@ -212,7 +213,7 @@ fun TrackMilesScreen(
                     signalQuality = uiState.signal.toGauge(),
                     segments = uiState.activitySegments(),
                     gaugeMode = uiState.gaugeMode.toGauge(),
-                    onToggleMode = viewModel::toggleGaugeMode,
+                    onToggleMode = { viewModel.onAction(TrackMilesAction.ToggleGaugeMode) },
                     isActive = isActive,
                     isPaused = isPaused,
                     historyCount = uiState.pointsLabel,
@@ -225,7 +226,12 @@ fun TrackMilesScreen(
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     },
-                    onVehicleClick = if (uiState.phase == TrackMilesPhase.IDLE) viewModel::openVehiclePicker else null,
+                    onVehicleClick =
+                        if (uiState.phase == TrackMilesPhase.IDLE) {
+                            { viewModel.onAction(TrackMilesAction.OpenVehiclePicker) }
+                        } else {
+                            null
+                        },
                     pauseReason = uiState.pauseReason,
                 )
 
@@ -251,7 +257,7 @@ fun TrackMilesScreen(
                 // Journey Guide text link — tappable hint shown when idle.
                 if (!isActive) {
                     androidx.compose.material3.TextButton(
-                        onClick = viewModel::openJourneyGuide,
+                        onClick = { viewModel.onAction(TrackMilesAction.OpenJourneyGuide) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
@@ -268,8 +274,20 @@ fun TrackMilesScreen(
                 isActive = isActive,
                 isPaused = isPaused,
                 actions = quickActions,
-                onHero = { if (isActive) viewModel.stopTracking() else viewModel.openJourneyGuide() },
-                onPauseResume = { if (isPaused) viewModel.openResumeSheet() else viewModel.openPauseSheet() },
+                onHero = {
+                    if (isActive) {
+                        viewModel.onAction(TrackMilesAction.StopTracking)
+                    } else {
+                        viewModel.onAction(TrackMilesAction.OpenJourneyGuide)
+                    }
+                },
+                onPauseResume = {
+                    if (isPaused) {
+                        viewModel.onAction(TrackMilesAction.OpenResumeSheet)
+                    } else {
+                        viewModel.onAction(TrackMilesAction.OpenPauseSheet)
+                    }
+                },
                 onAction = { id ->
                     when (id) {
                         Qa.MAP -> onOpenMap()
@@ -277,10 +295,10 @@ fun TrackMilesScreen(
                         Qa.DATA -> onOpenHwEvents()
                         Qa.CHECK_IN -> onNavigateToGeoCheckIn()
                         Qa.MANUAL_CHECK_IN -> onNavigateToManualCheckIn()
-                        Qa.CENTERS -> viewModel.openVendorPicker()
+                        Qa.CENTERS -> viewModel.onAction(TrackMilesAction.OpenVendorPicker)
                         Qa.SAVED -> onOpenHwEvents()
                         Qa.SETTINGS -> onOpenSettings()
-                        Qa.DISCARD -> viewModel.discardTracking()
+                        Qa.DISCARD -> viewModel.onAction(TrackMilesAction.DiscardTracking)
                     }
                 },
                 showGeoCheckIn = isActive && uiState.config.geoCheckInEnabled,
@@ -307,11 +325,11 @@ fun TrackMilesScreen(
                         draftEnabled = uiState.draftEnabled,
                         requiresOdometer = uiState.config.isOdometerMandatory,
                     ),
-                onPickVehicle = viewModel::openVehiclePicker,
-                onCaptureOdometer = viewModel::captureStartOdometer,
-                onToggleDraft = viewModel::toggleDraft,
+                onPickVehicle = { viewModel.onAction(TrackMilesAction.OpenVehiclePicker) },
+                onCaptureOdometer = { viewModel.onAction(TrackMilesAction.CaptureStartOdometer) },
+                onToggleDraft = { viewModel.onAction(TrackMilesAction.ToggleDraft(it)) },
                 onStartTracking = requestStartTracking,
-                onDismiss = viewModel::dismissSheet,
+                onDismiss = { viewModel.onAction(TrackMilesAction.DismissSheet) },
             )
 
         TrackSheet.VEHICLE_PICKER ->
@@ -326,19 +344,19 @@ fun TrackMilesScreen(
                         )
                     },
                 query = uiState.vehicleQuery,
-                onQueryChange = viewModel::setVehicleQuery,
-                onSelect = viewModel::pickVehicle,
-                onDismiss = viewModel::openJourneyGuide,
+                onQueryChange = { viewModel.onAction(TrackMilesAction.SetVehicleQuery(it)) },
+                onSelect = { viewModel.onAction(TrackMilesAction.PickVehicle(it)) },
+                onDismiss = { viewModel.onAction(TrackMilesAction.OpenJourneyGuide) },
             )
 
         TrackSheet.VENDOR_PICKER ->
             VendorPickerSheet(
                 centers = uiState.centers.map { CenterOption(it.id, it.name, it.type) },
                 query = uiState.vendorQuery,
-                onQueryChange = viewModel::setVendorQuery,
-                onSelect = viewModel::pickVendor,
+                onQueryChange = { viewModel.onAction(TrackMilesAction.SetVendorQuery(it)) },
+                onSelect = { viewModel.onAction(TrackMilesAction.PickVendor(it)) },
                 onOpenMaps = { /* maps deep-link is out of scope for the offline demo */ },
-                onDismiss = viewModel::dismissSheet,
+                onDismiss = { viewModel.onAction(TrackMilesAction.DismissSheet) },
             )
 
         TrackSheet.PAUSE ->
@@ -346,26 +364,26 @@ fun TrackMilesScreen(
                 timestamp = "now",
                 selectedReason = uiState.pauseSelectedReason,
                 customReason = uiState.pauseCustomReason,
-                onSelectReason = viewModel::setPauseReason,
-                onCustomReason = viewModel::setPauseCustomReason,
-                onConfirm = viewModel::confirmPause,
-                onCancel = viewModel::dismissSheet,
+                onSelectReason = { viewModel.onAction(TrackMilesAction.SetPauseReason(it)) },
+                onCustomReason = { viewModel.onAction(TrackMilesAction.SetPauseCustomReason(it)) },
+                onConfirm = { viewModel.onAction(TrackMilesAction.ConfirmPause(it)) },
+                onCancel = { viewModel.onAction(TrackMilesAction.DismissSheet) },
             )
 
         TrackSheet.RESUME ->
             ResumeTrackingSheet(
                 pauseReason = uiState.pauseReason,
                 resumeNotes = uiState.resumeNotes,
-                onNotesChange = viewModel::setResumeNotes,
-                onResume = { viewModel.confirmResume() },
-                onCancel = viewModel::dismissSheet,
+                onNotesChange = { viewModel.onAction(TrackMilesAction.SetResumeNotes(it)) },
+                onResume = { viewModel.onAction(TrackMilesAction.ConfirmResume) },
+                onCancel = { viewModel.onAction(TrackMilesAction.DismissSheet) },
             )
 
         TrackSheet.CONSENT ->
             JourneyConsentSheet(
                 disclaimer = uiState.journeyDisclaimerOrDefault(),
-                onAccept = viewModel::acceptConsentAndStart,
-                onDismiss = viewModel::dismissSheet,
+                onAccept = { viewModel.onAction(TrackMilesAction.AcceptConsentAndStart) },
+                onDismiss = { viewModel.onAction(TrackMilesAction.DismissSheet) },
             )
 
         TrackSheet.NONE -> Unit
