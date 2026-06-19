@@ -505,12 +505,14 @@ fun EnhancedLiveTrackingUI(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    // Layer toggles (UI-only state; MapSurface implementations may expose these in future)
+    // Layer toggles
     var speedHeatmap by remember { mutableStateOf(false) }
     var showAccuracy by remember { mutableStateOf(false) }
     var showBattery by remember { mutableStateOf(false) }
     var showIssues by remember { mutableStateOf(false) }
     var showOfflineTiles by remember { mutableStateOf(false) }
+    var showCompass by remember { mutableStateOf(true) }
+    var showTraffic by remember { mutableStateOf(false) }
 
     // Playback state
     var isPlayingBack by remember { mutableStateOf(false) }
@@ -572,6 +574,8 @@ fun EnhancedLiveTrackingUI(
             autoCenterEnabled = autoCenterEnabled && (isTracking || isPlayingBack),
             playbackCoord = playbackCoord,
             showIssueMarkers = showIssues,
+            showCompass = showCompass,
+            showTraffic = showTraffic,
             modifier = Modifier.fillMaxSize(),
         )
 
@@ -681,6 +685,8 @@ fun EnhancedLiveTrackingUI(
             showBattery = showBattery,
             showIssues = showIssues,
             showOfflineTiles = showOfflineTiles,
+            showCompass = showCompass,
+            showTraffic = showTraffic,
             autoCenterEnabled = autoCenterEnabled,
             showGyroscope = showGyroscopeVisualization,
             showBearingConfidence = showBearingConfidence,
@@ -700,6 +706,8 @@ fun EnhancedLiveTrackingUI(
             onToggleBattery = { showBattery = it },
             onToggleIssues = { showIssues = it },
             onToggleOfflineTiles = { showOfflineTiles = it },
+            onToggleCompass = { showCompass = it },
+            onToggleTraffic = { showTraffic = it },
             onToggleAutoCenter = onToggleAutoCenter,
             onToggleGyroscope = onToggleGyroscope,
             onToggleBearingConfidence = onToggleBearingConfidence,
@@ -1435,6 +1443,8 @@ fun EnhancedLiveControlPanel(
     showBattery: Boolean,
     showIssues: Boolean,
     showOfflineTiles: Boolean,
+    showCompass: Boolean,
+    showTraffic: Boolean,
     autoCenterEnabled: Boolean,
     showGyroscope: Boolean,
     showBearingConfidence: Boolean,
@@ -1454,6 +1464,8 @@ fun EnhancedLiveControlPanel(
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
     onToggleOfflineTiles: (Boolean) -> Unit,
+    onToggleCompass: (Boolean) -> Unit,
+    onToggleTraffic: (Boolean) -> Unit,
     onToggleAutoCenter: () -> Unit,
     onToggleGyroscope: () -> Unit,
     onToggleBearingConfidence: () -> Unit,
@@ -1536,7 +1548,7 @@ fun EnhancedLiveControlPanel(
                                 onClick = { onTabChange(id) },
                                 text = {
                                     if (id == 1) {
-                                        val activeCount = listOf(speedHeatmap, showAccuracy, showBattery, showIssues, showOfflineTiles).count { it }
+                                        val activeCount = listOf(speedHeatmap, showAccuracy, showBattery, showIssues, showOfflineTiles, showTraffic).count { it }
                                         BadgedBox(badge = { if (activeCount > 0) Badge { Text(activeCount.toString()) } }) {
                                             Text(label, style = MaterialTheme.typography.labelLarge)
                                         }
@@ -1575,12 +1587,16 @@ fun EnhancedLiveControlPanel(
                                 showBattery = showBattery,
                                 showIssues = showIssues,
                                 showOfflineTiles = showOfflineTiles,
+                                showCompass = showCompass,
+                                showTraffic = showTraffic,
                                 markerFilters = markerFilters,
                                 onToggleSpeedHeatmap = onToggleSpeedHeatmap,
                                 onToggleAccuracy = onToggleAccuracy,
                                 onToggleBattery = onToggleBattery,
                                 onToggleIssues = onToggleIssues,
                                 onToggleOfflineTiles = onToggleOfflineTiles,
+                                onToggleCompass = onToggleCompass,
+                                onToggleTraffic = onToggleTraffic,
                                 onMarkerFiltersChanged = onMarkerFiltersChanged,
                             )
                         2 ->
@@ -1780,12 +1796,16 @@ fun LiveLayersTab(
     showBattery: Boolean,
     showIssues: Boolean,
     showOfflineTiles: Boolean,
+    showCompass: Boolean,
+    showTraffic: Boolean,
     markerFilters: MarkerFilters,
     onToggleSpeedHeatmap: (Boolean) -> Unit,
     onToggleAccuracy: (Boolean) -> Unit,
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
     onToggleOfflineTiles: (Boolean) -> Unit,
+    onToggleCompass: (Boolean) -> Unit,
+    onToggleTraffic: (Boolean) -> Unit,
     onMarkerFiltersChanged: (MarkerFilters) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -1836,12 +1856,16 @@ fun LiveLayersTab(
                     showBattery = showBattery,
                     showIssues = showIssues,
                     showOfflineTiles = showOfflineTiles,
+                    showCompass = showCompass,
+                    showTraffic = showTraffic,
                     markerFilters = markerFilters,
                     onToggleSpeedHeatmap = onToggleSpeedHeatmap,
                     onToggleAccuracy = onToggleAccuracy,
                     onToggleBattery = onToggleBattery,
                     onToggleIssues = onToggleIssues,
                     onToggleOfflineTiles = onToggleOfflineTiles,
+                    onToggleCompass = onToggleCompass,
+                    onToggleTraffic = onToggleTraffic,
                     onMarkerFiltersChanged = onMarkerFiltersChanged,
                 )
             }
@@ -1857,12 +1881,16 @@ private fun LiveLayersInnerContent(
     showBattery: Boolean,
     showIssues: Boolean,
     showOfflineTiles: Boolean,
+    showCompass: Boolean,
+    showTraffic: Boolean,
     markerFilters: MarkerFilters,
     onToggleSpeedHeatmap: (Boolean) -> Unit,
     onToggleAccuracy: (Boolean) -> Unit,
     onToggleBattery: (Boolean) -> Unit,
     onToggleIssues: (Boolean) -> Unit,
     onToggleOfflineTiles: (Boolean) -> Unit,
+    onToggleCompass: (Boolean) -> Unit,
+    onToggleTraffic: (Boolean) -> Unit,
     onMarkerFiltersChanged: (MarkerFilters) -> Unit,
 ) {
     FlowRow(
@@ -1954,6 +1982,42 @@ private fun LiveLayersInnerContent(
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Layers,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            },
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                ),
+        )
+
+        FilterChip(
+            selected = showCompass,
+            onClick = { onToggleCompass(!showCompass) },
+            label = { Text("Compass", style = MaterialTheme.typography.labelLarge) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+            },
+            colors =
+                FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
+        )
+
+        FilterChip(
+            selected = showTraffic,
+            onClick = { onToggleTraffic(!showTraffic) },
+            label = { Text("Traffic", style = MaterialTheme.typography.labelLarge) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Route,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                 )
