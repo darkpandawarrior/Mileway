@@ -1,10 +1,10 @@
 package com.miletracker.feature.tracking.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.LocationData
 import com.miletracker.core.data.model.db.SavedTrack
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.insights.ActivityResult
 import com.miletracker.feature.tracking.insights.DistanceQualityResult
 import com.miletracker.feature.tracking.insights.QualityResult
@@ -14,8 +14,6 @@ import com.miletracker.feature.tracking.insights.SystemImpactResult
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
 import com.miletracker.feature.tracking.repository.LocationRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -49,51 +47,54 @@ data class TrackInsightData(
     val recommendations: List<String> = emptyList(),
 )
 
+data class TrackInsightsUiState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val track: SavedTrack? = null,
+    val insights: TrackInsightData? = null,
+)
+
+sealed interface TrackInsightsAction {
+    data class Load(val routeId: String) : TrackInsightsAction
+}
+
+sealed interface TrackInsightsEffect
+
 class TrackInsightsViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,
     private val hardwareEventRepository: HardwareEventRepository,
     private val routeAnalyzer: RouteAnalyzer = RouteAnalyzer(),
-) : ViewModel() {
+) : BaseViewModel<TrackInsightsUiState, TrackInsightsEffect, TrackInsightsAction>(TrackInsightsUiState()) {
     companion object {
         private const val TAG = "TrackInsightsVM"
     }
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    override fun onAction(action: TrackInsightsAction) {
+        when (action) {
+            is TrackInsightsAction.Load -> loadInsights(action.routeId)
+        }
+    }
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
-
-    private val _track = MutableStateFlow<SavedTrack?>(null)
-    val track: StateFlow<SavedTrack?> = _track
-
-    private val _insights = MutableStateFlow<TrackInsightData?>(null)
-    val insights: StateFlow<TrackInsightData?> = _insights
-
-    fun loadTrackInsights(routeId: String) {
+    private fun loadInsights(routeId: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+            setState { copy(isLoading = true, error = null) }
             try {
                 val track =
                     savedTrackRepository.getByRouteId(routeId) ?: run {
-                        _error.value = "Track not found"
-                        _isLoading.value = false
+                        setState { copy(error = "Track not found", isLoading = false) }
                         return@launch
                     }
-                _track.value = track
+                setState { copy(track = track) }
 
                 val locations = locationRepository.getForToken(routeId)
                 val events = hardwareEventRepository.getEventsForRoute(routeId).getOrDefault(emptyList())
 
                 val analysis = routeAnalyzer.analyze(track, locations, events)
-                _insights.value = buildInsightData(track, locations, analysis)
+                setState { copy(insights = buildInsightData(track, locations, analysis), isLoading = false) }
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading insights", e)
-                _error.value = e.message ?: "Unknown error"
-            } finally {
-                _isLoading.value = false
+                setState { copy(error = e.message ?: "Unknown error", isLoading = false) }
             }
         }
     }
