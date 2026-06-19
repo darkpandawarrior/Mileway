@@ -1,5 +1,38 @@
 -dontwarn **
 
+# ── Kotlin / Coroutines ───────────────────────────────────────────────────────
+# Without these, StateFlow/SharedFlow and continuation classes get obfuscated,
+# causing StackOverflowErrors and lost coroutine debug info.
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}
+-keep class kotlin.coroutines.Continuation
+
+# ── OkHttp / Ktor ─────────────────────────────────────────────────────────────
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+# Ktor internal reflection via ServiceLoader
+-keep class io.ktor.** { *; }
+-keep interface io.ktor.** { *; }
+
+# ── Napier logging ────────────────────────────────────────────────────────────
+# Strip Napier in release — log calls are dead code after minification with this keep.
+-assumenosideeffects class io.github.aakira.napier.Napier {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+# ── MapLibre ─────────────────────────────────────────────────────────────────
+-keep class org.maplibre.** { *; }
+-keep interface org.maplibre.** { *; }
+
 # ── Room ──────────────────────────────────────────────────────────────────────
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *

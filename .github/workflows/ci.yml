@@ -6,30 +6,62 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
 
+    env:
+      # Disable the daemon in CI — each run gets a fresh environment; daemon lifecycle
+      # savings don't apply and it adds overhead from orphaned daemon processes.
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
-          cache: gradle
+
+      # gradle/actions/setup-gradle manages ~/.gradle caching automatically with
+      # intelligent eviction. Do NOT add a separate actions/cache for ~/.gradle.
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          # PRs only read the cache (never write) so they don't pollute the shared cache
+          # with their own dependency resolutions; main branch pushes write.
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-cleanup: on-success
+
+      # Kotlin/Native toolchain (~1 GB) lives outside ~/.gradle and must be cached separately.
+      # Key on libs.versions.toml so it invalidates when the Kotlin or KMP version changes.
+      - name: Cache Kotlin/Native toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan-v1-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-v1-
+            ${{ runner.os }}-konan-
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleGmsDebug
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon
+        run: ./gradlew testGmsDebugUnitTest
+
+      - name: Dependency guard check
+        run: ./gradlew dependencyGuard
 
       - name: Upload test results
         if: always()
@@ -38,8 +70,8 @@ jobs:
           name: test-results
           path: '**/build/reports/tests/'
 
-      - name: Upload APK
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/gms/debug/
