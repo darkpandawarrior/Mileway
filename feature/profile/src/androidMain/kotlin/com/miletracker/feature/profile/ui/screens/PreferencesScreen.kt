@@ -36,6 +36,7 @@ import com.miletracker.core.ui.components.ProfileSectionHeader
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.profile.viewmodel.ProfileAction
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -62,7 +63,7 @@ fun PreferencesScreen(
     LaunchedEffect(state.preferenceMessage) {
         state.preferenceMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
-            viewModel.intentClearPreferenceMessage()
+            viewModel.onAction(ProfileAction.ClearPreferenceMessage)
         }
     }
 
@@ -90,7 +91,7 @@ fun PreferencesScreen(
                     subtitle = if (prefs.pushNotifications) "Enabled" else "Disabled",
                     icon = Icons.Default.Notifications,
                     status = if (prefs.pushNotifications) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
-                    action = viewModel::intentTogglePushNotifications,
+                    action = { viewModel.onAction(ProfileAction.TogglePushNotifications) },
                 ),
                 ProfileGridItem(
                     id = "usage_analytics",
@@ -98,7 +99,7 @@ fun PreferencesScreen(
                     subtitle = if (prefs.usageAnalytics) "Enabled" else "Disabled",
                     icon = Icons.Default.BarChart,
                     status = if (prefs.usageAnalytics) ProfileItemStatus.COMPLETE else ProfileItemStatus.INCOMPLETE,
-                    action = viewModel::intentToggleUsageAnalytics,
+                    action = { viewModel.onAction(ProfileAction.ToggleUsageAnalytics) },
                 ),
                 ProfileGridItem(
                     id = "notification_center",
@@ -106,7 +107,7 @@ fun PreferencesScreen(
                     subtitle = "WhatsApp, Slack",
                     icon = Icons.Default.NotificationsActive,
                     status = ProfileItemStatus.COMPLETE,
-                    action = { viewModel.intentRaisePreferenceMessage("Notification Center is a demo placeholder.") },
+                    action = { viewModel.onAction(ProfileAction.RaisePreferenceMessage("Notification Center is a demo placeholder.")) },
                 ),
                 ProfileGridItem(
                     id = "connected_accounts",
@@ -114,7 +115,7 @@ fun PreferencesScreen(
                     subtitle = "Cabs, Passport",
                     icon = Icons.Default.Link,
                     status = ProfileItemStatus.COMPLETE,
-                    action = { viewModel.intentRaisePreferenceMessage("Connected Accounts is a demo placeholder.") },
+                    action = { viewModel.onAction(ProfileAction.RaisePreferenceMessage("Connected Accounts is a demo placeholder.")) },
                 ),
                 ProfileGridItem(
                     id = "permissions",
@@ -122,7 +123,7 @@ fun PreferencesScreen(
                     subtitle = "System settings",
                     icon = Icons.Default.Security,
                     status = ProfileItemStatus.COMPLETE,
-                    action = { viewModel.intentRaisePreferenceMessage("Opens system settings in the full app.") },
+                    action = { viewModel.onAction(ProfileAction.RaisePreferenceMessage("Opens system settings in the full app.")) },
                 ),
                 ProfileGridItem(
                     id = "storage",
@@ -130,7 +131,7 @@ fun PreferencesScreen(
                     subtitle = "Manage data",
                     icon = Icons.Default.Storage,
                     status = ProfileItemStatus.COMPLETE,
-                    action = { viewModel.intentRaisePreferenceMessage("Manage local data in the full app.") },
+                    action = { viewModel.onAction(ProfileAction.RaisePreferenceMessage("Manage local data in the full app.")) },
                 ),
             )
 

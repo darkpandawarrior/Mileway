@@ -69,6 +69,7 @@ import com.miletracker.core.ui.components.ProfileItemStatus
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.profile.model.AccountAnalyticsSnapshot
 import com.miletracker.feature.profile.model.ProfileHeader
+import com.miletracker.feature.profile.viewmodel.ProfileAction
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -121,7 +122,7 @@ fun ProfileScreen(
             PersonaSwitcherRow(
                 personas = state.accounts,
                 selectedId = state.selectedAccountId,
-                onSelect = viewModel::intentSwitchAccount,
+                onSelect = { viewModel.onAction(ProfileAction.SwitchAccount(it)) },
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
@@ -139,7 +140,7 @@ fun ProfileScreen(
                 onOpenNotifications = onOpenNotifications,
                 onOpenSettings = onOpenSettings,
                 onOpenPreferences = onOpenPreferences,
-                onOpenSessions = viewModel::intentOpenSessionsDialog,
+                onOpenSessions = { viewModel.onAction(ProfileAction.OpenSessionsDialog) },
                 onOpenAboutSupport = onOpenAboutSupport,
                 onOpenAdvance = onOpenAdvance,
                 onOpenCards = onOpenCards,
@@ -161,7 +162,7 @@ fun ProfileScreen(
     if (state.showSessionsDialog) {
         SessionsDialog(
             sessions = state.sessions,
-            onDismiss = viewModel::intentDismissSessionsDialog,
+            onDismiss = { viewModel.onAction(ProfileAction.DismissSessionsDialog) },
         )
     }
 }
