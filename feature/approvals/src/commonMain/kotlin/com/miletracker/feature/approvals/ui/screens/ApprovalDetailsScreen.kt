@@ -51,10 +51,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.common.asString
 import com.miletracker.core.common.formatDecimal
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.feature.approvals.model.ApprovalStatus
 import com.miletracker.feature.approvals.model.ApprovalType
 import com.miletracker.feature.approvals.ui.sheets.SeekClarificationSheet
+import com.miletracker.feature.approvals.viewmodel.ApprovalsAction
+import com.miletracker.feature.approvals.viewmodel.ApprovalsEffect
 import com.miletracker.feature.approvals.viewmodel.ApprovalsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -66,21 +70,25 @@ fun ApprovalDetailsScreen(
     modifier: Modifier = Modifier,
     viewModel: ApprovalsViewModel = koinViewModel(),
 ) {
-    val state by viewModel.detailState.collectAsState()
+    val ui by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(approvalId) { viewModel.openDetail(approvalId) }
+    LaunchedEffect(approvalId) { viewModel.onAction(ApprovalsAction.OpenDetail(approvalId)) }
 
-    LaunchedEffect(state.snackbarMessage) {
-        state.snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearSnackbar()
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is ApprovalsEffect.ShowToast -> snackbarHostState.showSnackbar(effect.message.asString())
+                ApprovalsEffect.NavigateBack -> onBack()
+                is ApprovalsEffect.NavigateToDetail -> Unit
+            }
         }
     }
 
-    val item = state.item ?: return
+    val detail = ui.detailState.dataOrNull ?: return
+    val item = detail.item
 
-    val effectiveStatus = state.localStatus ?: item.status
+    val effectiveStatus = detail.localStatus ?: item.status
     val isResolved = effectiveStatus != ApprovalStatus.PENDING
 
     Scaffold(
@@ -215,7 +223,7 @@ fun ApprovalDetailsScreen(
                     Spacer(Modifier.height(4.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
-                            onClick = viewModel::openClarificationSheet,
+                            onClick = { viewModel.onAction(ApprovalsAction.OpenClarificationSheet) },
                             modifier = Modifier.weight(1f),
                         ) {
                             Icon(Icons.Default.Chat, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -223,14 +231,14 @@ fun ApprovalDetailsScreen(
                             Text("Clarify")
                         }
                         Button(
-                            onClick = viewModel::reject,
+                            onClick = { viewModel.onAction(ApprovalsAction.Reject) },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
                         ) {
                             Text("Reject")
                         }
                         Button(
-                            onClick = viewModel::approve,
+                            onClick = { viewModel.onAction(ApprovalsAction.Approve) },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                         ) {
@@ -242,13 +250,13 @@ fun ApprovalDetailsScreen(
         }
     }
 
-    if (state.showClarificationSheet) {
+    if (detail.showClarificationSheet) {
         SeekClarificationSheet(
-            thread = state.thread,
-            draftMessage = state.draftMessage,
-            onDraftChange = viewModel::setDraftMessage,
-            onSend = viewModel::sendClarification,
-            onDismiss = viewModel::closeClarificationSheet,
+            thread = detail.thread,
+            draftMessage = detail.draftMessage,
+            onDraftChange = { viewModel.onAction(ApprovalsAction.UpdateDraftMessage(it)) },
+            onSend = { viewModel.onAction(ApprovalsAction.SendClarification) },
+            onDismiss = { viewModel.onAction(ApprovalsAction.CloseClarificationSheet) },
         )
     }
 }
