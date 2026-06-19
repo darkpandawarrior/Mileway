@@ -1,16 +1,14 @@
 package com.miletracker.feature.payables.viewmodel
 
-import androidx.lifecycle.ViewModel
+import com.miletracker.core.common.UiText
+import com.miletracker.core.ui.mvi.BaseViewModel
+import com.miletracker.core.ui.mvi.ScreenState
 import com.miletracker.feature.payables.model.Invoice
 import com.miletracker.feature.payables.model.NewLineItemDraft
 import com.miletracker.feature.payables.model.PurchaseOrder
 import com.miletracker.feature.payables.repository.PayablesRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
-data class PayablesHomeState(
+data class PayablesHomeData(
     val purchaseOrders: List<PurchaseOrder> = emptyList(),
     val invoices: List<Invoice> = emptyList(),
 )
@@ -21,77 +19,61 @@ data class CreatePoFormState(
     val deliveryDate: String = "",
     val officeLocation: String = "Head Office – Pune",
     val lineItems: List<NewLineItemDraft> = listOf(NewLineItemDraft()),
-    val submitted: Boolean = false,
-    val submittedId: String = "",
 )
+
+data class PayablesUiState(
+    val homeState: ScreenState<PayablesHomeData> = ScreenState.Loading,
+    val form: CreatePoFormState = CreatePoFormState(),
+    val lastSubmittedId: String = "",
+    val detailState: ScreenState<PurchaseOrder> = ScreenState.Empty,
+)
+
+sealed interface PayablesAction {
+    data object Refresh : PayablesAction
+
+    data class SetVendorName(val name: String) : PayablesAction
+
+    data class SetDeliveryDate(val date: String) : PayablesAction
+
+    data class SetOfficeLocation(val location: String) : PayablesAction
+
+    data object GoToStep1 : PayablesAction
+
+    data object GoToStep2 : PayablesAction
+
+    data object AddLineItem : PayablesAction
+
+    data class RemoveLineItem(val index: Int) : PayablesAction
+
+    data class UpdateLineItem(val index: Int, val item: NewLineItemDraft) : PayablesAction
+
+    data object SubmitPo : PayablesAction
+
+    data object ResetForm : PayablesAction
+
+    data class OpenDetail(val id: String) : PayablesAction
+
+    data class ShowMessage(val message: String) : PayablesAction
+}
+
+sealed interface PayablesEffect {
+    data class ShowToast(val message: UiText) : PayablesEffect
+
+    data class NavigateToSuccess(val poId: String) : PayablesEffect
+
+    data object NavigateBack : PayablesEffect
+}
 
 class PayablesViewModel(
     private val repository: PayablesRepository,
-) : ViewModel() {
-    private val _homeState =
-        MutableStateFlow(
-            PayablesHomeState(
-                purchaseOrders = repository.purchaseOrders,
-                invoices = repository.invoices,
-            ),
-        )
-    val homeState: StateFlow<PayablesHomeState> = _homeState.asStateFlow()
-
-    private val _formState = MutableStateFlow(CreatePoFormState())
-    val formState: StateFlow<CreatePoFormState> = _formState.asStateFlow()
-
-    private val _snackbarMessage = MutableStateFlow<String?>(null)
-    val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
-
-    // ── Step 1 form fields ──────────────────────────────────────────────────
-    fun setVendorName(name: String) = _formState.update { it.copy(vendorName = name) }
-
-    fun setDeliveryDate(date: String) = _formState.update { it.copy(deliveryDate = date) }
-
-    fun setOfficeLocation(loc: String) = _formState.update { it.copy(officeLocation = loc) }
-
-    fun goToStep2() = _formState.update { it.copy(step = 2) }
-
-    fun goToStep1() = _formState.update { it.copy(step = 1) }
-
-    // ── Step 2 line items ───────────────────────────────────────────────────
-    fun addLineItem() =
-        _formState.update {
-            it.copy(lineItems = it.lineItems + NewLineItemDraft())
-        }
-
-    fun removeLineItem(index: Int) =
-        _formState.update {
-            it.copy(lineItems = it.lineItems.toMutableList().also { list -> list.removeAt(index) })
-        }
-
-    fun updateLineItem(
-        index: Int,
-        item: NewLineItemDraft,
-    ) = _formState.update {
-        it.copy(lineItems = it.lineItems.toMutableList().also { list -> list[index] = item })
-    }
-
-    fun submitPo() {
-        val form = _formState.value
-        val id = "PO-NEW-${(form.vendorName.hashCode() and 0x7FFF_FFFF) % 9000 + 1000}"
-        _formState.update { it.copy(submitted = true, submittedId = id) }
-    }
-
-    fun resetForm() {
-        _formState.value = CreatePoFormState()
-    }
-
-    fun getPoById(id: String) = repository.getPoById(id)
-
-    fun showSnackbar(message: String) {
-        _snackbarMessage.value = message
-    }
-
-    fun clearSnackbar() {
-        _snackbarMessage.value = null
-    }
-
+) : BaseViewModel<PayablesUiState, PayablesEffect, PayablesAction>(
+        PayablesUiState(
+            homeState =
+                ScreenState.Content(
+                    PayablesHomeData(repository.purchaseOrders, repository.invoices),
+                ),
+        ),
+    ) {
     val officeLocations =
         listOf(
             "Head Office – Pune",
@@ -99,4 +81,54 @@ class PayablesViewModel(
             "South Branch – Bengaluru",
             "East Branch – Kolkata",
         )
+
+    override fun onAction(action: PayablesAction) {
+        when (action) {
+            PayablesAction.Refresh ->
+                setState {
+                    copy(
+                        homeState =
+                            ScreenState.Content(
+                                PayablesHomeData(repository.purchaseOrders, repository.invoices),
+                            ),
+                    )
+                }
+            is PayablesAction.SetVendorName -> updateForm { copy(vendorName = action.name) }
+            is PayablesAction.SetDeliveryDate -> updateForm { copy(deliveryDate = action.date) }
+            is PayablesAction.SetOfficeLocation -> updateForm { copy(officeLocation = action.location) }
+            PayablesAction.GoToStep1 -> updateForm { copy(step = 1) }
+            PayablesAction.GoToStep2 -> updateForm { copy(step = 2) }
+            PayablesAction.AddLineItem -> updateForm { copy(lineItems = lineItems + NewLineItemDraft()) }
+            is PayablesAction.RemoveLineItem ->
+                updateForm {
+                    copy(lineItems = lineItems.toMutableList().also { it.removeAt(action.index) })
+                }
+            is PayablesAction.UpdateLineItem ->
+                updateForm {
+                    copy(lineItems = lineItems.toMutableList().also { it[action.index] = action.item })
+                }
+            PayablesAction.SubmitPo -> submitPo()
+            PayablesAction.ResetForm -> setState { copy(form = CreatePoFormState(), lastSubmittedId = "") }
+            is PayablesAction.OpenDetail -> openDetail(action.id)
+            is PayablesAction.ShowMessage -> emitEffect(PayablesEffect.ShowToast(UiText.Static(action.message)))
+        }
+    }
+
+    private fun updateForm(reducer: CreatePoFormState.() -> CreatePoFormState) {
+        setState { copy(form = form.reducer()) }
+    }
+
+    private fun submitPo() {
+        val form = currentState.form
+        val id = "PO-NEW-${(form.vendorName.hashCode() and 0x7FFF_FFFF) % 9000 + 1000}"
+        setState { copy(lastSubmittedId = id) }
+        emitEffect(PayablesEffect.NavigateToSuccess(id))
+    }
+
+    private fun openDetail(id: String) {
+        val po = repository.getPoById(id)
+        setState {
+            copy(detailState = po?.let { ScreenState.Content(it) } ?: ScreenState.Empty)
+        }
+    }
 }

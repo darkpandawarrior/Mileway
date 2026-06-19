@@ -49,14 +49,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.common.asString
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.payables.model.PoLineItem
 import com.miletracker.feature.payables.model.PoStatus
 import com.miletracker.feature.payables.model.PurchaseOrder
+import com.miletracker.feature.payables.viewmodel.PayablesAction
+import com.miletracker.feature.payables.viewmodel.PayablesEffect
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -69,16 +73,20 @@ fun PurchaseRequestDetailsScreen(
     viewModel: PayablesViewModel = koinViewModel(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val ui by viewModel.state.collectAsState()
 
-    LaunchedEffect(snackbarMessage) {
-        snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearSnackbar()
+    LaunchedEffect(poId) { viewModel.onAction(PayablesAction.OpenDetail(poId)) }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is PayablesEffect.ShowToast -> snackbarHostState.showSnackbar(effect.message.asString())
+                else -> Unit
+            }
         }
     }
 
-    val po = viewModel.getPoById(poId)
+    val po = ui.detailState.dataOrNull
 
     Scaffold(
         topBar = {
@@ -126,7 +134,7 @@ fun PurchaseRequestDetailsScreen(
                 PoTimelineCard(status = po.status)
 
                 OutlinedButton(
-                    onClick = { viewModel.showSnackbar("Downloading ${po.id}.pdf…") },
+                    onClick = { viewModel.onAction(PayablesAction.ShowMessage("Downloading ${po.id}.pdf…")) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))

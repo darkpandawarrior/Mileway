@@ -39,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +56,8 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.payables.model.NewLineItemDraft
+import com.miletracker.feature.payables.viewmodel.PayablesAction
+import com.miletracker.feature.payables.viewmodel.PayablesEffect
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -66,7 +69,18 @@ fun CreatePurchaseRequestScreen(
     modifier: Modifier = Modifier,
     viewModel: PayablesViewModel = koinViewModel(),
 ) {
-    val form by viewModel.formState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val form = ui.form
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is PayablesEffect.NavigateToSuccess -> onSubmitted()
+                PayablesEffect.NavigateBack -> onBack()
+                is PayablesEffect.ShowToast -> Unit
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -76,7 +90,7 @@ fun CreatePurchaseRequestScreen(
                 depth = NavigationDepth.LEVEL_1,
                 navigationIcon = {
                     IconButton(onClick = {
-                        if (form.step == 1) onBack() else viewModel.goToStep1()
+                        if (form.step == 1) onBack() else viewModel.onAction(PayablesAction.GoToStep1)
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
@@ -94,16 +108,13 @@ fun CreatePurchaseRequestScreen(
                 ) {
                     if (form.step == 1) {
                         Button(
-                            onClick = viewModel::goToStep2,
+                            onClick = { viewModel.onAction(PayablesAction.GoToStep2) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = form.vendorName.isNotBlank() && form.deliveryDate.isNotBlank(),
                         ) { Text("Continue to Line Items") }
                     } else {
                         Button(
-                            onClick = {
-                                viewModel.submitPo()
-                                onSubmitted()
-                            },
+                            onClick = { viewModel.onAction(PayablesAction.SubmitPo) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled =
                                 form.lineItems.isNotEmpty() &&
@@ -154,7 +165,7 @@ private fun Step1Fields(
 
     OutlinedTextField(
         value = form.vendorName,
-        onValueChange = viewModel::setVendorName,
+        onValueChange = { viewModel.onAction(PayablesAction.SetVendorName(it)) },
         label = { Text("Vendor / Supplier Name") },
         placeholder = { Text("e.g. OfficeMax Supplies Ltd.") },
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -164,7 +175,7 @@ private fun Step1Fields(
 
     OutlinedTextField(
         value = form.deliveryDate,
-        onValueChange = viewModel::setDeliveryDate,
+        onValueChange = { viewModel.onAction(PayablesAction.SetDeliveryDate(it)) },
         label = { Text("Expected Delivery Date") },
         placeholder = { Text("e.g. 2024-02-15") },
         singleLine = true,
@@ -174,7 +185,7 @@ private fun Step1Fields(
     OfficeLocationDropdown(
         selected = form.officeLocation,
         options = viewModel.officeLocations,
-        onSelect = viewModel::setOfficeLocation,
+        onSelect = { viewModel.onAction(PayablesAction.SetOfficeLocation(it)) },
     )
 }
 
@@ -231,8 +242,8 @@ private fun Step2LineItems(
             item = item,
             index = index,
             canRemove = form.lineItems.size > 1,
-            onUpdate = { viewModel.updateLineItem(index, it) },
-            onRemove = { viewModel.removeLineItem(index) },
+            onUpdate = { viewModel.onAction(PayablesAction.UpdateLineItem(index, it)) },
+            onRemove = { viewModel.onAction(PayablesAction.RemoveLineItem(index)) },
         )
         if (index < form.lineItems.lastIndex) {
             HorizontalDivider(modifier = Modifier.padding(vertical = DesignTokens.Spacing.xs))
@@ -240,7 +251,7 @@ private fun Step2LineItems(
     }
 
     OutlinedButton(
-        onClick = viewModel::addLineItem,
+        onClick = { viewModel.onAction(PayablesAction.AddLineItem) },
         modifier = Modifier.fillMaxWidth(),
     ) {
         Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))

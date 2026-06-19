@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.feature.payables.viewmodel.PayablesAction
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -38,7 +39,7 @@ fun PurchaseRequestSuccessScreen(
     modifier: Modifier = Modifier,
     viewModel: PayablesViewModel = koinViewModel(),
 ) {
-    val form by viewModel.formState.collectAsState()
+    val ui by viewModel.state.collectAsState()
 
     Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0)) { innerPadding ->
         Column(
@@ -66,7 +67,7 @@ fun PurchaseRequestSuccessScreen(
             )
             Spacer(Modifier.height(DesignTokens.Spacing.s))
             Text(
-                text = "PO Number: ${form.submittedId}",
+                text = "PO Number: ${ui.lastSubmittedId}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
@@ -82,7 +83,7 @@ fun PurchaseRequestSuccessScreen(
             Spacer(Modifier.height(DesignTokens.Spacing.xxl))
             Button(
                 onClick = {
-                    viewModel.resetForm()
+                    viewModel.onAction(PayablesAction.ResetForm)
                     onCreateAnother()
                 },
                 modifier = Modifier.fillMaxWidth(),
