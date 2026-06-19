@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.feature.logging.viewmodel.ExpenseAction
 import com.miletracker.feature.logging.viewmodel.ExpenseViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -43,8 +44,8 @@ fun ExpenseSuccessScreen(
     modifier: Modifier = Modifier,
     viewModel: ExpenseViewModel = koinViewModel(),
 ) {
-    val form by viewModel.formState.collectAsState()
-    val requiresApproval = form.submittedAmount > 5000.0
+    val ui by viewModel.state.collectAsState()
+    val requiresApproval = ui.lastSubmittedAmount > 5000.0
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -78,7 +79,7 @@ fun ExpenseSuccessScreen(
             Spacer(Modifier.height(DesignTokens.Spacing.s))
 
             Text(
-                text = "₹${form.submittedAmount.formatDecimal(2)}",
+                text = "₹${ui.lastSubmittedAmount.formatDecimal(2)}",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -86,7 +87,7 @@ fun ExpenseSuccessScreen(
             )
 
             Text(
-                text = "Expense ID: ${form.submittedId}",
+                text = "Expense ID: ${ui.lastSubmittedId}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -128,7 +129,7 @@ fun ExpenseSuccessScreen(
 
             Button(
                 onClick = {
-                    viewModel.resetForm()
+                    viewModel.onAction(ExpenseAction.ResetForm)
                     onAddAnother()
                 },
                 modifier = Modifier.fillMaxWidth(),
