@@ -62,6 +62,7 @@ import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.media.model.AttachmentItem
 import com.miletracker.feature.media.model.AttachmentSource
+import com.miletracker.feature.media.viewmodel.MediaAction
 import com.miletracker.feature.media.viewmodel.MediaViewModel
 import kotlinx.coroutines.launch
 
@@ -101,7 +102,7 @@ fun AttachmentSelectionScreen(
             ActivityResultContracts.GetContent(),
         ) { uri ->
             if (uri != null) {
-                viewModel.onPickedFromGallery(uri.toString())
+                viewModel.onAction(MediaAction.PickedFromGallery(uri.toString()))
                 onNavigateToPreview()
             }
         }
@@ -206,19 +207,19 @@ fun AttachmentSelectionScreen(
                     onClick = {
                         when (spec.key) {
                             SourceKey.CAMERA -> {
-                                viewModel.onSourceSelected(AttachmentSource.CAMERA)
+                                viewModel.onAction(MediaAction.SelectSource(AttachmentSource.CAMERA))
                                 onNavigateToCamera(false)
                             }
                             SourceKey.ODOMETER -> {
-                                viewModel.onSourceSelected(AttachmentSource.CAMERA)
+                                viewModel.onAction(MediaAction.SelectSource(AttachmentSource.CAMERA))
                                 onNavigateToCamera(true)
                             }
                             SourceKey.GALLERY -> {
-                                viewModel.onSourceSelected(AttachmentSource.GALLERY)
+                                viewModel.onAction(MediaAction.SelectSource(AttachmentSource.GALLERY))
                                 galleryLauncher.launch("image/*")
                             }
                             SourceKey.FILES -> {
-                                viewModel.onSourceSelected(AttachmentSource.FILES)
+                                viewModel.onAction(MediaAction.SelectSource(AttachmentSource.FILES))
                                 galleryLauncher.launch("*/*")
                             }
                             SourceKey.CLOUD -> onNavigateToLibrary()
