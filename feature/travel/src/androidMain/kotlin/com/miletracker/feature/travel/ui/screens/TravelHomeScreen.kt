@@ -42,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -54,13 +55,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.common.asString
+import com.miletracker.core.ui.mvi.ScreenStateContent
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.travel.model.BookingRecord
 import com.miletracker.feature.travel.model.TransportMode
-import com.miletracker.feature.travel.repository.TravelRepository
-import com.miletracker.stub.AnalyticsMockData
+import com.miletracker.feature.travel.viewmodel.TravelAction
+import com.miletracker.feature.travel.viewmodel.TravelEffect
+import com.miletracker.feature.travel.viewmodel.TravelViewModel
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -128,47 +133,57 @@ private fun itineraryTypeColor(type: ItineraryType): Color =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TravelHomeScreen(repository: TravelRepository = koinInject()) {
+fun TravelHomeScreen(viewModel: TravelViewModel = koinViewModel()) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableIntStateOf(0) }
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    val activeBooking = repository.activeBooking()
-    val upcoming = repository.upcomingBookings()
-    val totalSpend = AnalyticsMockData.categoryTotals["Travel"] ?: 0.0
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is TravelEffect.ShowMessage ->
+                    scope.launch { snackbarHostState.showSnackbar(effect.message.asString()) }
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
-        Column(
+        ScreenStateContent(
+            state = uiState.content,
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-        ) {
-            TravelHeader()
-            SummaryStrip(
-                activeTripCount = if (activeBooking != null) 1 else 0,
-                upcomingCount = upcoming.size,
-                totalSpend = totalSpend,
-            )
-            PrimaryTabRow(selectedTabIndex = selectedTab) {
-                listOf("BOOKINGS", "ITINERARY").forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title, style = MaterialTheme.typography.labelMedium) },
-                    )
+            onRetry = { viewModel.onAction(TravelAction.Refresh) },
+        ) { data ->
+            Column(modifier = Modifier.fillMaxSize()) {
+                TravelHeader()
+                SummaryStrip(
+                    activeTripCount = if (data.activeBooking != null) 1 else 0,
+                    upcomingCount = data.upcoming.size,
+                    totalSpend = data.totalSpend,
+                )
+                PrimaryTabRow(selectedTabIndex = selectedTab) {
+                    listOf("BOOKINGS", "ITINERARY").forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { Text(title, style = MaterialTheme.typography.labelMedium) },
+                        )
+                    }
                 }
-            }
-            when (selectedTab) {
-                0 ->
-                    BookingsTab(
-                        activeBooking = activeBooking,
-                        upcoming = upcoming,
-                        onSnackbar = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } },
-                    )
-                1 -> ItineraryTab()
+                when (selectedTab) {
+                    0 ->
+                        BookingsTab(
+                            activeBooking = data.activeBooking,
+                            upcoming = data.upcoming,
+                            onAction = viewModel::onAction,
+                        )
+                    1 -> ItineraryTab()
+                }
             }
         }
     }
@@ -178,7 +193,7 @@ fun TravelHomeScreen(repository: TravelRepository = koinInject()) {
 private fun BookingsTab(
     activeBooking: BookingRecord?,
     upcoming: List<BookingRecord>,
-    onSnackbar: (String) -> Unit,
+    onAction: (TravelAction) -> Unit,
 ) {
     LazyColumn(
         modifier =
@@ -192,7 +207,7 @@ private fun BookingsTab(
                 Spacer(Modifier.height(DesignTokens.Spacing.m))
                 ActiveTripCard(
                     booking = activeBooking,
-                    onViewBoardingPass = { onSnackbar("Boarding pass not available in demo") },
+                    onViewBoardingPass = { onAction(TravelAction.ViewBoardingPass) },
                     modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l),
                 )
             }
@@ -219,8 +234,8 @@ private fun BookingsTab(
         item {
             Spacer(Modifier.height(DesignTokens.Spacing.m))
             QuickActionsRow(
-                onBookFlight = { onSnackbar("Booking is illustrative.") },
-                onBookTrain = { onSnackbar("Booking is illustrative.") },
+                onBookFlight = { onAction(TravelAction.BookFlight) },
+                onBookTrain = { onAction(TravelAction.BookTrain) },
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.l),
             )
         }
