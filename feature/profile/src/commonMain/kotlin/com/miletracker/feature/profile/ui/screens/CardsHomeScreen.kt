@@ -63,7 +63,7 @@ fun CardsHomeScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
-    val state by viewModel.cardsState.collectAsState()
+    val state by viewModel.state.collectAsState()
 
     Scaffold(
         floatingActionButton = {
