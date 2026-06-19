@@ -47,12 +47,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
 import com.miletracker.feature.payables.model.Invoice
 import com.miletracker.feature.payables.model.InvoiceStatus
 import com.miletracker.feature.payables.model.PoStatus
 import com.miletracker.feature.payables.model.PurchaseOrder
+import com.miletracker.feature.payables.viewmodel.PayablesHomeData
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -66,7 +68,8 @@ fun PayablesHomeScreen(
     modifier: Modifier = Modifier,
     viewModel: PayablesViewModel = koinViewModel(),
 ) {
-    val state by viewModel.homeState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val state = ui.homeState.dataOrNull ?: PayablesHomeData()
 
     val openPoCount = state.purchaseOrders.count { it.status == PoStatus.APPROVED || it.status == PoStatus.PENDING_APPROVAL }
     val pendingInvoiceCount = state.invoices.count { it.status == InvoiceStatus.UNMATCHED || it.status == InvoiceStatus.MATCHED }
