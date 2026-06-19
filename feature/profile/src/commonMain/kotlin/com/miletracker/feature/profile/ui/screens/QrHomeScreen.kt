@@ -138,7 +138,7 @@ fun QrHomeScreen(
     modifier: Modifier = Modifier,
     viewModel: AdvanceViewModel = koinViewModel(),
 ) {
-    val state by viewModel.cardsState.collectAsState()
+    val state by viewModel.state.collectAsState()
     var showRequestSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
