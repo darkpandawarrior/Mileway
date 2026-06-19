@@ -139,6 +139,7 @@ import com.miletracker.core.data.state.UiState
 import com.miletracker.core.maps.MapCoordinate
 import com.miletracker.core.maps.MapSurface
 import com.miletracker.feature.tracking.map.MapRouteBuilder
+import com.miletracker.feature.tracking.viewmodel.LiveTrackAction
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -202,8 +203,9 @@ fun LocationMapScreen(
     val context = LocalContext.current
 
     // ViewModel state
-    val liveTrackingState by viewModel.liveTrackingState.collectAsState()
-    val locationPointsState by viewModel.locationPointsState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val liveTrackingState = ui.liveTrackingState
+    val locationPointsState = ui.locationPointsState
 
     val currentTrackData: CurrentTrackData? =
         when (val s = liveTrackingState) {
@@ -301,7 +303,7 @@ fun LocationMapScreen(
     }
 
     // Refresh data
-    LaunchedEffect(Unit) { viewModel.refreshTrackingData() }
+    LaunchedEffect(Unit) { viewModel.onAction(LiveTrackAction.Refresh) }
 
     // Compass/magnetometer updates
     CompassUpdater { azimuth -> currentAzimuth = azimuth }
@@ -348,8 +350,8 @@ fun LocationMapScreen(
                 onToggleGyroscope = { showGyroscopeVisualization = !showGyroscopeVisualization },
                 onToggleBearingConfidence = { showBearingConfidence = !showBearingConfidence },
                 onToggleOrientation = { showOrientationDetection = !showOrientationDetection },
-                onStartTracking = { viewModel.refreshTrackingData() },
-                onPauseTracking = { viewModel.refreshTrackingData() },
+                onStartTracking = { viewModel.onAction(LiveTrackAction.Refresh) },
+                onPauseTracking = { viewModel.onAction(LiveTrackAction.Refresh) },
                 onMarkerClick = { selectedMarker = it },
                 onDismissMarker = { selectedMarker = null },
                 onMarkerFiltersChanged = { markerFilters = it },
