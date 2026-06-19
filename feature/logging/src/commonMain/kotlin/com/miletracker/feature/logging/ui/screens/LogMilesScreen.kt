@@ -58,6 +58,7 @@ import com.miletracker.feature.logging.ui.dialog.VerifyDistanceDialog
 import com.miletracker.feature.logging.ui.model.LocationEntry
 import com.miletracker.feature.logging.ui.sheets.LocationSearchSheet
 import com.miletracker.feature.logging.ui.sheets.VehiclePickerSheet
+import com.miletracker.feature.logging.viewmodel.LogMilesAction
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import com.miletracker.feature.tracking.ui.components.StaticPolylineThumbnail
 import org.koin.compose.viewmodel.koinViewModel
@@ -114,9 +115,10 @@ fun LogMilesScreen(
     /** Route a picked entry to the correct VM action based on the active target. */
     fun handlePick(entry: LocationEntry) {
         when (val target = locationTarget) {
-            LocationTarget.Append -> viewModel.addStop(entry)
-            is LocationTarget.InsertAfter -> viewModel.insertStopAfter(target.index, entry)
-            is LocationTarget.Edit -> viewModel.editStop(target.stopId, entry)
+            LocationTarget.Append -> viewModel.onAction(LogMilesAction.AddStop(entry))
+            is LocationTarget.InsertAfter ->
+                viewModel.onAction(LogMilesAction.InsertStopAfter(target.index, entry))
+            is LocationTarget.Edit -> viewModel.onAction(LogMilesAction.EditStop(target.stopId, entry))
             null -> Unit
         }
         locationTarget = null
@@ -204,11 +206,11 @@ fun LogMilesScreen(
                     actions =
                         TravelledLocationsActions(
                             onEdit = { stopId -> locationTarget = LocationTarget.Edit(stopId) },
-                            onRemove = viewModel::removeStop,
-                            onMoveUp = viewModel::moveStopUp,
-                            onMoveDown = viewModel::moveStopDown,
+                            onRemove = { viewModel.onAction(LogMilesAction.RemoveStop(it)) },
+                            onMoveUp = { viewModel.onAction(LogMilesAction.MoveStopUp(it)) },
+                            onMoveDown = { viewModel.onAction(LogMilesAction.MoveStopDown(it)) },
                             onInsertAfter = { index -> locationTarget = LocationTarget.InsertAfter(index) },
-                            onToggleRoundTrip = viewModel::setRoundTrip,
+                            onToggleRoundTrip = { viewModel.onAction(LogMilesAction.SetRoundTrip(it)) },
                             onAddLocation = { locationTarget = LocationTarget.Append },
                             onUseCurrent = { locationTarget = LocationTarget.Append },
                             onVerifyDistance = { showVerifyDistance = true },
@@ -242,7 +244,10 @@ fun LogMilesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        Switch(checked = uiState.saveAsDraft, onCheckedChange = viewModel::setSaveAsDraft)
+                        Switch(
+                            checked = uiState.saveAsDraft,
+                            onCheckedChange = { viewModel.onAction(LogMilesAction.SetSaveAsDraft(it)) },
+                        )
                     }
                 }
 
@@ -254,7 +259,7 @@ fun LogMilesScreen(
 
                 Button(
                     onClick = {
-                        if (uiState.saveAsDraft) viewModel.saveDraft()
+                        if (uiState.saveAsDraft) viewModel.onAction(LogMilesAction.SaveDraft)
                         onNext()
                     },
                     enabled = uiState.canProceedToStep2,
@@ -286,7 +291,7 @@ fun LogMilesScreen(
                 // The demo treats "Current" as the catalogue's first entry.
                 com.miletracker.feature.logging.ui.model.CityCatalog.all.firstOrNull()?.let(::handlePick)
             },
-            onClearRecent = viewModel::clearRecentLocations,
+            onClearRecent = { viewModel.onAction(LogMilesAction.ClearRecentLocations) },
             onDismiss = { locationTarget = null },
         )
     }
@@ -295,7 +300,7 @@ fun LogMilesScreen(
         VehiclePickerSheet(
             vehicles = uiState.vehicles,
             onSelect = {
-                viewModel.selectVehicle(it)
+                viewModel.onAction(LogMilesAction.SelectVehicle(it))
                 showVehicleSheet = false
             },
             onDismiss = { showVehicleSheet = false },
@@ -307,7 +312,7 @@ fun LogMilesScreen(
             initialDateMillis = uiState.journeyDateMillis,
             title = "Journey Date",
             onConfirm = {
-                viewModel.setJourneyDate(it)
+                viewModel.onAction(LogMilesAction.SetJourneyDate(it))
                 showDatePicker = false
             },
             onDismiss = { showDatePicker = false },
@@ -319,7 +324,7 @@ fun LogMilesScreen(
             initialMinutes = uiState.journeyTimeMinutes ?: 9 * 60,
             title = "Journey Completion Time",
             onConfirm = { hour, minute ->
-                viewModel.setJourneyTime(hour, minute)
+                viewModel.onAction(LogMilesAction.SetJourneyTime(hour, minute))
                 showTimePicker = false
             },
             onDismiss = { showTimePicker = false },
@@ -331,7 +336,7 @@ fun LogMilesScreen(
             calculatedKm = uiState.calculatedDistanceKm,
             currentKm = uiState.distanceKm,
             onSave = {
-                viewModel.overrideDistance(it)
+                viewModel.onAction(LogMilesAction.OverrideDistance(it))
                 showVerifyDistance = false
             },
             onDismiss = { showVerifyDistance = false },

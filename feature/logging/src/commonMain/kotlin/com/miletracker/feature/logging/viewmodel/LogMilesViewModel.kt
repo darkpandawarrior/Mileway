@@ -1,14 +1,14 @@
 package com.miletracker.feature.logging.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.miletracker.core.common.UiText
 import com.miletracker.core.data.model.network.ApprovedVehicle
 import com.miletracker.core.data.model.network.CoordsV2
 import com.miletracker.core.data.model.network.ExpenseSubmissionResponse
 import com.miletracker.core.data.model.network.LogMilesService
 import com.miletracker.core.data.model.network.LogMilesSubmitRequestV2
 import com.miletracker.core.data.model.network.SubmissionStatus
-import com.miletracker.core.network.api.MileTrackerNetworkApi
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.logging.repository.LogMilesDraftRepository
 import com.miletracker.feature.logging.repository.LogMilesServiceRepository
 import com.miletracker.feature.logging.ui.model.LocationEntry
@@ -16,11 +16,8 @@ import com.miletracker.feature.logging.ui.model.LocationStop
 import com.miletracker.feature.logging.ui.model.SubmittedVoucher
 import com.miletracker.feature.logging.ui.model.SubmittedVoucherSamples
 import com.miletracker.feature.logging.ui.model.totalRouteKm
+import com.miletracker.feature.logging.usecase.LogMilesSubmitUseCase
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -40,7 +37,7 @@ data class LogMilesDraftUi(
 /**
  * Single immutable UI state for the entire two-step Log Miles flow plus history.
  * The Step 1 and Step 2 screens, history screen and every sheet/dialog read from
- * this one object; the screens stay stateless and emit intents back to the VM.
+ * this one object; the screens stay stateless and emit Actions back to the VM.
  */
 data class LogMilesUiState(
     // ── Reference data ────────────────────────────────────────────────────────
@@ -72,10 +69,10 @@ data class LogMilesUiState(
     val isSubmitting: Boolean = false,
     val submissionResult: ExpenseSubmissionResponse? = null,
     val showViolationDialog: Boolean = false,
-    val error: String? = null,
     // ── History ───────────────────────────────────────────────────────────────
     val drafts: List<LogMilesDraftUi> = emptyList(),
-    val submitted: List<SubmittedVoucher> = SubmittedVoucherSamples.sample(kotlin.time.Clock.System.now().toEpochMilliseconds()),
+    val submitted: List<SubmittedVoucher> =
+        SubmittedVoucherSamples.sample(kotlin.time.Clock.System.now().toEpochMilliseconds()),
 ) {
     /** Step 1 → Step 2 gate: at least two stops and a chosen vehicle. */
     val canProceedToStep2: Boolean get() = stops.size >= 2 && selectedVehicle != null
@@ -88,22 +85,76 @@ data class LogMilesUiState(
         get() = listOf(invoiceDateMillis != null, logMilesNote.isNotBlank()).count { !it }
 }
 
+sealed interface LogMilesAction {
+    data object Refresh : LogMilesAction
+
+    data class SelectVehicle(val vehicle: ApprovedVehicle) : LogMilesAction
+
+    data class SelectService(val service: LogMilesService) : LogMilesAction
+
+    data class SetJourneyDate(val millis: Long?) : LogMilesAction
+
+    data class SetJourneyTime(val hour: Int, val minute: Int) : LogMilesAction
+
+    data class SetRoundTrip(val enabled: Boolean) : LogMilesAction
+
+    data class SetSaveAsDraft(val enabled: Boolean) : LogMilesAction
+
+    data class AddStop(val entry: LocationEntry) : LogMilesAction
+
+    data class InsertStopAfter(val afterIndex: Int, val entry: LocationEntry) : LogMilesAction
+
+    data class EditStop(val stopId: Long, val entry: LocationEntry) : LogMilesAction
+
+    data class RemoveStop(val stopId: Long) : LogMilesAction
+
+    data class MoveStopUp(val index: Int) : LogMilesAction
+
+    data class MoveStopDown(val index: Int) : LogMilesAction
+
+    data object ClearRecentLocations : LogMilesAction
+
+    data class OverrideDistance(val km: Double) : LogMilesAction
+
+    data class SetInvoiceDate(val millis: Long?) : LogMilesAction
+
+    data class SetLogMilesNote(val text: String) : LogMilesAction
+
+    data class SetTaggedEmployees(val names: List<String>) : LogMilesAction
+
+    data object AddAttachment : LogMilesAction
+
+    data object SaveDraft : LogMilesAction
+
+    data class DeleteDraft(val draftId: String) : LogMilesAction
+
+    data object Submit : LogMilesAction
+
+    data object DismissViolationDialog : LogMilesAction
+
+    data object ResetSubmission : LogMilesAction
+}
+
+sealed interface LogMilesEffect {
+    data class ShowError(val message: UiText) : LogMilesEffect
+}
+
 /**
  * ViewModel for the standalone, offline Log Miles flow.
  *
  * Distance is computed locally via great-circle math over the offline city
- * catalogue (the network distance API is still available but optional). All
- * itinerary edits, draft toggling, the verify-distance override, the Step 2 form
- * and the tagged-employee selection mutate the single [LogMilesUiState].
+ * catalogue. All itinerary edits, draft toggling, the verify-distance override,
+ * the Step 2 form and the tagged-employee selection mutate the single
+ * [LogMilesUiState]; the network submit is delegated to [LogMilesSubmitUseCase].
  */
 class LogMilesViewModel(
     private val vehicleRepo: VehiclePricingRepository,
     private val serviceRepo: LogMilesServiceRepository,
     private val draftRepo: LogMilesDraftRepository,
-    private val api: MileTrackerNetworkApi,
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(LogMilesUiState())
-    val uiState: StateFlow<LogMilesUiState> = _uiState.asStateFlow()
+    private val submitUseCase: LogMilesSubmitUseCase,
+) : BaseViewModel<LogMilesUiState, LogMilesEffect, LogMilesAction>(LogMilesUiState()) {
+    /** Backwards-compatible alias; screens read [state]. */
+    val uiState = state
 
     /** Monotonic id source for stops added during this session. */
     private var stopIdCounter = 0L
@@ -113,13 +164,53 @@ class LogMilesViewModel(
         loadServices()
     }
 
+    override fun onAction(action: LogMilesAction) {
+        when (action) {
+            LogMilesAction.Refresh -> {
+                loadVehicles()
+                loadServices()
+            }
+            is LogMilesAction.SelectVehicle -> selectVehicle(action.vehicle)
+            is LogMilesAction.SelectService -> setState { copy(selectedService = action.service) }
+            is LogMilesAction.SetJourneyDate -> setState { copy(journeyDateMillis = action.millis) }
+            is LogMilesAction.SetJourneyTime ->
+                setState { copy(journeyTimeMinutes = action.hour * 60 + action.minute) }
+            is LogMilesAction.SetRoundTrip -> {
+                setState { copy(isRoundTrip = action.enabled) }
+                recomputeDistance()
+            }
+            is LogMilesAction.SetSaveAsDraft -> setState { copy(saveAsDraft = action.enabled) }
+            is LogMilesAction.AddStop -> addStop(action.entry)
+            is LogMilesAction.InsertStopAfter -> insertStopAfter(action.afterIndex, action.entry)
+            is LogMilesAction.EditStop -> editStop(action.stopId, action.entry)
+            is LogMilesAction.RemoveStop -> {
+                setState { copy(stops = stops.filterNot { it.id == action.stopId }) }
+                recomputeDistance()
+            }
+            is LogMilesAction.MoveStopUp -> reorder(action.index, action.index - 1)
+            is LogMilesAction.MoveStopDown -> reorder(action.index, action.index + 1)
+            LogMilesAction.ClearRecentLocations -> setState { copy(recentLocations = emptyList()) }
+            is LogMilesAction.OverrideDistance -> {
+                setState { copy(distanceKm = action.km, isDistanceOverridden = true) }
+                recomputePricing()
+            }
+            is LogMilesAction.SetInvoiceDate -> setState { copy(invoiceDateMillis = action.millis) }
+            is LogMilesAction.SetLogMilesNote -> setState { copy(logMilesNote = action.text) }
+            is LogMilesAction.SetTaggedEmployees -> setState { copy(taggedEmployees = action.names) }
+            LogMilesAction.AddAttachment -> setState { copy(attachmentCount = attachmentCount + 1) }
+            LogMilesAction.SaveDraft -> saveDraft()
+            is LogMilesAction.DeleteDraft -> deleteDraft(action.draftId)
+            LogMilesAction.Submit -> submit()
+            LogMilesAction.DismissViolationDialog -> setState { copy(showViolationDialog = false) }
+            LogMilesAction.ResetSubmission -> resetSubmission()
+        }
+    }
+
     private fun loadVehicles() {
         viewModelScope.launch {
             runCatching { vehicleRepo.getVehicles(trackMiles = false) }
-                .onSuccess { v ->
-                    _uiState.update { it.copy(vehicles = v, isLoadingVehicles = false) }
-                }
-                .onFailure { _uiState.update { it.copy(isLoadingVehicles = false) } }
+                .onSuccess { v -> setState { copy(vehicles = v, isLoadingVehicles = false) } }
+                .onFailure { setState { copy(isLoadingVehicles = false) } }
         }
     }
 
@@ -127,250 +218,151 @@ class LogMilesViewModel(
         viewModelScope.launch {
             runCatching { serviceRepo.getServices() }
                 .onSuccess { s ->
-                    _uiState.update { it.copy(services = s, selectedService = s.firstOrNull(), isLoadingServices = false) }
+                    setState { copy(services = s, selectedService = s.firstOrNull(), isLoadingServices = false) }
                 }
-                .onFailure { _uiState.update { it.copy(isLoadingServices = false) } }
+                .onFailure { setState { copy(isLoadingServices = false) } }
         }
     }
 
-    // ── Vehicle & service ───────────────────────────────────────────────────────
-
-    fun selectVehicle(vehicle: ApprovedVehicle) {
-        _uiState.update { it.copy(selectedVehicle = vehicle) }
+    private fun selectVehicle(vehicle: ApprovedVehicle) {
+        setState { copy(selectedVehicle = vehicle) }
         recomputePricing()
     }
 
-    fun selectService(service: LogMilesService) {
-        _uiState.update { it.copy(selectedService = service) }
-    }
-
-    // ── Step 1: journey basics ──────────────────────────────────────────────────
-
-    fun setJourneyDate(millis: Long?) {
-        _uiState.update { it.copy(journeyDateMillis = millis) }
-    }
-
-    fun setJourneyTime(
-        hour: Int,
-        minute: Int,
-    ) {
-        _uiState.update { it.copy(journeyTimeMinutes = hour * 60 + minute) }
-    }
-
-    fun setRoundTrip(enabled: Boolean) {
-        _uiState.update { it.copy(isRoundTrip = enabled) }
-        recomputeDistance()
-    }
-
-    fun setSaveAsDraft(enabled: Boolean) {
-        _uiState.update { it.copy(saveAsDraft = enabled) }
-    }
-
-    // ── Step 1: itinerary editing ───────────────────────────────────────────────
-
-    /** Append a stop to the end of the itinerary and remember it as "recent". */
-    fun addStop(entry: LocationEntry) {
+    private fun addStop(entry: LocationEntry) {
         val stop = LocationStop(id = stopIdCounter++, entry = entry)
-        _uiState.update { state ->
-            state.copy(
-                stops = state.stops + stop,
-                recentLocations = (listOf(entry) + state.recentLocations).distinctBy { it.name }.take(8),
+        setState {
+            copy(
+                stops = stops + stop,
+                recentLocations = (listOf(entry) + recentLocations).distinctBy { it.name }.take(8),
             )
         }
         recomputeDistance()
     }
 
-    /** Insert a stop immediately after the stop at [afterIndex]. */
-    fun insertStopAfter(
+    private fun insertStopAfter(
         afterIndex: Int,
         entry: LocationEntry,
     ) {
         val stop = LocationStop(id = stopIdCounter++, entry = entry)
-        _uiState.update { state ->
-            val list = state.stops.toMutableList()
+        setState {
+            val list = stops.toMutableList()
             val target = (afterIndex + 1).coerceIn(0, list.size)
             list.add(target, stop)
-            state.copy(
+            copy(
                 stops = list,
-                recentLocations = (listOf(entry) + state.recentLocations).distinctBy { it.name }.take(8),
+                recentLocations = (listOf(entry) + recentLocations).distinctBy { it.name }.take(8),
             )
         }
         recomputeDistance()
     }
 
-    /** Replace the place backing the stop with [stopId] (the Edit chip). */
-    fun editStop(
+    private fun editStop(
         stopId: Long,
         entry: LocationEntry,
     ) {
-        _uiState.update { state ->
-            state.copy(stops = state.stops.map { if (it.id == stopId) it.copy(entry = entry) else it })
-        }
+        setState { copy(stops = stops.map { if (it.id == stopId) it.copy(entry = entry) else it }) }
         recomputeDistance()
     }
-
-    fun removeStop(stopId: Long) {
-        _uiState.update { state -> state.copy(stops = state.stops.filterNot { it.id == stopId }) }
-        recomputeDistance()
-    }
-
-    /** Move a stop one position up (toward the start). No-op at the top. */
-    fun moveStopUp(index: Int) = reorder(index, index - 1)
-
-    /** Move a stop one position down (toward the end). No-op at the bottom. */
-    fun moveStopDown(index: Int) = reorder(index, index + 1)
 
     private fun reorder(
         from: Int,
         to: Int,
     ) {
-        _uiState.update { state ->
-            if (from !in state.stops.indices || to !in state.stops.indices) return@update state
-            val list = state.stops.toMutableList()
+        setState {
+            if (from !in stops.indices || to !in stops.indices) return@setState this
+            val list = stops.toMutableList()
             val moved = list.removeAt(from)
             list.add(to, moved)
-            state.copy(stops = list)
+            copy(stops = list)
         }
         recomputeDistance()
     }
 
-    fun clearRecentLocations() {
-        _uiState.update { it.copy(recentLocations = emptyList()) }
-    }
-
-    // ── Distance & pricing ──────────────────────────────────────────────────────
-
     /**
-     * Recompute the great-circle distance from the current stops. The override
-     * (set via [overrideDistance]) is cleared whenever the itinerary changes so a
-     * stale manual value can't outlive the route it was based on.
+     * Recompute the great-circle distance from the current stops. The override is
+     * cleared whenever the itinerary changes so a stale manual value can't outlive
+     * the route it was based on.
      */
     private fun recomputeDistance() {
-        _uiState.update { state ->
-            val calc = totalRouteKm(state.stops, state.isRoundTrip)
-            state.copy(
-                calculatedDistanceKm = calc,
-                distanceKm = calc,
-                isDistanceOverridden = false,
-            )
+        setState {
+            val calc = totalRouteKm(stops, isRoundTrip)
+            copy(calculatedDistanceKm = calc, distanceKm = calc, isDistanceOverridden = false)
         }
-        recomputePricing()
-    }
-
-    /** Manual override from the Verify Distance dialog (Calculated vs Current). */
-    fun overrideDistance(km: Double) {
-        _uiState.update { it.copy(distanceKm = km, isDistanceOverridden = true) }
         recomputePricing()
     }
 
     private fun recomputePricing() {
-        _uiState.update { it.copy(reimbursableAmount = it.distanceKm * it.pricePerKm) }
+        setState { copy(reimbursableAmount = distanceKm * pricePerKm) }
     }
 
-    // ── Step 2: expense form ────────────────────────────────────────────────────
-
-    fun setInvoiceDate(millis: Long?) {
-        _uiState.update { it.copy(invoiceDateMillis = millis) }
-    }
-
-    fun setLogMilesNote(text: String) {
-        _uiState.update { it.copy(logMilesNote = text) }
-    }
-
-    fun setTaggedEmployees(names: List<String>) {
-        _uiState.update { it.copy(taggedEmployees = names) }
-    }
-
-    fun addAttachment() {
-        _uiState.update { it.copy(attachmentCount = it.attachmentCount + 1) }
-    }
-
-    // ── Draft ───────────────────────────────────────────────────────────────────
-
-    /**
-     * Persist the current Step 1 itinerary as a draft. A lightweight in-memory
-     * [LogMilesDraftUi] is always kept so the History → Drafts tab works offline;
-     * if a draft DAO is wired we additionally let the repository back it.
-     */
-    fun saveDraft() {
-        val s = _uiState.value
+    private fun saveDraft() {
+        val s = currentState
         if (s.stops.isEmpty()) return
+        val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
         val draft =
             LogMilesDraftUi(
-                id = "draft-${kotlin.time.Clock.System.now().toEpochMilliseconds()}",
+                id = "draft-$now",
                 title = s.stops.firstOrNull()?.entry?.name?.substringBefore(",") ?: "Log Miles draft",
                 stopCount = s.stops.size,
                 distanceKm = s.distanceKm,
                 vehicleName = s.selectedVehicle?.vehicleName,
-                updatedAtMillis = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+                updatedAtMillis = now,
             )
-        _uiState.update { it.copy(drafts = listOf(draft) + it.drafts) }
+        setState { copy(drafts = listOf(draft) + drafts) }
     }
 
-    fun deleteDraft(draftId: String) {
-        _uiState.update { it.copy(drafts = it.drafts.filterNot { d -> d.id == draftId }) }
+    private fun deleteDraft(draftId: String) {
+        setState { copy(drafts = drafts.filterNot { d -> d.id == draftId }) }
         viewModelScope.launch { runCatching { draftRepo.delete(draftId) } }
     }
 
-    // ── Submission ──────────────────────────────────────────────────────────────
-
     /**
-     * Submit the journey. On success with policy violations we surface a violation
-     * dialog; otherwise the success route is shown via [submissionResult].
+     * Submit the journey via [LogMilesSubmitUseCase]. On success with policy
+     * violations we surface a violation dialog; failures emit a [LogMilesEffect.ShowError].
      */
-    fun submit() {
-        val s = _uiState.value
+    private fun submit() {
+        val s = currentState
         val vehicle = s.selectedVehicle ?: return
         if (s.stops.size < 2) return
-        _uiState.update { it.copy(isSubmitting = true, error = null) }
+        setState { copy(isSubmitting = true) }
         viewModelScope.launch {
-            runCatching {
-                api.logMiles(
-                    LogMilesSubmitRequestV2(
-                        vehicleType = vehicle.vehicleKey,
-                        distance = s.distanceKm,
-                        roundTrip = s.isRoundTrip,
-                        date = s.journeyDateMillis,
-                        origin = s.stops.first().entry.let { CoordsV2(it.lat, it.lng, it.name) },
-                        destination = s.stops.last().entry.let { CoordsV2(it.lat, it.lng, it.name) },
-                    ),
-                )
-            }.onSuccess { resp ->
+            submitUseCase(
+                LogMilesSubmitRequestV2(
+                    vehicleType = vehicle.vehicleKey,
+                    distance = s.distanceKm,
+                    roundTrip = s.isRoundTrip,
+                    date = s.journeyDateMillis,
+                    origin = s.stops.first().entry.let { CoordsV2(it.lat, it.lng, it.name) },
+                    destination = s.stops.last().entry.let { CoordsV2(it.lat, it.lng, it.name) },
+                ),
+            ).onSuccess { resp ->
                 val hasViolations =
                     resp.submissionStatus == SubmissionStatus.POLICY_VIOLATION ||
                         resp.violations.isNotEmpty() ||
                         !resp.policyViolations.isNullOrEmpty()
-                _uiState.update {
-                    it.copy(
-                        isSubmitting = false,
-                        submissionResult = resp,
-                        showViolationDialog = hasViolations,
-                    )
+                setState {
+                    copy(isSubmitting = false, submissionResult = resp, showViolationDialog = hasViolations)
                 }
             }.onFailure { e ->
-                _uiState.update { it.copy(isSubmitting = false, error = e.message) }
+                setState { copy(isSubmitting = false) }
+                emitEffect(LogMilesEffect.ShowError(UiText.Static(e.message ?: "Submission failed")))
             }
         }
     }
 
-    /** Dismiss the violation dialog but keep the result (user proceeds to success). */
-    fun dismissViolationDialog() {
-        _uiState.update { it.copy(showViolationDialog = false) }
-    }
-
-    /** Clear submission state and reset the flow for "Log Another". */
-    fun resetSubmission() {
+    private fun resetSubmission() {
         stopIdCounter = 0L
-        _uiState.update { state ->
+        setState {
             LogMilesUiState(
-                vehicles = state.vehicles,
+                vehicles = vehicles,
                 isLoadingVehicles = false,
-                services = state.services,
-                selectedService = state.services.firstOrNull(),
+                services = services,
+                selectedService = services.firstOrNull(),
                 isLoadingServices = false,
-                drafts = state.drafts,
-                submitted = state.submitted,
-                recentLocations = state.recentLocations,
+                drafts = drafts,
+                submitted = submitted,
+                recentLocations = recentLocations,
             )
         }
     }
