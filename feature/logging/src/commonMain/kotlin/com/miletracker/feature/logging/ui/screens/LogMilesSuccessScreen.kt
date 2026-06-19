@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.feature.logging.viewmodel.LogMilesAction
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -62,7 +63,7 @@ fun LogMilesSuccessScreen(
             Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) {
                 Button(
                     onClick = {
-                        viewModel.resetSubmission()
+                        viewModel.onAction(LogMilesAction.ResetSubmission)
                         onLogAnother()
                     },
                     modifier =

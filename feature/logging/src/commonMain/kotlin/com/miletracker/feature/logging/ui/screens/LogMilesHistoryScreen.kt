@@ -43,6 +43,7 @@ import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.logging.ui.model.SubmittedVoucher
+import com.miletracker.feature.logging.viewmodel.LogMilesAction
 import com.miletracker.feature.logging.viewmodel.LogMilesDraftUi
 import com.miletracker.feature.logging.viewmodel.LogMilesViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -90,7 +91,7 @@ fun LogMilesHistoryScreen(
                 DraftsTab(
                     drafts = uiState.drafts,
                     onOpen = onOpenDraft,
-                    onDelete = viewModel::deleteDraft,
+                    onDelete = { viewModel.onAction(LogMilesAction.DeleteDraft(it)) },
                 )
 
             HistoryTab.SUBMITTED -> SubmittedTab(vouchers = uiState.submitted)
