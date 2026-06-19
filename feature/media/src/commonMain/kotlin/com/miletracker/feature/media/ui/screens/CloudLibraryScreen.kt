@@ -48,6 +48,7 @@ import coil3.compose.AsyncImage
 import com.miletracker.core.data.library.MediaLibraryEntry
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
+import com.miletracker.feature.media.viewmodel.CloudLibraryAction
 import com.miletracker.feature.media.viewmodel.CloudLibraryViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -164,7 +165,7 @@ fun CloudLibraryScreen(
             confirmButton = {
                 TextButton(onClick = {
                     val toDelete = entries.filter { it.id in selectedIds }
-                    toDelete.forEach { viewModel.delete(it) }
+                    toDelete.forEach { viewModel.onAction(CloudLibraryAction.Delete(it)) }
                     selectedIds.clear()
                     selectionMode = false
                     showDeleteDialog = false
