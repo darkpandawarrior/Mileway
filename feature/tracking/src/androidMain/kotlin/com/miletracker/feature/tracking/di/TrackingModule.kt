@@ -13,6 +13,8 @@ import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
 import com.miletracker.feature.tracking.repository.VoucherRepository
+import com.miletracker.core.platform.AndroidNotificationScheduler
+import com.miletracker.core.platform.NotificationScheduler
 import com.miletracker.feature.tracking.viewmodel.CreateVoucherViewModel
 import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
@@ -38,6 +40,7 @@ val trackingModule =
         single { TripAttachmentRepository(get()) }
         single { VoucherRepository() }
         single { LocationTrackingController(androidContext()) }
+        single<NotificationScheduler> { AndroidNotificationScheduler(androidContext()) }
 
         // viewModelOf resolves every constructor parameter through Koin — Kotlin default
         // arguments are NOT applied — so the analyzer needs an explicit definition.

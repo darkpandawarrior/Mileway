@@ -11,6 +11,7 @@ import com.miletracker.core.network.api.MileTrackerNetworkApi
 import com.miletracker.feature.tracking.manager.TrackingConfigManager
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
+import com.miletracker.feature.tracking.viewmodel.MileageSubmissionAction
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import com.miletracker.feature.tracking.viewmodel.SubmissionSheet
 import com.miletracker.feature.tracking.viewmodel.SubmissionUiState
@@ -34,8 +35,7 @@ import kotlin.test.assertTrue
  * Uses the same fake-at-boundary strategy as [TrackMilesViewModelTest]:
  * - [FakeTrackingNetworkApi] and [DemoConfigManager] are the real offline stubs the app ships.
  * - [SavedTrackRepository] is backed by a fresh [FakeSavedTrackDao] (from TrackMilesViewModelTest).
- * - [TripAttachmentRepository] is a mockk(relaxed) — persisting attachments is fire-and-forget
- *   from the test's perspective; we verify via [pendingReceipts]/[pendingOdoStart] flows.
+ * - [TripAttachmentRepository] is a mockk(relaxed) — persisting attachments is fire-and-forget.
  */
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class MileageSubmissionViewModelTest {
@@ -68,7 +68,7 @@ class MileageSubmissionViewModelTest {
     @Test
     fun `init loads offices and entities from config`() = runTest {
         val vm = viewModel()
-        val form = vm.form.value
+        val form = vm.state.value.form
         assertTrue(form.offices.isNotEmpty(), "Expected offices from DemoConfigManager")
         assertTrue(form.entities.isNotEmpty(), "Expected entities from DemoConfigManager")
     }
@@ -76,98 +76,95 @@ class MileageSubmissionViewModelTest {
     @Test
     fun `init populates two required form fields`() = runTest {
         val vm = viewModel()
-        assertEquals(2, vm.form.value.fields.size)
-        assertTrue(vm.form.value.fields.all { it.required })
+        assertEquals(2, vm.state.value.form.fields.size)
+        assertTrue(vm.state.value.form.fields.all { it.required })
     }
 
     @Test
     fun `canSubmit is false when required fields are empty`() = runTest {
         val vm = viewModel()
-        // No form values filled → remainingRequirements not empty
-        assertTrue(!vm.form.value.canSubmit)
+        assertTrue(!vm.state.value.form.canSubmit)
     }
 
     @Test
     fun `canSubmit is true when all required fields and office and entity are filled`() = runTest {
         val vm = viewModel()
-        vm.setFormValue("purpose", "Client visit")
-        vm.setFormValue("gender", "Male")
-        // Office and entity are required per DemoConfigManager
-        val office = vm.form.value.offices.first()
-        val entity = vm.form.value.entities.first()
-        vm.selectOffice(office.code)
-        vm.selectEntity(entity.name)
-        assertTrue(vm.form.value.canSubmit)
+        vm.onAction(MileageSubmissionAction.SetFormValue("purpose", "Client visit"))
+        vm.onAction(MileageSubmissionAction.SetFormValue("gender", "Male"))
+        val office = vm.state.value.form.offices.first()
+        val entity = vm.state.value.form.entities.first()
+        vm.onAction(MileageSubmissionAction.SelectOffice(office.code))
+        vm.onAction(MileageSubmissionAction.SelectEntity(entity.name))
+        assertTrue(vm.state.value.form.canSubmit)
     }
 
     // ── Form intent reducers ──────────────────────────────────────────────────
 
     @Test
-    fun `setFormValue stores value by field id`() = runTest {
+    fun `SetFormValue stores value by field id`() = runTest {
         val vm = viewModel()
-        vm.setFormValue("purpose", "Audit visit")
-        assertEquals("Audit visit", vm.form.value.values["purpose"])
+        vm.onAction(MileageSubmissionAction.SetFormValue("purpose", "Audit visit"))
+        assertEquals("Audit visit", vm.state.value.form.values["purpose"])
     }
 
     @Test
-    fun `toggleDraft updates saveAsDraft in form`() = runTest {
+    fun `ToggleDraft updates saveAsDraft in form`() = runTest {
         val vm = viewModel()
-        vm.toggleDraft(true)
-        assertTrue(vm.form.value.saveAsDraft)
-        vm.toggleDraft(false)
-        assertTrue(!vm.form.value.saveAsDraft)
+        vm.onAction(MileageSubmissionAction.ToggleDraft(true))
+        assertTrue(vm.state.value.form.saveAsDraft)
+        vm.onAction(MileageSubmissionAction.ToggleDraft(false))
+        assertTrue(!vm.state.value.form.saveAsDraft)
     }
 
     @Test
-    fun `selectOffice stores matching office and closes picker`() = runTest {
+    fun `SelectOffice stores matching office and closes picker`() = runTest {
         val vm = viewModel()
-        val offices = vm.form.value.offices
-        val target = offices.first()
-        vm.openOfficePicker()
-        assertEquals(SubmissionSheet.OFFICE_PICKER, vm.form.value.sheet)
+        val target = vm.state.value.form.offices.first()
+        vm.onAction(MileageSubmissionAction.OpenOfficePicker)
+        assertEquals(SubmissionSheet.OFFICE_PICKER, vm.state.value.form.sheet)
 
-        vm.selectOffice(target.code)
-        assertEquals(target.code, vm.form.value.selectedOffice?.code)
-        assertEquals(SubmissionSheet.NONE, vm.form.value.sheet)
+        vm.onAction(MileageSubmissionAction.SelectOffice(target.code))
+        assertEquals(target.code, vm.state.value.form.selectedOffice?.code)
+        assertEquals(SubmissionSheet.NONE, vm.state.value.form.sheet)
     }
 
     @Test
-    fun `selectEntity stores matching entity and closes picker`() = runTest {
+    fun `SelectEntity stores matching entity and closes picker`() = runTest {
         val vm = viewModel()
-        val entities = vm.form.value.entities
-        val target = entities.first()
-        vm.openEntityPicker()
-        assertEquals(SubmissionSheet.ENTITY_PICKER, vm.form.value.sheet)
+        val target = vm.state.value.form.entities.first()
+        vm.onAction(MileageSubmissionAction.OpenEntityPicker)
+        assertEquals(SubmissionSheet.ENTITY_PICKER, vm.state.value.form.sheet)
 
-        vm.selectEntity(target.name)
-        assertEquals(target.name, vm.form.value.selectedEntity?.name)
-        assertEquals(SubmissionSheet.NONE, vm.form.value.sheet)
+        vm.onAction(MileageSubmissionAction.SelectEntity(target.name))
+        assertEquals(target.name, vm.state.value.form.selectedEntity?.name)
+        assertEquals(SubmissionSheet.NONE, vm.state.value.form.sheet)
     }
 
     @Test
-    fun `dismissSheet resets active sheet to NONE`() = runTest {
+    fun `DismissSheet resets active sheet to NONE`() = runTest {
         val vm = viewModel()
-        vm.openSubmitConfirm()
-        assertEquals(SubmissionSheet.SUBMIT_CONFIRM, vm.form.value.sheet)
-        vm.dismissSheet()
-        assertEquals(SubmissionSheet.NONE, vm.form.value.sheet)
+        vm.onAction(MileageSubmissionAction.OpenSubmitConfirm)
+        assertEquals(SubmissionSheet.SUBMIT_CONFIRM, vm.state.value.form.sheet)
+        vm.onAction(MileageSubmissionAction.DismissSheet)
+        assertEquals(SubmissionSheet.NONE, vm.state.value.form.sheet)
     }
 
     // ── Odometer capture ──────────────────────────────────────────────────────
 
     @Test
-    fun `captureOdometerStart stores reading and image uri`() = runTest {
+    fun `CaptureOdometerStart stores reading and image uri`() = runTest {
         val vm = viewModel()
-        val result = OdometerCaptureResult(
-            purpose = OdometerPurpose.START,
-            imageUri = "content://start.jpg",
-            reading = 45_000,
-            isManual = false,
-            captureTimeMs = 1_000L
-        )
-        vm.captureOdometerStart(result)
+        vm.onAction(MileageSubmissionAction.CaptureOdometerStart(
+            OdometerCaptureResult(
+                purpose = OdometerPurpose.START,
+                imageUri = "content://start.jpg",
+                reading = 45_000,
+                isManual = false,
+                captureTimeMs = 1_000L,
+            )
+        ))
 
-        val form = vm.form.value
+        val form = vm.state.value.form
         assertEquals(45_000, form.simulatedStartOdo)
         assertEquals("content://start.jpg", form.odometerStartImageUri)
         assertEquals(1_000L, form.odometerStartCaptureMs)
@@ -175,16 +172,16 @@ class MileageSubmissionViewModelTest {
     }
 
     @Test
-    fun `captureOdometerEnd computes odometerKm from start reading`() = runTest {
+    fun `CaptureOdometerEnd computes odometerKm from start reading`() = runTest {
         val vm = viewModel()
-        vm.captureOdometerStart(
+        vm.onAction(MileageSubmissionAction.CaptureOdometerStart(
             OdometerCaptureResult(OdometerPurpose.START, "uri://start", reading = 50_000, isManual = false, captureTimeMs = 0L)
-        )
-        vm.captureOdometerEnd(
+        ))
+        vm.onAction(MileageSubmissionAction.CaptureOdometerEnd(
             OdometerCaptureResult(OdometerPurpose.END, "uri://end", reading = 50_020, isManual = false, captureTimeMs = 1_000L)
-        )
+        ))
 
-        val form = vm.form.value
+        val form = vm.state.value.form
         assertEquals(50_020, form.simulatedEndOdo)
         assertEquals(20.0, form.smartDistanceOdometerKm, 1e-9)
     }
@@ -194,17 +191,17 @@ class MileageSubmissionViewModelTest {
     @Test
     fun `submit success path emits Success state`() = runTest {
         val vm = viewModel()
-        vm.setFormValue("purpose", "Field visit")
-        vm.setFormValue("gender", "Female")
-        vm.selectOffice(vm.form.value.offices.first().code)
-        vm.selectEntity(vm.form.value.entities.first().name)
+        vm.onAction(MileageSubmissionAction.SetFormValue("purpose", "Field visit"))
+        vm.onAction(MileageSubmissionAction.SetFormValue("gender", "Female"))
+        vm.onAction(MileageSubmissionAction.SelectOffice(vm.state.value.form.offices.first().code))
+        vm.onAction(MileageSubmissionAction.SelectEntity(vm.state.value.form.entities.first().name))
 
-        vm.submit("route-001", distanceKm = 3.0, vehicleKey = "fourWheelerPetrol", startTime = 0L, endTime = 1L)
+        vm.onAction(MileageSubmissionAction.Submit("route-001", distanceKm = 3.0, vehicleKey = "fourWheelerPetrol", startTime = 0L, endTime = 1L))
         advanceUntilIdle()
 
-        val state = vm.state.value
-        assertTrue(state is SubmissionUiState.Success)
-        assertNotNull((state as SubmissionUiState.Success).response.transId)
+        val submissionState = vm.state.value.submissionState
+        assertTrue(submissionState is SubmissionUiState.Success)
+        assertNotNull((submissionState as SubmissionUiState.Success).response.transId)
     }
 
     @Test
@@ -220,16 +217,16 @@ class MileageSubmissionViewModelTest {
         }
 
         val vm = viewModel(api = violatingApi)
-        vm.submit("route-002", distanceKm = 600.0, vehicleKey = "fourWheelerPetrol", startTime = 0L, endTime = 1L)
+        vm.onAction(MileageSubmissionAction.Submit("route-002", distanceKm = 600.0, vehicleKey = "fourWheelerPetrol", startTime = 0L, endTime = 1L))
         advanceUntilIdle()
 
-        assertEquals(SubmissionSheet.POLICY_VIOLATION, vm.form.value.sheet)
-        assertTrue(vm.form.value.violations.isNotEmpty())
-        assertEquals(SubmissionUiState.Idle, vm.state.value)
+        assertEquals(SubmissionSheet.POLICY_VIOLATION, vm.state.value.form.sheet)
+        assertTrue(vm.state.value.form.violations.isNotEmpty())
+        assertEquals(SubmissionUiState.Idle, vm.state.value.submissionState)
     }
 
     @Test
-    fun `resolvePolicyAndFinalize transitions to Success after violation acknowledgement`() = runTest {
+    fun `ResolvePolicyAndFinalize transitions to Success after violation acknowledgement`() = runTest {
         val violatingApi = object : MileTrackerNetworkApi by FakeTrackingNetworkApi() {
             override suspend fun submitMiles(request: SubmitMilesRequestK) =
                 ExpenseSubmissionResponse(
@@ -241,42 +238,40 @@ class MileageSubmissionViewModelTest {
         }
 
         val vm = viewModel(api = violatingApi)
-        vm.submit("route-003", 600.0, "fourWheelerPetrol", 0L, 1L)
+        vm.onAction(MileageSubmissionAction.Submit("route-003", 600.0, "fourWheelerPetrol", 0L, 1L))
         advanceUntilIdle()
 
-        // Acknowledge violation
-        vm.setAskAuthorities(true)
-        vm.setViolationNote("Approved by manager")
-        vm.resolvePolicyAndFinalize()
+        vm.onAction(MileageSubmissionAction.SetAskAuthorities(true))
+        vm.onAction(MileageSubmissionAction.SetViolationNote("Approved by manager"))
+        vm.onAction(MileageSubmissionAction.ResolvePolicyAndFinalize)
         advanceUntilIdle()
 
-        val state = vm.state.value
-        assertTrue(state is SubmissionUiState.Success)
+        assertTrue(vm.state.value.submissionState is SubmissionUiState.Success)
     }
 
     @Test
-    fun `addReceipt and removeReceipt update pendingReceipts`() = runTest {
+    fun `AddReceipt and RemoveReceipt update pendingReceipts in state`() = runTest {
         val vm = viewModel()
-        vm.addReceipt("uri://receipt1")
-        vm.addReceipt("uri://receipt2")
-        assertEquals(2, vm.pendingReceipts.value.size)
+        vm.onAction(MileageSubmissionAction.AddReceipt("uri://receipt1"))
+        vm.onAction(MileageSubmissionAction.AddReceipt("uri://receipt2"))
+        assertEquals(2, vm.state.value.pendingReceipts.size)
 
-        vm.removeReceipt("uri://receipt1")
-        assertEquals(1, vm.pendingReceipts.value.size)
-        assertEquals("uri://receipt2", vm.pendingReceipts.value.first())
+        vm.onAction(MileageSubmissionAction.RemoveReceipt("uri://receipt1"))
+        assertEquals(1, vm.state.value.pendingReceipts.size)
+        assertEquals("uri://receipt2", vm.state.value.pendingReceipts.first())
     }
 
     @Test
-    fun `reset clears pending attachments and state`() = runTest {
+    fun `Reset clears pending attachments and submission state`() = runTest {
         val vm = viewModel()
-        vm.addReceipt("uri://r1")
-        vm.setOdometerStart("uri://odo", "45000")
-        vm.submit("route-004", 10.0, "fourWheelerPetrol", 0L, 1L)
+        vm.onAction(MileageSubmissionAction.AddReceipt("uri://r1"))
+        vm.onAction(MileageSubmissionAction.SetOdometerStart("uri://odo", "45000"))
+        vm.onAction(MileageSubmissionAction.Submit("route-004", 10.0, "fourWheelerPetrol", 0L, 1L))
         advanceUntilIdle()
 
-        vm.reset()
-        assertEquals(SubmissionUiState.Idle, vm.state.value)
-        assertTrue(vm.pendingReceipts.value.isEmpty())
-        assertNull(vm.pendingOdoStart.value)
+        vm.onAction(MileageSubmissionAction.Reset)
+        assertEquals(SubmissionUiState.Idle, vm.state.value.submissionState)
+        assertTrue(vm.state.value.pendingReceipts.isEmpty())
+        assertNull(vm.state.value.pendingOdoStart)
     }
 }

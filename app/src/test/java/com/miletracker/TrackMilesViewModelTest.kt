@@ -252,6 +252,11 @@ class FakeSavedTrackDao(
         tracks.update { it + (track.routeId to track) }
     }
 
+    /** Removes a track so observers see the updated list — useful for selection-pruning tests. */
+    fun removeTrack(routeId: String) {
+        tracks.update { it - routeId }
+    }
+
     /** Simulates the foreground service's periodic live write to `saved_tracks`. */
     fun serviceWrites(routeId: String, distanceMeters: Double, durationMs: Long) {
         tracks.update { current ->
