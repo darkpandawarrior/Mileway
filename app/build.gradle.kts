@@ -87,6 +87,23 @@ android {
                     signingConfigs.getByName("debug")
                 }
         }
+        // QA build: release-like (minified, non-debuggable) but installable alongside
+        // the debug build via a distinct applicationId. Always debug-signed so QA can
+        // sideload without release secrets. matchingFallbacks lets library modules that
+        // only define debug/release resolve their `release` variant for `staging`.
+        create("staging") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".staging"
+            isDebuggable = false
+            matchingFallbacks += "release"
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    sourceSets {
+        // staging has no source set of its own; reuse the release no-op stubs for
+        // WormaCeptorHelper / ShowcaseLauncher (the real impls are debug-only).
+        getByName("staging").kotlin.srcDir("src/release/java")
     }
 
     testOptions {
