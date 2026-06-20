@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.ui.platform.LocalManagerProvider
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
 import com.miletracker.ui.AppGraph
@@ -77,22 +78,26 @@ private fun AppEntry(
 
     var stage by rememberSaveable { mutableStateOf(AppStage.SPLASH) }
 
-    MileTrackerTheme(
-        darkTheme = override ?: systemDark,
-        palette = palette,
-        customSeedHex = customSeedHex,
-        useSystemColors = useSystemColors,
-        paletteStyle = paletteStyle,
-    ) {
-        AnimatedContent(
-            targetState = stage,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "appStage",
-        ) { current ->
-            when (current) {
-                AppStage.SPLASH -> SplashScreen(onFinished = { stage = AppStage.LOGIN })
-                AppStage.LOGIN -> LoginScreen(onSignedIn = { stage = AppStage.APP })
-                AppStage.APP -> MileTrackerAppRoot(deepLinkRoute = initialRoute)
+    // PF.4: seed the Activity-scoped platform managers (in-app update / review / share / …) so any
+    // shared screen can read them via `LocalAppReviewManager.current` with no expect/actual at the call site.
+    LocalManagerProvider {
+        MileTrackerTheme(
+            darkTheme = override ?: systemDark,
+            palette = palette,
+            customSeedHex = customSeedHex,
+            useSystemColors = useSystemColors,
+            paletteStyle = paletteStyle,
+        ) {
+            AnimatedContent(
+                targetState = stage,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "appStage",
+            ) { current ->
+                when (current) {
+                    AppStage.SPLASH -> SplashScreen(onFinished = { stage = AppStage.LOGIN })
+                    AppStage.LOGIN -> LoginScreen(onSignedIn = { stage = AppStage.APP })
+                    AppStage.APP -> MileTrackerAppRoot(deepLinkRoute = initialRoute)
+                }
             }
         }
     }
