@@ -54,6 +54,10 @@ val appModule = module {
     // V15 DL.4: shared deep-link handler (runtime/iOS-bridge links observe its incoming flow).
     single<com.miletracker.core.platform.DeepLinkHandler> { com.miletracker.core.platform.DefaultDeepLinkHandler() }
 
+    // V15 FCM.1/FCM.2: shared push token store (FCM service writes onNewToken here) + offline messaging.
+    single<com.miletracker.core.platform.PushTokenStore> { com.miletracker.core.platform.InMemoryPushTokenStore() }
+    single<com.miletracker.core.platform.PushMessaging> { com.miletracker.core.platform.LocalPushMessaging(get()) }
+
     // Geofence location list: convert DemoConfigManager's mock locations into
     // CheckInValidator.CheckInLocation for local offline radius validation.
     single<List<CheckInLocation>> {

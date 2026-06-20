@@ -9,6 +9,9 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.roborazzi)
     alias(libs.plugins.dependency.guard)
+    // V15 FCM.2: Firebase config processing. Generates the google_app_id resource from google-services.json;
+    // adds NO runtime deps (firebase libs are gmsImplementation only). F-Droid strips this line (FLFD).
+    alias(libs.plugins.google.services)
 }
 
 // Release signing — reads from keystore.properties (gitignored) or env vars (CI).
@@ -249,6 +252,11 @@ dependencies {
     "gmsImplementation"(libs.play.app.update.ktx)
     "gmsImplementation"(libs.play.review)
     "gmsImplementation"(libs.play.review.ktx)
+
+    // V15 FCM.2: Firebase Cloud Messaging — gms flavor ONLY (proprietary). noGms gets no firebase runtime;
+    // VerifyDependencyPrefixes (FLFD.2) enforces that on noGmsReleaseRuntimeClasspath.
+    "gmsImplementation"(platform(libs.firebase.bom))
+    "gmsImplementation"(libs.firebase.messaging)
 
     // Konnection — KMP network connectivity monitor (init in Application)
     implementation(libs.konnection)
