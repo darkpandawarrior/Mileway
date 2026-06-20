@@ -79,7 +79,8 @@ doctor {
 // --------------------------------------------------------------------------
 tasks.register("devBuild") {
     description = "Clean + debug APK + unit tests — full local dev loop."
-    dependsOn(":app:clean", ":app:assembleGmsDebug", ":app:testGmsDebugUnitTest")
+    // noGms is the JVM-safe unit-test variant (gms Play Services maps crash Robolectric).
+    dependsOn(":app:clean", ":app:assembleGmsDebug", ":app:testNoGmsDebugUnitTest")
 }
 
 tasks.register("quickBuild") {
@@ -88,8 +89,15 @@ tasks.register("quickBuild") {
 }
 
 tasks.register("fullCheck") {
-    description = "ktlint + detekt + tests + kover coverage — all quality gates."
-    dependsOn("ktlintCheck", "detekt", ":app:testGmsDebugUnitTest", "koverXmlReport")
+    description = "ktlint + detekt + tests + kover coverage floor — all quality gates."
+    // noGms is the JVM-safe unit-test variant; kover floor verified on the same variant.
+    dependsOn(
+        "ktlintCheck",
+        "detekt",
+        ":app:testNoGmsDebugUnitTest",
+        ":app:koverXmlReportNoGmsDebugCoverage",
+        ":app:koverVerifyNoGmsDebugCoverage",
+    )
 }
 
 tasks.register("composeMetrics") {
