@@ -44,4 +44,33 @@ platform :android do
     )
   end
 
+  # ── FLA.2 — changelog from git commits ──────────────────────────────────────
+  # versionCode = VERSION_CODE_BASE(1) + BUILD_NUMBER (mirrors app/build.gradle.kts FLA.1).
+  def current_version_code
+    1 + File.read("../BUILD_NUMBER").strip.to_i
+  end
+
+  desc "Generate fastlane/metadata changelog from git commits for the current versionCode"
+  private_lane :prepare_changelog do
+    log = changelog_from_git_commits(
+      pretty: "- %s",
+      merge_commit_filtering: "exclude_merges",
+      commits_count: 30
+    ) || ""
+    # Dice-style bullet-aware truncation to Play's 500-char limit (don't cut mid-bullet).
+    truncated = log
+    if truncated.length > 500
+      truncated = truncated[0, 500]
+      last_bullet = truncated.rindex("\n- ")
+      truncated = truncated[0, last_bullet] unless last_bullet.nil?
+    end
+    dir = "metadata/android/en-US/changelogs"
+    require "fileutils"
+    FileUtils.mkdir_p(dir)
+    path = "#{dir}/#{current_version_code}.txt"
+    File.write(path, truncated)
+    UI.message("Wrote changelog -> #{path}")
+    truncated
+  end
+
 end
