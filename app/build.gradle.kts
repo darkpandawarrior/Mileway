@@ -58,6 +58,11 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = ""
     }
 
+    // CF.5: expose BuildConfig.VERSION_CODE for the maintenance/min-version gate.
+    buildFeatures {
+        buildConfig = true
+    }
+
     // Maps flavor dimension:
     //   gms   → KrossMap (Google Maps on Android, MapKit on iOS) — requires API key
     //   noGms → MapLibre (open-source tiles, no API key, offline MBTiles capable)
