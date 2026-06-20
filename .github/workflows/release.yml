@@ -136,3 +136,29 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Build reproducible FOSS release (noGms)
         run: ./gradlew assembleNoGmsRelease -Pfdroid --no-build-cache
+
+  # CIO.3 — Wear track. NOTE: :wear is currently a com.android.library, so there is no standalone Wear AAB
+  # to upload yet. This job builds the module; when :wear becomes a standalone Wear *application* module,
+  # switch to `:wear:bundleRelease` and upload the AAB to Play `wear:alpha` with
+  # versionCode = phone versionCode + 1 (avoids collision with the phone track — biciradar pattern).
+  wear:
+    if: ${{ inputs.android_rung == 'beta' || inputs.android_rung == 'production' }}
+    needs: android
+    runs-on: ubuntu-latest
+    environment: play-wear
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build the Wear module
+        run: ./gradlew :wear:assembleRelease
+      # When :wear is an application module, replace the step above with:
+      #   ./gradlew :wear:bundleRelease -PwearVersionCodeOffset=1
+      #   bundle exec fastlane run upload_to_play_store track:"wear:alpha" \
+      #     aab:"wear/build/outputs/bundle/release/wear-release.aab" \
+      #     json_key:"$PLAY_STORE_KEY_FILE_PATH" skip_upload_apk:"true"
