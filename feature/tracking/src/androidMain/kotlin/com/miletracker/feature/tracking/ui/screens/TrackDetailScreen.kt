@@ -69,6 +69,7 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.tracking.ui.components.ExportOptionsDialog
+import com.miletracker.feature.tracking.viewmodel.ExportAction
 import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.TrackDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -86,7 +87,7 @@ fun TrackDetailScreen(
     exportViewModel: ExportViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val exportState by exportViewModel.uiState.collectAsState()
+    val exportState by exportViewModel.state.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -98,7 +99,7 @@ fun TrackDetailScreen(
     LaunchedEffect(exportState.shareIntent) {
         exportState.shareIntent?.let { intent ->
             context.startActivity(intent)
-            exportViewModel.clearShareIntent()
+            exportViewModel.onAction(ExportAction.ClearShareIntent)
         }
     }
 
@@ -106,7 +107,7 @@ fun TrackDetailScreen(
     LaunchedEffect(exportState.error) {
         exportState.error?.let { msg ->
             snackbarHostState.showSnackbar("Export failed: $msg")
-            exportViewModel.clearError()
+            exportViewModel.onAction(ExportAction.ClearError)
         }
     }
 
