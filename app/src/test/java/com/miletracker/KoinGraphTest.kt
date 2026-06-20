@@ -100,6 +100,7 @@ class KoinGraphTest : KoinTest {
                 approvalsModule,
                 payablesModule,
                 agentModule,
+                com.miletracker.feature.cards.di.cardsModule,
                 appModule
             )
         }
