@@ -3,6 +3,9 @@ import MileTracker
 
 @main
 struct iOSApp: App {
+    // FCM.4: APNs registration + token/tap forwarding into the KMP layer.
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     var body: some Scene {
         WindowGroup {
             ContentView()

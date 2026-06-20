@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!-- FCM.4 PLACEHOLDER — not a real Firebase config. The real file is materialized from
+     GOOGLE_SERVICES_IOS_B64 in CI (see docs/RELEASE.md). The app degrades to no-op without it. -->
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyPLACEHOLDER_DEMO_KEY_NOT_A_REAL_SECRET_00</string>
+	<key>GCM_SENDER_ID</key>
+	<string>000000000000</string>
+	<key>BUNDLE_ID</key>
+	<string>com.miletracker.ios</string>
+	<key>PROJECT_ID</key>
+	<string>miletracker-demo</string>
+	<key>STORAGE_BUCKET</key>
+	<string>miletracker-demo.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:000000000000:ios:0000000000000000000000</string>
+</dict>
+</plist>

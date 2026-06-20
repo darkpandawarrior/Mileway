@@ -154,3 +154,53 @@ platform :android do
   end
 
 end
+
+# ── FLI — iOS lanes (TestFlight + App Store) ──────────────────────────────────
+platform :ios do
+  # ASC API key from a base64 .p8 (APPSTORE_AUTH_KEY_B64). Shared by both lanes.
+  def asc_api_key
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["APPSTORE_AUTH_KEY_B64"],
+      is_key_content_base64: true,
+      in_house: false
+    )
+  end
+
+  def build_ios_app
+    match(type: "appstore", readonly: true)
+    build_app(
+      project: "iosApp/iosApp.xcodeproj",
+      scheme: "iosApp",
+      export_method: "app-store"
+    )
+  end
+
+  desc "FLI.1 — build + upload to TestFlight (external testers, beta review)"
+  lane :beta do
+    asc_api_key
+    build_ios_app
+    pilot(
+      distribute_external: true,
+      submit_beta_review: true
+    )
+  end
+
+  desc "FLI.1 — build + submit to the App Store (phased release)"
+  lane :release do
+    asc_api_key
+    build_ios_app
+    deliver(
+      submit_for_review: true,
+      automatic_release: true,
+      phased_release: true,
+      force: true
+    )
+  end
+
+  desc "FLI.2 — renew signing certs/profiles via match"
+  lane :renew_certs do
+    match(type: "appstore", readonly: false)
+  end
+end
