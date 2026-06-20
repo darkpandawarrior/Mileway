@@ -57,8 +57,11 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleGmsDebug
 
+      # noGms is the JVM unit-test target: the gms flavor pulls Google Play Services
+      # maps, whose native libs SIGSEGV a shared Robolectric fork (exit 2). noGms
+      # (MapLibre) has no Play Services native deps; map surfaces are faked in tests.
       - name: Run unit tests
-        run: ./gradlew testGmsDebugUnitTest
+        run: ./gradlew testNoGmsDebugUnitTest
 
       - name: Dependency guard check
         run: ./gradlew dependencyGuard
