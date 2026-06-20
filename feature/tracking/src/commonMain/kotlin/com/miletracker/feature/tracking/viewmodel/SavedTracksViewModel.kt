@@ -1,17 +1,13 @@
 package com.miletracker.feature.tracking.viewmodel
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.display.TrackDisplayData
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 
 /**
  * Top-level tab of the Saved Tracks screen.
@@ -176,128 +172,92 @@ private fun TrackDisplayData.toSubmissionItem(): SubmissionItem {
     )
 }
 
-/**
- * Backs the revamped Saved Tracks screen. The constructor is unchanged so existing Koin wiring
- * (`viewModelOf(::SavedTracksViewModel)`) and the screen's public signature keep working.
- *
- * All UI mutations flow through the intent methods below; the screen only reads [uiState] and
- * forwards user actions, keeping a clean unidirectional data flow.
- */
+sealed interface SavedTracksAction {
+    data class TabSelected(val tab: SavedTracksTab) : SavedTracksAction
+
+    data class JourneySearchChanged(val query: String) : SavedTracksAction
+
+    data class SubmissionSearchChanged(val query: String) : SavedTracksAction
+
+    data class JourneyFilterSelected(val filter: JourneyFilter) : SavedTracksAction
+
+    data class SubmissionFilterSelected(val filter: SubmissionFilter) : SavedTracksAction
+
+    data class SubmissionSourceSelected(val source: SubmissionSource) : SavedTracksAction
+
+    data class SubmissionLongPressed(val id: String) : SavedTracksAction
+
+    data class SubmissionSelectionToggled(val id: String) : SavedTracksAction
+
+    data class SubmissionTapped(val id: String) : SavedTracksAction
+
+    data object ClearSelection : SavedTracksAction
+
+    data object CreateVoucher : SavedTracksAction
+
+    data object VoucherAckConsumed : SavedTracksAction
+}
+
+sealed interface SavedTracksEffect
+
 class SavedTracksViewModel(
     private val repository: SavedTrackRepository,
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(SavedTracksUiState())
-    val uiState: StateFlow<SavedTracksUiState> = _uiState.asStateFlow()
-
+) : BaseViewModel<SavedTracksUiState, SavedTracksEffect, SavedTracksAction>(SavedTracksUiState()) {
     init {
         repository.allTracksFlow()
             .onEach { tracks ->
-                _uiState.update { current ->
-                    // Drop selections whose submissions no longer exist after a data refresh.
+                setState {
                     val validIds = tracks.filter { it.isSubmitted }.map { it.token }.toSet()
-                    val prunedSelection = current.selectedSubmissionIds.intersect(validIds)
-                    current.copy(
+                    val prunedSelection = selectedSubmissionIds.intersect(validIds)
+                    copy(
                         tracks = tracks,
                         isLoading = false,
                         error = null,
                         selectedSubmissionIds = prunedSelection,
-                        selectionMode = current.selectionMode && prunedSelection.isNotEmpty(),
+                        selectionMode = selectionMode && prunedSelection.isNotEmpty(),
                     )
                 }
             }
-            .catch { e ->
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
-            }
+            .catch { e -> setState { copy(isLoading = false, error = e.message) } }
             .launchIn(viewModelScope)
     }
 
-    // ── Tab + search intents ─────────────────────────────────────────────────
-
-    /** Switch the top-level tab. Clears any active selection so it does not leak across tabs. */
-    fun onTabSelected(tab: SavedTracksTab) {
-        _uiState.update {
-            if (it.tab == tab) {
-                it
-            } else {
-                it.copy(tab = tab, selectionMode = false, selectedSubmissionIds = emptySet())
+    override fun onAction(action: SavedTracksAction) {
+        when (action) {
+            is SavedTracksAction.TabSelected ->
+                setState { if (tab == action.tab) this else copy(tab = action.tab, selectionMode = false, selectedSubmissionIds = emptySet()) }
+            is SavedTracksAction.JourneySearchChanged ->
+                setState { copy(journeySearch = action.query) }
+            is SavedTracksAction.SubmissionSearchChanged ->
+                setState { copy(submissionSearch = action.query) }
+            is SavedTracksAction.JourneyFilterSelected ->
+                setState { copy(journeyFilter = action.filter) }
+            is SavedTracksAction.SubmissionFilterSelected ->
+                setState { copy(submissionFilter = action.filter) }
+            is SavedTracksAction.SubmissionSourceSelected ->
+                setState { copy(submissionSource = action.source) }
+            is SavedTracksAction.SubmissionLongPressed ->
+                setState { if (!canSelect(action.id)) this else copy(selectionMode = true, selectedSubmissionIds = selectedSubmissionIds + action.id) }
+            is SavedTracksAction.SubmissionSelectionToggled -> {
+                if (!currentState.canSelect(action.id)) return
+                val newSel =
+                    if (action.id in currentState.selectedSubmissionIds) {
+                        currentState.selectedSubmissionIds - action.id
+                    } else {
+                        currentState.selectedSubmissionIds + action.id
+                    }
+                setState { copy(selectedSubmissionIds = newSel, selectionMode = newSel.isNotEmpty()) }
             }
+            is SavedTracksAction.SubmissionTapped ->
+                if (currentState.selectionMode) onAction(SavedTracksAction.SubmissionSelectionToggled(action.id))
+            SavedTracksAction.ClearSelection ->
+                setState { copy(selectionMode = false, selectedSubmissionIds = emptySet()) }
+            SavedTracksAction.CreateVoucher ->
+                setState { copy(selectionMode = false, selectedSubmissionIds = emptySet(), voucherCreatedAck = true) }
+            SavedTracksAction.VoucherAckConsumed ->
+                setState { copy(voucherCreatedAck = false) }
         }
     }
 
-    fun onJourneySearchChanged(query: String) {
-        _uiState.update { it.copy(journeySearch = query) }
-    }
-
-    fun onSubmissionSearchChanged(query: String) {
-        _uiState.update { it.copy(submissionSearch = query) }
-    }
-
-    // ── Chip filter intents ──────────────────────────────────────────────────
-
-    fun onJourneyFilterSelected(filter: JourneyFilter) {
-        _uiState.update { it.copy(journeyFilter = filter) }
-    }
-
-    fun onSubmissionFilterSelected(filter: SubmissionFilter) {
-        _uiState.update { it.copy(submissionFilter = filter) }
-    }
-
-    fun onSubmissionSourceSelected(source: SubmissionSource) {
-        _uiState.update { it.copy(submissionSource = source) }
-    }
-
-    // ── Selection intents (Submissions tab) ──────────────────────────────────
-
-    /** Long-press entry point: enters selection mode and selects the given submission. */
-    fun onSubmissionLongPressed(id: String) {
-        _uiState.update { state ->
-            if (!state.canSelect(id)) {
-                state
-            } else {
-                state.copy(selectionMode = true, selectedSubmissionIds = state.selectedSubmissionIds + id)
-            }
-        }
-    }
-
-    /** Toggle a single submission's selection. No-op for filed items (nothing to claim). */
-    fun onSubmissionSelectionToggled(id: String) {
-        _uiState.update { state ->
-            if (!state.canSelect(id)) return@update state
-            val newSelection =
-                if (id in state.selectedSubmissionIds) {
-                    state.selectedSubmissionIds - id
-                } else {
-                    state.selectedSubmissionIds + id
-                }
-            state.copy(
-                selectedSubmissionIds = newSelection,
-                selectionMode = newSelection.isNotEmpty(),
-            )
-        }
-    }
-
-    /** Tap behaviour while in selection mode mirrors a checkbox toggle. */
-    fun onSubmissionTapped(id: String) {
-        if (_uiState.value.selectionMode) onSubmissionSelectionToggled(id)
-    }
-
-    fun onClearSelection() {
-        _uiState.update { it.copy(selectionMode = false, selectedSubmissionIds = emptySet()) }
-    }
-
-    /**
-     * Pure-demo "Create Voucher" action: marks the selected unclaimed submissions as filed,
-     * clears the selection and raises a one-shot acknowledgement the screen turns into confetti.
-     */
-    fun onCreateVoucher() {
-        _uiState.update { it.copy(selectionMode = false, selectedSubmissionIds = emptySet(), voucherCreatedAck = true) }
-    }
-
-    /** Consume the voucher-created acknowledgement after the screen has shown its celebration. */
-    fun onVoucherAckConsumed() {
-        _uiState.update { it.copy(voucherCreatedAck = false) }
-    }
-
-    /** Only still-unclaimed submissions participate in selection / voucher creation. */
     private fun SavedTracksUiState.canSelect(id: String): Boolean = allSubmissions.any { it.id == id && it.isUnclaimed }
 }
