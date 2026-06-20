@@ -1,114 +1,119 @@
 package com.miletracker.feature.tracking.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.EventAudience
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
 import com.miletracker.core.data.model.db.LocationData
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.checkin.CheckInValidator
 import com.miletracker.feature.tracking.checkin.CheckInValidator.CheckInLocation
 import com.miletracker.feature.tracking.repository.CurrentTrackRepository
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
 import com.miletracker.feature.tracking.repository.LocationRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * Orchestrates both manual and geo check-in flows for the offline demo.
- *
- * All validation is done locally via [CheckInValidator] (Haversine distance vs a configured
- * radius). No network calls are made — this is a fully offline implementation.
- *
- * Persistence: a [LocationData] row is written with [LocationData.wasCheckInPoint] = true
- * and [LocationData.checkInType] set to "MANUAL" or "GEO". A [HardwareEvent] is also
- * logged to the hardware_events table for the audit trail.
- */
+data class CheckInUiState(
+    val isSubmitting: Boolean = false,
+    val checkInSuccess: Boolean = false,
+    val successMessage: String = "",
+    val error: String? = null,
+    val showRadiusWarning: Boolean = false,
+    val radiusWarningMessage: String = "",
+    val pendingValidationResult: CheckInValidator.ValidationResult? = null,
+    val showManualCheckInSheet: Boolean = false,
+    val manualReason: String = "",
+    val showGeoCheckInSheet: Boolean = false,
+    val currentToken: String = "",
+)
+
+sealed interface CheckInAction {
+    data object OpenManualCheckIn : CheckInAction
+
+    data object DismissManualCheckIn : CheckInAction
+
+    data class UpdateManualReason(val text: String) : CheckInAction
+
+    data object SubmitManualCheckIn : CheckInAction
+
+    data object OpenGeoCheckIn : CheckInAction
+
+    data object DismissGeoCheckIn : CheckInAction
+
+    data class ValidateAndGeoCheckIn(val lat: Double, val lng: Double) : CheckInAction
+
+    data object DismissRadiusWarning : CheckInAction
+
+    data object ForceGeoCheckInDespiteRadius : CheckInAction
+
+    data object AcknowledgeSuccess : CheckInAction
+
+    data object ClearError : CheckInAction
+}
+
+sealed interface CheckInEffect
+
 class CheckInViewModel(
     private val locationRepo: LocationRepository,
     private val hardwareEventRepo: HardwareEventRepository,
     private val currentTrackRepository: CurrentTrackRepository,
-    /** Geofence locations to validate against for geo check-in. */
     private val geoCheckInLocations: List<CheckInLocation>,
-    /** Default radius in metres used when a location has no per-location override. */
     private val defaultRadiusMeters: Double = 100.0,
-) : ViewModel() {
+) : BaseViewModel<CheckInUiState, CheckInEffect, CheckInAction>(CheckInUiState()) {
     companion object {
         private const val TAG = "CheckInViewModel"
     }
 
-    data class UiState(
-        val isSubmitting: Boolean = false,
-        val checkInSuccess: Boolean = false,
-        val successMessage: String = "",
-        val error: String? = null,
-        // Geo check-in radius-warning state
-        val showRadiusWarning: Boolean = false,
-        val radiusWarningMessage: String = "",
-        val pendingValidationResult: CheckInValidator.ValidationResult? = null,
-        // Manual check-in sheet
-        val showManualCheckInSheet: Boolean = false,
-        val manualReason: String = "",
-        // Geo check-in sheet
-        val showGeoCheckInSheet: Boolean = false,
-        // Current route token for log records
-        val currentToken: String = "",
-    )
-
-    private val _uiState = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
-
     init {
         viewModelScope.launch {
-            // Keep the current token up-to-date from the live DataStore flow
             currentTrackRepository.currentTrackFlow.collect { session ->
-                _uiState.update { it.copy(currentToken = session.token) }
+                setState { copy(currentToken = session.token) }
             }
         }
     }
 
-    // ── Manual check-in ──────────────────────────────────────────────────────────
-
-    fun openManualCheckIn() {
-        _uiState.update { it.copy(showManualCheckInSheet = true, error = null) }
+    override fun onAction(action: CheckInAction) {
+        when (action) {
+            CheckInAction.OpenManualCheckIn ->
+                setState { copy(showManualCheckInSheet = true, error = null) }
+            CheckInAction.DismissManualCheckIn ->
+                setState { copy(showManualCheckInSheet = false, manualReason = "") }
+            is CheckInAction.UpdateManualReason ->
+                setState { copy(manualReason = action.text) }
+            CheckInAction.SubmitManualCheckIn -> submitManualCheckIn()
+            CheckInAction.OpenGeoCheckIn ->
+                setState { copy(showGeoCheckInSheet = true, error = null) }
+            CheckInAction.DismissGeoCheckIn ->
+                setState { copy(showGeoCheckInSheet = false, showRadiusWarning = false, pendingValidationResult = null) }
+            is CheckInAction.ValidateAndGeoCheckIn -> validateAndGeoCheckIn(action.lat, action.lng)
+            CheckInAction.DismissRadiusWarning ->
+                setState { copy(showRadiusWarning = false, pendingValidationResult = null) }
+            CheckInAction.ForceGeoCheckInDespiteRadius -> forceGeoCheckIn()
+            CheckInAction.AcknowledgeSuccess ->
+                setState { copy(checkInSuccess = false, successMessage = "") }
+            CheckInAction.ClearError ->
+                setState { copy(error = null) }
+        }
     }
 
-    fun dismissManualCheckIn() {
-        _uiState.update { it.copy(showManualCheckInSheet = false, manualReason = "") }
-    }
-
-    fun updateManualReason(text: String) {
-        _uiState.update { it.copy(manualReason = text) }
-    }
-
-    /**
-     * Records a manual check-in at the most-recently persisted location for the active trip.
-     *
-     * Persists a [LocationData] row with [LocationData.wasCheckInPoint] = true and
-     * [LocationData.checkInType] = "MANUAL". Also logs a [HardwareEvent].
-     */
-    fun submitManualCheckIn() {
-        val snapshot = _uiState.value
+    private fun submitManualCheckIn() {
+        val snapshot = currentState
         if (snapshot.isSubmitting) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, error = null) }
+            setState { copy(isSubmitting = true, error = null) }
             try {
                 val token =
                     snapshot.currentToken.ifBlank {
                         currentTrackRepository.currentTrackFlow.first().token
                     }
                 if (token.isBlank()) {
-                    _uiState.update { it.copy(isSubmitting = false, error = "No active tracking session found.") }
+                    setState { copy(isSubmitting = false, error = "No active tracking session found.") }
                     return@launch
                 }
 
-                // Grab the last persisted location for this trip
                 val lastLocation: LocationData? =
                     try {
                         locationRepo.locationsForToken(token).first().lastOrNull()
@@ -128,7 +133,6 @@ class CheckInViewModel(
                             reason = snapshot.manualReason.take(200),
                         )
                     } else {
-                        // No previous location yet — create a minimal placeholder record
                         LocationData(
                             token = token,
                             lat = 0.0, lng = 0.0,
@@ -145,7 +149,6 @@ class CheckInViewModel(
 
                 locationRepo.insert(checkInRecord)
 
-                // Log a HardwareEvent for the audit trail
                 val hwEvent =
                     HardwareEvent(
                         token = token,
@@ -160,8 +163,8 @@ class CheckInViewModel(
                 hardwareEventRepo.insert(hwEvent)
 
                 Log.i(TAG, "Manual check-in saved for token=${token.take(8)}…")
-                _uiState.update {
-                    it.copy(
+                setState {
+                    copy(
                         isSubmitting = false,
                         showManualCheckInSheet = false,
                         manualReason = "",
@@ -171,33 +174,17 @@ class CheckInViewModel(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Manual check-in failed", e)
-                _uiState.update { it.copy(isSubmitting = false, error = e.message ?: "Check-in failed.") }
+                setState { copy(isSubmitting = false, error = e.message ?: "Check-in failed.") }
             }
         }
     }
 
-    // ── Geo check-in ────────────────────────────────────────────────────────────
-
-    fun openGeoCheckIn() {
-        _uiState.update { it.copy(showGeoCheckInSheet = true, error = null) }
-    }
-
-    fun dismissGeoCheckIn() {
-        _uiState.update { it.copy(showGeoCheckInSheet = false, showRadiusWarning = false, pendingValidationResult = null) }
-    }
-
-    /**
-     * Validates [userLat]/[userLng] against the nearest mock check-in location.
-     *
-     * - Within radius  → records a GEO check-in immediately.
-     * - Outside radius → shows the radius-warning sheet with the distance outside.
-     */
-    fun validateAndGeoCheckIn(
+    private fun validateAndGeoCheckIn(
         userLat: Double,
         userLng: Double,
     ) {
         if (geoCheckInLocations.isEmpty()) {
-            _uiState.update { it.copy(error = "No check-in locations configured.", showGeoCheckInSheet = false) }
+            setState { copy(error = "No check-in locations configured.", showGeoCheckInSheet = false) }
             return
         }
 
@@ -214,8 +201,8 @@ class CheckInViewModel(
         } else {
             val message = CheckInValidator.buildOutsideRadiusMessage(result)
             Log.d(TAG, "Geo check-in outside radius: ${result.distanceOutside.toInt()} m outside")
-            _uiState.update {
-                it.copy(
+            setState {
+                copy(
                     showGeoCheckInSheet = false,
                     showRadiusWarning = true,
                     radiusWarningMessage = message,
@@ -225,48 +212,28 @@ class CheckInViewModel(
         }
     }
 
-    fun dismissRadiusWarning() {
-        _uiState.update { it.copy(showRadiusWarning = false, pendingValidationResult = null) }
-    }
-
-    /**
-     * Called from the radius-warning sheet when the user explicitly overrides and wants to
-     * record the check-in anyway.
-     */
-    fun forceGeoCheckInDespiteRadius() {
-        val pending = _uiState.value.pendingValidationResult ?: return
-        _uiState.update { it.copy(showRadiusWarning = false, pendingValidationResult = null) }
+    private fun forceGeoCheckIn() {
+        val pending = currentState.pendingValidationResult ?: return
+        setState { copy(showRadiusWarning = false, pendingValidationResult = null) }
         persistGeoCheckIn(pending, isOverride = true)
     }
-
-    // ── Success acknowledgement ──────────────────────────────────────────────────
-
-    fun acknowledgeSuccess() {
-        _uiState.update { it.copy(checkInSuccess = false, successMessage = "") }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
-
-    // ── Private helpers ──────────────────────────────────────────────────────────
 
     private fun persistGeoCheckIn(
         result: CheckInValidator.ValidationResult,
         isOverride: Boolean = false,
     ) {
-        val snapshot = _uiState.value
+        val snapshot = currentState
         if (snapshot.isSubmitting) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, error = null) }
+            setState { copy(isSubmitting = true, error = null) }
             try {
                 val token =
                     snapshot.currentToken.ifBlank {
                         currentTrackRepository.currentTrackFlow.first().token
                     }
                 if (token.isBlank()) {
-                    _uiState.update { it.copy(isSubmitting = false, error = "No active tracking session found.") }
+                    setState { copy(isSubmitting = false, error = "No active tracking session found.") }
                     return@launch
                 }
 
@@ -310,8 +277,8 @@ class CheckInViewModel(
                 hardwareEventRepo.insert(hwEvent)
 
                 Log.i(TAG, "Geo check-in ($checkInType) saved for token=${token.take(8)}… at ${result.nearestLocation.name}")
-                _uiState.update {
-                    it.copy(
+                setState {
+                    copy(
                         isSubmitting = false,
                         showGeoCheckInSheet = false,
                         checkInSuccess = true,
@@ -320,7 +287,7 @@ class CheckInViewModel(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Geo check-in failed", e)
-                _uiState.update { it.copy(isSubmitting = false, error = e.message ?: "Check-in failed.") }
+                setState { copy(isSubmitting = false, error = e.message ?: "Check-in failed.") }
             }
         }
     }
