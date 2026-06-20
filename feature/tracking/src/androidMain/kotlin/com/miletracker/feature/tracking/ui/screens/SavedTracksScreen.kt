@@ -79,6 +79,7 @@ import com.miletracker.feature.tracking.ui.components.SubmissionCardData
 import com.miletracker.feature.tracking.ui.components.SubmissionDateHeader
 import com.miletracker.feature.tracking.ui.components.SubmissionSelectionRow
 import com.miletracker.feature.tracking.viewmodel.JourneyFilter
+import com.miletracker.feature.tracking.viewmodel.SavedTracksAction
 import com.miletracker.feature.tracking.viewmodel.SavedTracksTab
 import com.miletracker.feature.tracking.viewmodel.SavedTracksUiState
 import com.miletracker.feature.tracking.viewmodel.SavedTracksViewModel
@@ -108,14 +109,14 @@ fun SavedTracksScreen(
     onStartNew: () -> Unit,
     viewModel: SavedTracksViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Pure-demo voucher acknowledgement: snackbar + confetti, then consume the one-shot flag.
     LaunchedEffect(uiState.voucherCreatedAck) {
         if (uiState.voucherCreatedAck) {
             snackbarHostState.showSnackbar("Voucher created")
-            viewModel.onVoucherAckConsumed()
+            viewModel.onAction(SavedTracksAction.VoucherAckConsumed)
         }
     }
 
@@ -136,7 +137,7 @@ fun SavedTracksScreen(
                 TrackMilesHeader(
                     tracks = uiState.tracks,
                     selectionMode = uiState.selectionMode,
-                    onClearSelection = viewModel::onClearSelection,
+                    onClearSelection = { viewModel.onAction(SavedTracksAction.ClearSelection) },
                 )
                 SavedTracksBody(
                     uiState = uiState,
@@ -261,8 +262,10 @@ private fun SavedTracksBody(
                 journeyCount = uiState.journeyCount,
                 submissionCount = uiState.submissionCount,
                 onSelect = { segment ->
-                    viewModel.onTabSelected(
-                        if (segment == SavedTracksSegment.JOURNEYS) SavedTracksTab.JOURNEYS else SavedTracksTab.SUBMISSIONS,
+                    viewModel.onAction(
+                        SavedTracksAction.TabSelected(
+                            if (segment == SavedTracksSegment.JOURNEYS) SavedTracksTab.JOURNEYS else SavedTracksTab.SUBMISSIONS,
+                        ),
                     )
                 },
             )
@@ -288,7 +291,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.journeysSection(
         SavedTracksSearchField(
             query = uiState.journeySearch,
             placeholder = "Search journeys…",
-            onQueryChange = viewModel::onJourneySearchChanged,
+            onQueryChange = { viewModel.onAction(SavedTracksAction.JourneySearchChanged(it)) },
             onFilterClick = null,
         )
     }
@@ -297,17 +300,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.journeysSection(
             SavedTracksFilterChip(
                 label = "This Week",
                 selected = uiState.journeyFilter == JourneyFilter.THIS_WEEK,
-                onClick = { viewModel.onJourneyFilterSelected(JourneyFilter.THIS_WEEK) },
+                onClick = { viewModel.onAction(SavedTracksAction.JourneyFilterSelected(JourneyFilter.THIS_WEEK)) },
             )
             SavedTracksFilterChip(
                 label = "Kept",
                 selected = uiState.journeyFilter == JourneyFilter.KEPT,
-                onClick = { viewModel.onJourneyFilterSelected(JourneyFilter.KEPT) },
+                onClick = { viewModel.onAction(SavedTracksAction.JourneyFilterSelected(JourneyFilter.KEPT)) },
             )
             SavedTracksFilterChip(
                 label = "All",
                 selected = uiState.journeyFilter == JourneyFilter.ALL,
-                onClick = { viewModel.onJourneyFilterSelected(JourneyFilter.ALL) },
+                onClick = { viewModel.onAction(SavedTracksAction.JourneyFilterSelected(JourneyFilter.ALL)) },
             )
         }
     }
@@ -316,7 +319,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.journeysSection(
     when {
         journeys.isEmpty() && uiState.journeyFilter == JourneyFilter.THIS_WEEK && uiState.journeySearch.isBlank() -> {
             item {
-                NoJourneysThisWeekState(onViewAll = { viewModel.onJourneyFilterSelected(JourneyFilter.ALL) })
+                NoJourneysThisWeekState(onViewAll = { viewModel.onAction(SavedTracksAction.JourneyFilterSelected(JourneyFilter.ALL)) })
             }
         }
         journeys.isEmpty() -> {
@@ -514,7 +517,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
         SavedTracksSearchField(
             query = uiState.submissionSearch,
             placeholder = "Search submissions…",
-            onQueryChange = viewModel::onSubmissionSearchChanged,
+            onQueryChange = { viewModel.onAction(SavedTracksAction.SubmissionSearchChanged(it)) },
             onFilterClick = null,
         )
     }
@@ -524,17 +527,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
             SavedTracksFilterChip(
                 label = "All (${uiState.submissionCount})",
                 selected = uiState.submissionFilter == SubmissionFilter.ALL,
-                onClick = { viewModel.onSubmissionFilterSelected(SubmissionFilter.ALL) },
+                onClick = { viewModel.onAction(SavedTracksAction.SubmissionFilterSelected(SubmissionFilter.ALL)) },
             )
             SavedTracksFilterChip(
                 label = "Unclaimed (${uiState.unclaimedCount})",
                 selected = uiState.submissionFilter == SubmissionFilter.UNCLAIMED,
-                onClick = { viewModel.onSubmissionFilterSelected(SubmissionFilter.UNCLAIMED) },
+                onClick = { viewModel.onAction(SavedTracksAction.SubmissionFilterSelected(SubmissionFilter.UNCLAIMED)) },
             )
             SavedTracksFilterChip(
                 label = "Filed (${uiState.filedCount})",
                 selected = uiState.submissionFilter == SubmissionFilter.FILED,
-                onClick = { viewModel.onSubmissionFilterSelected(SubmissionFilter.FILED) },
+                onClick = { viewModel.onAction(SavedTracksAction.SubmissionFilterSelected(SubmissionFilter.FILED)) },
             )
         }
     }
@@ -544,17 +547,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
             SavedTracksFilterChip(
                 label = "All",
                 selected = uiState.submissionSource == SubmissionSource.ALL,
-                onClick = { viewModel.onSubmissionSourceSelected(SubmissionSource.ALL) },
+                onClick = { viewModel.onAction(SavedTracksAction.SubmissionSourceSelected(SubmissionSource.ALL)) },
             )
             SavedTracksFilterChip(
                 label = "New Tracker",
                 selected = uiState.submissionSource == SubmissionSource.NEW_TRACKER,
-                onClick = { viewModel.onSubmissionSourceSelected(SubmissionSource.NEW_TRACKER) },
+                onClick = { viewModel.onAction(SavedTracksAction.SubmissionSourceSelected(SubmissionSource.NEW_TRACKER)) },
             )
             SavedTracksFilterChip(
                 label = "Other",
                 selected = uiState.submissionSource == SubmissionSource.OTHER,
-                onClick = { viewModel.onSubmissionSourceSelected(SubmissionSource.OTHER) },
+                onClick = { viewModel.onAction(SavedTracksAction.SubmissionSourceSelected(SubmissionSource.OTHER)) },
             )
         }
     }
@@ -569,7 +572,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
         item {
             SubmissionSelectionRow(
                 selectedCount = uiState.selectedSubmissionIds.size,
-                onClearSelection = viewModel::onClearSelection,
+                onClearSelection = { viewModel.onAction(SavedTracksAction.ClearSelection) },
             )
         }
         val voucherCount = uiState.selectedUnclaimedIds.size
@@ -581,7 +584,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
                     transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(150)) },
                     label = "voucherCount",
                 ) { count ->
-                    CreateVoucherButton(count = count, onClick = viewModel::onCreateVoucher)
+                    CreateVoucherButton(count = count, onClick = { viewModel.onAction(SavedTracksAction.CreateVoucher) })
                 }
             }
         }
@@ -610,14 +613,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.submissionsSection(
                     selectionMode = uiState.selectionMode,
                     onClick = {
                         if (uiState.selectionMode) {
-                            viewModel.onSubmissionTapped(submission.id)
+                            viewModel.onAction(SavedTracksAction.SubmissionTapped(submission.id))
                         } else {
-                            viewModel.onSubmissionSelectionToggled(submission.id)
+                            viewModel.onAction(SavedTracksAction.SubmissionSelectionToggled(submission.id))
                         }
                     },
                     onLongClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.onSubmissionLongPressed(submission.id)
+                        viewModel.onAction(SavedTracksAction.SubmissionLongPressed(submission.id))
                     },
                 )
             }
