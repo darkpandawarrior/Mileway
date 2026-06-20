@@ -43,6 +43,10 @@ fun readBuildNumber(): Int {
     return if (file.exists()) file.readText().trim().toIntOrNull() ?: 0 else 0
 }
 
+// FLFD.1: F-Droid reproducible build flag (`./gradlew assembleNoGmsRelease -Pfdroid`). Disables R8/resource
+// shrinking (not bit-for-bit reproducible across machines). F-Droid only builds the noGms release.
+val fdroidBuild = providers.gradleProperty("fdroid").isPresent
+
 android {
     namespace = "com.miletracker"
 
@@ -61,6 +65,13 @@ android {
     // CF.5: expose BuildConfig.VERSION_CODE for the maintenance/min-version gate.
     buildFeatures {
         buildConfig = true
+    }
+
+    // FLFD.1: reproducible FOSS (F-Droid) builds — omit the dependency-metadata block from the APK/AAB
+    // (it embeds a signed, non-reproducible blob). Applies to all variants; harmless for the Play build.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     // Maps flavor dimension:
@@ -101,8 +112,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // FLFD.1: off for reproducible F-Droid builds (-Pfdroid); on for Play/CI release.
+            isMinifyEnabled = !fdroidBuild
+            isShrinkResources = !fdroidBuild
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // CF.4: Crashlytics mapping upload is OFF by default (placeholder Firebase config), enabled in CI
             // only when CRASHLYTICS_UPLOAD=true with a real google-services.json — "guarded by key".
