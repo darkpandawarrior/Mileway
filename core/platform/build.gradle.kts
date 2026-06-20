@@ -27,5 +27,10 @@ kotlin {
             // BackgroundScheduler (Android): WorkManager
             implementation(libs.workmanager.runtime)
         }
+        iosMain.dependencies {
+            // V15 UP.3: IosAppUpdateManager queries the public iTunes Lookup API (no backend).
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.darwin)
+        }
     }
 }
