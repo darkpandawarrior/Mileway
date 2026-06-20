@@ -100,6 +100,7 @@ class MileTrackerApplication : Application(), SingletonImageLoader.Factory {
             androidLogger(Level.ERROR)
             modules(
                 mapsKoinModule(),
+                platformServicesKoinModule(),
                 coreDataModule,
                 coreUiModule,
                 stubModule,
