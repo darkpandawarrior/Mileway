@@ -7,10 +7,29 @@ import com.miletracker.core.data.model.state.TrackMilesPluginConfig
 import com.miletracker.core.data.result.NetworkError
 import com.miletracker.core.data.result.NetworkResult
 import com.miletracker.core.network.config.ConfigProvider
+import com.miletracker.core.platform.UpdateConfig
+import com.miletracker.core.platform.UpdateMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class DemoConfigManager : ConfigProvider {
+class DemoConfigManager(
+    private val updateConfig: UpdateConfig =
+        UpdateConfig(
+            enabled = true,
+            mode = UpdateMode.FLEXIBLE,
+            minSupportedVersionCode = 1L,
+            staleDays = 7,
+            priority = 0,
+        ),
+    private val featureFlags: Map<String, Boolean> =
+        mapOf(
+            "referralEnabled" to true,
+            "inAppReviewEnabled" to true,
+            "inAppUpdateEnabled" to true,
+            "shareEnabled" to true,
+        ),
+    private val killSwitch: Boolean = false,
+) : ConfigProvider {
     val configState: StateFlow<NetworkResult<UserConfigResponseV2, NetworkError>> =
         MutableStateFlow(NetworkResult.Success(DemoMockData.userConfig()))
 
@@ -128,4 +147,12 @@ class DemoConfigManager : ConfigProvider {
     override fun getVendorCenters() = VendorMockData.vendorCenters()
 
     override fun getGeoCheckInRadiusMeters(): Double = 100.0
+
+    // ─── V15 gating surface (demo-sane defaults; constructor-overridable for tests / env wiring) ───
+
+    override fun getUpdateConfig(): UpdateConfig = updateConfig
+
+    override fun getFeatureFlags(): Map<String, Boolean> = featureFlags
+
+    override fun isKillSwitchOn(): Boolean = killSwitch
 }

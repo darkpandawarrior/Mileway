@@ -18,6 +18,8 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(project(":core:data"))
             implementation(project(":core:network"))
+            // V15 PF.5: DemoConfigManager returns UpdateConfig (defined in core:platform).
+            implementation(project(":core:platform"))
         }
         androidMain.dependencies {
             implementation(libs.koin.android)

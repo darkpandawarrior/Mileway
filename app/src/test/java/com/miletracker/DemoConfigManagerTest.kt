@@ -1,9 +1,12 @@
 package com.miletracker
 
+import com.miletracker.core.platform.UpdateConfig
+import com.miletracker.core.platform.UpdateMode
 import com.miletracker.stub.DemoConfigManager
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -60,5 +63,41 @@ class DemoConfigManagerTest {
         val data = (state as com.miletracker.core.data.result.NetworkResult.Success).data
         assertTrue(data.miles)
         assertTrue(data.logMiles)
+    }
+
+    // ─── V15 PF.5 gating surface ───
+
+    @Test
+    fun `getUpdateConfig defaults are demo-sane and flexible`() {
+        val config = manager.getUpdateConfig()
+        assertTrue(config.enabled)
+        assertEquals(UpdateMode.FLEXIBLE, config.mode)
+        assertEquals(1L, config.minSupportedVersionCode)
+        assertEquals(7, config.staleDays)
+    }
+
+    @Test
+    fun `getFeatureFlags exposes the demo flags`() {
+        val flags = manager.getFeatureFlags()
+        assertTrue(flags.getValue("referralEnabled"))
+        assertTrue(flags.getValue("inAppReviewEnabled"))
+        assertTrue(flags.getValue("shareEnabled"))
+    }
+
+    @Test
+    fun `kill switch is off by default`() = assertFalse(manager.isKillSwitchOn())
+
+    @Test
+    fun `constructor overrides drive the gating surface`() {
+        val forced =
+            DemoConfigManager(
+                updateConfig = UpdateConfig(enabled = true, mode = UpdateMode.FORCED, minSupportedVersionCode = 99L),
+                featureFlags = mapOf("referralEnabled" to false),
+                killSwitch = true,
+            )
+        assertEquals(UpdateMode.FORCED, forced.getUpdateConfig().mode)
+        assertEquals(99L, forced.getUpdateConfig().minSupportedVersionCode)
+        assertFalse(forced.getFeatureFlags().getValue("referralEnabled"))
+        assertTrue(forced.isKillSwitchOn())
     }
 }
