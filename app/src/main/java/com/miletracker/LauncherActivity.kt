@@ -14,10 +14,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.network.config.ConfigProvider
 import com.miletracker.core.ui.platform.LocalManagerProvider
+import com.miletracker.core.ui.platform.UpdateGate
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
 import com.miletracker.ui.AppGraph
@@ -68,7 +71,9 @@ private fun Intent.deepLinkRoute(): String? {
 private fun AppEntry(
     initialRoute: String? = null,
     themeController: ThemeController = koinInject(),
+    configProvider: ConfigProvider = koinInject(),
 ) {
+    val updateConfig = remember(configProvider) { configProvider.getUpdateConfig() }
     val systemDark = isSystemInDarkTheme()
     val override by themeController.darkThemeOverride.collectAsStateWithLifecycle()
     val palette by themeController.accentPalette.collectAsStateWithLifecycle()
@@ -96,7 +101,10 @@ private fun AppEntry(
                 when (current) {
                     AppStage.SPLASH -> SplashScreen(onFinished = { stage = AppStage.LOGIN })
                     AppStage.LOGIN -> LoginScreen(onSignedIn = { stage = AppStage.APP })
-                    AppStage.APP -> MileTrackerAppRoot(deepLinkRoute = initialRoute)
+                    AppStage.APP ->
+                        UpdateGate(config = updateConfig) {
+                            MileTrackerAppRoot(deepLinkRoute = initialRoute)
+                        }
                 }
             }
         }
