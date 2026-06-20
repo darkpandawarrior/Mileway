@@ -14,6 +14,8 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+            // CF.2: LoggingAnalyticsHelper logs events via Napier (noGms/iOS analytics impl).
+            implementation(libs.napier)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
