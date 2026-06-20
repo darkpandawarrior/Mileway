@@ -1,16 +1,12 @@
 package com.miletracker.feature.tracking.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.display.TrackDisplayData
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.VoucherRecord
 import com.miletracker.feature.tracking.repository.VoucherRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -28,16 +24,63 @@ data class CreateVoucherUiState(
     val isLoading: Boolean = true,
 )
 
+sealed interface CreateVoucherAction {
+    data class ToggleSelection(val token: String) : CreateVoucherAction
+
+    data object SelectAll : CreateVoucherAction
+
+    data object DeselectAll : CreateVoucherAction
+
+    data class SetTitle(val value: String) : CreateVoucherAction
+
+    data class SetCategory(val value: String) : CreateVoucherAction
+
+    data class SetNotes(val value: String) : CreateVoucherAction
+
+    data class GoToStep(val step: Int) : CreateVoucherAction
+
+    data object Submit : CreateVoucherAction
+}
+
+sealed interface CreateVoucherEffect
+
 class CreateVoucherViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val voucherRepository: VoucherRepository,
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(CreateVoucherUiState())
-    val uiState: StateFlow<CreateVoucherUiState> = _uiState.asStateFlow()
-
+) : BaseViewModel<CreateVoucherUiState, CreateVoucherEffect, CreateVoucherAction>(CreateVoucherUiState()) {
     init {
         loadExpenses()
     }
+
+    override fun onAction(action: CreateVoucherAction) {
+        when (action) {
+            is CreateVoucherAction.ToggleSelection ->
+                setState {
+                    val selected = selectedTokens.toMutableSet()
+                    if (selected.contains(action.token)) selected.remove(action.token) else selected.add(action.token)
+                    copy(selectedTokens = selected)
+                }
+            CreateVoucherAction.SelectAll ->
+                setState { copy(selectedTokens = expenses.map { it.token }.toSet()) }
+            CreateVoucherAction.DeselectAll ->
+                setState { copy(selectedTokens = emptySet()) }
+            is CreateVoucherAction.SetTitle ->
+                setState { copy(title = action.value) }
+            is CreateVoucherAction.SetCategory ->
+                setState { copy(category = action.value) }
+            is CreateVoucherAction.SetNotes ->
+                setState { copy(notes = action.value) }
+            is CreateVoucherAction.GoToStep ->
+                setState { copy(step = action.step) }
+            CreateVoucherAction.Submit -> submit()
+        }
+    }
+
+    val totalAmount: Double
+        get() =
+            currentState.expenses
+                .filter { currentState.selectedTokens.contains(it.token) }
+                .sumOf { it.reimbursableAmount }
 
     private fun loadExpenses() {
         viewModelScope.launch {
@@ -50,37 +93,13 @@ class CreateVoucherViewModel(
                     val monthName = ldt.month.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
                     "Voucher — $monthName ${ldt.year}"
                 }
-            _uiState.update { it.copy(expenses = tracks, title = defaultTitle, isLoading = false) }
+            setState { copy(expenses = tracks, title = defaultTitle, isLoading = false) }
         }
     }
 
-    fun toggleSelection(token: String) {
-        _uiState.update { state ->
-            val selected = state.selectedTokens.toMutableSet()
-            if (selected.contains(token)) selected.remove(token) else selected.add(token)
-            state.copy(selectedTokens = selected)
-        }
-    }
-
-    fun selectAll() {
-        _uiState.update { it.copy(selectedTokens = it.expenses.map { e -> e.token }.toSet()) }
-    }
-
-    fun deselectAll() {
-        _uiState.update { it.copy(selectedTokens = emptySet()) }
-    }
-
-    fun setTitle(v: String) = _uiState.update { it.copy(title = v) }
-
-    fun setCategory(v: String) = _uiState.update { it.copy(category = v) }
-
-    fun setNotes(v: String) = _uiState.update { it.copy(notes = v) }
-
-    fun goToStep(step: Int) = _uiState.update { it.copy(step = step) }
-
-    fun submit() {
-        val state = _uiState.value
-        _uiState.update { it.copy(isSubmitting = true) }
+    private fun submit() {
+        val state = currentState
+        setState { copy(isSubmitting = true) }
         viewModelScope.launch {
             val number = "V-${Clock.System.now().toEpochMilliseconds() % 10_000}"
             val total =
@@ -98,15 +117,7 @@ class CreateVoucherViewModel(
                     createdAtMs = Clock.System.now().toEpochMilliseconds(),
                 ),
             )
-            _uiState.update { it.copy(isSubmitting = false, submittedVoucherNumber = number, step = 3) }
+            setState { copy(isSubmitting = false, submittedVoucherNumber = number, step = 3) }
         }
     }
-
-    val totalAmount: Double
-        get() {
-            val state = _uiState.value
-            return state.expenses
-                .filter { state.selectedTokens.contains(it.token) }
-                .sumOf { it.reimbursableAmount }
-        }
 }
