@@ -25,24 +25,22 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.common.asString
+import com.miletracker.core.ui.toast.ToastType
+import com.miletracker.core.ui.toast.Toasts
 import com.miletracker.feature.cards.viewmodel.CardRequestAction
 import com.miletracker.feature.cards.viewmodel.CardRequestEffect
 import com.miletracker.feature.cards.viewmodel.CardRequestUiState
 import com.miletracker.feature.cards.viewmodel.CardRequestViewModel
-import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -51,25 +49,15 @@ fun CardRequestScreen(
     viewModel: CardRequestViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    LaunchedEffectRequest(viewModel, snackbarHostState, scope)
-    CardRequestContent(state, viewModel::onAction, onDone, snackbarHostState)
-}
-
-@Composable
-private fun LaunchedEffectRequest(
-    viewModel: CardRequestViewModel,
-    snackbarHostState: SnackbarHostState,
-    scope: kotlinx.coroutines.CoroutineScope,
-) {
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is CardRequestEffect.ShowToast -> scope.launch { snackbarHostState.showSnackbar(effect.message.asString()) }
+                is CardRequestEffect.ShowToast ->
+                    Toasts.show(title = effect.message.asString(), description = "", type = ToastType.Success)
             }
         }
     }
+    CardRequestContent(state, viewModel::onAction, onDone)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +66,6 @@ internal fun CardRequestContent(
     state: CardRequestUiState,
     onAction: (CardRequestAction) -> Unit,
     onDone: () -> Unit,
-    snackbarHostState: SnackbarHostState,
 ) {
     Scaffold(
         topBar = {
@@ -91,7 +78,6 @@ internal fun CardRequestContent(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         if (state.submittedRequestId != null) {
             SuccessContent(state.submittedRequestId, onDone, Modifier.padding(padding))
