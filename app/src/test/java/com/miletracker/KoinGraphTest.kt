@@ -38,6 +38,7 @@ import com.miletracker.feature.tracking.viewmodel.SavedTracksViewModel
 import com.miletracker.feature.tracking.viewmodel.TrackDetailViewModel
 import com.miletracker.feature.tracking.viewmodel.TrackInsightsViewModel
 import com.miletracker.feature.tracking.viewmodel.TrackMilesViewModel
+import com.miletracker.core.platform.NotificationScheduler
 import com.miletracker.stub.di.stubModule
 import io.mockk.mockk
 import org.junit.After
@@ -80,6 +81,7 @@ class KoinGraphTest : KoinTest {
         single<MediaLibraryDao> { mockk(relaxed = true) }
         single<CurrentTrackDataStore> { mockk(relaxed = true) }
         single<DemoSettingsRepository> { mockk(relaxed = true) }
+        single<NotificationScheduler> { mockk(relaxed = true) }
     }
 
     @Before
