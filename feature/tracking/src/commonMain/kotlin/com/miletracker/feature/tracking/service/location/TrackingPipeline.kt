@@ -67,8 +67,7 @@ data class TrackStats(
  * Pure Kotlin — no Android dependency — so it is fully covered by JVM unit tests.
  */
 class LocationProcessor(
-    private val jitterDistanceM: Double = 8.0,
-    // ~252 km/h — anything faster is a GPS spike
+    // ~252 km/h — anything faster (for normal sampling) is a GPS spike
     private val maxPlausibleSpeedMps: Double = 70.0,
     private val deviceModel: String = "",
     private val appVersionName: String = "",
@@ -87,10 +86,22 @@ class LocationProcessor(
         private set
     var mockDistanceM = 0.0
         private set
+
+    /** Distance from hard-gate teleport spikes (>5 km in a single normal-sampling step). */
+    var spikeDistanceM = 0.0
+        private set
+
+    /** Consecutive non-abnormal fixes; resets to 0 on each abnormal fix (C.1b). */
+    var consecutiveNormalCount = 0
+        private set
+
     var maxSpeedMps = 0.0
         private set
     private var speedSum = 0.0
     private var speedCount = 0
+
+    /** Rolling window of the last [SPEED_HISTORY_SIZE] processed-fix speeds (m/s) — C.1c. */
+    private val recentSpeedHistory = ArrayDeque<Double>()
 
     init {
         // Resume accumulators from a persisted session (e.g. after the tracking service is
@@ -141,26 +152,43 @@ class LocationProcessor(
         val dtSec = if (prev != null) max(1L, (fix.timeMs - prev.timeMs) / 1000L) else 1L
         val impliedSpeed = displacement / dtSec
 
-        // Suppress stationary GPS jitter (small wander while parked). Keep the anchor so a
-        // later genuine move is measured from the last *persisted* point.
-        if (prev != null && displacement < jitterDistanceM && !fix.isMock) {
-            return null
+        // C.1a/C.1c: speed-adaptive jitter suppression (only for normal sampling, never across a
+        // time gap). A small wander below the speed-tuned gate is dropped while parked, but a fix
+        // is let through when recent history shows real movement (stationary-with-momentum). Mock
+        // fixes are never suppressed (handled in their own bucket). The anchor is kept so a later
+        // genuine move is measured from the last *persisted* point.
+        if (prev != null && !fix.isMock && dtSec < GAP_MIN_SEC) {
+            val gate = minDisplacementForSpeed(fix.speedMps.toDouble())
+            val stationaryMicroJitter =
+                fix.speedMps < STATIONARY_SPEED_MPS && displacement < STATIONARY_JITTER_M
+            if ((displacement < gate || stationaryMicroJitter) && !hasMovementHistory()) {
+                return null
+            }
         }
 
-        val abnormal = prev != null && impliedSpeed > maxPlausibleSpeedMps
+        // C.1b/C.1d: abnormal classification — 5 km hard teleport gate for normal sampling, plus
+        // gap-recovery speed tiers that relax the cap as the time gap grows (and a 10 km distance
+        // gate beyond 6 h). Gap fixes that pass the tier are counted toward distance, not flagged.
+        val abnormal = prev != null && isAbnormal(displacement, impliedSpeed, dtSec)
+        val isHardSpike = prev != null && dtSec < GAP_MIN_SEC && displacement > SPIKE_HARD_GATE_M
         var counted = false
 
         if (prev != null) {
             originalDistanceM += displacement
             when {
                 fix.isMock -> mockDistanceM += displacement
-                abnormal -> abnormalDistanceM += displacement
+                abnormal -> {
+                    abnormalDistanceM += displacement
+                    if (isHardSpike) spikeDistanceM += displacement
+                }
                 isPaused -> { /* recorded but excluded from cleaned distance */ }
                 else -> {
                     cleanedDistanceM += displacement
                     counted = true
                 }
             }
+            // C.1b: track a clean streak so the service can reset the abnormal anchor after 3.
+            consecutiveNormalCount = if (abnormal) 0 else consecutiveNormalCount + 1
         }
 
         if (!isPaused && !abnormal && !fix.isMock) {
@@ -169,6 +197,10 @@ class LocationProcessor(
             speedCount++
             if (sp > maxSpeedMps) maxSpeedMps = sp
         }
+
+        // C.1c: record this processed fix's speed in the rolling movement-history window.
+        recentSpeedHistory.addLast(fix.speedMps.toDouble())
+        if (recentSpeedHistory.size > SPEED_HISTORY_SIZE) recentSpeedHistory.removeFirst()
 
         last = fix
         totalPoints++
@@ -209,6 +241,68 @@ class LocationProcessor(
             isMock = fix.isMock,
             countedTowardDistance = counted,
         )
+    }
+
+    /**
+     * C.1a — minimum displacement (m) a fix must cover to escape jitter suppression, tuned to the
+     * current speed band. Faster travel expects (and tolerates) larger steps between fixes.
+     */
+    private fun minDisplacementForSpeed(speedMps: Double): Double =
+        when {
+            speedMps < WALKING_MAX_MPS -> WALKING_JITTER_M
+            speedMps < CYCLING_MAX_MPS -> CYCLING_JITTER_M
+            else -> DRIVING_JITTER_M
+        }
+
+    /** C.1c — true when the recent window shows sustained movement, so a small step isn't jitter. */
+    private fun hasMovementHistory(): Boolean = recentSpeedHistory.isNotEmpty() && recentSpeedHistory.average() >= MOVEMENT_HISTORY_MPS
+
+    /**
+     * C.1b/C.1d — classify a step as abnormal. For normal sampling (<30 s) a 5 km jump is an instant
+     * teleport and any implied speed above the plausible cap is a spike. For recognised gaps the cap
+     * is relaxed by tier (the longer the gap, the larger a plausible jump), and beyond 6 h a flat
+     * 10 km distance gate replaces the speed test.
+     */
+    private fun isAbnormal(
+        displacement: Double,
+        impliedSpeed: Double,
+        dtSec: Long,
+    ): Boolean =
+        when {
+            dtSec < GAP_MIN_SEC ->
+                displacement > SPIKE_HARD_GATE_M || impliedSpeed > maxPlausibleSpeedMps
+            dtSec <= GAP_5M_SEC -> impliedSpeed > GAP_TIER_5M_MPS
+            dtSec <= GAP_1H_SEC -> impliedSpeed > GAP_TIER_1H_MPS
+            dtSec <= GAP_6H_SEC -> impliedSpeed > GAP_TIER_6H_MPS
+            else -> displacement > GAP_MAX_DISTANCE_M
+        }
+
+    companion object {
+        // C.1a — speed-band jitter gates.
+        private const val WALKING_MAX_MPS = 2.5 // < ~9 km/h
+        private const val CYCLING_MAX_MPS = 7.0 // < ~25 km/h
+        private const val WALKING_JITTER_M = 2.0
+        private const val CYCLING_JITTER_M = 3.0
+        private const val DRIVING_JITTER_M = 5.0
+        private const val STATIONARY_SPEED_MPS = 1.2
+        private const val STATIONARY_JITTER_M = 1.2
+
+        // C.1c — movement-history window.
+        private const val SPEED_HISTORY_SIZE = 5
+        private const val MOVEMENT_HISTORY_MPS = 1.5
+
+        // C.1b — instant-teleport hard gate.
+        private const val SPIKE_HARD_GATE_M = 5_000.0
+
+        // C.1d — gap-recovery tiers (seconds + relaxed speed caps, m/s).
+        private const val GAP_MIN_SEC = 30L
+        private const val GAP_5M_SEC = 300L
+        private const val GAP_1H_SEC = 3_600L
+        private const val GAP_6H_SEC = 21_600L
+        private const val GAP_TIER_5M_MPS = 150.0
+        private const val GAP_TIER_1H_MPS = 100.0
+        private const val GAP_TIER_6H_MPS = 60.0
+        private const val GAP_MAX_DISTANCE_M = 10_000.0
     }
 }
 
