@@ -26,6 +26,9 @@ object AppGraph {
     const val TRAVEL = "travel_graph"
     const val PAYABLES = "payables_graph"
     const val APPROVALS = "approvals_graph"
+
+    /** Corporate cards feature graph (reached from the Account hub's Cards tile). */
+    const val CARDS = "cards_graph"
 }
 
 /**

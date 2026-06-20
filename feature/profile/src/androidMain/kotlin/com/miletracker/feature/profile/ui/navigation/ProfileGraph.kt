@@ -9,9 +9,6 @@ import com.miletracker.feature.profile.ui.screens.AdvanceHistoryScreen
 import com.miletracker.feature.profile.ui.screens.AnalyticsDetailScreen
 import com.miletracker.feature.profile.ui.screens.AnalyticsHomeScreen
 import com.miletracker.feature.profile.ui.screens.AskAdvanceFormScreen
-import com.miletracker.feature.profile.ui.screens.CardDetailScreen
-import com.miletracker.feature.profile.ui.screens.CardRequestScreen
-import com.miletracker.feature.profile.ui.screens.CardsHomeScreen
 import com.miletracker.feature.profile.ui.screens.DelegationScreen
 import com.miletracker.feature.profile.ui.screens.DemoSettingsScreen
 import com.miletracker.feature.profile.ui.screens.HelpScreen
@@ -32,9 +29,6 @@ object ProfileRoutes {
     const val NOTIFICATIONS = "profile/notifications"
     const val ADVANCE_HISTORY = "profile/advance"
     const val ASK_ADVANCE = "profile/advance/new"
-    const val CARDS_HOME = "profile/cards"
-    const val CARD_REQUEST = "profile/cards/new"
-    const val CARD_DETAIL = "profile/cards/detail/{cardId}"
     const val ANALYTICS_HOME = "profile/analytics"
     const val ANALYTICS_DETAIL = "profile/analytics/{category}"
     const val DELEGATION = "profile/delegation"
@@ -42,8 +36,6 @@ object ProfileRoutes {
     const val DEMO_SETTINGS = "profile/demo_settings"
     const val ROOT_GUARD = "profile/root_guard"
     const val ROOT_GUARD_DETECTED = "profile/root_guard_detected"
-
-    fun cardDetailRoute(cardId: String) = "profile/cards/detail/$cardId"
 
     fun analyticsDetailRoute(category: String) = "profile/analytics/$category"
 }
@@ -61,6 +53,7 @@ object ProfileRoutes {
 fun NavGraphBuilder.profileGraph(
     navController: NavHostController,
     onOpenDebugMenu: () -> Unit = {},
+    onOpenCards: () -> Unit = {},
 ) {
     composable(ProfileRoutes.HOME) {
         ProfileScreen(
@@ -70,7 +63,7 @@ fun NavGraphBuilder.profileGraph(
             onOpenSettings = { navController.navigate(ProfileRoutes.SETTINGS) },
             onOpenAboutSupport = { navController.navigate(ProfileRoutes.HELP) },
             onOpenAdvance = { navController.navigate(ProfileRoutes.ADVANCE_HISTORY) },
-            onOpenCards = { navController.navigate(ProfileRoutes.CARDS_HOME) },
+            onOpenCards = onOpenCards,
             onOpenInsights = { navController.navigate(ProfileRoutes.ANALYTICS_HOME) },
             onOpenDelegation = { navController.navigate(ProfileRoutes.DELEGATION) },
             onOpenDemoSettings = { navController.navigate(ProfileRoutes.DEMO_SETTINGS) },
@@ -112,29 +105,6 @@ fun NavGraphBuilder.profileGraph(
         AskAdvanceFormScreen(
             onBack = { navController.popBackStack() },
             onSubmitted = { navController.popBackStack() },
-        )
-    }
-    composable(ProfileRoutes.CARDS_HOME) {
-        CardsHomeScreen(
-            onBack = { navController.popBackStack() },
-            onOpenCard = { cardId -> navController.navigate(ProfileRoutes.cardDetailRoute(cardId)) },
-            onRequestCard = { navController.navigate(ProfileRoutes.CARD_REQUEST) },
-            onOpenQr = { navController.navigate(ProfileRoutes.QR_HOME) },
-        )
-    }
-    composable(ProfileRoutes.CARD_REQUEST) {
-        CardRequestScreen(
-            onBack = { navController.popBackStack() },
-        )
-    }
-    composable(
-        route = ProfileRoutes.CARD_DETAIL,
-        arguments = listOf(navArgument("cardId") { type = NavType.StringType }),
-    ) { backStackEntry ->
-        val cardId = backStackEntry.arguments?.getString("cardId") ?: return@composable
-        CardDetailScreen(
-            cardId = cardId,
-            onBack = { navController.popBackStack() },
         )
     }
     composable(ProfileRoutes.ANALYTICS_HOME) {
