@@ -63,6 +63,13 @@ val appModule = module {
     single<com.miletracker.core.platform.ReferralStore> { com.miletracker.core.platform.InMemoryReferralStore() }
     single { com.miletracker.core.platform.LocalReferralManager(get()) }
 
+    // V15 CF.1: typed feature-flag reader over ConfigProvider.getFeatureFlags() (env-overridable).
+    single {
+        com.miletracker.core.platform.FeatureFlags(
+            get<com.miletracker.core.network.config.ConfigProvider>().getFeatureFlags(),
+        )
+    }
+
     // Geofence location list: convert DemoConfigManager's mock locations into
     // CheckInValidator.CheckInLocation for local offline radius validation.
     single<List<CheckInLocation>> {

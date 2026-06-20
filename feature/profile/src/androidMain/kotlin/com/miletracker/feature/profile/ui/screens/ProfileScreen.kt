@@ -866,6 +866,8 @@ private fun PersonaSwitcherRow(
  */
 @Composable
 private fun ReferralCardHost(modifier: Modifier = Modifier) {
+    val featureFlags: com.miletracker.core.platform.FeatureFlags = koinInject()
+    if (!featureFlags.referralEnabled) return // CF.1: gate the referral surface behind the flag.
     val referralManager: ReferralManager = koinInject()
     val shareSheet = LocalShareSheet.current
     val scope = rememberCoroutineScope()
