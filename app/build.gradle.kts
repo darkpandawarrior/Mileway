@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("miletracker.android.application")
     alias(libs.plugins.ksp)
@@ -7,6 +10,19 @@ plugins {
     alias(libs.plugins.roborazzi)
     alias(libs.plugins.dependency.guard)
 }
+
+// Release signing — reads from keystore.properties (gitignored) or env vars (CI).
+// Falls back to debug signing if neither is present, so `assembleGmsRelease` still
+// succeeds locally and in CI without secrets configured.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties =
+    Properties().apply {
+        if (keystorePropertiesFile.exists()) {
+            FileInputStream(keystorePropertiesFile).use { load(it) }
+        }
+    }
+val hasReleaseSigning =
+    keystorePropertiesFile.exists() || System.getenv("RELEASE_STORE_FILE") != null
 
 android {
     namespace = "com.miletracker"
@@ -36,11 +52,40 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile =
+                    file(
+                        keystoreProperties.getProperty("storeFile")
+                            ?: System.getenv("RELEASE_STORE_FILE"),
+                    )
+                storePassword =
+                    keystoreProperties.getProperty("storePassword")
+                        ?: System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias =
+                    keystoreProperties.getProperty("keyAlias")
+                        ?: System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword =
+                    keystoreProperties.getProperty("keyPassword")
+                        ?: System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Use the real release keystore when available; otherwise fall back to the
+            // debug key so CI/local release builds still produce an installable APK.
+            signingConfig =
+                if (hasReleaseSigning) {
+                    signingConfigs.getByName("release")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
         }
     }
 
