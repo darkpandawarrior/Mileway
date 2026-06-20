@@ -15,6 +15,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in
             DispatchQueue.main.async { application.registerForRemoteNotifications() }
         }
+        // RF.3: capture a deferred referral left on the pasteboard at first launch.
+        ReferralBridge.shared.captureDeferred()
         return true
     }
 
