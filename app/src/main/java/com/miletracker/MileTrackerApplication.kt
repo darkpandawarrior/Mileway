@@ -58,6 +58,11 @@ val appModule = module {
     single<com.miletracker.core.platform.PushTokenStore> { com.miletracker.core.platform.InMemoryPushTokenStore() }
     single<com.miletracker.core.platform.PushMessaging> { com.miletracker.core.platform.LocalPushMessaging(get()) }
 
+    // V15 RF: shared referral store + base manager. The flavor module binds ReferralManager (gms wraps this
+    // with Install Referrer capture; noGms uses it directly).
+    single<com.miletracker.core.platform.ReferralStore> { com.miletracker.core.platform.InMemoryReferralStore() }
+    single { com.miletracker.core.platform.LocalReferralManager(get()) }
+
     // Geofence location list: convert DemoConfigManager's mock locations into
     // CheckInValidator.CheckInLocation for local offline radius validation.
     single<List<CheckInLocation>> {

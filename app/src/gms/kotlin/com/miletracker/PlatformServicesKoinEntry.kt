@@ -2,8 +2,11 @@ package com.miletracker
 
 import com.miletracker.core.platform.AppReviewManagerFactory
 import com.miletracker.core.platform.AppUpdateManagerFactory
+import com.miletracker.core.platform.ReferralManager
+import com.miletracker.platform.gms.AndroidInstallReferrerManager
 import com.miletracker.platform.gms.PlayAppReviewManagerFactoryImpl
 import com.miletracker.platform.gms.PlayAppUpdateManagerFactoryImpl
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -17,4 +20,8 @@ fun platformServicesKoinModule(): Module =
     module {
         single<AppUpdateManagerFactory> { PlayAppUpdateManagerFactoryImpl() }
         single<AppReviewManagerFactory> { PlayAppReviewManagerFactoryImpl() }
+        // RF.2: wrap the shared LocalReferralManager with Install Referrer capture (fires once on creation).
+        single<ReferralManager> {
+            AndroidInstallReferrerManager(androidContext(), get()).also { it.captureInstallReferrer() }
+        }
     }

@@ -186,6 +186,7 @@ co.touchlab:stately-concurrent-collections-jvm:2.1.0
 co.touchlab:stately-concurrent-collections:2.1.0
 co.touchlab:stately-strict-jvm:2.1.0
 co.touchlab:stately-strict:2.1.0
+com.android.installreferrer:installreferrer:2.2
 com.caverock:androidsvg-aar:1.4
 com.github.ajalt.colormath:colormath-jvm:3.6.1
 com.github.ajalt.colormath:colormath:3.6.1

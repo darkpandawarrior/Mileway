@@ -258,6 +258,9 @@ dependencies {
     "gmsImplementation"(platform(libs.firebase.bom))
     "gmsImplementation"(libs.firebase.messaging)
 
+    // V15 RF.2: Install Referrer — Play-Store-only attribution, gms flavor ONLY (noGms/F-Droid has none).
+    "gmsImplementation"(libs.install.referrer)
+
     // Konnection — KMP network connectivity monitor (init in Application)
     implementation(libs.konnection)
 

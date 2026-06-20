@@ -69,6 +69,7 @@ play-review = "2.0.2"
 google-services = "4.4.2"
 firebase-bom = "34.4.0"
 firebase-crashlytics-plugin = "3.0.3"
+install-referrer = "2.2"
 
 [libraries]
 # Kotlin
@@ -137,6 +138,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+install-referrer = { module = "com.android.installreferrer:installreferrer", version.ref = "install-referrer" }
 
 # ML Kit
 mlkit-document-scanner = { module = "com.google.android.gms:play-services-mlkit-document-scanner", version.ref = "mlkit-document-scanner" }
