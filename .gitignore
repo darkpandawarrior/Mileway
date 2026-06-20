@@ -15,6 +15,11 @@ build/
 local.properties
 /local.properties
 
+# Release signing secrets (never commit; see keystore.properties.template)
+keystore.properties
+*.jks
+*.keystore
+
 # IDE
 /.idea
 *.ipr
