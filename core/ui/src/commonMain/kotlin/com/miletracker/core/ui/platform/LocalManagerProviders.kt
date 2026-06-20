@@ -35,20 +35,25 @@ val LocalAnalyticsHelper = staticCompositionLocalOf<AnalyticsHelper> { defaultBi
 val LocalReferralManager = staticCompositionLocalOf<ReferralManager> { defaultBindings.referralManager }
 
 /**
- * Seeds the manager composition locals from a resolved [PlatformBindings]. Shared between the Android
- * and iOS [LocalManagerProvider] actuals so the provided-locals set stays in one place.
+ * Seeds the manager composition locals. Shared between the Android and iOS [LocalManagerProvider]
+ * actuals so the provided-locals set stays in one place. Each actual resolves its real managers (with a
+ * no-op fallback) and passes them here.
  */
 @Composable
 internal fun ProvideManagers(
-    bindings: PlatformBindings,
+    appUpdateManager: AppUpdateManager,
+    appReviewManager: AppReviewManager,
+    shareSheet: ShareSheet,
+    analyticsHelper: AnalyticsHelper,
+    referralManager: ReferralManager,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalAppUpdateManager provides bindings.appUpdateManager,
-        LocalAppReviewManager provides bindings.appReviewManager,
-        LocalShareSheet provides bindings.shareSheet,
-        LocalAnalyticsHelper provides bindings.analyticsHelper,
-        LocalReferralManager provides bindings.referralManager,
+        LocalAppUpdateManager provides appUpdateManager,
+        LocalAppReviewManager provides appReviewManager,
+        LocalShareSheet provides shareSheet,
+        LocalAnalyticsHelper provides analyticsHelper,
+        LocalReferralManager provides referralManager,
         content = content,
     )
 }
