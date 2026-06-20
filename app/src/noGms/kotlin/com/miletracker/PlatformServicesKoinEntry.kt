@@ -3,6 +3,7 @@ package com.miletracker
 import com.miletracker.core.platform.AnalyticsHelper
 import com.miletracker.core.platform.AppReviewManagerFactory
 import com.miletracker.core.platform.AppUpdateManagerFactory
+import com.miletracker.core.platform.CrashReporter
 import com.miletracker.core.platform.LocalReferralManager
 import com.miletracker.core.platform.LoggingAnalyticsHelper
 import com.miletracker.core.platform.PlatformBindings
@@ -25,4 +26,6 @@ fun platformServicesKoinModule(): Module =
         single<ReferralManager> { get<LocalReferralManager>() }
         // CF.3: FOSS analytics = Napier logging (no proprietary backend).
         single<AnalyticsHelper> { LoggingAnalyticsHelper() }
+        // CF.4: no crash reporting on FOSS → shared no-op.
+        single<CrashReporter> { PlatformBindings().crashReporter }
     }

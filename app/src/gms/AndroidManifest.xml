@@ -18,5 +18,10 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="miletracker_general" />
+
+        <!-- V15 CF.4: Crashlytics collection OFF by default (privacy); CrashReporter.setEnabled flips it. -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
     </application>
 </manifest>

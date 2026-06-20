@@ -12,6 +12,8 @@ plugins {
     // V15 FCM.2: Firebase config processing. Generates the google_app_id resource from google-services.json;
     // adds NO runtime deps (firebase libs are gmsImplementation only). F-Droid strips this line (FLFD).
     alias(libs.plugins.google.services)
+    // V15 CF.4: Crashlytics mapping-file symbolication (gms). F-Droid strips this line (FLFD).
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 // Release signing — reads from keystore.properties (gitignored) or env vars (CI).
@@ -97,6 +99,11 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // CF.4: Crashlytics mapping upload is OFF by default (placeholder Firebase config), enabled in CI
+            // only when CRASHLYTICS_UPLOAD=true with a real google-services.json — "guarded by key".
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                mappingFileUploadEnabled = System.getenv("CRASHLYTICS_UPLOAD") == "true"
+            }
             // Use the real release keystore when available; otherwise fall back to the
             // debug key so CI/local release builds still produce an installable APK.
             signingConfig =
@@ -258,6 +265,7 @@ dependencies {
     "gmsImplementation"(platform(libs.firebase.bom))
     "gmsImplementation"(libs.firebase.messaging)
     "gmsImplementation"(libs.firebase.analytics)
+    "gmsImplementation"(libs.firebase.crashlytics)
 
     // V15 RF.2: Install Referrer — Play-Store-only attribution, gms flavor ONLY (noGms/F-Droid has none).
     "gmsImplementation"(libs.install.referrer)
