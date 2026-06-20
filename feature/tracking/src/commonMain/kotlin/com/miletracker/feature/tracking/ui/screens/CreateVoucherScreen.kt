@@ -56,6 +56,7 @@ import com.miletracker.core.common.formatDecimal
 import com.miletracker.core.data.model.display.TrackDisplayData
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
+import com.miletracker.feature.tracking.viewmodel.CreateVoucherAction
 import com.miletracker.feature.tracking.viewmodel.CreateVoucherUiState
 import com.miletracker.feature.tracking.viewmodel.CreateVoucherViewModel
 import kotlinx.datetime.Instant
@@ -72,7 +73,7 @@ fun CreateVoucherScreen(
     modifier: Modifier = Modifier,
     viewModel: CreateVoucherViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.state.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -91,7 +92,7 @@ fun CreateVoucherScreen(
                         if (uiState.step == 0 || uiState.step == 3) {
                             onBack()
                         } else {
-                            viewModel.goToStep(uiState.step - 1)
+                            viewModel.onAction(CreateVoucherAction.GoToStep(uiState.step - 1))
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -101,9 +102,9 @@ fun CreateVoucherScreen(
                     if (uiState.step == 0) {
                         TextButton(onClick = {
                             if (uiState.selectedTokens.size == uiState.expenses.size) {
-                                viewModel.deselectAll()
+                                viewModel.onAction(CreateVoucherAction.DeselectAll)
                             } else {
-                                viewModel.selectAll()
+                                viewModel.onAction(CreateVoucherAction.SelectAll)
                             }
                         }) {
                             Text(
@@ -186,7 +187,7 @@ private fun StepSelectExpenses(
                     ExpenseRow(
                         expense = expense,
                         selected = uiState.selectedTokens.contains(expense.token),
-                        onToggle = { viewModel.toggleSelection(expense.token) },
+                        onToggle = { viewModel.onAction(CreateVoucherAction.ToggleSelection(expense.token)) },
                     )
                     HorizontalDivider()
                 }
@@ -202,7 +203,7 @@ private fun StepSelectExpenses(
                     )
                 }
                 Button(
-                    onClick = { viewModel.goToStep(1) },
+                    onClick = { viewModel.onAction(CreateVoucherAction.GoToStep(1)) },
                     enabled = uiState.selectedTokens.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -266,7 +267,7 @@ private fun StepVoucherDetails(
     ) {
         OutlinedTextField(
             value = uiState.title,
-            onValueChange = viewModel::setTitle,
+            onValueChange = { viewModel.onAction(CreateVoucherAction.SetTitle(it)) },
             label = { Text("Voucher Title") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -292,7 +293,7 @@ private fun StepVoucherDetails(
                     DropdownMenuItem(
                         text = { Text(cat) },
                         onClick = {
-                            viewModel.setCategory(cat)
+                            viewModel.onAction(CreateVoucherAction.SetCategory(cat))
                             categoryExpanded = false
                         },
                     )
@@ -327,7 +328,7 @@ private fun StepVoucherDetails(
 
         OutlinedTextField(
             value = uiState.notes,
-            onValueChange = viewModel::setNotes,
+            onValueChange = { viewModel.onAction(CreateVoucherAction.SetNotes(it)) },
             label = { Text("Notes (optional)") },
             modifier = Modifier.fillMaxWidth().height(100.dp),
             maxLines = 4,
@@ -336,7 +337,7 @@ private fun StepVoucherDetails(
         Spacer(Modifier.height(8.dp))
 
         Button(
-            onClick = { viewModel.goToStep(2) },
+            onClick = { viewModel.onAction(CreateVoucherAction.GoToStep(2)) },
             enabled = uiState.title.isNotBlank(),
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -384,7 +385,7 @@ private fun StepConfirmation(
         Spacer(Modifier.weight(1f))
 
         Button(
-            onClick = { viewModel.submit() },
+            onClick = { viewModel.onAction(CreateVoucherAction.Submit) },
             enabled = declared && !uiState.isSubmitting,
             modifier = Modifier.fillMaxWidth(),
         ) {
