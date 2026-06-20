@@ -1,208 +1,291 @@
-@file:Suppress("ktlint:standard:property-naming")
-
 package com.miletracker.feature.tracking.debug
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.export.TrackExportManager
 import com.miletracker.feature.tracking.repository.LocationRepository
 import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.ui.components.ExportFormat
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-/**
- * ViewModel for the Compose-based Debug Menu.
- * Manages state and business logic for debug options.
- * Accepts repositories so the location-export action can reach local storage.
- */
-@OptIn(FlowPreview::class)
+data class DebugMenuComposeUiState(
+    val debugMenuUiState: DebugMenuUiState = DebugMenuUiState(),
+    val searchQuery: String = "",
+    val availableProfiles: List<DebugProfile> = DebugProfiles.allProfiles,
+    val selectedProfile: DebugProfile? = null,
+    val loginStatus: Boolean = false,
+    val abnormalConfigValues: Map<String, String> = emptyMap(),
+)
+
+sealed interface DebugMenuComposeAction {
+    data class UpdateSearchQuery(val query: String) : DebugMenuComposeAction
+
+    data class ToggleSection(val section: DebugSection) : DebugMenuComposeAction
+
+    data class ToggleCoreOption(val name: String) : DebugMenuComposeAction
+
+    data class ToggleOriginOption(val name: String) : DebugMenuComposeAction
+
+    data class ToggleAuthOption(val name: String) : DebugMenuComposeAction
+
+    data class ToggleFeatureOption(val name: String) : DebugMenuComposeAction
+
+    data class ToggleTrackingOption(val name: String) : DebugMenuComposeAction
+
+    data class UpdateCustomValue(val key: String, val value: String) : DebugMenuComposeAction
+
+    data class SelectProfile(val profile: DebugProfile) : DebugMenuComposeAction
+
+    data object ClearAllDebugSettings : DebugMenuComposeAction
+
+    data object RunGarbageCollection : DebugMenuComposeAction
+
+    data object SaveDebugConfiguration : DebugMenuComposeAction
+
+    data object RestoreDebugConfiguration : DebugMenuComposeAction
+
+    data object RefreshLoginStatus : DebugMenuComposeAction
+
+    data object CheckLoginStatus : DebugMenuComposeAction
+}
+
+sealed interface DebugMenuComposeEffect
+
 class DebugMenuComposeViewModel(
     private val savedTrackRepository: SavedTrackRepository,
     private val locationRepository: LocationRepository,
-) : ViewModel() {
-    // --- Location Tracking Fine-tuning Config Flows ---
-    private val _abnormalConfigValues = MutableStateFlow<Map<String, String>>(emptyMap())
-    val abnormalConfigValues: StateFlow<Map<String, String>> = _abnormalConfigValues.asStateFlow()
+) : BaseViewModel<DebugMenuComposeUiState, DebugMenuComposeEffect, DebugMenuComposeAction>(DebugMenuComposeUiState()) {
+    companion object {
+        private const val TAG = "DebugMenuViewModel"
+    }
 
-    private val _abnormalConfigEvents =
+    private val abnormalConfigEvents =
         MutableSharedFlow<Unit>(
             replay = 0,
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
 
-    private fun loadAbnormalConfigValues() {
-        scope.launch {
-            // Stub: no AbnormalDetectionConfig available in MileTrackerDemo
-            _abnormalConfigValues.value = emptyMap()
-        }
-    }
-
-    fun updateAbnormalConfigEntry(
-        key: String,
-        value: String,
-        context: Context,
-    ) {
-        scope.launch {
-            val updated = _abnormalConfigValues.value.toMutableMap()
-            updated[key] = value
-            _abnormalConfigValues.value = updated
-        }
-    }
-
-    fun resetAbnormalConfigToDefaults(context: Context) {
-        scope.launch {
-            loadAbnormalConfigValues()
-        }
-    }
-
-    private val TAG = "DebugMenuViewModel"
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    // UI State for the debug menu
-    private val _uiState = MutableStateFlow(DebugMenuUiState())
-    val uiState: StateFlow<DebugMenuUiState> = _uiState.asStateFlow()
-
-    // Search query for filtering options
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    // Available debug profiles
-    private val _availableProfiles = MutableStateFlow(DebugProfiles.allProfiles)
-    val availableProfiles: StateFlow<List<DebugProfile>> = _availableProfiles.asStateFlow()
-
-    // Currently selected profile
-    private val _selectedProfile = MutableStateFlow<DebugProfile?>(null)
-    val selectedProfile: StateFlow<DebugProfile?> = _selectedProfile.asStateFlow()
-
-    // MutableStateFlow for observing login status
-    private val _loginStatus = MutableStateFlow(false)
-    val loginStatus: StateFlow<Boolean> = _loginStatus.asStateFlow()
-
-    // Combined screen state for more efficient UI updates
-    private val _screenState =
-        MutableStateFlow(
-            DebugScreenState(
-                uiState = DebugMenuUiState(),
-                searchQuery = "",
-                availableProfiles = emptyList(),
-                selectedProfile = null,
-                isLoggedIn = false,
-            ),
-        )
-    val screenState = _screenState.asStateFlow()
-
-    // Login events flow to trigger login status checks
-    private val _loginEvents =
+    private val loginEvents =
         MutableSharedFlow<Unit>(
             replay = 0,
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST,
         )
 
-    // Reactive count of enabled options
-    private val enabledOptionsCount =
-        _uiState.map { state ->
-            countEnabledOptions(state)
-        }
+    private val mutableAbnormalConfig = MutableStateFlow<Map<String, String>>(emptyMap())
 
-    // Initialize state
     init {
-        loadAbnormalConfigValues()
         loadDebugOptions()
 
-        // Set up abnormal config reload observer
-        scope.launch {
-            _abnormalConfigEvents
-                .debounce(200)
-                .distinctUntilChanged()
-                .collect { loadAbnormalConfigValues() }
+        viewModelScope.launch {
+            abnormalConfigEvents.collect { loadAbnormalConfigValues() }
         }
-
-        // Set up login status observers
-        scope.launch {
-            _loginEvents
-                .debounce(300)
-                .distinctUntilChanged()
-                .collect { refreshLoginStatus() }
+        viewModelScope.launch {
+            loginEvents.collect { refreshLoginStatus() }
         }
-
-        // Trigger initial login check
-        checkLoginStatusAsync()
-
-        // Set up combined state updates
-        scope.launch {
-            uiState.collect { updateScreenState() }
+        viewModelScope.launch {
+            loginEvents.emit(Unit)
         }
-        scope.launch {
-            searchQuery.collect { updateScreenState() }
-        }
-        scope.launch {
-            availableProfiles.collect { updateScreenState() }
-        }
-        scope.launch {
-            selectedProfile.collect { updateScreenState() }
-        }
-        scope.launch {
-            loginStatus.collect { updateScreenState() }
-        }
-
-        // Add observer for enabled options count updates
-        scope.launch {
-            enabledOptionsCount.collect { count ->
-                val currentCount = _uiState.value.enabledOptionsCount
-                if (currentCount != count) {
-                    _uiState.update { it.copy(enabledOptionsCount = count) }
-                }
+        viewModelScope.launch {
+            mutableAbnormalConfig.collect { cfg ->
+                setState { copy(abnormalConfigValues = cfg) }
             }
         }
     }
 
-    /**
-     * Update the combined screen state
-     */
-    private fun updateScreenState() {
-        _screenState.update { current ->
-            current.copy(
-                uiState = _uiState.value,
-                searchQuery = _searchQuery.value,
-                availableProfiles = _availableProfiles.value,
-                selectedProfile = _selectedProfile.value,
-                isLoggedIn = _loginStatus.value,
-            )
+    override fun onAction(action: DebugMenuComposeAction) {
+        when (action) {
+            is DebugMenuComposeAction.UpdateSearchQuery ->
+                setState { copy(searchQuery = action.query) }
+            is DebugMenuComposeAction.ToggleSection -> {
+                val sections = currentState.debugMenuUiState.expandedSections.toMutableMap()
+                sections[action.section] = !(sections[action.section] ?: false)
+                setDebugMenuState { copy(expandedSections = sections) }
+            }
+            is DebugMenuComposeAction.ToggleCoreOption ->
+                toggleInMap(action.name, { debugMenuUiState.coreOptions }) { updated ->
+                    setDebugMenuState { copy(coreOptions = updated) }
+                }
+            is DebugMenuComposeAction.ToggleOriginOption ->
+                toggleInMap(action.name, { debugMenuUiState.originOptions }, mutuallyExclusive = true) { updated ->
+                    setDebugMenuState { copy(originOptions = updated) }
+                }
+            is DebugMenuComposeAction.ToggleAuthOption ->
+                toggleInMap(action.name, { debugMenuUiState.authOptions }) { updated ->
+                    setDebugMenuState { copy(authOptions = updated) }
+                }
+            is DebugMenuComposeAction.ToggleFeatureOption ->
+                toggleInMap(action.name, { debugMenuUiState.featureOptions }) { updated ->
+                    setDebugMenuState { copy(featureOptions = updated) }
+                }
+            is DebugMenuComposeAction.ToggleTrackingOption ->
+                toggleInMap(action.name, { debugMenuUiState.trackingOptions }) { updated ->
+                    setDebugMenuState { copy(trackingOptions = updated) }
+                }
+            is DebugMenuComposeAction.UpdateCustomValue -> {
+                val values = currentState.debugMenuUiState.customValues.toMutableMap()
+                values[action.key] = action.value
+                setDebugMenuState { copy(customValues = values) }
+                setState { copy(selectedProfile = null) }
+            }
+            is DebugMenuComposeAction.SelectProfile -> {
+                applyProfileToDebugState(action.profile)
+                setState { copy(selectedProfile = action.profile) }
+            }
+            DebugMenuComposeAction.ClearAllDebugSettings -> {
+                loadDebugOptions()
+                setState { copy(selectedProfile = null) }
+            }
+            DebugMenuComposeAction.RunGarbageCollection ->
+                viewModelScope.launch {
+                    try {
+                        val runtime = Runtime.getRuntime()
+                        val before = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
+                        System.gc()
+                        delay(100)
+                        val after = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
+                        Log.d(TAG, "GC completed: freed ${before - after}MB, current: ${after}MB")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error running GC: ${e.message}", e)
+                    }
+                }
+            DebugMenuComposeAction.SaveDebugConfiguration ->
+                setDebugMenuState { copy(hasSavedConfig = true, savedConfigSummary = "In-memory only") }
+            DebugMenuComposeAction.RestoreDebugConfiguration -> loadDebugOptions()
+            DebugMenuComposeAction.RefreshLoginStatus -> viewModelScope.launch { refreshLoginStatus() }
+            DebugMenuComposeAction.CheckLoginStatus -> viewModelScope.launch { loginEvents.emit(Unit) }
         }
     }
 
-    /**
-     * Call this method when login status might have changed
-     */
-    fun checkLoginStatusAsync() {
-        scope.launch { _loginEvents.emit(Unit) }
+    // ── Convenience helpers ───────────────────────────────────────────────────
+
+    private fun setDebugMenuState(transform: DebugMenuUiState.() -> DebugMenuUiState) {
+        setState { copy(debugMenuUiState = debugMenuUiState.transform().withUpdatedCount()) }
     }
 
-    /**
-     * Load all debug options — using in-memory defaults (no DebugDataStore in MileTrackerDemo)
-     */
-    private fun loadDebugOptions() {
-        scope.launch {
+    private fun toggleInMap(
+        name: String,
+        mapSelector: DebugMenuComposeUiState.() -> Map<String, Boolean>,
+        mutuallyExclusive: Boolean = false,
+        applyUpdated: (Map<String, Boolean>) -> Unit,
+    ) {
+        val current = currentState.mapSelector()
+        val newValue = !(current[name] ?: false)
+        val updated = current.toMutableMap()
+        if (mutuallyExclusive && newValue) updated.keys.forEach { updated[it] = false }
+        updated[name] = newValue
+        applyUpdated(updated)
+        setState { copy(selectedProfile = null) }
+    }
+
+    // ── Context-taking methods (kept as direct calls) ─────────────────────────
+
+    fun updateAbnormalConfigEntry(
+        key: String,
+        value: String,
+        @Suppress("UNUSED_PARAMETER") context: Context,
+    ) {
+        viewModelScope.launch {
+            val updated = mutableAbnormalConfig.value.toMutableMap()
+            updated[key] = value
+            mutableAbnormalConfig.value = updated
+        }
+    }
+
+    fun resetAbnormalConfigToDefaults(
+        @Suppress("UNUSED_PARAMETER") context: Context,
+    ) {
+        viewModelScope.launch { loadAbnormalConfigValues() }
+    }
+
+    fun performAppRestart(context: Context) {
+        AppRestartUtils.performAppRestart(context)
+    }
+
+    fun clearAppCache(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                _uiState.update { currentState ->
-                    currentState.copy(
+                context.cacheDir.deleteRecursively()
+                context.cacheDir.mkdirs()
+                Log.d(TAG, "App cache cleared")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing cache: ${e.message}", e)
+            }
+        }
+    }
+
+    fun exportMostRecentTrack(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (savedTrackRepository.count() == 0L) {
+                    Log.w(TAG, "No saved tracks to export")
+                    return@launch
+                }
+                val track =
+                    savedTrackRepository.getActiveTrack()
+                        ?: return@launch Unit.also { Log.w(TAG, "No active track found") }
+                val locations = locationRepository.getForToken(track.routeId)
+                val content =
+                    TrackExportManager.buildContent(
+                        format = ExportFormat.GPX,
+                        track = track,
+                        locations = locations,
+                        events = emptyList(),
+                    )
+                val intent =
+                    TrackExportManager.buildShareIntent(
+                        context = context,
+                        format = ExportFormat.GPX,
+                        trackName = track.routeId,
+                        content = content,
+                    )
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                withContext(Dispatchers.Main) { context.startActivity(intent) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error exporting track: ${e.message}", e)
+            }
+        }
+    }
+
+    // ── Return-value methods (kept as direct calls) ───────────────────────────
+
+    fun applyChanges(): ApplyResult {
+        val count = currentState.debugMenuUiState.enabledOptionsCount
+        return ApplyResult(changesApplied = count > 0, restartRequired = true, changeCount = count)
+    }
+
+    fun getUserSessionInfo(): Map<String, String> =
+        mapOf(
+            "Login Status" to "Logged Out",
+            "API Origin" to "Not set",
+            "Debug Mode" to "Enabled",
+            "Save Config" to "Disabled",
+        )
+
+    fun performApiHealthCheck() {
+        Log.d(TAG, "API health check requested (stub in MileTrackerDemo)")
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private fun loadAbnormalConfigValues() {
+        mutableAbnormalConfig.value = emptyMap()
+    }
+
+    private fun loadDebugOptions() {
+        viewModelScope.launch {
+            try {
+                setDebugMenuState {
+                    copy(
                         coreOptions = loadCoreOptions(),
                         originOptions = loadOriginOptions(),
                         authOptions = loadAuthOptions(),
@@ -230,6 +313,65 @@ class DebugMenuComposeViewModel(
             }
         }
     }
+
+    private fun refreshLoginStatus() {
+        val loggedIn = false
+        setState {
+            copy(
+                loginStatus = loggedIn,
+                debugMenuUiState =
+                    debugMenuUiState.copy(
+                        isLoggedIn = loggedIn,
+                        apiOrigin = if (loggedIn) "Not set" else "Not logged in",
+                    ).withUpdatedCount(),
+            )
+        }
+    }
+
+    private fun applyProfileToDebugState(profile: DebugProfile) {
+        val dm = currentState.debugMenuUiState
+        val core = dm.coreOptions.toMutableMap().also { it.keys.forEach { k -> it[k] = false } }
+        val origin = dm.originOptions.toMutableMap().also { it.keys.forEach { k -> it[k] = false } }
+        val auth = dm.authOptions.toMutableMap().also { it.keys.forEach { k -> it[k] = false } }
+        val feature = dm.featureOptions.toMutableMap().also { it.keys.forEach { k -> it[k] = false } }
+        val tracking = dm.trackingOptions.toMutableMap().also { it.keys.forEach { k -> it[k] = false } }
+        val custom = dm.customValues.toMutableMap()
+
+        profile.options.forEach { (key, value) ->
+            when {
+                core.containsKey(key) -> core[key] = value
+                origin.containsKey(key) -> origin[key] = value
+                auth.containsKey(key) -> auth[key] = value
+                feature.containsKey(key) -> feature[key] = value
+                tracking.containsKey(key) -> tracking[key] = value
+            }
+        }
+        profile.customValues.forEach { (k, v) -> custom[k] = v }
+
+        setDebugMenuState {
+            copy(
+                coreOptions = core,
+                originOptions = origin,
+                authOptions = auth,
+                featureOptions = feature,
+                trackingOptions = tracking,
+                customValues = custom,
+            )
+        }
+    }
+
+    private fun countEnabledOptions(state: DebugMenuUiState): Int =
+        with(state) {
+            coreOptions.count { it.value } +
+                originOptions.count { it.value } +
+                authOptions.count { it.value } +
+                featureOptions.count { it.value } +
+                trackingOptions.count { it.value }
+        }
+
+    private fun DebugMenuUiState.withUpdatedCount(): DebugMenuUiState = copy(enabledOptionsCount = countEnabledOptions(this))
+
+    private fun getReferralParams() = "client_code=-, login_mode=-, region_code=-"
 
     private fun loadCoreOptions(): Map<String, Boolean> =
         mapOf(
@@ -297,333 +439,8 @@ class DebugMenuComposeViewModel(
             "Custom Banner Text" to "",
             "Custom OTP" to "",
         )
-
-    /**
-     * Check if the user is logged in — stub, always false in demo
-     */
-    private fun checkLoginStatus(): Boolean = false
-
-    /**
-     * Refresh the login status
-     */
-    fun refreshLoginStatus() {
-        scope.launch {
-            val isLoggedIn = checkLoginStatus()
-            _loginStatus.value = isLoggedIn
-            _uiState.update {
-                it.copy(
-                    isLoggedIn = isLoggedIn,
-                    apiOrigin = if (isLoggedIn) "Not set" else "Not logged in",
-                )
-            }
-        }
-    }
-
-    /**
-     * Count the total number of enabled options
-     */
-    private fun countEnabledOptions(state: DebugMenuUiState): Int {
-        return with(state) {
-            coreOptions.count { it.value } +
-                originOptions.count { it.value } +
-                authOptions.count { it.value } +
-                featureOptions.count { it.value } +
-                trackingOptions.count { it.value }
-        }
-    }
-
-    /**
-     * Get referral parameters
-     */
-    private fun getReferralParams(): String {
-        return "client_code=-, login_mode=-, region_code=-"
-    }
-
-    /**
-     * Toggle section expansion state
-     */
-    fun toggleSection(section: DebugSection) {
-        _uiState.update { currentState ->
-            val updatedSections = currentState.expandedSections.toMutableMap()
-            updatedSections[section] = !(updatedSections[section] ?: false)
-            currentState.copy(expandedSections = updatedSections)
-        }
-    }
-
-    /**
-     * Update search query for filtering options
-     */
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    /**
-     * Generic unified toggle function for all option types
-     */
-    private inline fun toggleOption(
-        optionName: String,
-        currentOptions: Map<String, Boolean>,
-        updateState: (Map<String, Boolean>) -> Unit,
-        mutuallyExclusive: Boolean = false,
-        postAction: (String, Boolean) -> Unit = { _, _ -> },
-    ) {
-        val currentValue = currentOptions[optionName] ?: false
-        val newValue = !currentValue
-        val newOptions = currentOptions.toMutableMap()
-
-        if (mutuallyExclusive && newValue) {
-            newOptions.keys.forEach { key -> newOptions[key] = false }
-        }
-
-        newOptions[optionName] = newValue
-        updateState(newOptions)
-        postAction(optionName, newValue)
-        _selectedProfile.value = null
-    }
-
-    fun toggleCoreOption(optionName: String) {
-        toggleOption(
-            optionName = optionName,
-            currentOptions = _uiState.value.coreOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(coreOptions = newOptions) } },
-        )
-    }
-
-    fun toggleOriginOption(optionName: String) {
-        toggleOption(
-            optionName = optionName,
-            currentOptions = _uiState.value.originOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(originOptions = newOptions) } },
-            mutuallyExclusive = true,
-        )
-    }
-
-    fun toggleAuthOption(optionName: String) {
-        toggleOption(
-            optionName = optionName,
-            currentOptions = _uiState.value.authOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(authOptions = newOptions) } },
-        )
-    }
-
-    fun toggleFeatureOption(optionName: String) {
-        toggleOption(
-            optionName = optionName,
-            currentOptions = _uiState.value.featureOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(featureOptions = newOptions) } },
-        )
-    }
-
-    fun toggleTrackingOption(optionName: String) {
-        toggleOption(
-            optionName = optionName,
-            currentOptions = _uiState.value.trackingOptions,
-            updateState = { newOptions -> _uiState.update { it.copy(trackingOptions = newOptions) } },
-        )
-    }
-
-    /**
-     * Update a custom input value
-     */
-    fun updateCustomValue(
-        key: String,
-        value: String,
-    ) {
-        val currentValues = _uiState.value.customValues.toMutableMap()
-        currentValues[key] = value
-        _uiState.update { it.copy(customValues = currentValues) }
-        _selectedProfile.value = null
-    }
-
-    /**
-     * Apply a profile's options to the UI state
-     */
-    private fun applyProfileToUiState(profile: DebugProfile) {
-        val newCoreOptions = _uiState.value.coreOptions.toMutableMap()
-        val newOriginOptions = _uiState.value.originOptions.toMutableMap()
-        val newAuthOptions = _uiState.value.authOptions.toMutableMap()
-        val newFeatureOptions = _uiState.value.featureOptions.toMutableMap()
-        val newTrackingOptions = _uiState.value.trackingOptions.toMutableMap()
-        val newCustomValues = _uiState.value.customValues.toMutableMap()
-
-        // Reset all options to false first
-        newCoreOptions.keys.forEach { newCoreOptions[it] = false }
-        newOriginOptions.keys.forEach { newOriginOptions[it] = false }
-        newAuthOptions.keys.forEach { newAuthOptions[it] = false }
-        newFeatureOptions.keys.forEach { newFeatureOptions[it] = false }
-        newTrackingOptions.keys.forEach { newTrackingOptions[it] = false }
-
-        // Apply profile options
-        profile.options.forEach { (key, value) ->
-            when {
-                newCoreOptions.containsKey(key) -> newCoreOptions[key] = value
-                newOriginOptions.containsKey(key) -> newOriginOptions[key] = value
-                newAuthOptions.containsKey(key) -> newAuthOptions[key] = value
-                newFeatureOptions.containsKey(key) -> newFeatureOptions[key] = value
-                newTrackingOptions.containsKey(key) -> newTrackingOptions[key] = value
-            }
-        }
-
-        // Apply custom values from profile
-        profile.customValues.forEach { (key, value) -> newCustomValues[key] = value }
-
-        _uiState.update { currentState ->
-            currentState.copy(
-                coreOptions = newCoreOptions,
-                originOptions = newOriginOptions,
-                authOptions = newAuthOptions,
-                featureOptions = newFeatureOptions,
-                trackingOptions = newTrackingOptions,
-                customValues = newCustomValues,
-            )
-        }
-    }
-
-    /**
-     * Select and apply a debug profile
-     */
-    fun selectProfile(profile: DebugProfile) {
-        applyProfileToUiState(profile)
-        _selectedProfile.value = profile
-    }
-
-    /**
-     * Apply all changes — in demo, applies to in-memory state only
-     */
-    fun applyChanges(): ApplyResult {
-        val changesMade = _uiState.value.enabledOptionsCount
-        return ApplyResult(
-            changesApplied = changesMade > 0,
-            restartRequired = true,
-            changeCount = changesMade,
-        )
-    }
-
-    /**
-     * Perform app restart
-     */
-    fun performAppRestart(context: Context) {
-        AppRestartUtils.performAppRestart(context)
-    }
-
-    /**
-     * Clear all debug settings
-     */
-    fun clearAllDebugSettings() {
-        scope.launch {
-            loadDebugOptions()
-            _selectedProfile.value = null
-        }
-    }
-
-    /**
-     * Run garbage collection and show memory stats
-     */
-    fun runGarbageCollection() {
-        scope.launch {
-            try {
-                val runtime = Runtime.getRuntime()
-                val beforeMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
-                System.gc()
-                delay(100)
-                val afterMemory = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
-                val freedMemory = beforeMemory - afterMemory
-                Log.d(TAG, "GC completed: freed ${freedMemory}MB, current usage: ${afterMemory}MB")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error running GC: ${e.message}", e)
-            }
-        }
-    }
-
-    /**
-     * Get current user session info for display
-     */
-    fun getUserSessionInfo(): Map<String, String> {
-        return mapOf(
-            "Login Status" to "Logged Out",
-            "API Origin" to "Not set",
-            "Debug Mode" to "Enabled",
-            "Save Config" to "Disabled",
-        )
-    }
-
-    /**
-     * Perform API health check
-     */
-    fun performApiHealthCheck() {
-        Log.d(TAG, "API health check requested (stub in MileTrackerDemo)")
-    }
-
-    /**
-     * Clear app cache data
-     */
-    fun clearAppCache(context: Context) {
-        scope.launch {
-            try {
-                val cacheDir = context.cacheDir
-                cacheDir.deleteRecursively()
-                cacheDir.mkdirs()
-                Log.d(TAG, "App cache cleared")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error clearing cache: ${e.message}", e)
-            }
-        }
-    }
-
-    /**
-     * Export the most recent saved track as a GPX file and fire a share chooser.
-     * Falls back gracefully when no track is found.
-     */
-    fun exportMostRecentTrack(context: Context) {
-        scope.launch {
-            try {
-                val tracks = savedTrackRepository.count()
-                if (tracks == 0L) {
-                    Log.w(TAG, "No saved tracks to export")
-                    return@launch
-                }
-                // Load the most recently active/completed track
-                val track =
-                    savedTrackRepository.getActiveTrack()
-                        ?: return@launch Unit.also { Log.w(TAG, "No active track found") }
-
-                val locations = locationRepository.getForToken(track.routeId)
-                val content =
-                    TrackExportManager.buildContent(
-                        format = ExportFormat.GPX,
-                        track = track,
-                        locations = locations,
-                        events = emptyList(),
-                    )
-                val intent =
-                    TrackExportManager.buildShareIntent(
-                        context = context,
-                        format = ExportFormat.GPX,
-                        trackName = track.routeId,
-                        content = content,
-                    )
-                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error exporting track: ${e.message}", e)
-            }
-        }
-    }
-
-    fun saveDebugConfiguration() {
-        // Stub: no persistent DebugDataStore in MileTrackerDemo
-        _uiState.update { it.copy(hasSavedConfig = true, savedConfigSummary = "In-memory only") }
-    }
-
-    fun restoreDebugConfiguration() {
-        // Stub
-        loadDebugOptions()
-    }
 }
 
-/**
- * UI State for the Debug Menu
- */
 data class DebugMenuUiState(
     val coreOptions: Map<String, Boolean> = emptyMap(),
     val originOptions: Map<String, Boolean> = emptyMap(),
@@ -640,21 +457,8 @@ data class DebugMenuUiState(
     val savedConfigSummary: String = "",
 )
 
-/**
- * Debug Menu Sections
- */
-enum class DebugSection {
-    CORE,
-    ORIGIN,
-    AUTH,
-    FEATURES,
-    TRACKING,
-    PROFILES,
-}
+enum class DebugSection { CORE, ORIGIN, AUTH, FEATURES, TRACKING, PROFILES }
 
-/**
- * Result of applying changes
- */
 data class ApplyResult(
     val changesApplied: Boolean,
     val restartRequired: Boolean,
