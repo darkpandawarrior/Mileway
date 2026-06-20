@@ -48,6 +48,7 @@ import com.miletracker.feature.tracking.ui.components.StatItem
 import com.miletracker.feature.tracking.ui.components.SystemImpactCard
 import com.miletracker.feature.tracking.ui.components.formatDuration
 import com.miletracker.feature.tracking.ui.components.qualityColor
+import com.miletracker.feature.tracking.viewmodel.TrackInsightsAction
 import com.miletracker.feature.tracking.viewmodel.TrackInsightsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -58,11 +59,12 @@ fun TrackInsightsScreen(
     onBack: () -> Unit,
     viewModel: TrackInsightsViewModel = koinViewModel(),
 ) {
-    LaunchedEffect(routeId) { viewModel.loadTrackInsights(routeId) }
+    LaunchedEffect(routeId) { viewModel.onAction(TrackInsightsAction.Load(routeId)) }
 
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val insights by viewModel.insights.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val isLoading = ui.isLoading
+    val error = ui.error
+    val insights = ui.insights
 
     Scaffold(
         topBar = {
