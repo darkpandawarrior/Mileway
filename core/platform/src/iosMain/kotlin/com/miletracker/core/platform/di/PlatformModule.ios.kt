@@ -1,5 +1,6 @@
 package com.miletracker.core.platform.di
 
+import com.miletracker.core.platform.IosAppReviewManager
 import com.miletracker.core.platform.IosAppUpdateManager
 import com.miletracker.core.platform.IosBackgroundScheduler
 import com.miletracker.core.platform.IosBiometricAuthenticator
@@ -23,4 +24,6 @@ actual fun platformModule(): Module =
         // V15 UP.3: iOS in-app update (iTunes Lookup API). Picked up by LocalManagerProvider when iOS
         // Koin is started; falls back to no-op until then.
         single<com.miletracker.core.platform.AppUpdateManager> { IosAppUpdateManager() }
+        // V15 RV.3: iOS in-app review (SKStoreReviewController window-scene variant).
+        single<com.miletracker.core.platform.AppReviewManager> { IosAppReviewManager() }
     }
