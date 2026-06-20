@@ -2,6 +2,7 @@ package com.miletracker.feature.profile.viewmodel
 
 import com.miletracker.core.common.UiText
 import com.miletracker.core.ui.mvi.BaseViewModel
+import com.miletracker.core.ui.mvi.ScreenState
 import com.miletracker.feature.profile.model.AdvanceRecord
 import com.miletracker.feature.profile.model.AdvanceStatus
 import com.miletracker.feature.profile.model.CardStatus
@@ -11,7 +12,7 @@ import com.miletracker.feature.profile.repository.AdvanceRepository
 enum class AdvanceTabFilter { ALL, PENDING, SETTLED }
 
 data class AdvanceListData(
-    val records: List<AdvanceRecord> = emptyList(),
+    val records: ScreenState<List<AdvanceRecord>> = ScreenState.Loading,
     val activeTab: AdvanceTabFilter = AdvanceTabFilter.ALL,
 )
 
@@ -64,7 +65,7 @@ class AdvanceViewModel(
     init {
         setState {
             copy(
-                list = AdvanceListData(records = repository.advanceRecords),
+                list = AdvanceListData(records = ScreenState.Content(repository.advanceRecords)),
                 cards = repository.cards,
             )
         }
@@ -74,7 +75,14 @@ class AdvanceViewModel(
         when (action) {
             AdvanceAction.Refresh ->
                 setState {
-                    copy(list = AdvanceListData(repository.advanceRecords, list.activeTab), cards = repository.cards)
+                    copy(
+                        list =
+                            AdvanceListData(
+                                records = ScreenState.Content(repository.advanceRecords),
+                                activeTab = list.activeTab,
+                            ),
+                        cards = repository.cards,
+                    )
                 }
             is AdvanceAction.SetTab -> setTab(action.tab)
             is AdvanceAction.SetAmount -> setState { copy(form = form.copy(amountText = action.text)) }
@@ -102,7 +110,9 @@ class AdvanceViewModel(
                         it.status in listOf(AdvanceStatus.DISBURSED, AdvanceStatus.REJECTED)
                     }
             }
-        setState { copy(list = AdvanceListData(filtered, tab)) }
+        val recordsState: ScreenState<List<AdvanceRecord>> =
+            if (filtered.isEmpty()) ScreenState.Empty else ScreenState.Content(filtered)
+        setState { copy(list = AdvanceListData(recordsState, tab)) }
     }
 
     private fun submitAdvance() {

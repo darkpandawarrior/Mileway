@@ -47,6 +47,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.miletracker.core.ui.mvi.DefaultEmptyState
+import com.miletracker.core.ui.mvi.ScreenStateContent
 import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.StatusColors
@@ -54,6 +56,7 @@ import com.miletracker.feature.payables.model.Invoice
 import com.miletracker.feature.payables.model.InvoiceStatus
 import com.miletracker.feature.payables.model.PoStatus
 import com.miletracker.feature.payables.model.PurchaseOrder
+import com.miletracker.feature.payables.viewmodel.PayablesAction
 import com.miletracker.feature.payables.viewmodel.PayablesHomeData
 import com.miletracker.feature.payables.viewmodel.PayablesViewModel
 import kotlinx.datetime.Instant
@@ -130,36 +133,49 @@ fun PayablesHomeScreen(
                 }
             }
 
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = DesignTokens.Spacing.l)
-                        .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
-            ) {
-                Spacer(Modifier.height(DesignTokens.Spacing.l))
-                Text(
-                    text = "Purchase Requests",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                state.purchaseOrders.forEach { po ->
-                    PoCard(po = po, onClick = { onOpenPo(po.id) })
-                }
+            ScreenStateContent(
+                state = ui.homeState,
+                modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+                onRetry = { viewModel.onAction(PayablesAction.Refresh) },
+                empty = {
+                    DefaultEmptyState(
+                        title = "No payables yet",
+                        subtitle = "Purchase requests and invoices will appear here.",
+                        ctaLabel = "New Request",
+                        onCta = onNewRequest,
+                    )
+                },
+            ) { data ->
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = DesignTokens.Spacing.l),
+                    verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m),
+                ) {
+                    Spacer(Modifier.height(DesignTokens.Spacing.l))
+                    Text(
+                        text = "Purchase Requests",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    data.purchaseOrders.forEach { po ->
+                        PoCard(po = po, onClick = { onOpenPo(po.id) })
+                    }
 
-                Spacer(Modifier.height(DesignTokens.Spacing.s))
-                Text(
-                    text = "Recent Invoices",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                state.invoices.forEach { inv ->
-                    InvoiceCard(invoice = inv)
-                }
+                    Spacer(Modifier.height(DesignTokens.Spacing.s))
+                    Text(
+                        text = "Recent Invoices",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    data.invoices.forEach { inv ->
+                        InvoiceCard(invoice = inv)
+                    }
 
-                Spacer(Modifier.height(80.dp)) // FAB clearance
+                    Spacer(Modifier.height(80.dp))
+                }
             }
         }
     }
