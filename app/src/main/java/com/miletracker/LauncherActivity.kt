@@ -18,17 +18,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.common.deeplink.DeepLinkRouter
-import com.miletracker.core.common.deeplink.DeepLinkTarget
 import com.miletracker.core.common.deeplink.DeepLinkValidator
 import com.miletracker.core.network.config.ConfigProvider
 import com.miletracker.core.ui.platform.LocalManagerProvider
 import com.miletracker.core.ui.platform.UpdateGate
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
-import com.miletracker.ui.AppGraph
 import com.miletracker.ui.MileTrackerAppRoot
 import com.miletracker.ui.auth.LoginScreen
 import com.miletracker.ui.auth.SplashScreen
+import com.miletracker.ui.toAppRoute
 import org.koin.compose.koinInject
 
 /** App startup stages: splash → fake login → the bottom-navigation shell. */
@@ -60,16 +59,9 @@ private fun Intent.deepLinkRoute(): String? {
     if (action != Intent.ACTION_VIEW) return null
     val raw = data?.toString() ?: return null
     if (!DeepLinkValidator.isAllowed(raw)) return null
-    // DL.2: route both miletracker:// and verified https App Links through the shared router. Sub-targets
-    // (checkin / expense / settings / referral) collapse to their section graph here; DL.4 adds typed nav.
-    return when (DeepLinkRouter.resolve(raw)) {
-        DeepLinkTarget.Home -> AppGraph.HOME
-        DeepLinkTarget.Track, DeepLinkTarget.TrackCheckIn -> AppGraph.TRACK
-        DeepLinkTarget.Log, DeepLinkTarget.LogExpense -> AppGraph.LOG
-        DeepLinkTarget.Profile, DeepLinkTarget.ProfileSettings -> AppGraph.PROFILE
-        is DeepLinkTarget.Referral -> AppGraph.PROFILE
-        is DeepLinkTarget.Unknown -> null
-    }
+    // DL.2/DL.4: route both miletracker:// and verified https App Links through the shared router, then map
+    // to a concrete nav route (including sub-destinations: checkin / expense / settings) via toAppRoute().
+    return DeepLinkRouter.resolve(raw).toAppRoute()
 }
 
 @Composable
