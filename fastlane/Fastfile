@@ -141,4 +141,16 @@ platform :android do
     push_git_tags
   end
 
+  # ── FLA.4 — Firebase App Distribution ───────────────────────────────────────
+  desc "Distribute a gms staging APK to Firebase App Distribution testers"
+  lane :deploy_firebase do
+    gradle(task: "assemble", flavor: "Gms", build_type: "Staging")
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID"],
+      apk_path: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      groups: "testers",
+      release_notes: prepare_changelog
+    )
+  end
+
 end
