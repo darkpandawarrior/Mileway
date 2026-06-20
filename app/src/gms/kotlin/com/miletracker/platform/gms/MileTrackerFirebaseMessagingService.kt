@@ -1,16 +1,13 @@
 package com.miletracker.platform.gms
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.miletracker.core.platform.NotificationChannels
 import com.miletracker.core.platform.PushTokenStore
 import org.koin.mp.KoinPlatform
 
@@ -42,7 +39,7 @@ class MileTrackerFirebaseMessagingService : FirebaseMessagingService() {
         body: String,
         path: String?,
     ) {
-        ensureChannel()
+        NotificationChannels.ensureChannels(this)
         val uri = path?.let { if (it.contains("://")) it else "miletracker://$it" }
         val intent =
             Intent(Intent.ACTION_VIEW).apply {
@@ -58,7 +55,7 @@ class MileTrackerFirebaseMessagingService : FirebaseMessagingService() {
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
         val notification =
-            NotificationCompat.Builder(this, CHANNEL_ID)
+            NotificationCompat.Builder(this, NotificationChannels.GENERAL)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)
                 .setContentText(body)
@@ -70,19 +67,7 @@ class MileTrackerFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun ensureChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-                manager.createNotificationChannel(
-                    NotificationChannel(CHANNEL_ID, "General", NotificationManager.IMPORTANCE_DEFAULT),
-                )
-            }
-        }
-    }
-
     private companion object {
-        const val CHANNEL_ID = "miletracker_general"
         const val NOTIF_ID = 2001
     }
 }

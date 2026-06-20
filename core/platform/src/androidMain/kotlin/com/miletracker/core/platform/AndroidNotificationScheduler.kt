@@ -1,32 +1,18 @@
 package com.miletracker.core.platform
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 /**
- * Android [NotificationScheduler] backed by [NotificationManagerCompat] + a single general channel.
+ * Android [NotificationScheduler] backed by [NotificationManagerCompat] + the shared [NotificationChannels].
  *
  * [ensurePermission] only *checks* whether notifications are enabled (POST_NOTIFICATIONS on API 33+);
  * actually requesting the runtime permission is [PermissionsProvider]'s job, since it needs an Activity.
  */
 class AndroidNotificationScheduler(private val context: Context) : NotificationScheduler {
     init {
-        ensureChannel()
-    }
-
-    private fun ensureChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val mgr = context.getSystemService(NotificationManager::class.java) ?: return
-            if (mgr.getNotificationChannel(CHANNEL_ID) == null) {
-                mgr.createNotificationChannel(
-                    NotificationChannel(CHANNEL_ID, "MileTracker", NotificationManager.IMPORTANCE_DEFAULT),
-                )
-            }
-        }
+        NotificationChannels.ensureChannels(context)
     }
 
     override suspend fun ensurePermission(): Boolean = NotificationManagerCompat.from(context).areNotificationsEnabled()
@@ -38,7 +24,7 @@ class AndroidNotificationScheduler(private val context: Context) : NotificationS
     ) {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
         val notification =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat.Builder(context, NotificationChannels.GENERAL)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
@@ -53,9 +39,5 @@ class AndroidNotificationScheduler(private val context: Context) : NotificationS
 
     override fun cancel(id: Int) {
         NotificationManagerCompat.from(context).cancel(id)
-    }
-
-    private companion object {
-        const val CHANNEL_ID = "miletracker_general"
     }
 }
