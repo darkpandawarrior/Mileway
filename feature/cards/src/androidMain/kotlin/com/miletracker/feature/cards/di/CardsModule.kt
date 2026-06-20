@@ -1,10 +1,19 @@
 package com.miletracker.feature.cards.di
 
+import com.miletracker.feature.cards.data.CardsMockDataProvider
+import com.miletracker.feature.cards.data.CardsMockDataProviderFactory
+import com.miletracker.feature.cards.viewmodel.CardDetailViewModel
+import com.miletracker.feature.cards.viewmodel.CardRequestViewModel
+import com.miletracker.feature.cards.viewmodel.CardsHomeViewModel
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-/**
- * Cards feature DI. Locale-aware mock provider + MVI ViewModels are registered here (Q.3); for Q.1 this is
- * the wired-but-empty entry point that proves the module is on the graph.
- */
-val cardsModule: Module = module { }
+/** Cards feature DI — locale-aware mock provider + the three MVI ViewModels. */
+val cardsModule: Module =
+    module {
+        single<CardsMockDataProvider> { CardsMockDataProviderFactory.provider() }
+        viewModelOf(::CardsHomeViewModel)
+        viewModelOf(::CardDetailViewModel)
+        viewModelOf(::CardRequestViewModel)
+    }
