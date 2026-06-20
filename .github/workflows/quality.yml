@@ -52,8 +52,11 @@ jobs:
       - name: Static analysis — detekt
         run: ./gradlew detekt
 
+      # noGms is the JVM unit-test target: the gms flavor pulls Google Play Services
+      # maps, whose native libs SIGSEGV a shared Robolectric fork (exit 2). noGms
+      # (MapLibre) has no Play Services native deps; map surfaces are faked in tests.
       - name: Unit tests
-        run: ./gradlew testGmsDebugUnitTest
+        run: ./gradlew testNoGmsDebugUnitTest
 
       - name: Coverage report
         run: ./gradlew koverXmlReport

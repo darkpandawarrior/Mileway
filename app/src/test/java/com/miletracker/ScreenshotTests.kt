@@ -16,6 +16,7 @@ import com.miletracker.core.data.library.MediaLibraryDao
 import com.miletracker.core.data.model.db.SavedTrack
 import com.miletracker.core.data.session.CurrentTrackDataStore
 import com.miletracker.core.data.settings.DemoSettingsRepository
+import com.miletracker.core.maps.MapSurface
 import com.miletracker.core.ui.di.coreUiModule
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.feature.approvals.di.approvalsModule
@@ -101,6 +102,9 @@ class ScreenshotTests {
             single<MediaLibraryDao> { mockk(relaxed = true) }
             single<CurrentTrackDataStore> { mockk(relaxed = true) }
             single<DemoSettingsRepository> { mockk(relaxed = true) }
+            // Map screens (GeoCheckIn, MapScreen) inject MapSurface; the real flavor
+            // surfaces need GMS / MapLibre native, so use a no-op fake on the JVM.
+            single<MapSurface> { FakeMapSurface() }
         }
 
         @BeforeClass @JvmStatic
