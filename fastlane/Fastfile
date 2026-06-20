@@ -73,4 +73,72 @@ platform :android do
     truncated
   end
 
+  # ── FLA.3 — Play Store deploy lanes (internal / beta / production) ───────────
+  # The service-account json is materialized from PLAYSTORE_CREDS_B64 in CI (CIO.2); all keys are env
+  # placeholders that never land in the repo.
+  def play_json_key
+    ENV["PLAY_STORE_KEY_FILE_PATH"] || "../secrets/play-service-account.json"
+  end
+
+  def build_release_aab
+    gradle(task: "bundle", flavor: "Gms", build_type: "Release")
+  end
+
+  desc "Build the gms release AAB + upload to the Play internal track"
+  lane :deploy_internal do
+    prepare_changelog
+    build_release_aab
+    upload_to_play_store(
+      track: "internal",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key: play_json_key,
+      skip_upload_apk: true
+    )
+  end
+
+  desc "Build + upload to the Play beta (closed testing) track"
+  lane :deploy_beta do
+    prepare_changelog
+    build_release_aab
+    upload_to_play_store(
+      track: "beta",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key: play_json_key,
+      skip_upload_apk: true
+    )
+  end
+
+  desc "Build + upload to Play production with a staged rollout (ROLLOUT env, default 0.1)"
+  lane :deploy_production do
+    prepare_changelog
+    build_release_aab
+    upload_to_play_store(
+      track: "production",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key: play_json_key,
+      skip_upload_apk: true,
+      rollout: ENV["ROLLOUT"] || "0.1"
+    )
+    tag_release
+  end
+
+  desc "Promote an already-uploaded build between tracks (e.g. fastlane promote from:beta to:production)"
+  lane :promote do |options|
+    upload_to_play_store(
+      track: options[:from] || "beta",
+      track_promote_to: options[:to] || "production",
+      json_key: play_json_key,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      rollout: ENV["ROLLOUT"] || "0.1"
+    )
+  end
+
+  desc "Tag the current VERSION in git (v<name>)"
+  private_lane :tag_release do
+    version = File.read("../VERSION").strip
+    add_git_tag(tag: "v#{version}")
+    push_git_tags
+  end
+
 end
