@@ -1,3 +1,4 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -9,6 +10,11 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.roborazzi)
     alias(libs.plugins.dependency.guard)
+    // V15 FCM.2: Firebase config processing. Generates the google_app_id resource from google-services.json;
+    // adds NO runtime deps (firebase libs are gmsImplementation only). F-Droid strips this line (FLFD).
+    alias(libs.plugins.google.services)
+    // V15 CF.4: Crashlytics mapping-file symbolication (gms). F-Droid strips this line (FLFD).
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 // Release signing — reads from keystore.properties (gitignored) or env vars (CI).
@@ -26,13 +32,21 @@ val hasReleaseSigning =
 
 // FLA.1: single-source versioning. The repo-root VERSION + BUILD_NUMBER files (bumped by
 // scripts/bump_version.sh) are the only place versions change. versionCode = base + BUILD_NUMBER.
-val VERSION_CODE_BASE = 1
+val versionCodeBase = 1
 
-fun readVersionName(): String =
-    rootProject.file("VERSION").takeIf { it.exists() }?.readText()?.trim()?.ifEmpty { null } ?: "1.0.0"
+fun readVersionName(): String {
+    val file = rootProject.file("VERSION")
+    return if (file.exists()) file.readText().trim().ifEmpty { "1.0.0" } else "1.0.0"
+}
 
-fun readBuildNumber(): Int =
-    rootProject.file("BUILD_NUMBER").takeIf { it.exists() }?.readText()?.trim()?.toIntOrNull() ?: 0
+fun readBuildNumber(): Int {
+    val file = rootProject.file("BUILD_NUMBER")
+    return if (file.exists()) file.readText().trim().toIntOrNull() ?: 0 else 0
+}
+
+// FLFD.1: F-Droid reproducible build flag (`./gradlew assembleNoGmsRelease -Pfdroid`). Disables R8/resource
+// shrinking (not bit-for-bit reproducible across machines). F-Droid only builds the noGms release.
+val fdroidBuild = providers.gradleProperty("fdroid").isPresent
 
 android {
     namespace = "com.miletracker"
@@ -43,10 +57,22 @@ android {
         targetSdk = 36
         // FLA.1: single-source versioning. VERSION (semver) + BUILD_NUMBER files at the repo root are the
         // ONE place versions change (via scripts/bump_version.sh). versionCode = VERSION_CODE_BASE + BUILD_NUMBER.
-        versionCode = VERSION_CODE_BASE + readBuildNumber()
+        versionCode = versionCodeBase + readBuildNumber()
         versionName = readVersionName()
         // Default placeholder; override in gms flavor with your real key or via local.properties.
         manifestPlaceholders["MAPS_API_KEY"] = ""
+    }
+
+    // CF.5: expose BuildConfig.VERSION_CODE for the maintenance/min-version gate.
+    buildFeatures {
+        buildConfig = true
+    }
+
+    // FLFD.1: reproducible FOSS (F-Droid) builds — omit the dependency-metadata block from the APK/AAB
+    // (it embeds a signed, non-reproducible blob). Applies to all variants; harmless for the Play build.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     // Maps flavor dimension:
@@ -87,9 +113,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // FLFD.1: off for reproducible F-Droid builds (-Pfdroid); on for Play/CI release.
+            isMinifyEnabled = !fdroidBuild
+            isShrinkResources = !fdroidBuild
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // CF.4: Crashlytics mapping upload is OFF by default (placeholder Firebase config), enabled in CI
+            // only when CRASHLYTICS_UPLOAD=true with a real google-services.json — "guarded by key".
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                mappingFileUploadEnabled = System.getenv("CRASHLYTICS_UPLOAD") == "true"
+            }
             // Use the real release keystore when available; otherwise fall back to the
             // debug key so CI/local release builds still produce an installable APK.
             signingConfig =
@@ -246,6 +278,16 @@ dependencies {
     "gmsImplementation"(libs.play.review)
     "gmsImplementation"(libs.play.review.ktx)
 
+    // V15 FCM.2/CF.3: Firebase — gms flavor ONLY (proprietary). noGms gets no firebase runtime;
+    // VerifyDependencyPrefixes (FLFD.2) enforces that on noGmsReleaseRuntimeClasspath.
+    "gmsImplementation"(platform(libs.firebase.bom))
+    "gmsImplementation"(libs.firebase.messaging)
+    "gmsImplementation"(libs.firebase.analytics)
+    "gmsImplementation"(libs.firebase.crashlytics)
+
+    // V15 RF.2: Install Referrer — Play-Store-only attribution, gms flavor ONLY (noGms/F-Droid has none).
+    "gmsImplementation"(libs.install.referrer)
+
     // Konnection — KMP network connectivity monitor (init in Application)
     implementation(libs.konnection)
 
@@ -290,4 +332,65 @@ dependencies {
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
+}
+
+// ─── FLFD.2 — Proprietary-dependency guard for the noGms (F-Droid) release ───────────────────────────
+// Fails if a proprietary dep matching a forbidden prefix leaks into noGmsReleaseRuntimeClasspath, EXCEPT
+// the allowlisted pre-existing prime-feature deps (FusedLocation + ML Kit OCR, used by BOTH flavors —
+// making those FOSS is out of V15 scope; guardrail: don't touch the prime feature). The guard's purpose is
+// to keep V15's NEW proprietary additions (Firebase messaging/analytics/crashlytics, Play app-update,
+// Play review, Install Referrer) out of the FOSS build.
+// Inside afterEvaluate so the AGP-created variant configuration exists when we look it up.
+afterEvaluate {
+    val forbiddenPrefixes =
+        listOf(
+            "com.google.android.gms",
+            "com.google.android.play",
+            "com.google.firebase",
+            "com.google.maps.android",
+            "com.android.installreferrer",
+        )
+    val allowlist =
+        setOf(
+            // Pre-existing FusedLocation chain (core:platform AndroidLocationTracker).
+            "com.google.android.gms:play-services-location",
+            "com.google.android.gms:play-services-base",
+            "com.google.android.gms:play-services-basement",
+            "com.google.android.gms:play-services-tasks",
+            // Pre-existing ML Kit OCR (core:platform AndroidTextRecognizer / doc scanner).
+            "com.google.android.gms:play-services-mlkit-document-scanner",
+            "com.google.android.gms:play-services-mlkit-text-recognition",
+            "com.google.android.gms:play-services-mlkit-text-recognition-common",
+            // Transitive Firebase infra pulled by the play-services libs above (NOT messaging/analytics/crashlytics).
+            "com.google.firebase:firebase-annotations",
+            "com.google.firebase:firebase-components",
+            "com.google.firebase:firebase-encoders",
+            "com.google.firebase:firebase-encoders-json",
+        )
+    val verifyTask =
+        tasks.register("verifyNoGmsDependencyPrefixes") {
+            group = "verification"
+            description = "Fails if a proprietary dependency leaks into the noGms (F-Droid) release classpath."
+            // Resolves the variant classpath at execution time via the component graph (not artifacts, which
+            // would hit variant-attribute ambiguity for project deps).
+            notCompatibleWithConfigurationCache("Resolves the noGmsReleaseRuntimeClasspath component graph")
+            doLast {
+                val deps =
+                    configurations.getByName("noGmsReleaseRuntimeClasspath")
+                        .incoming.resolutionResult.allComponents
+                        .mapNotNull { it.id as? ModuleComponentIdentifier }
+                        .map { "${it.group}:${it.module}" }
+                val violations =
+                    deps
+                        .filter { dep -> forbiddenPrefixes.any { dep.startsWith(it) } && dep !in allowlist }
+                        .distinct()
+                if (violations.isNotEmpty()) {
+                    throw GradleException(
+                        "noGms (F-Droid) release leaks proprietary dependencies: $violations",
+                    )
+                }
+            }
+        }
+    tasks.named("check").configure { dependsOn(verifyTask) }
+    tasks.matching { it.name == "assembleNoGmsRelease" }.configureEach { dependsOn(verifyTask) }
 }

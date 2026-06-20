@@ -48,7 +48,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,14 +68,20 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miletracker.core.network.model.DemoAccount
 import com.miletracker.core.network.model.UserSession
+import com.miletracker.core.platform.ReferralManager
 import com.miletracker.core.ui.components.GridProfileTile
 import com.miletracker.core.ui.components.ProfileGridItem
 import com.miletracker.core.ui.components.ProfileItemStatus
+import com.miletracker.core.ui.components.ReferralCard
+import com.miletracker.core.ui.components.buildReferralInvite
+import com.miletracker.core.ui.platform.LocalShareSheet
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.feature.profile.model.AccountAnalyticsSnapshot
 import com.miletracker.feature.profile.model.ProfileHeader
 import com.miletracker.feature.profile.viewmodel.ProfileAction
 import com.miletracker.feature.profile.viewmodel.ProfileViewModel
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -129,6 +140,12 @@ fun ProfileScreen(
 
         item {
             DeepLinkDemoCard(
+                modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
+            )
+        }
+
+        item {
+            ReferralCardHost(
                 modifier = Modifier.padding(horizontal = DesignTokens.Spacing.screenHorizontal),
             )
         }
@@ -841,4 +858,36 @@ private fun PersonaSwitcherRow(
             }
         }
     }
+}
+
+/**
+ * RF.4 — hosts the [ReferralCard], wiring the Koin [ReferralManager] (own code + redeem) to the platform
+ * [LocalShareSheet] (no-op until SH.1 binds the real share sheet).
+ */
+@Composable
+private fun ReferralCardHost(modifier: Modifier = Modifier) {
+    val featureFlags: com.miletracker.core.platform.FeatureFlags = koinInject()
+    if (!featureFlags.referralEnabled) return // CF.1: gate the referral surface behind the flag.
+    val referralManager: ReferralManager = koinInject()
+    val shareSheet = LocalShareSheet.current
+    val scope = rememberCoroutineScope()
+    var myCode by remember { mutableStateOf("") }
+
+    LaunchedEffect(referralManager) {
+        myCode = referralManager.myReferralCode()
+    }
+
+    ReferralCard(
+        myCode = myCode,
+        onShare = {
+            if (myCode.isNotEmpty()) {
+                shareSheet.share(
+                    text = buildReferralInvite(myCode),
+                    subject = "Join me on MileTracker",
+                )
+            }
+        },
+        onRedeem = { code -> scope.launch { referralManager.redeem(code) } },
+        modifier = modifier,
+    )
 }

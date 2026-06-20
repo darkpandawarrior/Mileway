@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.platform.FeatureFlags
 import com.miletracker.core.platform.ReviewTracker
 import com.miletracker.core.ui.components.DotsIndicator
 import com.miletracker.core.ui.platform.LocalAppReviewManager
@@ -66,15 +67,17 @@ fun HomeScreen(
     onOpenAccount: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
     reviewTracker: ReviewTracker = koinInject(),
+    featureFlags: FeatureFlags = koinInject(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // V15 RV.4: Home is a meaningful engagement signal — record it and prompt for review if eligible.
+    // V15 RV.4/CF.1: Home is a meaningful engagement signal — record it and prompt for review if eligible
+    // and the in-app-review flag is on.
     val reviewManager = LocalAppReviewManager.current
     LaunchedEffect(Unit) {
         reviewTracker.recordFirstOpenIfNeeded()
         reviewTracker.recordInteraction()
-        reviewTracker.tryPrompt(reviewManager)
+        if (featureFlags.inAppReviewEnabled) reviewTracker.tryPrompt(reviewManager)
     }
 
     HomeScreenContent(

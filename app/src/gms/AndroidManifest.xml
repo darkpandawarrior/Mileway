@@ -6,5 +6,22 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
+
+        <!-- V15 FCM.2: Firebase Cloud Messaging service (gms flavor only). -->
+        <service
+            android:name="com.miletracker.platform.gms.MileTrackerFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="miletracker_general" />
+
+        <!-- V15 CF.4: Crashlytics collection OFF by default (privacy); CrashReporter.setEnabled flips it. -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
     </application>
 </manifest>

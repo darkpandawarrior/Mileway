@@ -16,6 +16,8 @@ kotlin {
             implementation(project(":core:data"))
             implementation(project(":core:network"))
             implementation(project(":core:security"))
+            // V15 RF.4: ReferralManager + ShareSheet (LocalShareSheet) types live in core:platform.
+            implementation(project(":core:platform"))
         }
         androidMain.dependencies {
             implementation("androidx.appcompat:appcompat:1.7.0")
