@@ -16,6 +16,9 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.storytale) apply false
     alias(libs.plugins.roborazzi) apply false
+    // V15: Firebase plugins — applied in :app (gms path); F-Droid strips them in the build prebuild (FLFD).
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
     // Build health — applied to root only
     alias(libs.plugins.gradle.doctor)
 }

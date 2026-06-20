@@ -50,6 +50,8 @@
 		<string>fetch</string>
 		<string>processing</string>
 		<string>location</string>
+		<!-- FCM.4: APNs/FCM background delivery -->
+		<string>remote-notification</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

@@ -21,7 +21,9 @@ import com.miletracker.core.common.deeplink.DeepLinkRouter
 import com.miletracker.core.common.deeplink.DeepLinkValidator
 import com.miletracker.core.network.config.ConfigProvider
 import com.miletracker.core.ui.platform.LocalManagerProvider
+import com.miletracker.core.ui.platform.MaintenanceGate
 import com.miletracker.core.ui.platform.UpdateGate
+import com.miletracker.core.ui.platform.isUnderMaintenance
 import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
 import com.miletracker.ui.MileTrackerAppRoot
@@ -71,6 +73,15 @@ private fun AppEntry(
     configProvider: ConfigProvider = koinInject(),
 ) {
     val updateConfig = remember(configProvider) { configProvider.getUpdateConfig() }
+    // CF.5: kill-switch / min-version maintenance gate (inert in the demo: killSwitch off, versionCode ≥ min).
+    val underMaintenance =
+        remember(configProvider, updateConfig) {
+            isUnderMaintenance(
+                killSwitchOn = configProvider.isKillSwitchOn(),
+                currentVersionCode = BuildConfig.VERSION_CODE.toLong(),
+                minSupportedVersionCode = updateConfig.minSupportedVersionCode,
+            )
+        }
     val systemDark = isSystemInDarkTheme()
     val override by themeController.darkThemeOverride.collectAsStateWithLifecycle()
     val palette by themeController.accentPalette.collectAsStateWithLifecycle()
@@ -90,18 +101,20 @@ private fun AppEntry(
             useSystemColors = useSystemColors,
             paletteStyle = paletteStyle,
         ) {
-            AnimatedContent(
-                targetState = stage,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "appStage",
-            ) { current ->
-                when (current) {
-                    AppStage.SPLASH -> SplashScreen(onFinished = { stage = AppStage.LOGIN })
-                    AppStage.LOGIN -> LoginScreen(onSignedIn = { stage = AppStage.APP })
-                    AppStage.APP ->
-                        UpdateGate(config = updateConfig) {
-                            MileTrackerAppRoot(deepLinkRoute = initialRoute)
-                        }
+            MaintenanceGate(underMaintenance = underMaintenance) {
+                AnimatedContent(
+                    targetState = stage,
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "appStage",
+                ) { current ->
+                    when (current) {
+                        AppStage.SPLASH -> SplashScreen(onFinished = { stage = AppStage.LOGIN })
+                        AppStage.LOGIN -> LoginScreen(onSignedIn = { stage = AppStage.APP })
+                        AppStage.APP ->
+                            UpdateGate(config = updateConfig) {
+                                MileTrackerAppRoot(deepLinkRoute = initialRoute)
+                            }
+                    }
                 }
             }
         }

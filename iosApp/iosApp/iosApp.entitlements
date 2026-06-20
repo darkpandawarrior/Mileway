@@ -9,5 +9,8 @@
 	<array>
 		<string>applinks:miletracker.example.com</string>
 	</array>
+	<!-- FCM.4: APNs environment (placeholder; set to "production" for App Store builds). -->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

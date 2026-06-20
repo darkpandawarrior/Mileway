@@ -1,0 +1,8 @@
+MileTracker is an offline-first mileage and expense tracker.
+
+- Track trips with GPS — works fully offline, no account required.
+- Log mileage and expenses; everything is stored locally on your device.
+- Review saved trips, export your data, and manage reimbursement vouchers.
+
+The F-Droid (FOSS) build uses open-source maps (MapLibre) and contains no
+proprietary Google or Firebase components.
