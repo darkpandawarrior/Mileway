@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- DL.3: Universal Links for the placeholder domain. Add this .entitlements to the target's
+	     CODE_SIGN_ENTITLEMENTS build setting, and host apple-app-site-association at
+	     https://miletracker.example.com/.well-known/apple-app-site-association -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:miletracker.example.com</string>
+	</array>
+</dict>
+</plist>
