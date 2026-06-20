@@ -56,7 +56,7 @@ storytale = "0.0.5-alpha01+dev24"
 navgraph = "0.1.2"
 # Phase 12 — Code quality
 detekt = "1.23.8"
-kover = "0.9.1"
+kover = "0.9.8"
 ktlint-plugin = "12.2.0"
 # Build health + dependency locking
 dependency-guard = "0.5.0"
