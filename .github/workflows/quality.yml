@@ -58,8 +58,10 @@ jobs:
       - name: Unit tests
         run: ./gradlew testNoGmsDebugUnitTest
 
-      - name: Coverage report
-        run: ./gradlew koverXmlReport
+      # Coverage measured + verified on the noGms variant (JVM-safe). The floor
+      # (minBound 30% line) fails the build on regression — see app/build.gradle.kts.
+      - name: Coverage report + floor
+        run: ./gradlew :app:koverXmlReportNoGmsDebugCoverage :app:koverVerifyNoGmsDebugCoverage
 
       - name: Dependency guard
         run: ./gradlew dependencyGuard
@@ -69,7 +71,7 @@ jobs:
         if: always()
         with:
           name: kover-report
-          path: build/reports/kover/report.xml
+          path: app/build/reports/kover/reportNoGmsDebugCoverage.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
