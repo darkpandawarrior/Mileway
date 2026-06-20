@@ -1,6 +1,8 @@
 package com.miletracker.feature.tracking.di
 
 import com.miletracker.core.network.config.ConfigProvider
+import com.miletracker.core.platform.AndroidNotificationScheduler
+import com.miletracker.core.platform.NotificationScheduler
 import com.miletracker.feature.tracking.debug.DebugMenuComposeViewModel
 import com.miletracker.feature.tracking.insights.RouteAnalyzer
 import com.miletracker.feature.tracking.manager.LocationTrackingController
@@ -13,8 +15,6 @@ import com.miletracker.feature.tracking.repository.SavedTrackRepository
 import com.miletracker.feature.tracking.repository.TripAttachmentRepository
 import com.miletracker.feature.tracking.repository.VehiclePricingRepository
 import com.miletracker.feature.tracking.repository.VoucherRepository
-import com.miletracker.core.platform.AndroidNotificationScheduler
-import com.miletracker.core.platform.NotificationScheduler
 import com.miletracker.feature.tracking.viewmodel.CreateVoucherViewModel
 import com.miletracker.feature.tracking.viewmodel.ExportViewModel
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
