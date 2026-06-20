@@ -49,6 +49,31 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+      # CIO.2 — materialize Android secrets from base64 env (all placeholders; documented in docs/RELEASE.md).
+      - name: Materialize Android secrets
+        run: |
+          set -euo pipefail
+          mkdir -p secrets
+          [ -n "${GOOGLE_SERVICES_B64:-}" ] && echo "$GOOGLE_SERVICES_B64" | base64 -d > app/google-services.json || true
+          [ -n "${PLAYSTORE_CREDS_B64:-}" ] && echo "$PLAYSTORE_CREDS_B64" | base64 -d > secrets/play-service-account.json || true
+          if [ -n "${KEYSTORE_B64:-}" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > secrets/upload.keystore
+            {
+              echo "RELEASE_STORE_FILE=$PWD/secrets/upload.keystore"
+              echo "RELEASE_STORE_PASSWORD=${KEYSTORE_PASSWORD:-}"
+              echo "RELEASE_KEY_ALIAS=${KEY_ALIAS:-}"
+              echo "RELEASE_KEY_PASSWORD=${KEY_PASSWORD:-}"
+            } >> "$GITHUB_ENV"
+          fi
+          echo "PLAY_STORE_KEY_FILE_PATH=$PWD/secrets/play-service-account.json" >> "$GITHUB_ENV"
+        env:
+          GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_B64 }}
+          PLAYSTORE_CREDS_B64: ${{ secrets.PLAYSTORE_CREDS_B64 }}
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
       - name: Deploy (Android rung ${{ inputs.android_rung }})
         run: |
           set -euo pipefail
@@ -60,6 +85,7 @@ jobs:
           esac
         env:
           ROLLOUT: ${{ inputs.production_rollout }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
   ios:
     if: ${{ inputs.ios_rung != 'skip' }}
@@ -72,6 +98,16 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+      # CIO.2 — materialize iOS secrets from base64 env (all placeholders; documented in docs/RELEASE.md).
+      - name: Materialize iOS secrets
+        run: |
+          set -euo pipefail
+          mkdir -p secrets
+          [ -n "${GOOGLE_SERVICES_IOS_B64:-}" ] && echo "$GOOGLE_SERVICES_IOS_B64" | base64 -d > iosApp/iosApp/GoogleService-Info.plist || true
+          [ -n "${APPSTORE_AUTH_KEY_B64:-}" ] && echo "$APPSTORE_AUTH_KEY_B64" | base64 -d > secrets/AuthKey.p8 || true
+        env:
+          GOOGLE_SERVICES_IOS_B64: ${{ secrets.GOOGLE_SERVICES_IOS_B64 }}
+          APPSTORE_AUTH_KEY_B64: ${{ secrets.APPSTORE_AUTH_KEY_B64 }}
       - name: Deploy (iOS rung ${{ inputs.ios_rung }})
         run: |
           set -euo pipefail
@@ -79,6 +115,12 @@ jobs:
             testflight) bundle exec fastlane ios beta ;;
             appstore)   bundle exec fastlane ios release ;;
           esac
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPSTORE_AUTH_KEY_B64: ${{ secrets.APPSTORE_AUTH_KEY_B64 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
 
   fdroid:
     if: ${{ inputs.fdroid }}
