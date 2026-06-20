@@ -71,6 +71,7 @@ import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
+import com.miletracker.feature.tracking.viewmodel.TrackDetailAction
 import com.miletracker.feature.tracking.viewmodel.TrackDetailViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -120,14 +121,14 @@ fun TrackDataPreviewScreen(
     viewModel: TrackDetailViewModel = koinViewModel(),
     hardwareEventRepository: HardwareEventRepository = koinInject(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.state.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     val events by hardwareEventRepository.observeEventsForRoute(routeId).collectAsState(initial = emptyList())
 
-    LaunchedEffect(routeId) { viewModel.load(routeId) }
+    LaunchedEffect(routeId) { viewModel.onAction(TrackDetailAction.Load(routeId)) }
 
     val tabs = listOf("Overview", "Quality", "Events", "Details")
     val pagerState = rememberPagerState { tabs.size }
