@@ -5,6 +5,7 @@ import com.miletracker.core.data.model.state.TrackMilesPluginConfig
 import com.miletracker.core.network.model.BusinessEntity
 import com.miletracker.core.network.model.Office
 import com.miletracker.core.network.model.VendorCenter
+import com.miletracker.core.platform.UpdateConfig
 
 interface ConfigProvider {
     fun getTrackMilesConfig(): TrackMilesPluginConfig
@@ -55,4 +56,15 @@ interface ConfigProvider {
 
     /** Default geofence radius in metres for geo check-in validation. */
     fun getGeoCheckInRadiusMeters(): Double = 100.0
+
+    // ─── V15 gating surface (mirrors Dice Splash-API fields; env/BuildConfig-overridable) ───
+
+    /** In-app update gate config. Default = disabled (force/flexible toggle lives in [UpdateConfig.mode]). */
+    fun getUpdateConfig(): UpdateConfig = UpdateConfig()
+
+    /** Named feature flags gating optional UI (e.g. `referralEnabled`, `inAppReviewEnabled`). */
+    fun getFeatureFlags(): Map<String, Boolean> = emptyMap()
+
+    /** When true, the app shows a blocking "under maintenance" wall before any feature UI. */
+    fun isKillSwitchOn(): Boolean = false
 }

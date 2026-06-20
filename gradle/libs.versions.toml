@@ -62,6 +62,9 @@ ktlint-plugin = "12.2.0"
 dependency-guard = "0.5.0"
 gradle-doctor = "0.12.0"
 profileinstaller = "1.4.1"
+# V15 — platform services (gms-only): in-app update + in-app review
+play-app-update = "2.1.0"
+play-review = "2.0.2"
 
 [libraries]
 # Kotlin
@@ -120,6 +123,12 @@ krossmap = { module = "io.github.farimarwat:krossmap", version.ref = "krossmap" 
 
 # Location
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
+
+# V15 platform services (gms flavor only — proprietary; never referenced from noGms/commonMain)
+play-app-update = { module = "com.google.android.play:app-update", version.ref = "play-app-update" }
+play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "play-app-update" }
+play-review = { module = "com.google.android.play:review", version.ref = "play-review" }
+play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "play-review" }
 
 # ML Kit
 mlkit-document-scanner = { module = "com.google.android.gms:play-services-mlkit-document-scanner", version.ref = "mlkit-document-scanner" }
