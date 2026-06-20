@@ -71,6 +71,7 @@ import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.tracking.ui.components.ExportOptionsDialog
 import com.miletracker.feature.tracking.viewmodel.ExportAction
 import com.miletracker.feature.tracking.viewmodel.ExportViewModel
+import com.miletracker.feature.tracking.viewmodel.TrackDetailAction
 import com.miletracker.feature.tracking.viewmodel.TrackDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -86,14 +87,14 @@ fun TrackDetailScreen(
     viewModel: TrackDetailViewModel = koinViewModel(),
     exportViewModel: ExportViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.state.collectAsState()
     val exportState by exportViewModel.state.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var showExportDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(routeId) { viewModel.load(routeId) }
+    LaunchedEffect(routeId) { viewModel.onAction(TrackDetailAction.Load(routeId)) }
 
     // Fire share intent once ready
     LaunchedEffect(exportState.shareIntent) {
