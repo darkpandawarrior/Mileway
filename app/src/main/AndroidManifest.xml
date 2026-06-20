@@ -49,12 +49,19 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Deep-link simulation: miletracker://home|track|log|profile -->
+            <!-- Custom-scheme deep links: miletracker://home|track[/checkin]|log[/expense]|profile[/settings]|referral?code= -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="miletracker" />
+            </intent-filter>
+            <!-- App Links: https://miletracker.example.com/… (placeholder host; verified via assetlinks.json) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="miletracker.example.com" />
             </intent-filter>
         </activity>
 
