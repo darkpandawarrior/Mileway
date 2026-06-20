@@ -3,6 +3,7 @@
 package com.miletracker.feature.tracking.service.location
 
 import com.miletracker.core.data.model.db.LocationData
+import com.miletracker.core.data.util.KalmanSmoother
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -71,10 +72,16 @@ class LocationProcessor(
     private val maxPlausibleSpeedMps: Double = 70.0,
     private val deviceModel: String = "",
     private val appVersionName: String = "",
+    // C.1g: when true, each fix's lat/lng is run through the shared KalmanSmoother before
+    // distance/classification. Off by default — no change to the existing pipeline behaviour.
+    private val enableKalman: Boolean = false,
     initialStats: TrackStats? = null,
 ) {
     private var last: GpsFix? = null
     private var firstFix: GpsFix? = null
+
+    // C.1g: shared smoother, reset at journey start (a fresh processor = a fresh smoother).
+    private val kalman = KalmanSmoother().also { if (enableKalman) it.reset() }
 
     var totalPoints = 0
         private set
@@ -146,9 +153,18 @@ class LocationProcessor(
         sensors: SensorSnapshot = SensorSnapshot(),
     ): ProcessResult? {
         val prev = last
-        if (firstFix == null) firstFix = fix
+        // C.1g: smooth lat/lng up front so distance + classification use the filtered position.
+        // With Kalman off, effFix === fix and the pipeline is byte-for-byte unchanged.
+        val effFix =
+            if (enableKalman) {
+                val (sLat, sLng) = kalman.smooth(fix.lat, fix.lng, fix.accuracyM, fix.timeMs)
+                fix.copy(lat = sLat, lng = sLng)
+            } else {
+                fix
+            }
+        if (firstFix == null) firstFix = effFix
 
-        val displacement = if (prev != null) haversineMeters(prev.lat, prev.lng, fix.lat, fix.lng) else 0.0
+        val displacement = if (prev != null) haversineMeters(prev.lat, prev.lng, effFix.lat, effFix.lng) else 0.0
         val dtSec = if (prev != null) max(1L, (fix.timeMs - prev.timeMs) / 1000L) else 1L
         val impliedSpeed = displacement / dtSec
 
@@ -202,15 +218,15 @@ class LocationProcessor(
         recentSpeedHistory.addLast(fix.speedMps.toDouble())
         if (recentSpeedHistory.size > SPEED_HISTORY_SIZE) recentSpeedHistory.removeFirst()
 
-        last = fix
+        last = effFix
         totalPoints++
 
         val row =
             LocationData(
                 activity = if (isPaused) "PAUSED" else "DRIVING",
                 speed = fix.speedMps,
-                lat = fix.lat,
-                lng = fix.lng,
+                lat = effFix.lat,
+                lng = effFix.lng,
                 // set by the service before insert
                 token = "",
                 date = fix.timeMs,

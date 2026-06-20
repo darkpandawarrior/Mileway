@@ -208,4 +208,31 @@ class LocationProcessorTest {
         val r = proc.process(fix(18.8600, 73.8, 60_000), isPaused = false)
         assertTrue(r != null && r.isAbnormal, "667 m/s over a 1min gap should be abnormal")
     }
+
+    // ── C.1g — optional Kalman smoothing ─────────────────────────────────────────
+
+    @Test
+    fun `kalman disabled persists raw coordinates`() {
+        val proc = LocationProcessor() // enableKalman defaults to false
+        val r = proc.process(fix(18.5000, 73.8, 0), isPaused = false)
+        assertEquals(18.5000, r!!.location.lat, 1e-9)
+        assertEquals(73.8, r.location.lng, 1e-9)
+    }
+
+    @Test
+    fun `kalman first fix passes through unchanged`() {
+        val proc = LocationProcessor(enableKalman = true)
+        val r = proc.process(GpsFix(lat = 18.5000, lng = 73.8, timeMs = 0, accuracyM = 10f), isPaused = false)
+        assertEquals(18.5000, r!!.location.lat, 1e-9)
+    }
+
+    @Test
+    fun `kalman pulls a second fix toward the previous position`() {
+        val proc = LocationProcessor(enableKalman = true)
+        proc.process(GpsFix(lat = 18.5000, lng = 73.8, timeMs = 0, accuracyM = 10f), isPaused = false)
+        val r = proc.process(GpsFix(lat = 18.5010, lng = 73.8, timeMs = 10_000, accuracyM = 10f), isPaused = false)
+        val smoothedLat = r!!.location.lat
+        // Smoothed toward the prior anchor: strictly between the two raw latitudes.
+        assertTrue(smoothedLat > 18.5000 && smoothedLat < 18.5010, "smoothed=$smoothedLat")
+    }
 }
