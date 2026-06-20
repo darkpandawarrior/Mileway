@@ -1,5 +1,6 @@
 package com.miletracker.feature.cards.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -118,7 +119,9 @@ internal fun CardDetailContent(
                 ClaimTabs(state.claimTab, onSelect = { onAction(CardDetailAction.SelectClaimTab(it)) })
                 ScreenStateContent(state = state.transactions, modifier = Modifier.fillMaxWidth()) { txns ->
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        txns.forEach { TransactionRow(it) }
+                        txns.forEach { txn ->
+                            TransactionRow(txn, onClick = { onAction(CardDetailAction.OpenTransaction(txn)) })
+                        }
                     }
                 }
             }
@@ -137,6 +140,48 @@ internal fun CardDetailContent(
             onDismiss = { onAction(CardDetailAction.DismissPhysicalCard) },
         )
     }
+    state.selectedTransaction?.let { txn ->
+        TransactionDetailDialog(
+            txn = txn,
+            onClaim = { onAction(CardDetailAction.ClaimTransaction(txn.id)) },
+            onDismiss = { onAction(CardDetailAction.DismissTransaction) },
+        )
+    }
+}
+
+@Composable
+private fun TransactionDetailDialog(
+    txn: CardTransactionModel,
+    onClaim: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(txn.merchantName) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Txn: ${txn.txnNumber}", style = MaterialTheme.typography.bodySmall)
+                Text("Category: ${txn.category}", style = MaterialTheme.typography.bodySmall)
+                Text("Amount: ${formatMoney(txn.amount, txn.currency)}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Status: ${txn.claimStatus.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        confirmButton = {
+            if (txn.claimStatus == CardTxnClaimStatus.UNCLAIMED) {
+                TextButton(onClick = onClaim) { Text("Claim expense") }
+            } else {
+                TextButton(onClick = onDismiss) { Text("Close") }
+            }
+        },
+        dismissButton = {
+            if (txn.claimStatus == CardTxnClaimStatus.UNCLAIMED) {
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+            }
+        },
+    )
 }
 
 @Composable
@@ -228,9 +273,12 @@ private fun ClaimTabs(
 }
 
 @Composable
-private fun TransactionRow(txn: CardTransactionModel) {
+private fun TransactionRow(
+    txn: CardTransactionModel,
+    onClick: () -> Unit,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column {

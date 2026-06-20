@@ -17,6 +17,7 @@ data class CardDetailUiState(
     val card: ScreenState<CardModel> = ScreenState.Loading,
     val transactions: ScreenState<List<CardTransactionModel>> = ScreenState.Loading,
     val claimTab: CardTxnClaimStatus = CardTxnClaimStatus.UNCLAIMED,
+    val selectedTransaction: CardTransactionModel? = null,
     val showMonthlyLimitDialog: Boolean = false,
     val showPhysicalCardDialog: Boolean = false,
 )
@@ -25,6 +26,12 @@ sealed interface CardDetailAction {
     data class Load(val cardId: Long) : CardDetailAction
 
     data class SelectClaimTab(val status: CardTxnClaimStatus) : CardDetailAction
+
+    data class OpenTransaction(val transaction: CardTransactionModel) : CardDetailAction
+
+    data object DismissTransaction : CardDetailAction
+
+    data class ClaimTransaction(val transactionId: Long) : CardDetailAction
 
     data object ToggleBlock : CardDetailAction
 
@@ -59,6 +66,9 @@ class CardDetailViewModel(
             is CardDetailAction.Load -> load(action.cardId)
             is CardDetailAction.SelectClaimTab ->
                 setState { copy(claimTab = action.status, transactions = filtered(action.status)) }
+            is CardDetailAction.OpenTransaction -> setState { copy(selectedTransaction = action.transaction) }
+            CardDetailAction.DismissTransaction -> setState { copy(selectedTransaction = null) }
+            is CardDetailAction.ClaimTransaction -> claimTransaction(action.transactionId)
             CardDetailAction.ToggleBlock -> toggleBlock()
             CardDetailAction.ToggleFreeze -> toggleFreeze()
             CardDetailAction.OpenMonthlyLimit -> setState { copy(showMonthlyLimitDialog = true) }
@@ -80,6 +90,15 @@ class CardDetailViewModel(
                 transactions = filtered(claimTab),
             )
         }
+    }
+
+    private fun claimTransaction(transactionId: Long) {
+        allTransactions =
+            allTransactions.map {
+                if (it.id == transactionId) it.copy(claimStatus = CardTxnClaimStatus.CLAIMED) else it
+            }
+        setState { copy(transactions = filtered(claimTab), selectedTransaction = null) }
+        emitEffect(CardDetailEffect.ShowToast(UiText.Static("Expense claimed")))
     }
 
     private fun filtered(status: CardTxnClaimStatus): ScreenState<List<CardTransactionModel>> {

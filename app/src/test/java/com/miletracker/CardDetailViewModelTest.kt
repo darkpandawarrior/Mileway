@@ -68,6 +68,18 @@ class CardDetailViewModelTest {
         }
 
     @Test
+    fun `claim transaction moves it out of the unclaimed tab`() =
+        runTest {
+            val vm = vm()
+            vm.onAction(CardDetailAction.Load(1L))
+            val unclaimed = (vm.state.value.transactions as ScreenState.Content).data
+            val target = unclaimed.first()
+            vm.onAction(CardDetailAction.ClaimTransaction(target.id))
+            val remaining = (vm.state.value.transactions as? ScreenState.Content)?.data ?: emptyList()
+            assertTrue(remaining.none { it.id == target.id })
+        }
+
+    @Test
     fun `issue physical card sets the status`() =
         runTest {
             val vm = vm()
