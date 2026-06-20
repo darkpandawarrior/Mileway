@@ -22,16 +22,20 @@ import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.platform.ReviewTracker
 import com.miletracker.core.ui.components.DotsIndicator
+import com.miletracker.core.ui.platform.LocalAppReviewManager
 import com.miletracker.core.ui.theme.DesignTokens
 import com.miletracker.stub.MarketingCarouselItem
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -61,8 +65,17 @@ fun HomeScreen(
     onAddExpense: () -> Unit,
     onOpenAccount: () -> Unit,
     viewModel: HomeViewModel = koinViewModel(),
+    reviewTracker: ReviewTracker = koinInject(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // V15 RV.4: Home is a meaningful engagement signal — record it and prompt for review if eligible.
+    val reviewManager = LocalAppReviewManager.current
+    LaunchedEffect(Unit) {
+        reviewTracker.recordFirstOpenIfNeeded()
+        reviewTracker.recordInteraction()
+        reviewTracker.tryPrompt(reviewManager)
+    }
 
     HomeScreenContent(
         state = state,

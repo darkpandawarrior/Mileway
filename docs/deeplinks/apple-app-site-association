@@ -1,0 +1,20 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "REPLACE_WITH_TEAMID.com.miletracker.ios",
+        "paths": [
+          "/home",
+          "/track",
+          "/track/*",
+          "/log",
+          "/log/*",
+          "/profile",
+          "/profile/*",
+          "/referral"
+        ]
+      }
+    ]
+  }
+}

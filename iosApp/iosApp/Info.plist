@@ -16,6 +16,20 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- DL.3: custom URL scheme (miletracker://). Universal Links use the Associated Domains entitlement. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.miletracker.ios</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>miletracker</string>
+			</array>
+		</dict>
+	</array>
 	<!-- Usage strings required by platform features used in this app -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MileTracker uses your location to track mileage during trips.</string>

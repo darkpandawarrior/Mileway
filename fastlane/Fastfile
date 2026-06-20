@@ -44,4 +44,113 @@ platform :android do
     )
   end
 
+  # ── FLA.2 — changelog from git commits ──────────────────────────────────────
+  # versionCode = VERSION_CODE_BASE(1) + BUILD_NUMBER (mirrors app/build.gradle.kts FLA.1).
+  def current_version_code
+    1 + File.read("../BUILD_NUMBER").strip.to_i
+  end
+
+  desc "Generate fastlane/metadata changelog from git commits for the current versionCode"
+  private_lane :prepare_changelog do
+    log = changelog_from_git_commits(
+      pretty: "- %s",
+      merge_commit_filtering: "exclude_merges",
+      commits_count: 30
+    ) || ""
+    # Dice-style bullet-aware truncation to Play's 500-char limit (don't cut mid-bullet).
+    truncated = log
+    if truncated.length > 500
+      truncated = truncated[0, 500]
+      last_bullet = truncated.rindex("\n- ")
+      truncated = truncated[0, last_bullet] unless last_bullet.nil?
+    end
+    dir = "metadata/android/en-US/changelogs"
+    require "fileutils"
+    FileUtils.mkdir_p(dir)
+    path = "#{dir}/#{current_version_code}.txt"
+    File.write(path, truncated)
+    UI.message("Wrote changelog -> #{path}")
+    truncated
+  end
+
+  # ── FLA.3 — Play Store deploy lanes (internal / beta / production) ───────────
+  # The service-account json is materialized from PLAYSTORE_CREDS_B64 in CI (CIO.2); all keys are env
+  # placeholders that never land in the repo.
+  def play_json_key
+    ENV["PLAY_STORE_KEY_FILE_PATH"] || "../secrets/play-service-account.json"
+  end
+
+  def build_release_aab
+    gradle(task: "bundle", flavor: "Gms", build_type: "Release")
+  end
+
+  desc "Build the gms release AAB + upload to the Play internal track"
+  lane :deploy_internal do
+    prepare_changelog
+    build_release_aab
+    upload_to_play_store(
+      track: "internal",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key: play_json_key,
+      skip_upload_apk: true
+    )
+  end
+
+  desc "Build + upload to the Play beta (closed testing) track"
+  lane :deploy_beta do
+    prepare_changelog
+    build_release_aab
+    upload_to_play_store(
+      track: "beta",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key: play_json_key,
+      skip_upload_apk: true
+    )
+  end
+
+  desc "Build + upload to Play production with a staged rollout (ROLLOUT env, default 0.1)"
+  lane :deploy_production do
+    prepare_changelog
+    build_release_aab
+    upload_to_play_store(
+      track: "production",
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      json_key: play_json_key,
+      skip_upload_apk: true,
+      rollout: ENV["ROLLOUT"] || "0.1"
+    )
+    tag_release
+  end
+
+  desc "Promote an already-uploaded build between tracks (e.g. fastlane promote from:beta to:production)"
+  lane :promote do |options|
+    upload_to_play_store(
+      track: options[:from] || "beta",
+      track_promote_to: options[:to] || "production",
+      json_key: play_json_key,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      rollout: ENV["ROLLOUT"] || "0.1"
+    )
+  end
+
+  desc "Tag the current VERSION in git (v<name>)"
+  private_lane :tag_release do
+    version = File.read("../VERSION").strip
+    add_git_tag(tag: "v#{version}")
+    push_git_tags
+  end
+
+  # ── FLA.4 — Firebase App Distribution ───────────────────────────────────────
+  desc "Distribute a gms staging APK to Firebase App Distribution testers"
+  lane :deploy_firebase do
+    gradle(task: "assemble", flavor: "Gms", build_type: "Staging")
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID"],
+      apk_path: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      groups: "testers",
+      release_notes: prepare_changelog
+    )
+  end
+
 end

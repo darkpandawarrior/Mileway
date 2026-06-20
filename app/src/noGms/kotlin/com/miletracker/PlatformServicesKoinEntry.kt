@@ -1,5 +1,6 @@
 package com.miletracker
 
+import com.miletracker.core.platform.AppReviewManagerFactory
 import com.miletracker.core.platform.AppUpdateManagerFactory
 import com.miletracker.core.platform.PlatformBindings
 import org.koin.core.module.Module
@@ -14,4 +15,6 @@ import org.koin.dsl.module
 fun platformServicesKoinModule(): Module =
     module {
         single<AppUpdateManagerFactory> { AppUpdateManagerFactory { PlatformBindings().appUpdateManager } }
+        // F-Droid has no in-app review API → no-op (a store-listing intent could open f-droid.org later).
+        single<AppReviewManagerFactory> { AppReviewManagerFactory { PlatformBindings().appReviewManager } }
     }
