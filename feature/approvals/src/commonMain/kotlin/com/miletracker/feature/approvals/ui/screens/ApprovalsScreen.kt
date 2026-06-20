@@ -72,11 +72,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.miletracker.core.common.asString
 import com.miletracker.core.common.formatDecimal
+import com.miletracker.core.ui.mvi.ScreenStateContent
 import com.miletracker.core.ui.mvi.dataOrNull
 import com.miletracker.feature.approvals.model.ApprovalItem
 import com.miletracker.feature.approvals.model.ApprovalStatus
 import com.miletracker.feature.approvals.model.ApprovalType
 import com.miletracker.feature.approvals.repository.ApprovalsRepository
+import com.miletracker.feature.approvals.viewmodel.ApprovalsAction
 import com.miletracker.feature.approvals.viewmodel.ApprovalsEffect
 import com.miletracker.feature.approvals.viewmodel.ApprovalsViewModel
 import kotlinx.coroutines.launch
@@ -178,17 +180,23 @@ fun ApprovalsScreen(
             }
             when (selectedTab) {
                 0 ->
-                    ApprovalListTab(
-                        items = pendingItems,
-                        onOpenDetail = onOpenDetail,
-                        selectionMode = selectionMode,
-                        selectedIds = selectedIds.value,
-                        onLongPress = { id ->
-                            selectionMode = true
-                            selectedIds.value = selectedIds.value + id
-                        },
-                        onToggleSelect = { id -> selectedIds.value = if (id in selectedIds.value) selectedIds.value - id else selectedIds.value + id },
-                    )
+                    ScreenStateContent(
+                        state = ui.listState,
+                        modifier = Modifier.fillMaxSize(),
+                        onRetry = { viewModel.onAction(ApprovalsAction.Refresh) },
+                    ) { loaded ->
+                        ApprovalListTab(
+                            items = loaded.filter { it.status == ApprovalStatus.PENDING },
+                            onOpenDetail = onOpenDetail,
+                            selectionMode = selectionMode,
+                            selectedIds = selectedIds.value,
+                            onLongPress = { id ->
+                                selectionMode = true
+                                selectedIds.value = selectedIds.value + id
+                            },
+                            onToggleSelect = { id -> selectedIds.value = if (id in selectedIds.value) selectedIds.value - id else selectedIds.value + id },
+                        )
+                    }
                 1 ->
                     ApprovalListTab(
                         items = ApprovalsRepository.teamItems,
