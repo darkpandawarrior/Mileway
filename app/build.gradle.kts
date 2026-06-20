@@ -186,6 +186,8 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:security"))
+    // V15: app directly references core:platform service interfaces + factories (flavor impls).
+    implementation(project(":core:platform"))
     implementation(project(":feature:tracking"))
     implementation(project(":feature:logging"))
     implementation(project(":feature:media"))
@@ -224,6 +226,13 @@ dependencies {
     // Map implementations — selected by flavor
     "gmsImplementation"(project(":core:maps-krossmap"))
     "noGmsImplementation"(project(":core:maps-maplibre"))
+
+    // V15 platform services — Play-Core update + review, gms flavor ONLY (proprietary).
+    // noGms gets no-op impls; the VerifyDependencyPrefixes guard (FLFD.2) keeps these out of FOSS.
+    "gmsImplementation"(libs.play.app.update)
+    "gmsImplementation"(libs.play.app.update.ktx)
+    "gmsImplementation"(libs.play.review)
+    "gmsImplementation"(libs.play.review.ktx)
 
     // Konnection — KMP network connectivity monitor (init in Application)
     implementation(libs.konnection)
