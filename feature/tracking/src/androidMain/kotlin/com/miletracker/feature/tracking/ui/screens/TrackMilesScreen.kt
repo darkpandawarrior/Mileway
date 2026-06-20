@@ -76,6 +76,7 @@ import com.miletracker.feature.tracking.ui.sheets.ResumeTrackingSheet
 import com.miletracker.feature.tracking.ui.sheets.VehicleOption
 import com.miletracker.feature.tracking.ui.sheets.VehiclePickerSheet
 import com.miletracker.feature.tracking.ui.sheets.VendorPickerSheet
+import com.miletracker.feature.tracking.viewmodel.CheckInAction
 import com.miletracker.feature.tracking.viewmodel.CheckInViewModel
 import com.miletracker.feature.tracking.viewmodel.HeroGaugeMode
 import com.miletracker.feature.tracking.viewmodel.TrackMilesAction
@@ -113,7 +114,7 @@ fun TrackMilesScreen(
     checkInViewModel: CheckInViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val checkInUiState by checkInViewModel.uiState.collectAsState()
+    val checkInUiState by checkInViewModel.state.collectAsState()
     val context = LocalContext.current
     val isActive = uiState.phase == TrackMilesPhase.TRACKING || uiState.phase == TrackMilesPhase.PAUSED
     val isPaused = uiState.phase == TrackMilesPhase.PAUSED
@@ -142,7 +143,7 @@ fun TrackMilesScreen(
                 title = "Checked In",
                 description = checkInUiState.successMessage.ifBlank { "Check-in recorded." },
             )
-            checkInViewModel.acknowledgeSuccess()
+            checkInViewModel.onAction(CheckInAction.AcknowledgeSuccess)
         }
     }
 
@@ -394,21 +395,21 @@ fun TrackMilesScreen(
         ManualCheckInSheet(
             viewModel = checkInViewModel,
             uiState = checkInUiState,
-            onDismiss = { checkInViewModel.dismissManualCheckIn() },
+            onDismiss = { checkInViewModel.onAction(CheckInAction.DismissManualCheckIn) },
         )
     }
     if (checkInUiState.showGeoCheckInSheet) {
         GeoCheckInSheet(
             viewModel = checkInViewModel,
             uiState = checkInUiState,
-            onDismiss = { checkInViewModel.dismissGeoCheckIn() },
+            onDismiss = { checkInViewModel.onAction(CheckInAction.DismissGeoCheckIn) },
         )
     }
     if (checkInUiState.showRadiusWarning) {
         CheckInRadiusWarningSheet(
             viewModel = checkInViewModel,
             uiState = checkInUiState,
-            onDismiss = { checkInViewModel.dismissRadiusWarning() },
+            onDismiss = { checkInViewModel.onAction(CheckInAction.DismissRadiusWarning) },
         )
     }
 }
