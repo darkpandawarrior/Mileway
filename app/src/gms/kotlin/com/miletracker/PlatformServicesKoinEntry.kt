@@ -1,6 +1,8 @@
 package com.miletracker
 
+import com.miletracker.core.platform.AppReviewManagerFactory
 import com.miletracker.core.platform.AppUpdateManagerFactory
+import com.miletracker.platform.gms.PlayAppReviewManagerFactoryImpl
 import com.miletracker.platform.gms.PlayAppUpdateManagerFactoryImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -14,4 +16,5 @@ import org.koin.dsl.module
 fun platformServicesKoinModule(): Module =
     module {
         single<AppUpdateManagerFactory> { PlayAppUpdateManagerFactoryImpl() }
+        single<AppReviewManagerFactory> { PlayAppReviewManagerFactoryImpl() }
     }

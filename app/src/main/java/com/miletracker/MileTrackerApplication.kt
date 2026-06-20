@@ -48,6 +48,12 @@ import java.util.concurrent.TimeUnit
 val appModule = module {
     single { DatabaseSeeder(get(), get()) }
 
+    // V15 RV.4: engagement-gated in-app review tracker (in-memory counters for the demo).
+    single { com.miletracker.core.platform.ReviewTracker() }
+
+    // V15 DL.4: shared deep-link handler (runtime/iOS-bridge links observe its incoming flow).
+    single<com.miletracker.core.platform.DeepLinkHandler> { com.miletracker.core.platform.DefaultDeepLinkHandler() }
+
     // Geofence location list: convert DemoConfigManager's mock locations into
     // CheckInValidator.CheckInLocation for local offline radius validation.
     single<List<CheckInLocation>> {
