@@ -8,7 +8,7 @@ import org.gradle.kotlin.dsl.configure
  * Convention plugin for the Android application module.
  *
  * Applies the AGP application + Compose-compiler plugins and the shared android config (compileSdk 37,
- * Java 11, Compose enabled). App-specific config (applicationId, minSdk/targetSdk, version, buildTypes,
+ * Java 21, Compose enabled). App-specific config (applicationId, minSdk/targetSdk, version, buildTypes,
  * testOptions) stays in the app's own `android { }` block.
  */
 class MileTrackerAndroidApplicationConventionPlugin : Plugin<Project> {
@@ -20,8 +20,8 @@ class MileTrackerAndroidApplicationConventionPlugin : Plugin<Project> {
         extensions.configure<ApplicationExtension> {
             compileSdk = 37
             compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_11
-                targetCompatibility = JavaVersion.VERSION_11
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
             }
             buildFeatures {
                 compose = true
