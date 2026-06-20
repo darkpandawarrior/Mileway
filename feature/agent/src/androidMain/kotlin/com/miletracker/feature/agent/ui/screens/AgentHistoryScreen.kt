@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.miletracker.feature.agent.model.AgentConversation
+import com.miletracker.feature.agent.viewmodel.AgentAction
 import com.miletracker.feature.agent.viewmodel.AgentViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -65,7 +66,7 @@ fun AgentHistoryScreen(
                 ConversationRow(
                     conversation = conversation,
                     onClick = {
-                        viewModel.loadConversation(conversation)
+                        viewModel.onAction(AgentAction.LoadConversation(conversation))
                         onConversationSelected(conversation)
                     },
                 )
