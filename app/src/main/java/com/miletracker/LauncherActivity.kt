@@ -1,7 +1,6 @@
 package com.miletracker
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,6 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miletracker.core.common.deeplink.DeepLinkRouter
+import com.miletracker.core.common.deeplink.DeepLinkTarget
+import com.miletracker.core.common.deeplink.DeepLinkValidator
 import com.miletracker.core.network.config.ConfigProvider
 import com.miletracker.core.ui.platform.LocalManagerProvider
 import com.miletracker.core.ui.platform.UpdateGate
@@ -56,14 +58,17 @@ class LauncherActivity : ComponentActivity() {
 
 private fun Intent.deepLinkRoute(): String? {
     if (action != Intent.ACTION_VIEW) return null
-    val uri: Uri = data ?: return null
-    if (uri.scheme != "miletracker") return null
-    return when (uri.host) {
-        "home" -> AppGraph.HOME
-        "track" -> AppGraph.TRACK
-        "log" -> AppGraph.LOG
-        "profile" -> AppGraph.PROFILE
-        else -> null
+    val raw = data?.toString() ?: return null
+    if (!DeepLinkValidator.isAllowed(raw)) return null
+    // DL.2: route both miletracker:// and verified https App Links through the shared router. Sub-targets
+    // (checkin / expense / settings / referral) collapse to their section graph here; DL.4 adds typed nav.
+    return when (DeepLinkRouter.resolve(raw)) {
+        DeepLinkTarget.Home -> AppGraph.HOME
+        DeepLinkTarget.Track, DeepLinkTarget.TrackCheckIn -> AppGraph.TRACK
+        DeepLinkTarget.Log, DeepLinkTarget.LogExpense -> AppGraph.LOG
+        DeepLinkTarget.Profile, DeepLinkTarget.ProfileSettings -> AppGraph.PROFILE
+        is DeepLinkTarget.Referral -> AppGraph.PROFILE
+        is DeepLinkTarget.Unknown -> null
     }
 }
 
