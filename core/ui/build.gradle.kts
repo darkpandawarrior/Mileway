@@ -38,6 +38,8 @@ kotlin {
             implementation(libs.webview.multiplatform)
             implementation(project(":core:common"))
             implementation(project(":core:data"))
+            // V15 PF.3: LocalManagerProvider Compose layer over the core:platform service interfaces.
+            implementation(project(":core:platform"))
         }
         androidMain.dependencies {
             implementation(libs.core.ktx)
