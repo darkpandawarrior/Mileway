@@ -67,6 +67,7 @@ import com.miletracker.core.data.util.DateUtils
 import com.miletracker.core.ui.components.topbar.DepthAwareTopBar
 import com.miletracker.core.ui.theme.DesignTokens.NavigationDepth
 import com.miletracker.feature.tracking.export.HardwareEventExporter
+import com.miletracker.feature.tracking.viewmodel.HardwareEventsAction
 import com.miletracker.feature.tracking.viewmodel.HardwareEventsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import java.text.SimpleDateFormat
@@ -85,13 +86,14 @@ fun HardwareEventsLogScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showExportDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(routeId) { viewModel.loadEventsByToken(routeId) }
+    LaunchedEffect(routeId) { viewModel.onAction(HardwareEventsAction.LoadByToken(routeId)) }
 
-    val events by viewModel.filteredEvents.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val selectedAudiences by viewModel.selectedAudiences.collectAsState()
-    val stats by viewModel.eventStats.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val events = ui.filteredEvents
+    val isLoading = ui.isLoading
+    val searchQuery = ui.searchQuery
+    val selectedAudiences = ui.selectedAudiences
+    val stats = ui.eventStats
 
     if (showExportDialog) {
         AlertDialog(
@@ -138,12 +140,12 @@ fun HardwareEventsLogScreen(
             // Search
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = viewModel::setSearchQuery,
+                onValueChange = { viewModel.onAction(HardwareEventsAction.SetSearchQuery(it)) },
                 placeholder = { Text("Search events…") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchQuery.isNotBlank()) {
-                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                        IconButton(onClick = { viewModel.onAction(HardwareEventsAction.SetSearchQuery("")) }) {
                             Icon(Icons.Default.Clear, contentDescription = "Clear")
                         }
                     }
@@ -162,7 +164,7 @@ fun HardwareEventsLogScreen(
                 items(EventAudience.entries.filter { it != EventAudience.UNKNOWN }) { audience ->
                     FilterChip(
                         selected = selectedAudiences.contains(audience),
-                        onClick = { viewModel.toggleAudienceFilter(audience) },
+                        onClick = { viewModel.onAction(HardwareEventsAction.ToggleAudienceFilter(audience)) },
                         label = { Text(audience.name.lowercase().replaceFirstChar { it.uppercase() }) },
                     )
                 }

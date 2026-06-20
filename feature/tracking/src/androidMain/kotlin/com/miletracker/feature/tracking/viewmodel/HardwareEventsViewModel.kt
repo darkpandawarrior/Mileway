@@ -1,4 +1,4 @@
-@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:property-naming", "ktlint:standard:comment-wrapping")
+@file:Suppress("ktlint:standard:max-line-length", "ktlint:standard:comment-wrapping")
 
 package com.miletracker.feature.tracking.viewmodel
 
@@ -6,18 +6,12 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.miletracker.core.data.model.db.EventAudience
 import com.miletracker.core.data.model.db.EventType
 import com.miletracker.core.data.model.db.HardwareEvent
+import com.miletracker.core.ui.mvi.BaseViewModel
 import com.miletracker.feature.tracking.repository.HardwareEventRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileWriter
@@ -30,9 +24,54 @@ data class EventStats(
     val timeRange: Pair<Long, Long>? = null,
 )
 
+data class HardwareEventsUiState(
+    val allEvents: List<HardwareEvent> = emptyList(),
+    val isLoading: Boolean = false,
+    val searchQuery: String = "",
+    val selectedAudiences: Set<EventAudience> = setOf(EventAudience.USER),
+    val filteredEvents: List<HardwareEvent> = emptyList(),
+    val eventStats: EventStats = EventStats(),
+)
+
+private fun HardwareEventsUiState.withRecomputed(): HardwareEventsUiState {
+    val filtered =
+        allEvents.filter { event ->
+            val matchesSearch =
+                searchQuery.isBlank() ||
+                    event.event.contains(searchQuery, ignoreCase = true) ||
+                    event.activity?.contains(searchQuery, ignoreCase = true) == true
+            val matchesAudience = selectedAudiences.isEmpty() || selectedAudiences.contains(event.audience)
+            matchesSearch && matchesAudience
+        }
+    val stats =
+        EventStats(
+            totalCount = allEvents.size,
+            audienceCounts = allEvents.groupBy { it.audience }.mapValues { it.value.size },
+            timeRange =
+                if (allEvents.isNotEmpty()) {
+                    allEvents.minOf { it.time } to allEvents.maxOf { it.time }
+                } else {
+                    null
+                },
+        )
+    return copy(filteredEvents = filtered, eventStats = stats)
+}
+
+sealed interface HardwareEventsAction {
+    data class LoadByToken(val token: String) : HardwareEventsAction
+
+    data class SetSearchQuery(val query: String) : HardwareEventsAction
+
+    data class ToggleAudienceFilter(val audience: EventAudience) : HardwareEventsAction
+
+    data object ClearFilters : HardwareEventsAction
+}
+
+sealed interface HardwareEventsEffect
+
 class HardwareEventsViewModel(
     private val eventRepo: HardwareEventRepository,
-) : ViewModel() {
+) : BaseViewModel<HardwareEventsUiState, HardwareEventsEffect, HardwareEventsAction>(HardwareEventsUiState()) {
     companion object {
         private const val TAG = "HardwareEventsVM"
 
@@ -123,80 +162,47 @@ class HardwareEventsViewModel(
         }
     }
 
-    private val _events = MutableStateFlow<List<HardwareEvent>>(emptyList())
-    val events = _events.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
-
-    private val _selectedAudiences = MutableStateFlow<Set<EventAudience>>(setOf(EventAudience.USER))
-    val selectedAudiences = _selectedAudiences.asStateFlow()
-
-    val filteredEvents =
-        combine(_events, _searchQuery, _selectedAudiences) { events, query, audiences ->
-            events.filter { event ->
-                val matchesSearch =
-                    query.isBlank() ||
-                        event.event.contains(query, ignoreCase = true) ||
-                        event.activity?.contains(query, ignoreCase = true) == true
-                val matchesAudience = audiences.isEmpty() || audiences.contains(event.audience)
-                matchesSearch && matchesAudience
+    override fun onAction(action: HardwareEventsAction) {
+        when (action) {
+            is HardwareEventsAction.LoadByToken -> loadEventsByToken(action.token)
+            is HardwareEventsAction.SetSearchQuery ->
+                setState { copy(searchQuery = action.query).withRecomputed() }
+            is HardwareEventsAction.ToggleAudienceFilter -> {
+                val updated =
+                    currentState.selectedAudiences.toMutableSet().apply {
+                        if (contains(action.audience)) remove(action.audience) else add(action.audience)
+                    }
+                setState { copy(selectedAudiences = updated).withRecomputed() }
             }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val eventStats =
-        events.map { list ->
-            EventStats(
-                totalCount = list.size,
-                audienceCounts = list.groupBy { it.audience }.mapValues { it.value.size },
-                timeRange =
-                    if (list.isNotEmpty()) {
-                        (list.minOf { it.time }) to (list.maxOf { it.time })
-                    } else {
-                        null
-                    },
-            )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EventStats())
-
-    fun loadEventsByToken(token: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            eventRepo.getEventsForRoute(token).fold(
-                onSuccess = { loaded ->
-                    _events.value = loaded.ifEmpty { demoEvents(token) }
-                },
-                onFailure = {
-                    Log.e(TAG, "Error loading events: ${it.message}")
-                    _events.value = demoEvents(token)
-                },
-            )
-            _isLoading.value = false
+            HardwareEventsAction.ClearFilters ->
+                setState {
+                    copy(searchQuery = "", selectedAudiences = setOf(EventAudience.USER)).withRecomputed()
+                }
         }
     }
 
-    fun setSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    fun toggleAudienceFilter(audience: EventAudience) {
-        val current = _selectedAudiences.value.toMutableSet()
-        if (current.contains(audience)) current.remove(audience) else current.add(audience)
-        _selectedAudiences.value = current
-    }
-
-    fun clearFilters() {
-        _searchQuery.value = ""
-        _selectedAudiences.value = setOf(EventAudience.USER)
+    private fun loadEventsByToken(token: String) {
+        viewModelScope.launch {
+            setState { copy(isLoading = true) }
+            eventRepo.getEventsForRoute(token).fold(
+                onSuccess = { loaded ->
+                    setState {
+                        copy(allEvents = loaded.ifEmpty { demoEvents(token) }, isLoading = false).withRecomputed()
+                    }
+                },
+                onFailure = {
+                    Log.e(TAG, "Error loading events: ${it.message}")
+                    setState { copy(allEvents = demoEvents(token), isLoading = false).withRecomputed() }
+                },
+            )
+        }
     }
 
     fun exportEvents(
         context: Context,
         format: ExportFormat,
     ): Uri? {
-        val list = filteredEvents.value
+        val list = currentState.filteredEvents
         if (list.isEmpty()) return null
         return try {
             val (data, filename) = buildPayload(list, format)
@@ -210,7 +216,7 @@ class HardwareEventsViewModel(
     }
 
     fun prepareExportPayload(format: ExportFormat): Triple<ByteArray, String, String>? {
-        val list = filteredEvents.value
+        val list = currentState.filteredEvents
         if (list.isEmpty()) return null
         val (data, filename) = buildPayload(list, format)
         val mime = if (format == ExportFormat.CSV) "text/csv" else "application/json"
