@@ -147,6 +147,32 @@ if (project.findProperty("enableComposeMetrics") == "true") {
     }
 }
 
+// Kover — line-coverage floor enforced by koverVerifyNoGmsDebugCoverage. Coverage is
+// measured on the noGms (JVM-safe) variant; the gms flavor's Play Services maps crash
+// the Robolectric fork. Floor is a regression guard kept below the current ~38% line
+// coverage; ratchet up as the suite grows (PLAN B.3a / H.6).
+kover {
+    currentProject {
+        createVariant("noGmsDebugCoverage") {
+            add("noGmsDebug")
+        }
+    }
+    reports {
+        variant("noGmsDebugCoverage") {
+            filters {
+                excludes {
+                    packages("*.BuildConfig", "*.R")
+                }
+            }
+            verify {
+                rule {
+                    minBound(30)
+                }
+            }
+        }
+    }
+}
+
 // Dependency Guard — baseline snapshot of releaseRuntimeClasspath to catch
 // silent transitive version bumps in CI. Run `./gradlew dependencyGuardBaseline`
 // after any intentional dep change, then commit the updated baseline file.
