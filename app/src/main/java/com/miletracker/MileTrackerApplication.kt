@@ -48,6 +48,9 @@ import java.util.concurrent.TimeUnit
 val appModule = module {
     single { DatabaseSeeder(get(), get()) }
 
+    // V15 RV.4: engagement-gated in-app review tracker (in-memory counters for the demo).
+    single { com.miletracker.core.platform.ReviewTracker() }
+
     // Geofence location list: convert DemoConfigManager's mock locations into
     // CheckInValidator.CheckInLocation for local offline radius validation.
     single<List<CheckInLocation>> {
