@@ -47,6 +47,7 @@ import com.miletracker.feature.tracking.ui.sheets.OfficePickerSheet
 import com.miletracker.feature.tracking.ui.sheets.PolicyViolationSheet
 import com.miletracker.feature.tracking.ui.sheets.SmartDistanceSheet
 import com.miletracker.feature.tracking.ui.sheets.SubmitConfirmSheet
+import com.miletracker.feature.tracking.viewmodel.MileageSubmissionAction
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import com.miletracker.feature.tracking.viewmodel.SubmissionFieldType
 import com.miletracker.feature.tracking.viewmodel.SubmissionSheet
@@ -69,8 +70,9 @@ fun TrackSubmissionScreen(
     onNavigateToOdometerEnd: () -> Unit = {},
     viewModel: MileageSubmissionViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
-    val form by viewModel.form.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val state = ui.submissionState
+    val form = ui.form
 
     var selectedTab by remember { mutableStateOf("Journey") }
     var smartDistanceVerified by remember { mutableStateOf(false) }
@@ -88,19 +90,19 @@ fun TrackSubmissionScreen(
 
     // Load start/end addresses and vehicle info from Room on first composition.
     LaunchedEffect(routeId) {
-        viewModel.loadTrackInfo(routeId, vehicleKey, distanceKm)
+        viewModel.onAction(MileageSubmissionAction.LoadTrackInfo(routeId, vehicleKey, distanceKm))
     }
 
     // Trigger SmartDistanceSheet automatically when odometer discrepancy exceeds 15%.
     LaunchedEffect(odometerDistanceKm) {
         val odometer = odometerDistanceKm ?: return@LaunchedEffect
         val discrepancy = if (distanceKm > 0.0) kotlin.math.abs(odometer - distanceKm) / distanceKm else 0.0
-        if (discrepancy > 0.15) viewModel.openSmartDistanceSheet(distanceKm, odometer)
+        if (discrepancy > 0.15) viewModel.onAction(MileageSubmissionAction.OpenSmartDistanceSheet(distanceKm, odometer))
     }
 
     // On a finalized submission, hand the full result to the success screen.
-    LaunchedEffect(state) {
-        val s = state
+    LaunchedEffect(ui) {
+        val s = ui.submissionState
         if (s is SubmissionUiState.Success) {
             val r = s.response
             onSuccess(
@@ -137,10 +139,10 @@ fun TrackSubmissionScreen(
         bottomBar = {
             MileageDraftBottomBar(
                 saveAsDraft = form.saveAsDraft,
-                onToggleDraft = viewModel::toggleDraft,
+                onToggleDraft = { viewModel.onAction(MileageSubmissionAction.ToggleDraft(it)) },
                 submitEnabled = form.canSubmit && state !is SubmissionUiState.Submitting,
                 onDiscard = onBack,
-                onSubmit = viewModel::openSubmitConfirm,
+                onSubmit = { viewModel.onAction(MileageSubmissionAction.OpenSubmitConfirm) },
                 infoText = "Review journey details and required fields before submitting.",
             )
         },
@@ -236,7 +238,7 @@ fun TrackSubmissionScreen(
                                     errorText = if (f.required && form.values[f.id].isNullOrBlank()) "${f.label} is required" else null,
                                 )
                             },
-                        onValueChange = viewModel::setFormValue,
+                        onValueChange = { id, value -> viewModel.onAction(MileageSubmissionAction.SetFormValue(id, value)) },
                     )
                 }
 
@@ -246,7 +248,7 @@ fun TrackSubmissionScreen(
                         label = "Office",
                         value = form.selectedOffice?.let { "${it.code} - ${it.name}" },
                         requiredHint = if (form.officeRequired) "Required field" else "Select office",
-                        onClick = viewModel::openOfficePicker,
+                        onClick = { viewModel.onAction(MileageSubmissionAction.OpenOfficePicker) },
                     )
                 }
                 item {
@@ -254,16 +256,16 @@ fun TrackSubmissionScreen(
                         label = "Entity",
                         value = form.selectedEntity?.name,
                         requiredHint = if (form.officeRequired) "Required field" else "Select entity",
-                        onClick = viewModel::openEntityPicker,
+                        onClick = { viewModel.onAction(MileageSubmissionAction.OpenEntityPicker) },
                     )
                 }
 
                 // ── Attachments section ──────────────────────────────────────────
                 item {
                     AttachmentsSection(
-                        attachments = viewModel.pendingReceipts.collectAsState().value,
+                        attachments = ui.pendingReceipts,
                         onAdd = { /* navigate to attachment picker — wired at nav level */ },
-                        onRemove = viewModel::removeReceipt,
+                        onRemove = { viewModel.onAction(MileageSubmissionAction.RemoveReceipt(it)) },
                     )
                 }
             }
@@ -283,9 +285,9 @@ fun TrackSubmissionScreen(
     when (form.sheet) {
         SubmissionSheet.SUBMIT_CONFIRM ->
             SubmitConfirmSheet(
-                onConfirm = { viewModel.submit(routeId, distanceKm, vehicleKey, startTime, endTime) },
-                onCancel = viewModel::dismissSheet,
-                onDismiss = viewModel::dismissSheet,
+                onConfirm = { viewModel.onAction(MileageSubmissionAction.Submit(routeId, distanceKm, vehicleKey, startTime, endTime)) },
+                onCancel = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
+                onDismiss = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
             )
 
         SubmissionSheet.POLICY_VIOLATION ->
@@ -293,28 +295,28 @@ fun TrackSubmissionScreen(
                 violations = form.violations,
                 askAuthoritiesSelected = form.askAuthorities,
                 note = form.violationNote,
-                onToggleAskAuthorities = { viewModel.setAskAuthorities(!form.askAuthorities) },
-                onNoteChange = viewModel::setViolationNote,
-                onSubmit = viewModel::resolvePolicyAndFinalize,
-                onDismiss = viewModel::dismissSheet,
+                onToggleAskAuthorities = { viewModel.onAction(MileageSubmissionAction.SetAskAuthorities(!form.askAuthorities)) },
+                onNoteChange = { viewModel.onAction(MileageSubmissionAction.SetViolationNote(it)) },
+                onSubmit = { viewModel.onAction(MileageSubmissionAction.ResolvePolicyAndFinalize) },
+                onDismiss = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
             )
 
         SubmissionSheet.OFFICE_PICKER ->
             OfficePickerSheet(
                 offices = form.offices,
                 query = form.officeQuery,
-                onQueryChange = viewModel::setOfficeQuery,
-                onSelect = viewModel::selectOffice,
-                onDismiss = viewModel::dismissSheet,
+                onQueryChange = { viewModel.onAction(MileageSubmissionAction.SetOfficeQuery(it)) },
+                onSelect = { viewModel.onAction(MileageSubmissionAction.SelectOffice(it)) },
+                onDismiss = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
             )
 
         SubmissionSheet.ENTITY_PICKER ->
             EntityPickerSheet(
                 entities = form.entities,
                 query = form.entityQuery,
-                onQueryChange = viewModel::setEntityQuery,
-                onSelect = viewModel::selectEntity,
-                onDismiss = viewModel::dismissSheet,
+                onQueryChange = { viewModel.onAction(MileageSubmissionAction.SetEntityQuery(it)) },
+                onSelect = { viewModel.onAction(MileageSubmissionAction.SelectEntity(it)) },
+                onDismiss = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
             )
 
         SubmissionSheet.SMART_DISTANCE ->
@@ -325,9 +327,9 @@ fun TrackSubmissionScreen(
                 explanation = smartDistanceExplanation,
                 onVerifiedChange = { smartDistanceVerified = it },
                 onExplanationChange = { smartDistanceExplanation = it },
-                onStop = viewModel::dismissSheet,
-                onContinue = viewModel::dismissSheet,
-                onDismiss = viewModel::dismissSheet,
+                onStop = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
+                onContinue = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
+                onDismiss = { viewModel.onAction(MileageSubmissionAction.DismissSheet) },
             )
 
         SubmissionSheet.NONE -> Unit
