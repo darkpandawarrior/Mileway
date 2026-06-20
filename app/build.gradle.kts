@@ -24,6 +24,16 @@ val keystoreProperties =
 val hasReleaseSigning =
     keystorePropertiesFile.exists() || System.getenv("RELEASE_STORE_FILE") != null
 
+// FLA.1: single-source versioning. The repo-root VERSION + BUILD_NUMBER files (bumped by
+// scripts/bump_version.sh) are the only place versions change. versionCode = base + BUILD_NUMBER.
+val VERSION_CODE_BASE = 1
+
+fun readVersionName(): String =
+    rootProject.file("VERSION").takeIf { it.exists() }?.readText()?.trim()?.ifEmpty { null } ?: "1.0.0"
+
+fun readBuildNumber(): Int =
+    rootProject.file("BUILD_NUMBER").takeIf { it.exists() }?.readText()?.trim()?.toIntOrNull() ?: 0
+
 android {
     namespace = "com.miletracker"
 
@@ -31,8 +41,10 @@ android {
         applicationId = "com.miletracker"
         minSdk = 30
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        // FLA.1: single-source versioning. VERSION (semver) + BUILD_NUMBER files at the repo root are the
+        // ONE place versions change (via scripts/bump_version.sh). versionCode = VERSION_CODE_BASE + BUILD_NUMBER.
+        versionCode = VERSION_CODE_BASE + readBuildNumber()
+        versionName = readVersionName()
         // Default placeholder; override in gms flavor with your real key or via local.properties.
         manifestPlaceholders["MAPS_API_KEY"] = ""
     }
