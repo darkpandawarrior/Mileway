@@ -31,6 +31,7 @@ import com.miletracker.feature.tracking.ui.components.LiveHealthMonitorCard
 import com.miletracker.feature.tracking.ui.components.LiveSyncStatusCard
 import com.miletracker.feature.tracking.ui.components.LiveTrackingOverviewCard
 import com.miletracker.feature.tracking.ui.components.RecentEventsCard
+import com.miletracker.feature.tracking.viewmodel.LiveTrackAction
 import com.miletracker.feature.tracking.viewmodel.LiveTrackViewModel
 import com.miletracker.feature.tracking.viewmodel.LiveTrackingUiState
 import org.koin.compose.viewmodel.koinViewModel
@@ -43,10 +44,11 @@ fun LiveTrackScreen(
     onOpenMap: () -> Unit,
     viewModel: LiveTrackViewModel = koinViewModel(),
 ) {
-    LaunchedEffect(Unit) { viewModel.refreshTrackingData() }
+    LaunchedEffect(Unit) { viewModel.onAction(LiveTrackAction.Refresh) }
 
-    val liveState by viewModel.liveTrackingState.collectAsState()
-    val hardwareEvents by viewModel.hardwareEventsState.collectAsState()
+    val ui by viewModel.state.collectAsState()
+    val liveState = ui.liveTrackingState
+    val hardwareEvents = ui.hardwareEventsState
 
     Scaffold(
         topBar = {
