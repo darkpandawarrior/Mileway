@@ -1,0 +1,164 @@
+name: Release
+
+# CIO.1 — manual release orchestration. Per-platform "rung" inputs pick how far to ship; each protected
+# rung runs in a GitHub Environment with required reviewers (configure in repo Settings → Environments).
+# All credentials are env-activated placeholders (CIO.2); the workflow is inert until they are set.
+on:
+  workflow_dispatch:
+    inputs:
+      android_rung:
+        description: "Android rung"
+        type: choice
+        options: [skip, firebase, internal, beta, production]
+        default: skip
+      ios_rung:
+        description: "iOS rung"
+        type: choice
+        options: [skip, testflight, appstore]
+        default: skip
+      fdroid:
+        description: "Publish the F-Droid (noGms) APK"
+        type: boolean
+        default: false
+      production_rollout:
+        description: "Play production staged rollout fraction"
+        default: "0.10"
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    if: ${{ inputs.android_rung != 'skip' }}
+    runs-on: ubuntu-latest
+    # Protected environments gate beta/production behind required reviewers.
+    environment: >-
+      ${{ inputs.android_rung == 'production' && 'play-production'
+      || (inputs.android_rung == 'beta' && 'play-beta' || 'play-internal') }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Set up Ruby (fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      # CIO.2 — materialize Android secrets from base64 env (all placeholders; documented in docs/RELEASE.md).
+      - name: Materialize Android secrets
+        run: |
+          set -euo pipefail
+          mkdir -p secrets
+          [ -n "${GOOGLE_SERVICES_B64:-}" ] && echo "$GOOGLE_SERVICES_B64" | base64 -d > app/google-services.json || true
+          [ -n "${PLAYSTORE_CREDS_B64:-}" ] && echo "$PLAYSTORE_CREDS_B64" | base64 -d > secrets/play-service-account.json || true
+          if [ -n "${KEYSTORE_B64:-}" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > secrets/upload.keystore
+            {
+              echo "RELEASE_STORE_FILE=$PWD/secrets/upload.keystore"
+              echo "RELEASE_STORE_PASSWORD=${KEYSTORE_PASSWORD:-}"
+              echo "RELEASE_KEY_ALIAS=${KEY_ALIAS:-}"
+              echo "RELEASE_KEY_PASSWORD=${KEY_PASSWORD:-}"
+            } >> "$GITHUB_ENV"
+          fi
+          echo "PLAY_STORE_KEY_FILE_PATH=$PWD/secrets/play-service-account.json" >> "$GITHUB_ENV"
+        env:
+          GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_B64 }}
+          PLAYSTORE_CREDS_B64: ${{ secrets.PLAYSTORE_CREDS_B64 }}
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      - name: Deploy (Android rung ${{ inputs.android_rung }})
+        run: |
+          set -euo pipefail
+          case "${{ inputs.android_rung }}" in
+            firebase)   bundle exec fastlane android deploy_firebase ;;
+            internal)   bundle exec fastlane android deploy_internal ;;
+            beta)       bundle exec fastlane android deploy_beta ;;
+            production) bundle exec fastlane android deploy_production ;;
+          esac
+        env:
+          ROLLOUT: ${{ inputs.production_rollout }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+
+  ios:
+    if: ${{ inputs.ios_rung != 'skip' }}
+    runs-on: macos-latest
+    environment: ${{ inputs.ios_rung == 'appstore' && 'app-store' || 'testflight' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby (fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      # CIO.2 — materialize iOS secrets from base64 env (all placeholders; documented in docs/RELEASE.md).
+      - name: Materialize iOS secrets
+        run: |
+          set -euo pipefail
+          mkdir -p secrets
+          [ -n "${GOOGLE_SERVICES_IOS_B64:-}" ] && echo "$GOOGLE_SERVICES_IOS_B64" | base64 -d > iosApp/iosApp/GoogleService-Info.plist || true
+          [ -n "${APPSTORE_AUTH_KEY_B64:-}" ] && echo "$APPSTORE_AUTH_KEY_B64" | base64 -d > secrets/AuthKey.p8 || true
+        env:
+          GOOGLE_SERVICES_IOS_B64: ${{ secrets.GOOGLE_SERVICES_IOS_B64 }}
+          APPSTORE_AUTH_KEY_B64: ${{ secrets.APPSTORE_AUTH_KEY_B64 }}
+      - name: Deploy (iOS rung ${{ inputs.ios_rung }})
+        run: |
+          set -euo pipefail
+          case "${{ inputs.ios_rung }}" in
+            testflight) bundle exec fastlane ios beta ;;
+            appstore)   bundle exec fastlane ios release ;;
+          esac
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPSTORE_AUTH_KEY_B64: ${{ secrets.APPSTORE_AUTH_KEY_B64 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+
+  fdroid:
+    if: ${{ inputs.fdroid }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build reproducible FOSS release (noGms)
+        run: ./gradlew assembleNoGmsRelease -Pfdroid --no-build-cache
+
+  # CIO.3 — Wear track. NOTE: :wear is currently a com.android.library, so there is no standalone Wear AAB
+  # to upload yet. This job builds the module; when :wear becomes a standalone Wear *application* module,
+  # switch to `:wear:bundleRelease` and upload the AAB to Play `wear:alpha` with
+  # versionCode = phone versionCode + 1 (avoids collision with the phone track — biciradar pattern).
+  wear:
+    if: ${{ inputs.android_rung == 'beta' || inputs.android_rung == 'production' }}
+    needs: android
+    runs-on: ubuntu-latest
+    environment: play-wear
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build the Wear module
+        run: ./gradlew :wear:assembleRelease
+      # When :wear is an application module, replace the step above with:
+      #   ./gradlew :wear:bundleRelease -PwearVersionCodeOffset=1
+      #   bundle exec fastlane run upload_to_play_store track:"wear:alpha" \
+      #     aab:"wear/build/outputs/bundle/release/wear-release.aab" \
+      #     json_key:"$PLAY_STORE_KEY_FILE_PATH" skip_upload_apk:"true"
