@@ -65,6 +65,8 @@ import com.miletracker.core.ui.theme.MileTrackerTheme
 import com.miletracker.core.ui.theme.ThemeController
 import com.miletracker.feature.approvals.ui.navigation.ApprovalsRoutes
 import com.miletracker.feature.approvals.ui.navigation.approvalsGraph
+import com.miletracker.feature.cards.ui.navigation.CardRoutes
+import com.miletracker.feature.cards.ui.navigation.cardsGraph
 import com.miletracker.feature.payables.ui.navigation.PayablesRoutes
 import com.miletracker.feature.payables.ui.navigation.payablesGraph
 import com.miletracker.feature.agent.ui.navigation.agentGraph
@@ -266,7 +268,12 @@ fun MileTrackerAppRoot(
                         profileGraph(
                             navController = navController,
                             onOpenDebugMenu = { navController.navigate(AppRoutes.DEBUG_MENU) },
+                            onOpenCards = { navController.navigate(AppGraph.CARDS) },
                         )
+                    }
+                    // Corporate cards feature module (replaces the old profile card screens).
+                    navigation(startDestination = CardRoutes.HOME, route = AppGraph.CARDS) {
+                        cardsGraph(navController)
                     }
                     composable(AppGraph.TRAVEL) {
                         TravelHomeScreen()
