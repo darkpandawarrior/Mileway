@@ -1,8 +1,10 @@
 package com.miletracker
 
+import com.miletracker.core.platform.AnalyticsHelper
 import com.miletracker.core.platform.AppReviewManagerFactory
 import com.miletracker.core.platform.AppUpdateManagerFactory
 import com.miletracker.core.platform.LocalReferralManager
+import com.miletracker.core.platform.LoggingAnalyticsHelper
 import com.miletracker.core.platform.PlatformBindings
 import com.miletracker.core.platform.ReferralManager
 import org.koin.core.module.Module
@@ -21,4 +23,6 @@ fun platformServicesKoinModule(): Module =
         single<AppReviewManagerFactory> { AppReviewManagerFactory { PlatformBindings().appReviewManager } }
         // RF.2: F-Droid has no Install Referrer → the shared local manager (code gen + manual redemption only).
         single<ReferralManager> { get<LocalReferralManager>() }
+        // CF.3: FOSS analytics = Napier logging (no proprietary backend).
+        single<AnalyticsHelper> { LoggingAnalyticsHelper() }
     }

@@ -253,10 +253,11 @@ dependencies {
     "gmsImplementation"(libs.play.review)
     "gmsImplementation"(libs.play.review.ktx)
 
-    // V15 FCM.2: Firebase Cloud Messaging — gms flavor ONLY (proprietary). noGms gets no firebase runtime;
+    // V15 FCM.2/CF.3: Firebase — gms flavor ONLY (proprietary). noGms gets no firebase runtime;
     // VerifyDependencyPrefixes (FLFD.2) enforces that on noGmsReleaseRuntimeClasspath.
     "gmsImplementation"(platform(libs.firebase.bom))
     "gmsImplementation"(libs.firebase.messaging)
+    "gmsImplementation"(libs.firebase.analytics)
 
     // V15 RF.2: Install Referrer — Play-Store-only attribution, gms flavor ONLY (noGms/F-Droid has none).
     "gmsImplementation"(libs.install.referrer)
