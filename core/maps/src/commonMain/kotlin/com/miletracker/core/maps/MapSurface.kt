@@ -55,6 +55,8 @@ interface MapSurface {
         autoCenterEnabled: Boolean,
         playbackCoord: MapCoordinate?,
         showIssueMarkers: Boolean,
+        showCompass: Boolean = true,
+        showTraffic: Boolean = false,
         modifier: Modifier = Modifier,
     )
 }
