@@ -240,6 +240,7 @@ dependencies {
     implementation(project(":feature:payables"))
     implementation(project(":feature:travel"))
     implementation(project(":feature:agent"))
+    implementation(project(":feature:cards"))
     implementation(project(":stub"))
 
     implementation(libs.core.ktx)
