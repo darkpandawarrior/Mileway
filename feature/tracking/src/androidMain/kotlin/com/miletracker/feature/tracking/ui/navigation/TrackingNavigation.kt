@@ -31,6 +31,7 @@ import com.miletracker.feature.tracking.ui.screens.TrackMilesScreen
 import com.miletracker.feature.tracking.ui.screens.TrackSettingsScreen
 import com.miletracker.feature.tracking.ui.screens.TrackSubmissionScreen
 import com.miletracker.feature.tracking.ui.screens.TrackingSuccessScreen
+import com.miletracker.feature.tracking.viewmodel.MileageSubmissionAction
 import com.miletracker.feature.tracking.viewmodel.MileageSubmissionViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -254,13 +255,15 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
 
         androidx.compose.runtime.LaunchedEffect(odoStartReading) {
             if (odoStartReading != -1) {
-                viewModel.captureOdometerStart(
-                    OdometerCaptureResult(
-                        purpose = OdometerPurpose.START,
-                        imageUri = sh.get<String>("odo_start_uri") ?: "",
-                        reading = odoStartReading,
-                        isManual = sh.get<Boolean>("odo_start_manual") ?: false,
-                        captureTimeMs = sh.get<Long>("odo_start_time") ?: 0L,
+                viewModel.onAction(
+                    MileageSubmissionAction.CaptureOdometerStart(
+                        OdometerCaptureResult(
+                            purpose = OdometerPurpose.START,
+                            imageUri = sh.get<String>("odo_start_uri") ?: "",
+                            reading = odoStartReading,
+                            isManual = sh.get<Boolean>("odo_start_manual") ?: false,
+                            captureTimeMs = sh.get<Long>("odo_start_time") ?: 0L,
+                        ),
                     ),
                 )
                 sh.remove<Int>("odo_start_reading")
@@ -268,13 +271,15 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
         }
         androidx.compose.runtime.LaunchedEffect(odoEndReading) {
             if (odoEndReading != -1) {
-                viewModel.captureOdometerEnd(
-                    OdometerCaptureResult(
-                        purpose = OdometerPurpose.END,
-                        imageUri = sh.get<String>("odo_end_uri") ?: "",
-                        reading = odoEndReading,
-                        isManual = sh.get<Boolean>("odo_end_manual") ?: false,
-                        captureTimeMs = sh.get<Long>("odo_end_time") ?: 0L,
+                viewModel.onAction(
+                    MileageSubmissionAction.CaptureOdometerEnd(
+                        OdometerCaptureResult(
+                            purpose = OdometerPurpose.END,
+                            imageUri = sh.get<String>("odo_end_uri") ?: "",
+                            reading = odoEndReading,
+                            isManual = sh.get<Boolean>("odo_end_manual") ?: false,
+                            captureTimeMs = sh.get<Long>("odo_end_time") ?: 0L,
+                        ),
                     ),
                 )
                 sh.remove<Int>("odo_end_reading")
@@ -294,13 +299,13 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
             },
             onBack = { navController.popBackStack() },
             onNavigateToOdometerStart = {
-                val startReading = viewModel.form.value.simulatedStartOdo ?: 45_000
+                val startReading = viewModel.state.value.form.simulatedStartOdo ?: 45_000
                 navController.navigate(
                     TrackingRoutes.odometerCamera("START", distKm, startReading),
                 )
             },
             onNavigateToOdometerEnd = {
-                val startReading = viewModel.form.value.simulatedStartOdo ?: 45_000
+                val startReading = viewModel.state.value.form.simulatedStartOdo ?: 45_000
                 navController.navigate(
                     TrackingRoutes.odometerCamera("END", distKm, startReading),
                 )
