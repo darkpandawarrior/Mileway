@@ -1,3 +1,4 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -331,4 +332,65 @@ dependencies {
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
+}
+
+// ─── FLFD.2 — Proprietary-dependency guard for the noGms (F-Droid) release ───────────────────────────
+// Fails if a proprietary dep matching a forbidden prefix leaks into noGmsReleaseRuntimeClasspath, EXCEPT
+// the allowlisted pre-existing prime-feature deps (FusedLocation + ML Kit OCR, used by BOTH flavors —
+// making those FOSS is out of V15 scope; guardrail: don't touch the prime feature). The guard's purpose is
+// to keep V15's NEW proprietary additions (Firebase messaging/analytics/crashlytics, Play app-update,
+// Play review, Install Referrer) out of the FOSS build.
+// Inside afterEvaluate so the AGP-created variant configuration exists when we look it up.
+afterEvaluate {
+    val forbiddenPrefixes =
+        listOf(
+            "com.google.android.gms",
+            "com.google.android.play",
+            "com.google.firebase",
+            "com.google.maps.android",
+            "com.android.installreferrer",
+        )
+    val allowlist =
+        setOf(
+            // Pre-existing FusedLocation chain (core:platform AndroidLocationTracker).
+            "com.google.android.gms:play-services-location",
+            "com.google.android.gms:play-services-base",
+            "com.google.android.gms:play-services-basement",
+            "com.google.android.gms:play-services-tasks",
+            // Pre-existing ML Kit OCR (core:platform AndroidTextRecognizer / doc scanner).
+            "com.google.android.gms:play-services-mlkit-document-scanner",
+            "com.google.android.gms:play-services-mlkit-text-recognition",
+            "com.google.android.gms:play-services-mlkit-text-recognition-common",
+            // Transitive Firebase infra pulled by the play-services libs above (NOT messaging/analytics/crashlytics).
+            "com.google.firebase:firebase-annotations",
+            "com.google.firebase:firebase-components",
+            "com.google.firebase:firebase-encoders",
+            "com.google.firebase:firebase-encoders-json",
+        )
+    val verifyTask =
+        tasks.register("verifyNoGmsDependencyPrefixes") {
+            group = "verification"
+            description = "Fails if a proprietary dependency leaks into the noGms (F-Droid) release classpath."
+            // Resolves the variant classpath at execution time via the component graph (not artifacts, which
+            // would hit variant-attribute ambiguity for project deps).
+            notCompatibleWithConfigurationCache("Resolves the noGmsReleaseRuntimeClasspath component graph")
+            doLast {
+                val deps =
+                    configurations.getByName("noGmsReleaseRuntimeClasspath")
+                        .incoming.resolutionResult.allComponents
+                        .mapNotNull { it.id as? ModuleComponentIdentifier }
+                        .map { "${it.group}:${it.module}" }
+                val violations =
+                    deps
+                        .filter { dep -> forbiddenPrefixes.any { dep.startsWith(it) } && dep !in allowlist }
+                        .distinct()
+                if (violations.isNotEmpty()) {
+                    throw GradleException(
+                        "noGms (F-Droid) release leaks proprietary dependencies: $violations",
+                    )
+                }
+            }
+        }
+    tasks.named("check").configure { dependsOn(verifyTask) }
+    tasks.matching { it.name == "assembleNoGmsRelease" }.configureEach { dependsOn(verifyTask) }
 }
