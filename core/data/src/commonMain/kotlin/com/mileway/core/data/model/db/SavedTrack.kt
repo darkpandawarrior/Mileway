@@ -135,6 +135,10 @@ data class SavedTrack(
     val transId: String? = null,
     @ColumnInfo(name = "has_local_data")
     val hasLocalData: Boolean = true,
+    // P3.3: set to the voucher's number once this trip has been selected into a submitted
+    // voucher, so it can't fund a second one (mirrors a common server-side remaining-voucher-count
+    // check). Null means "unclaimed, still eligible".
+    val claimedByVoucherNumber: String? = null,
 ) {
     init {
         require(routeId.isNotBlank()) { "RouteId cannot be blank" }
