@@ -43,7 +43,7 @@ jobs:
       # Kotlin/Native toolchain (~1 GB) lives outside ~/.gradle and must be cached separately.
       # Key on libs.versions.toml so it invalidates when the Kotlin or KMP version changes.
       - name: Cache Kotlin/Native toolchain
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: ${{ runner.os }}-konan-v1-${{ hashFiles('gradle/libs.versions.toml') }}
@@ -213,7 +213,7 @@ jobs:
           cache-cleanup: on-success
 
       - name: Cache Kotlin/Native toolchain
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: ${{ runner.os }}-konan-v1-${{ hashFiles('gradle/libs.versions.toml') }}
