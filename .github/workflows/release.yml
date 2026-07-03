@@ -36,7 +36,7 @@ jobs:
       ${{ inputs.android_rung == 'production' && 'play-production'
       || (inputs.android_rung == 'beta' && 'play-beta' || 'play-internal') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -92,7 +92,7 @@ jobs:
     runs-on: macos-latest
     environment: ${{ inputs.ios_rung == 'appstore' && 'app-store' || 'testflight' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Ruby (fastlane)
         uses: ruby/setup-ruby@v1
         with:
@@ -126,7 +126,7 @@ jobs:
     if: ${{ inputs.fdroid }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -147,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: play-wear
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
