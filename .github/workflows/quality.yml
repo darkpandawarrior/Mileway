@@ -74,14 +74,14 @@ jobs:
         run: ./gradlew dependencyGuard
 
       - name: Upload kover coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: kover-report
           path: app/build/reports/kover/reportNoGmsDebugCoverage.xml
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results
