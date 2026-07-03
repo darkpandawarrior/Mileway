@@ -62,7 +62,7 @@ kover = "0.9.8"
 ktlint-plugin = "12.2.0"
 # Build health + dependency locking
 dependency-guard = "0.5.0"
-gradle-doctor = "0.12.0"
+gradle-doctor = "0.12.1"
 profileinstaller = "1.4.1"
 # G2: macrobenchmark + baseline-profile generator. Alpha is required for AGP 9.2 compatibility
 # (stable 1.4.1 predates AGP 9), consistent with this repo's bleeding-edge toolchain.
