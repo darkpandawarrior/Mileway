@@ -1,9 +1,5 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues>
-    <ID>MagicNumber:KrossMapSurface.kt$KrossMapSurface$0xFF1565C0</ID>
-    <ID>MagicNumber:KrossMapSurface.kt$KrossMapSurface$0xFFD32F2F</ID>
-    <ID>MagicNumber:KrossMapSurface.kt$KrossMapSurface$0xFFFF9800</ID>
-  </CurrentIssues>
+  <CurrentIssues/>
 </SmellBaseline>

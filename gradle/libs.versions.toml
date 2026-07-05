@@ -57,7 +57,7 @@ navigation3 = "1.1.4"
 storytale = "0.0.5-alpha01+dev24"
 navgraph = "0.1.2"
 # Phase 12, Code quality
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.5"
 kover = "0.9.8"
 ktlint-plugin = "12.2.0"
 # Build health + dependency locking
@@ -266,7 +266,7 @@ storytale = { id = "org.jetbrains.compose.storytale", version.ref = "storytale" 
 navgraph = { id = "com.github.skydoves.navgraph", version.ref = "navgraph" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 # Phase 12: Code quality
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-plugin" }
 # Build health
