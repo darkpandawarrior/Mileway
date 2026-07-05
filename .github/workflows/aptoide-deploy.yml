@@ -15,24 +15,29 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ !!secrets.APTOIDE_API_KEY }}
     env:
+      HAS_SECRET: ${{ secrets.APTOIDE_API_KEY != '' }}
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
       - uses: actions/checkout@v7
+        if: env.HAS_SECRET == 'true'
 
       - name: Set up JDK 21
+        if: env.HAS_SECRET == 'true'
         uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle
+        if: env.HAS_SECRET == 'true'
         uses: gradle/actions/setup-gradle@v6
 
       - run: chmod +x ./gradlew
+        if: env.HAS_SECRET == 'true'
 
       - name: Materialize signing secrets
+        if: env.HAS_SECRET == 'true'
         run: |
           set -euo pipefail
           mkdir -p secrets
@@ -52,9 +57,11 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build release APK (Gms)
+        if: env.HAS_SECRET == 'true'
         run: ./gradlew :app:assembleGmsRelease
 
       - name: Upload to Aptoide
+        if: env.HAS_SECRET == 'true'
         run: |
           set -euo pipefail
           curl -sf -X POST "https://uploader.catappult.io/api" \

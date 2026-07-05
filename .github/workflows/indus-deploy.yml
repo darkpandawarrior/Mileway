@@ -16,25 +16,30 @@ jobs:
   deploy:
     name: Build & deploy AAB
     runs-on: ubuntu-latest
-    if: ${{ !!secrets.INDUS_API_KEY }}
     env:
+      HAS_SECRET: ${{ secrets.INDUS_API_KEY != '' }}
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
       - uses: actions/checkout@v7
+        if: env.HAS_SECRET == 'true'
 
       - name: Set up JDK 21
+        if: env.HAS_SECRET == 'true'
         uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle
+        if: env.HAS_SECRET == 'true'
         uses: gradle/actions/setup-gradle@v6
 
       - run: chmod +x ./gradlew
+        if: env.HAS_SECRET == 'true'
 
       # Materialize signing secrets from base64 repo secrets (placeholders until configured).
       - name: Materialize signing secrets
+        if: env.HAS_SECRET == 'true'
         run: |
           set -euo pipefail
           mkdir -p secrets
@@ -56,9 +61,11 @@ jobs:
       # Indus targets the Play-equivalent Gms flavor (Maps/Firebase intact) — the noGms flavor is
       # F-Droid-only (see publish-fdroid.yml).
       - name: Build release AAB (Gms)
+        if: env.HAS_SECRET == 'true'
         run: ./gradlew :app:bundleGmsRelease
 
       - name: Deploy to Indus Appstore
+        if: env.HAS_SECRET == 'true'
         uses: PhonePe/Indus-Flows@v1
         with:
           app_bundle_path: 'app/build/outputs/bundle/gmsRelease/app-gms-release.aab'
