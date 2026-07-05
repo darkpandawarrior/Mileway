@@ -1,5 +1,5 @@
 plugins {
-    id("mileway.kmp.library")
+    id("shared.kmp.library")
     alias(libs.plugins.kotlinSerialization)
 }
 

@@ -1,5 +1,5 @@
 plugins {
-    id("mileway.kmp.compose")
+    id("shared.kmp.compose")
     id("mileway.kmp.desktop")
 }
 
