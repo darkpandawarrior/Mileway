@@ -1,0 +1,50 @@
+name: No AI attribution
+
+# Fails if any commit message introduced by a push or PR carries AI/assistant
+# attribution (e.g. "Co-Authored-By: Claude", "🤖 Generated with ..."). Mirrors
+# the local .githooks/commit-msg guard so nothing slips through --no-verify or
+# a clone that never enabled the hook.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan-commit-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan commit messages
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -eu
+          PATTERN='co-authored-by:.*(claude|anthropic|openai|copilot|chatgpt)|generated with .{0,4}(claude|copilot|chatgpt|cursor)|🤖 generated'
+          if [ "$EVENT" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_REF" >/dev/null 2>&1 || true
+            RANGE="origin/${BASE_REF}..${PR_HEAD}"
+          else
+            ZERO=0000000000000000000000000000000000000000
+            if [ -z "${BEFORE:-}" ] || [ "$BEFORE" = "$ZERO" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+              RANGE="${AFTER}"
+            else
+              RANGE="${BEFORE}..${AFTER}"
+            fi
+          fi
+          echo "Scanning commit messages in: $RANGE"
+          BAD=$(git log "$RANGE" --format='---%n%H %s%n%b' | grep -niE "$PATTERN" || true)
+          if [ -n "$BAD" ]; then
+            echo "::error::Commit message(s) contain AI/assistant attribution. Remove it (git commit --amend / rebase) and re-push."
+            echo "$BAD"
+            exit 1
+          fi
+          echo "OK — no AI/assistant attribution found."

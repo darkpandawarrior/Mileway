@@ -1,0 +1,16 @@
+#!/bin/sh
+# Reject commit messages carrying AI/assistant attribution.
+# Installed via `git config core.hooksPath .githooks`. Mirrors the CI guard
+# in .github/workflows/no-ai-attribution.yml so nothing slips through locally.
+msg_file="$1"
+pattern='co-authored-by:.*(claude|anthropic|openai|copilot|chatgpt)|generated with .{0,4}(claude|copilot|chatgpt|cursor)|🤖 generated'
+if grep -qiE "$pattern" "$msg_file"; then
+  echo "" >&2
+  echo "✗ Commit blocked: the message contains AI/assistant attribution." >&2
+  echo "  Offending line(s):" >&2
+  grep -niE "$pattern" "$msg_file" | sed 's/^/    /' >&2
+  echo "  Remove the attribution (e.g. 'Co-Authored-By: Claude', '🤖 Generated with...') and commit again." >&2
+  echo "" >&2
+  exit 1
+fi
+exit 0
