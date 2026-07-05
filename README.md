@@ -250,9 +250,9 @@ watch emulator needed.
 #### Compose Desktop
 
 A thin Compose Desktop window over the same shared `core:{data,ui}` dashboard model as the phone
-and watch — no `feature:tracking`/Room repository, fixed mock trips instead (see CLAUDE.md "The
-backend"). Rendered host-side with Compose Multiplatform's `runDesktopComposeUiTest`, no windowing
-system required.
+and watch — no `feature:tracking`/Room repository, fixed mock trips instead (a deliberate sequencing
+choice, not a permanent one). Rendered host-side with Compose Multiplatform's
+`runDesktopComposeUiTest`, no windowing system required.
 
 | &nbsp; |
 |:---:|
@@ -501,10 +501,10 @@ hoisting, iOS parity, the AI assistant rebuild, etc.). Progress is tracked per i
   (the `gms` flavor crashes Robolectric, so unit tests only run on `noGms`.)
 - **Guardrail:** the Ralph Stop hook reverts uncommitted *tracked* edits between turns — each
   iteration must edit, build/test, and commit within the same turn, or the change is lost.
-- Historical note: earlier plan revisions (and `CLAUDE.md`/`AGENTS.md`) reference the original,
-  pre-flavor bootstrap commands `assembleDebug` / `testDebugUnitTest` from when this repo was a
-  bare single-variant extraction of the mileage feature; those tasks are long complete and the
-  flavored commands above are what CI and current Ralph runs actually use.
+- Historical note: earlier plan revisions reference the original, pre-flavor bootstrap commands
+  `assembleDebug` / `testDebugUnitTest` from when this repo was a bare single-variant extraction of
+  the mileage feature; those tasks are long complete and the flavored commands above are what CI
+  and current Ralph runs actually use.
 
 ## Testing and quality
 
