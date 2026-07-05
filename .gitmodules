@@ -1,0 +1,3 @@
+[submodule "external/kmp-build-logic"]
+	path = external/kmp-build-logic
+	url = https://github.com/darkpandawarrior/kmp-build-logic

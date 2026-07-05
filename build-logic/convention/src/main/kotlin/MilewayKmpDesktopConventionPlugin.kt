@@ -15,7 +15,13 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  */
 class MilewayKmpDesktopConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
-        pluginManager.apply("mileway.kmp.library")
+        // mileway.kmp.library (now shared.kmp.library, in the external kmp-build-logic composite
+        // build) already applies org.jetbrains.kotlin.multiplatform + the AGP KMP-library plugin.
+        // A composite build's plugin markers aren't visible to a sibling included build's own
+        // pluginManager.apply() calls, so this can no longer resolve "shared.kmp.library" by id here —
+        // but every consumer of mileway.kmp.desktop (core:ui, core:platform, core:common, core:data)
+        // already applies shared.kmp.compose/shared.kmp.library or mileway.kmp.library.watchos
+        // alongside it, which applies those plugins itself. Nothing left to re-apply here.
         extensions.configure<KotlinMultiplatformExtension> {
             applyDefaultHierarchyTemplate()
             jvm("desktop")

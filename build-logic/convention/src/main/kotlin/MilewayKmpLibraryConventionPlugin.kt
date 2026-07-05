@@ -34,8 +34,18 @@ class MilewayKmpLibraryConventionPlugin : Plugin<Project> {
  */
 class MilewayKmpLibraryWatchosConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
-        pluginManager.apply("mileway.kmp.library")
+        // mileway.kmp.library moved to the shared build-logic repo (shared.kmp.library). A composite
+        // build's plugin markers are only visible to the *root* build's plugins{} resolution, not to
+        // a sibling included build's own pluginManager.apply() calls — so `apply("shared.kmp.library")`
+        // can't resolve from here. Inline the same two plugin applies SharedKmpLibraryConventionPlugin
+        // wraps instead of routing through the id.
+        with(pluginManager) {
+            apply("org.jetbrains.kotlin.multiplatform")
+            apply("com.android.kotlin.multiplatform.library")
+        }
         extensions.configure<KotlinMultiplatformExtension> {
+            iosArm64()
+            iosSimulatorArm64()
             applyDefaultHierarchyTemplate()
             watchosArm64()
             watchosSimulatorArm64()

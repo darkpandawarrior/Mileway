@@ -28,10 +28,10 @@ tasks.validatePlugins {
 
 gradlePlugin {
     plugins {
-        register("kmpLibrary") {
-            id = "mileway.kmp.library"
-            implementationClass = "MilewayKmpLibraryConventionPlugin"
-        }
+        // mileway.kmp.library, mileway.kmp.compose, mileway.cmp.feature, mileway.android.application,
+        // and mileway.test moved to the shared kmp-build-logic repo (shared.*) — see
+        // external/kmp-build-logic. Their Mileway*ConventionPlugin.kt sources are left in place
+        // (unregistered, not yet deleted) pending the follow-up cleanup commit.
         register("kmpLibraryWatchos") {
             id = "mileway.kmp.library.watchos"
             implementationClass = "MilewayKmpLibraryWatchosConventionPlugin"
@@ -40,25 +40,9 @@ gradlePlugin {
             id = "mileway.kmp.desktop"
             implementationClass = "MilewayKmpDesktopConventionPlugin"
         }
-        register("kmpCompose") {
-            id = "mileway.kmp.compose"
-            implementationClass = "MilewayKmpComposeConventionPlugin"
-        }
         register("androidLibrary") {
             id = "mileway.android.library"
             implementationClass = "MilewayAndroidLibraryConventionPlugin"
-        }
-        register("androidApplication") {
-            id = "mileway.android.application"
-            implementationClass = "MilewayAndroidApplicationConventionPlugin"
-        }
-        register("cmpFeature") {
-            id = "mileway.cmp.feature"
-            implementationClass = "MilewayCmpFeatureConventionPlugin"
-        }
-        register("test") {
-            id = "mileway.test"
-            implementationClass = "MilewayTestConventionPlugin"
         }
     }
 }
