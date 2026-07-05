@@ -278,10 +278,10 @@ com.materialkolor:material-color-utilities-android:4.1.1
 com.materialkolor:material-color-utilities:4.1.1
 com.materialkolor:material-kolor-android:4.1.1
 com.materialkolor:material-kolor:4.1.1
-com.mikepenz:multiplatform-markdown-renderer-android:0.41.0
-com.mikepenz:multiplatform-markdown-renderer-m3-android:0.41.0
-com.mikepenz:multiplatform-markdown-renderer-m3:0.41.0
-com.mikepenz:multiplatform-markdown-renderer:0.41.0
+com.mikepenz:multiplatform-markdown-renderer-android:0.43.0
+com.mikepenz:multiplatform-markdown-renderer-m3-android:0.43.0
+com.mikepenz:multiplatform-markdown-renderer-m3:0.43.0
+com.mikepenz:multiplatform-markdown-renderer:0.43.0
 com.squareup.okio:okio-jvm:3.17.0
 com.squareup.okio:okio:3.17.0
 dev.brewkits:kmpworkmanager-android:3.0.1
@@ -365,8 +365,8 @@ org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22
 org.jetbrains.kotlin:kotlin-stdlib:2.4.0
 org.jetbrains.kotlinx:atomicfu-jvm:0.28.0
 org.jetbrains.kotlinx:atomicfu:0.28.0
-org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0
-org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0
+org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.5.0
+org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.0
 org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0
 org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0
 org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0
@@ -381,6 +381,6 @@ org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0
 org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.11.0
 org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0
 org.jetbrains:annotations:23.0.0
-org.jetbrains:markdown-jvm:0.7.3
-org.jetbrains:markdown:0.7.3
+org.jetbrains:markdown-jvm:0.7.5
+org.jetbrains:markdown:0.7.5
 org.jspecify:jspecify:1.0.0
