@@ -3,9 +3,9 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    id("mileway.android.application")
+    id("shared.android.application")
     // H.8: bundles the generic JVM unit-test stack (JUnit, MockK, coroutines-test, Turbine, Koin-test).
-    id("mileway.test")
+    id("shared.test")
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.navgraph)

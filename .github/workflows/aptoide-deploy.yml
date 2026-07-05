@@ -20,6 +20,8 @@ jobs:
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive
         if: env.HAS_SECRET == 'true'
 
       - name: Set up JDK 21

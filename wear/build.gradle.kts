@@ -1,8 +1,8 @@
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
 plugins {
-    id("mileway.android.application")
-    id("mileway.test")
+    id("shared.android.application")
+    id("shared.test")
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.roborazzi)
 }

@@ -1,5 +1,6 @@
 pluginManagement {
     includeBuild("build-logic")
+    includeBuild("external/kmp-build-logic")
     repositories {
         google {
             content {

@@ -1,5 +1,5 @@
 plugins {
-    id("mileway.cmp.feature")
+    id("shared.cmp.feature")
 }
 
 kotlin {
