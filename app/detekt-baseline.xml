@@ -2,43 +2,22 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>CyclomaticComplexMethod:AssistantHomeSheet.kt$@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun AssistantHomeSheet( onDismiss: () -&gt; Unit, viewModel: AgentViewModel = koinViewModel(), )</ID>
-    <ID>EmptyFunctionBlock:FakeShareSheet.kt$FakeShareSheet${}</ID>
-    <ID>EmptyFunctionBlock:FakeSpeechToText.kt$FakeSpeechToText${}</ID>
-    <ID>EmptyFunctionBlock:FakeTextToSpeech.kt$FakeTextToSpeech${}</ID>
-    <ID>LargeClass:ScreenshotGalleryTest.kt$ScreenshotGalleryTest</ID>
-    <ID>LongMethod:DatabaseSeeder.kt$DatabaseSeeder$private fun demoTracks(): List&lt;SavedTrack&gt;</ID>
-    <ID>LongParameterList:HomeScreen.kt$( onStartTracking: () -&gt; Unit, onAddExpense: () -&gt; Unit, onOpenAccount: () -&gt; Unit, onOpenSearch: () -&gt; Unit = onOpenAccount, onOpenAgent: (() -&gt; Unit)? = null, viewModel: HomeViewModel = koinViewModel(), reviewTracker: ReviewTracker = koinInject(), featureFlags: FeatureFlags = koinInject(), )</ID>
-    <ID>LongParameterList:InsightsAnalyzerTest.kt$InsightsAnalyzerTest$( distance: Double = 10_000.0, duration: Long = 600_000L, // 10 min totalPoints: Long = 120L, cleanedDistance: Double = 9_500.0, originalDistance: Double = 10_000.0, mockDistance: Double = 0.0, abnormalDistance: Double = 0.0, avgSpeed: Double = 16.67, // ~60 km/h wasMockLocationUsed: Boolean = false, wasBatteryOptimizationEnabled: Boolean = false, wasPowerSaverEnabled: Boolean = false, wasAppKilled: Boolean = false, wasPermissionsViolated: Boolean = false, wasPhoneShutDown: Boolean = false, totalBatteryOptimizationOnTime: Long = 0L, totalPowerSaverOnTime: Long = 0L )</ID>
-    <ID>LongParameterList:InsightsAnalyzerTest.kt$InsightsAnalyzerTest$( lat: Double, lng: Double, timeMs: Long, speed: Float = 16.67f, // ~60 km/h → DRIVING isMock: Boolean = false, isAbnormal: Boolean = false, accuracy: Float = 10f, batteryPct: Double = 80.0, wasCapturedWhenNoNetwork: Boolean = false, isPaused: Boolean = false )</ID>
-    <ID>LongParameterList:LoginScreen.kt$( email: String, onEmailChange: (String) -&gt; Unit, password: String, onPasswordChange: (String) -&gt; Unit, passwordVisible: Boolean, onTogglePasswordVisible: () -&gt; Unit, emailError: Boolean, passwordError: Boolean, enabled: Boolean, onImeDone: () -&gt; Unit, )</ID>
-    <ID>LongParameterList:MasterSearchScreen.kt$( state: MasterSearchUiState, availableTypes: List&lt;SearchEntityType&gt;, onBack: () -&gt; Unit, onQueryChange: (String) -&gt; Unit, onSelectScope: (Int) -&gt; Unit, onToggleType: (SearchEntityType) -&gt; Unit, onClearFilters: () -&gt; Unit, onResultClick: (SearchResult) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
-    <ID>MagicNumber:AssistantHomeSheet.kt$500</ID>
-    <ID>MagicNumber:DatabaseSeeder.kt$DatabaseSeeder$12</ID>
-    <ID>MagicNumber:DatabaseSeeder.kt$DatabaseSeeder$7</ID>
-    <ID>MagicNumber:DatabaseSeeder.kt$DatabaseSeeder$86_400_000L</ID>
-    <ID>MagicNumber:HomeComponents.kt$0.55f</ID>
-    <ID>MagicNumber:HomeComponents.kt$0.7f</ID>
-    <ID>MagicNumber:HomeComponents.kt$3</ID>
-    <ID>MagicNumber:HomeComponents.kt$4000L</ID>
-    <ID>MagicNumber:HomeComponents.kt$50</ID>
-    <ID>MagicNumber:LoginScreen.kt$0.9f</ID>
-    <ID>MagicNumber:SplashScreen.kt$0.06f</ID>
-    <ID>MagicNumber:SplashScreen.kt$0.07f</ID>
-    <ID>MagicNumber:SplashScreen.kt$0.12f</ID>
-    <ID>MagicNumber:SplashScreen.kt$0.18f</ID>
-    <ID>MagicNumber:SplashScreen.kt$0.94f</ID>
-    <ID>MagicNumber:SplashScreen.kt$220</ID>
-    <ID>ReturnCount:LauncherActivity.kt$private fun Intent.deepLinkRoute(): String?</ID>
-    <ID>TooManyFunctions:HomeComponents.kt$com.mileway.ui.home.HomeComponents.kt</ID>
-    <ID>TooManyFunctions:NavGraphScreens.kt$com.mileway.navgraph.NavGraphScreens.kt</ID>
-    <ID>UnusedParameter:HomeComponents.kt$leadingIcon: ImageVector</ID>
-    <ID>UnusedParameter:MasterSearchScreen.kt$onClearFilters: () -&gt; Unit</ID>
-    <ID>UnusedPrivateMember:HomeComponents.kt$@Composable private fun WorldMapDotGrid( modifier: Modifier = Modifier, dotColor: Color = Color.White.copy(alpha = 0.1f), )</ID>
-    <ID>UnusedPrivateMember:HomeComponents.kt$@androidx.compose.ui.tooling.preview.Preview( showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES, name = "Home Header – dark", ) @Composable private fun PreviewHomeProfileHeaderDark()</ID>
-    <ID>UnusedPrivateMember:HomeComponents.kt$@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Home Header – light") @Composable private fun PreviewHomeProfileHeader()</ID>
-    <ID>UnusedPrivateMember:HomeComponents.kt$@androidx.compose.ui.tooling.preview.Preview(showBackground = true, name = "Section Header") @Composable private fun PreviewHomeSectionHeader()</ID>
-    <ID>UnusedPrivateProperty:DebugMenuTest.kt$DebugMenuTest$val initial: Map&lt;String, Boolean&gt; = allTrackingKeys.associateWith { true }</ID>
-    <ID>UnusedPrivateProperty:HomeScreen.kt$val scope = rememberCoroutineScope()</ID>
+    <ID>CyclomaticComplexMethod:AssistantHomeSheet.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun AssistantHomeSheet</ID>
+    <ID>EmptyFunctionBlock:FakeShareSheet.kt:FakeShareSheet${}</ID>
+    <ID>EmptyFunctionBlock:FakeSpeechToText.kt:FakeSpeechToText${}</ID>
+    <ID>EmptyFunctionBlock:FakeTextToSpeech.kt:FakeTextToSpeech${}</ID>
+    <ID>LargeClass:ScreenshotGalleryTest.kt:ScreenshotGalleryTest</ID>
+    <ID>LongMethod:DatabaseSeeder.kt:DatabaseSeeder$private fun demoTracks: List&lt;SavedTrack&gt;</ID>
+    <ID>MagicNumber:HomeComponents.kt:0.7f</ID>
+    <ID>MagicNumber:HomeComponents.kt:3</ID>
+    <ID>MagicNumber:HomeComponents.kt:4000L</ID>
+    <ID>MagicNumber:HomeComponents.kt:50</ID>
+    <ID>MagicNumber:LoginScreen.kt:0.9f</ID>
+    <ID>MagicNumber:SplashScreen.kt:220</ID>
+    <ID>ReturnCount:LauncherActivity.kt:private fun Intent.deepLinkRoute: String?</ID>
+    <ID>TooManyFunctions:HomeComponents.kt:com.mileway.ui.home.HomeComponents.kt</ID>
+    <ID>TooManyFunctions:NavGraphScreens.kt:com.mileway.navgraph.NavGraphScreens.kt</ID>
+    <ID>UnusedParameter:HomeComponents.kt:leadingIcon: ImageVector</ID>
+    <ID>UnusedParameter:MasterSearchScreen.kt:onClearFilters: () -&gt; Unit</ID>
   </CurrentIssues>
 </SmellBaseline>
