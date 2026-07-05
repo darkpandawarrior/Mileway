@@ -20,24 +20,29 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ !!secrets.SAMSUNG_ACCESS_TOKEN }}
     env:
+      HAS_SECRET: ${{ secrets.SAMSUNG_ACCESS_TOKEN != '' }}
       GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
       - uses: actions/checkout@v7
+        if: env.HAS_SECRET == 'true'
 
       - name: Set up JDK 21
+        if: env.HAS_SECRET == 'true'
         uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Gradle
+        if: env.HAS_SECRET == 'true'
         uses: gradle/actions/setup-gradle@v6
 
       - run: chmod +x ./gradlew
+        if: env.HAS_SECRET == 'true'
 
       - name: Materialize signing secrets
+        if: env.HAS_SECRET == 'true'
         run: |
           set -euo pipefail
           mkdir -p secrets
@@ -57,9 +62,11 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build release APK (Gms)
+        if: env.HAS_SECRET == 'true'
         run: ./gradlew :app:assembleGmsRelease
 
       - name: Create upload session
+        if: env.HAS_SECRET == 'true'
         id: session
         run: |
           set -euo pipefail
@@ -73,6 +80,7 @@ jobs:
           SAMSUNG_SERVICE_ACCOUNT_ID: ${{ secrets.SAMSUNG_SERVICE_ACCOUNT_ID }}
 
       - name: Upload binary
+        if: env.HAS_SECRET == 'true'
         run: |
           set -euo pipefail
           curl -sf -X POST "https://devapi.samsungapps.com/galaxyapi/fileUpload" \
@@ -85,6 +93,7 @@ jobs:
           SAMSUNG_SERVICE_ACCOUNT_ID: ${{ secrets.SAMSUNG_SERVICE_ACCOUNT_ID }}
 
       - name: Submit for review
+        if: env.HAS_SECRET == 'true'
         run: |
           set -euo pipefail
           curl -sf -X POST "https://devapi.samsungapps.com/seller/contentSubmit" \
