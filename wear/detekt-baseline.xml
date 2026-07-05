@@ -2,9 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:MileageComplicationService.kt$MileageComplicationService$10f</ID>
-    <ID>MagicNumber:MileageComplicationService.kt$MileageComplicationService$3.2f</ID>
-    <ID>MagicNumber:MileageTileService.kt$MileageTileService$12f</ID>
-    <ID>MagicNumber:MileageTileService.kt$MileageTileService$28f</ID>
+    <ID>MagicNumber:MileageTileService.kt:MileageTileService$12f</ID>
+    <ID>MagicNumber:MileageTileService.kt:MileageTileService$28f</ID>
   </CurrentIssues>
 </SmellBaseline>

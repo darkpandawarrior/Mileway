@@ -24,7 +24,7 @@ plugins {
 }
 
 // --------------------------------------------------------------------------
-// Detekt: static analysis; maxIssues=0 enforced in config/detekt/detekt.yml
+// Detekt: static analysis; fails on any finding by default (see config/detekt/detekt.yml)
 // --------------------------------------------------------------------------
 detekt {
     config.setFrom(files("config/detekt/detekt.yml"))
@@ -55,8 +55,8 @@ kover {
 // --------------------------------------------------------------------------
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
-    apply(plugin = "io.gitlab.arturbosch.detekt")
-    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+    apply(plugin = "dev.detekt")
+    extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         config.setFrom(rootProject.files("config/detekt/detekt.yml"))
         buildUponDefaultConfig = true
         baseline = file("detekt-baseline.xml")
