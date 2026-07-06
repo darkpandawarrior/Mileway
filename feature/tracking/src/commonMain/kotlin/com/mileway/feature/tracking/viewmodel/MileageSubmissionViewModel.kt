@@ -14,10 +14,13 @@ import com.mileway.core.network.model.Office
 import com.mileway.core.platform.NotificationScheduler
 import com.mileway.core.ui.mvi.BaseViewModel
 import com.mileway.feature.tracking.checkin.RoundTripClassifier
+import com.mileway.feature.tracking.insights.DistanceQualityAnalyzer
 import com.mileway.feature.tracking.manager.TrackingConfigManager
 import com.mileway.feature.tracking.repository.OfflinePlacesRepository
 import com.mileway.feature.tracking.repository.SavedTrackRepository
 import com.mileway.feature.tracking.repository.TripAttachmentRepository
+import com.mileway.feature.tracking.service.SubmissionNotificationMapper
+import com.mileway.feature.tracking.service.SubmissionNotificationThrottler
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
@@ -180,6 +183,8 @@ class MileageSubmissionViewModel(
     private val attachmentRepository: TripAttachmentRepository,
     private val configManager: TrackingConfigManager,
     private val notificationScheduler: NotificationScheduler,
+    private val notificationThrottler: SubmissionNotificationThrottler =
+        SubmissionNotificationThrottler(now = { Clock.System.now().toEpochMilliseconds() }),
 ) : BaseViewModel<MileageSubmissionUiState, MileageSubmissionEffect, MileageSubmissionAction>(
         MileageSubmissionUiState(
             form =
@@ -429,11 +434,41 @@ class MileageSubmissionViewModel(
         viewModelScope.launch {
             val transId = response.transId ?: "DEMO-${Clock.System.now().toEpochMilliseconds()}"
             trackRepository.markSubmitted(routeId, transId, response.reimbursableAmount ?: 0.0)
-            notificationScheduler.notify(
-                id = routeId.hashCode(),
-                title = "Trip submitted",
-                body = "₹${(response.reimbursableAmount ?: 0.0).toLong()} pending reimbursement",
-            )
+
+            // Wave-3 (parity §3): quality score reused from DistanceQualityAnalyzer against the
+            // persisted track's distance buckets — point-level mock/abnormal counts aren't loaded
+            // here, so problemPointPct falls back to 0; the distance-pct terms still dominate.
+            val track = trackRepository.getByRouteId(routeId)
+            val score =
+                track?.let {
+                    DistanceQualityAnalyzer.computeScore(
+                        mockDistance = it.mockDistance,
+                        abnormalDistance = it.abnormalDistance,
+                        totalDistance = it.originalDistance.takeIf { d -> d > 0 } ?: it.distance,
+                        mockCount = 0,
+                        abnormalCount = 0,
+                        totalCount = 1,
+                    )
+                } ?: 100
+
+            val summaryId = routeId.hashCode()
+            if (notificationThrottler.allow(summaryId)) {
+                val summary =
+                    SubmissionNotificationMapper.completionSummary(
+                        distanceKm = response.distance,
+                        reimbursableAmount = response.reimbursableAmount ?: 0.0,
+                        score = score,
+                    )
+                notificationScheduler.notify(id = summaryId, title = summary.title, body = summary.body)
+            }
+
+            SubmissionNotificationMapper.violationContent(response.violations)?.let { (content, fixIssue) ->
+                val violationId = (routeId + fixIssue.violationId).hashCode()
+                if (notificationThrottler.allow(violationId)) {
+                    notificationScheduler.notify(id = violationId, title = content.title, body = content.body)
+                }
+            }
+
             setState { copy(submissionState = SubmissionUiState.Success(response)) }
         }
     }

@@ -18,6 +18,7 @@ import com.mileway.feature.tracking.repository.VehiclePricingRepository
 import com.mileway.feature.tracking.repository.VoucherRepository
 import com.mileway.feature.tracking.service.ReconciliationResultHolder
 import com.mileway.feature.tracking.service.SessionReconciliationPolicy
+import com.mileway.feature.tracking.service.SubmissionNotificationThrottler
 import com.mileway.feature.tracking.viewmodel.CheckInHistoryViewModel
 import com.mileway.feature.tracking.viewmodel.CreateVoucherViewModel
 import com.mileway.feature.tracking.viewmodel.ExportViewModel
@@ -35,6 +36,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import kotlin.time.Clock
 
 val trackingModule =
     module {
@@ -52,6 +54,7 @@ val trackingModule =
         single { HardwareEventRepository(get()) }
         single { TripAttachmentRepository(get()) }
         single { VoucherRepository(get()) }
+        single { SubmissionNotificationThrottler(now = { Clock.System.now().toEpochMilliseconds() }) }
         single { LocationTrackingController(androidContext()) }
         single<TrackingController> { get<LocationTrackingController>() }
         single<NotificationScheduler> { AndroidNotificationScheduler(androidContext()) }

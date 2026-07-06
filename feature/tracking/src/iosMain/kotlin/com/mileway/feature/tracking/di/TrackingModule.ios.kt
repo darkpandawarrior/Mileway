@@ -15,6 +15,7 @@ import com.mileway.feature.tracking.repository.VehiclePricingRepository
 import com.mileway.feature.tracking.repository.VoucherRepository
 import com.mileway.feature.tracking.service.ReconciliationResultHolder
 import com.mileway.feature.tracking.service.SessionReconciliationPolicy
+import com.mileway.feature.tracking.service.SubmissionNotificationThrottler
 import com.mileway.feature.tracking.service.TrackingServiceApi
 import com.mileway.feature.tracking.service.TrackingStatePublisher
 import com.mileway.feature.tracking.viewmodel.CheckInHistoryViewModel
@@ -29,6 +30,7 @@ import com.mileway.feature.tracking.viewmodel.TrackingSuccessViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import kotlin.time.Clock
 
 /** P-B.3: iOS Koin tracking module — mirrors the Android trackingModule DI bindings. */
 val trackingModule =
@@ -59,6 +61,7 @@ val trackingModule =
         single { HardwareEventRepository(get()) }
         single { TripAttachmentRepository(get()) }
         single { VoucherRepository(get()) }
+        single { SubmissionNotificationThrottler(now = { Clock.System.now().toEpochMilliseconds() }) }
 
         // ── Shared utilities ──────────────────────────────────────────────────
         single { RouteAnalyzer() }
