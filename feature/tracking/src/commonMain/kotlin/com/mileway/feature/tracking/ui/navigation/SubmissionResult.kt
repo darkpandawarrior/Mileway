@@ -4,6 +4,7 @@ package com.mileway.feature.tracking.ui.navigation
 data class SubmissionResult(
     val distanceKm: Double,
     val reimbursableAmount: Double,
+    val vehicleKey: String,
     val vehicleName: String,
     val startTime: Long,
     val endTime: Long,

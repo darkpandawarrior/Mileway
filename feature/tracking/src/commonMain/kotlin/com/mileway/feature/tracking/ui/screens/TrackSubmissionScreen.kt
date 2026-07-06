@@ -109,6 +109,7 @@ fun TrackSubmissionScreen(
                 SubmissionResult(
                     distanceKm = distanceKm,
                     reimbursableAmount = r.reimbursableAmount ?: 0.0,
+                    vehicleKey = vehicleKey,
                     vehicleName = form.vehicleName.ifBlank { vehicleKey },
                     startTime = startTime,
                     endTime = endTime,

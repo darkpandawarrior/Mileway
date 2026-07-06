@@ -28,6 +28,7 @@ import com.mileway.feature.tracking.viewmodel.SavedTracksViewModel
 import com.mileway.feature.tracking.viewmodel.TrackDetailViewModel
 import com.mileway.feature.tracking.viewmodel.TrackInsightsViewModel
 import com.mileway.feature.tracking.viewmodel.TrackMilesViewModel
+import com.mileway.feature.tracking.viewmodel.TrackingSuccessViewModel
 import com.mileway.feature.tracking.watch.WatchFacade
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -107,6 +108,14 @@ val trackingModule =
         viewModelOf(::ExportViewModel)
         viewModelOf(::DebugMenuComposeViewModel)
         viewModelOf(::CreateVoucherViewModel)
+        // Takes the nav-supplied TrackingSuccessArgs as a runtime parameter; repos resolve from graph.
+        viewModel { params ->
+            TrackingSuccessViewModel(
+                args = params.get(),
+                vehiclePricingRepository = get(),
+                voucherRepository = get(),
+            )
+        }
 
         // Per-trip scope, open on trip-start, close on trip-end.
         // Anything declared here is released when the scope closes.

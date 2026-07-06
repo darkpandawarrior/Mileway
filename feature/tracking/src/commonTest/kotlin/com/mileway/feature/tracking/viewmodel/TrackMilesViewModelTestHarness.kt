@@ -70,8 +70,12 @@ private object FakeConfigProvider : ConfigProvider {
 
 // ── MilewayNetworkApi fake (only vehicles/pricing used by VehiclePricingRepository) ──
 
-private object FakeNetworkApi : MilewayNetworkApi {
-    override suspend fun vehicles(trackMiles: Boolean): PolicyApprovedVehiclesResponse = PolicyApprovedVehiclesResponse(vehicles = emptyList())
+// Shared across tracking VM tests; `vehicles` is configurable so callers (e.g.
+// TrackingSuccessViewModelTest) can seed approved-vehicle pricing for the PolicyRateEngine.
+internal open class FakeNetworkApi(
+    private val approvedVehicles: List<com.mileway.core.data.model.network.ApprovedVehicle> = emptyList(),
+) : MilewayNetworkApi {
+    override suspend fun vehicles(trackMiles: Boolean): PolicyApprovedVehiclesResponse = PolicyApprovedVehiclesResponse(vehicles = approvedVehicles)
 
     override suspend fun pricing(): ApprovedVehiclePricingResponse = ApprovedVehiclePricingResponse(data = emptyMap())
 
@@ -496,7 +500,7 @@ internal object TrackMilesViewModelTestHarness {
     ): TrackMilesViewModel =
         TrackMilesViewModel(
             configManager = TrackingConfigManager(FakeConfigProvider),
-            vehicleRepo = VehiclePricingRepository(FakeNetworkApi),
+            vehicleRepo = VehiclePricingRepository(FakeNetworkApi()),
             trackRepo = SavedTrackRepository(FakeSavedTrackDao(seedTracks)),
             trackingController = controller,
             currentTrackRepo = CurrentTrackRepository(FakeCurrentTrackDataSource),

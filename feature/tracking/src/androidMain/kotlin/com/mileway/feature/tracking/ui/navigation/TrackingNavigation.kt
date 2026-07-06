@@ -1,9 +1,11 @@
 package com.mileway.feature.tracking.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -39,9 +41,14 @@ import com.mileway.feature.tracking.ui.screens.TrackSubmissionScreen
 import com.mileway.feature.tracking.ui.screens.TrackingSuccessScreen
 import com.mileway.feature.tracking.viewmodel.MileageSubmissionAction
 import com.mileway.feature.tracking.viewmodel.MileageSubmissionViewModel
+import com.mileway.feature.tracking.viewmodel.TrackingSuccessAction
+import com.mileway.feature.tracking.viewmodel.TrackingSuccessArgs
+import com.mileway.feature.tracking.viewmodel.TrackingSuccessEffect
+import com.mileway.feature.tracking.viewmodel.TrackingSuccessViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 object TrackingRoutes {
     const val SAVED_TRACKS = "saved_tracks"
@@ -65,11 +72,12 @@ object TrackingRoutes {
 
     fun trackDataPreview(routeId: String) = "track_data_preview/$routeId"
 
+    // reimbursement + voucher are computed/persisted by TrackingSuccessViewModel from vehicleKey,
+    // so the route no longer carries the mock reimbursable/voucher values as args.
     const val SUCCESS =
-        "success?distanceKm={distanceKm}&reimbursable={reimbursable}&vehicleName={vehicleName}" +
+        "success?distanceKm={distanceKm}&vehicleKey={vehicleKey}&vehicleName={vehicleName}" +
             "&startTime={startTime}&endTime={endTime}&transId={transId}&status={status}" +
-            "&violationCount={violationCount}&violationMsg={violationMsg}" +
-            "&voucherNumber={voucherNumber}&voucherAmount={voucherAmount}"
+            "&violationCount={violationCount}&violationMsg={violationMsg}"
 
     fun liveTrack(routeId: String) = "live_track/$routeId"
 
@@ -101,11 +109,10 @@ object TrackingRoutes {
 
     fun success(r: SubmissionResult): String {
         fun enc(s: String) = java.net.URLEncoder.encode(s, "UTF-8")
-        return "success?distanceKm=${r.distanceKm}&reimbursable=${r.reimbursableAmount}" +
+        return "success?distanceKm=${r.distanceKm}&vehicleKey=${enc(r.vehicleKey)}" +
             "&vehicleName=${enc(r.vehicleName)}&startTime=${r.startTime}&endTime=${r.endTime}" +
             "&transId=${enc(r.transactionId ?: "")}&status=${r.submissionStatus}" +
-            "&violationCount=${r.violationCount}&violationMsg=${enc(r.violationMessage ?: "")}" +
-            "&voucherNumber=${enc(r.voucherNumber ?: "")}&voucherAmount=${r.voucherAmount}"
+            "&violationCount=${r.violationCount}&violationMsg=${enc(r.violationMessage ?: "")}"
     }
 }
 
@@ -383,9 +390,9 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     type = NavType.FloatType
                     defaultValue = 0f
                 },
-                navArgument("reimbursable") {
-                    type = NavType.FloatType
-                    defaultValue = 0f
+                navArgument("vehicleKey") {
+                    type = NavType.StringType
+                    defaultValue = ""
                 },
                 navArgument("vehicleName") {
                     type = NavType.StringType
@@ -415,14 +422,6 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                     type = NavType.StringType
                     defaultValue = ""
                 },
-                navArgument("voucherNumber") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                },
-                navArgument("voucherAmount") {
-                    type = NavType.FloatType
-                    defaultValue = 0f
-                },
             ),
     ) { backStack ->
         val args = backStack.arguments!!
@@ -433,21 +432,47 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
                 popUpTo(TrackingRoutes.SAVED_TRACKS) { inclusive = true }
             }
         }
+
+        val successArgs =
+            TrackingSuccessArgs(
+                distanceKm = args.getFloat("distanceKm").toDouble(),
+                vehicleKey = dec(args.getString("vehicleKey")),
+                vehicleName = dec(args.getString("vehicleName")),
+                startTime = args.getLong("startTime"),
+                endTime = args.getLong("endTime"),
+                transactionId = dec(args.getString("transId")).ifBlank { null },
+                submissionStatus = args.getString("status") ?: "SUCCESS",
+                violationCount = args.getInt("violationCount"),
+                violationMessage = dec(args.getString("violationMsg")).ifBlank { null },
+            )
+        val viewModel: TrackingSuccessViewModel = koinViewModel { parametersOf(successArgs) }
+        val state by viewModel.state.collectAsStateWithLifecycle()
+
+        LaunchedEffect(viewModel) {
+            viewModel.effect.collect { effect ->
+                when (effect) {
+                    TrackingSuccessEffect.NavigateToHub -> toSaved()
+                    // No per-transaction detail screen yet — route to the voucher/approvals list.
+                    TrackingSuccessEffect.NavigateToExpenseList -> navController.navigate(TrackingRoutes.CREATE_VOUCHER)
+                }
+            }
+        }
+
         TrackingSuccessScreen(
-            distanceKm = args.getFloat("distanceKm").toDouble(),
-            reimbursableAmount = args.getFloat("reimbursable").toDouble(),
-            vehicleName = dec(args.getString("vehicleName")),
-            startTime = args.getLong("startTime"),
-            endTime = args.getLong("endTime"),
-            transactionId = dec(args.getString("transId")).ifBlank { null },
-            submissionStatus = args.getString("status") ?: "SUCCESS",
-            violationCount = args.getInt("violationCount"),
-            violationMessage = dec(args.getString("violationMsg")).ifBlank { null },
-            voucherNumber = dec(args.getString("voucherNumber")).ifBlank { null },
-            voucherAmount = args.getFloat("voucherAmount").toDouble(),
-            onTrackNewJourney = toSaved,
-            onViewExpense = toSaved,
-            onCreateVoucher = { navController.navigate(TrackingRoutes.CREATE_VOUCHER) },
+            distanceKm = state.distanceKm,
+            reimbursableAmount = state.reimbursableAmount,
+            vehicleName = state.vehicleName,
+            startTime = state.startTime,
+            endTime = state.endTime,
+            transactionId = state.transactionId,
+            submissionStatus = state.submissionStatus,
+            violationCount = state.violationCount,
+            violationMessage = state.violationMessage,
+            voucherNumber = state.voucherNumber,
+            voucherAmount = state.voucherAmount,
+            onTrackNewJourney = { viewModel.onAction(TrackingSuccessAction.TrackNewJourney) },
+            onViewExpense = { viewModel.onAction(TrackingSuccessAction.ViewExpense) },
+            onCreateVoucher = { viewModel.onAction(TrackingSuccessAction.CreateVoucher) },
         )
     }
 

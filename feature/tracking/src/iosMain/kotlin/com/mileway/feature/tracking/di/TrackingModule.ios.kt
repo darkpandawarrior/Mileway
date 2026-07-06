@@ -24,6 +24,7 @@ import com.mileway.feature.tracking.viewmodel.RoutePointsViewModel
 import com.mileway.feature.tracking.viewmodel.SavedTracksViewModel
 import com.mileway.feature.tracking.viewmodel.TrackDetailViewModel
 import com.mileway.feature.tracking.viewmodel.TrackMilesViewModel
+import com.mileway.feature.tracking.viewmodel.TrackingSuccessViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -87,4 +88,11 @@ val trackingModule =
         viewModelOf(::RoutePointsViewModel)
         viewModelOf(::LiveTrackViewModel)
         viewModelOf(::CreateVoucherViewModel)
+        viewModel { params ->
+            TrackingSuccessViewModel(
+                args = params.get(),
+                vehiclePricingRepository = get(),
+                voucherRepository = get(),
+            )
+        }
     }
