@@ -166,6 +166,15 @@ class KoinGraphTest : KoinTest {
                 every { settings } returns MutableStateFlow(com.mileway.core.data.settings.DemoSettings())
             }
         }
+        // Wave-2 AbnormalDetectionConfig: trackingModule's TrackingConfigManager resolves this
+        // (DataStore-backed in prod, needs a real Context) — bind a DEFAULT-only fake here, same
+        // as the other DataStore-backed sources above.
+        single<com.mileway.core.data.settings.AbnormalDetectionSettingsSource> {
+            mockk {
+                every { overrides } returns
+                    MutableStateFlow(com.mileway.core.data.settings.AbnormalDetectionOverrides())
+            }
+        }
         // P2.4: ProfileViewModel now depends on SessionRepository (SignOut's global-fallback path).
         // P3.2: ProfileViewModel now also collects `sessionState.first()` in init() for the
         // staleness check; a relaxed mockk's auto-generated Flow<SessionState> never emits

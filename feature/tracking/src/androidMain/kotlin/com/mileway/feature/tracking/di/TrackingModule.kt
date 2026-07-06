@@ -38,7 +38,12 @@ import org.koin.dsl.module
 
 val trackingModule =
     module {
-        single { TrackingConfigManager(get<ConfigProvider>()) }
+        single {
+            TrackingConfigManager(
+                configProvider = get<ConfigProvider>(),
+                abnormalDetectionOverrides = get<com.mileway.core.data.settings.AbnormalDetectionSettingsSource>().overrides,
+            )
+        }
         single { SavedTrackRepository(get()) }
         single { LocationRepository(get()) }
         single { VehiclePricingRepository(get()) }

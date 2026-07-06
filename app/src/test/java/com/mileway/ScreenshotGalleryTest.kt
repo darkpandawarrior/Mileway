@@ -310,6 +310,14 @@ class ScreenshotGalleryTest {
                     every { settings } returns MutableStateFlow(com.mileway.core.data.settings.DemoSettings())
                 }
             }
+            // Wave-2 AbnormalDetectionConfig: trackingModule's TrackingConfigManager resolves this
+            // DataStore-backed source; bind a DEFAULT-only fake like the other data-layer stubs here.
+            single<com.mileway.core.data.settings.AbnormalDetectionSettingsSource> {
+                mockk {
+                    every { overrides } returns
+                        MutableStateFlow(com.mileway.core.data.settings.AbnormalDetectionOverrides())
+                }
+            }
             // P2.4: ProfileViewModel now depends on SessionRepository (SignOut's global-fallback path).
             // P3.2: ProfileViewModel now also collects `sessionState.first()` in init() for the
             // staleness check; a relaxed mockk's auto-generated Flow<SessionState> never emits

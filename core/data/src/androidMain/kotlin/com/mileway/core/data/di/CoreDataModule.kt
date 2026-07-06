@@ -17,6 +17,8 @@ import com.mileway.core.data.session.PinHashSource
 import com.mileway.core.data.session.PinHashStore
 import com.mileway.core.data.session.SessionRepository
 import com.mileway.core.data.session.SessionSource
+import com.mileway.core.data.settings.AbnormalDetectionSettingsDataStore
+import com.mileway.core.data.settings.AbnormalDetectionSettingsSource
 import com.mileway.core.data.settings.AgentSessionStore
 import com.mileway.core.data.settings.AgentSessionStoreImpl
 import com.mileway.core.data.settings.DemoSettingsRepository
@@ -60,6 +62,8 @@ val coreDataModule =
         single { PinHashStore(androidContext()) }
         single<PinHashSource> { get<PinHashStore>() }
         single { DemoSettingsRepository(androidContext()) }
+        single { AbnormalDetectionSettingsDataStore(androidContext()) }
+        single<AbnormalDetectionSettingsSource> { get<AbnormalDetectionSettingsDataStore>() }
         // P6.6: Preferences' Storage tile — real on-device cache-size readout + clear-cache action.
         single { StorageRepository(androidContext()) }
         // P3.4: pause/restore hook run before ProfileViewModel.CommitAccountSwitch flips the

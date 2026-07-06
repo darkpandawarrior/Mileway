@@ -89,6 +89,12 @@ class LocationTrackingService : Service() {
     @Volatile
     private var enableKalman: Boolean = false
 
+    // Wave-2 AbnormalDetectionConfig: hot-reloaded from TrackingConfigManager (debug settings
+    // today, server config later). Same "fixed for the running trip" rule as enableKalman above.
+    @Volatile
+    private var abnormalDetectionConfig: com.mileway.feature.tracking.manager.AbnormalDetectionConfig =
+        com.mileway.feature.tracking.manager.AbnormalDetectionConfig.DEFAULT
+
     // C.2b: live telemetry the ViewModel observes via TrackingServiceApi.
     private val statePublisher: TrackingStatePublisher by inject()
 
@@ -172,6 +178,9 @@ class LocationTrackingService : Service() {
         createNotificationChannel()
         // G6: keep the Kalman opt-in mirrored from persisted settings.
         scope.launch { demoSettings.settings.collect { enableKalman = it.enableKalman } }
+        // Wave-2 AbnormalDetectionConfig: mirror the hot-reload Flow into a plain var the
+        // per-fix path reads (process() is not suspend and runs off the main thread).
+        scope.launch { configManager.abnormalDetectionConfig.collect { abnormalDetectionConfig = it } }
         // O.2: mirror the recognized activity (no-op without Play Services / permission).
         scope.launch { activityRecognizer.activity.collect { recognizedActivity = it } }
     }
@@ -299,6 +308,8 @@ class LocationTrackingService : Service() {
                 enableKalman = enableKalman,
                 // P-A.1: per-deployment accuracy gate; default 50 m from ConfigProvider.
                 maxAccuracyThreshold = configManager.getMaxAccuracyThresholdM(),
+                // Wave-2 AbnormalDetectionConfig: latest hot-reloaded thresholds, fixed for this trip.
+                abnormalConfig = abnormalDetectionConfig,
             )
 
         acquireWakeLock()

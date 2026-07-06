@@ -4,6 +4,7 @@ package com.mileway.feature.tracking.service.location
 
 import com.mileway.core.data.model.db.LocationData
 import com.mileway.core.data.util.KalmanSmoother
+import com.mileway.feature.tracking.manager.AbnormalDetectionConfig
 import com.mileway.feature.tracking.service.LocationTrackingConstants
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -78,6 +79,10 @@ class LocationProcessor(
     private val enableKalman: Boolean = true,
     // P-A.1: fixes with accuracy > this threshold are persisted but excluded from cleanedDistance.
     private val maxAccuracyThreshold: Double = LocationTrackingConstants.MAX_ACCURACY_THRESHOLD_M,
+    // Wave-2 AbnormalDetectionConfig: all abnormal-detection thresholds, runtime-tweakable.
+    // Default equals the pre-refactor hardcoded constants, so behavior is unchanged unless a
+    // caller passes an override (debug settings today, server config later).
+    private val abnormalConfig: AbnormalDetectionConfig = AbnormalDetectionConfig.DEFAULT,
     initialStats: TrackStats? = null,
 ) {
     private var last: GpsFix? = null
@@ -110,7 +115,7 @@ class LocationProcessor(
     private var speedSum = 0.0
     private var speedCount = 0
 
-    /** Rolling window of the last [SPEED_HISTORY_SIZE] processed-fix speeds (m/s), C.1c. */
+    /** Rolling window of the last [AbnormalDetectionConfig.speedHistorySize] processed-fix speeds (m/s), C.1c. */
     private val recentSpeedHistory = ArrayDeque<Double>()
 
     init {
@@ -211,10 +216,10 @@ class LocationProcessor(
         // is let through when recent history shows real movement (stationary-with-momentum). Mock
         // fixes are never suppressed (handled in their own bucket). The anchor is kept so a later
         // genuine move is measured from the last *persisted* point.
-        if (prev != null && !fix.isMock && dtSec < GAP_MIN_SEC) {
+        if (prev != null && !fix.isMock && dtSec < abnormalConfig.gapMinSec) {
             val gate = minDisplacementForSpeed(fix.speedMps.toDouble())
             val stationaryMicroJitter =
-                fix.speedMps < STATIONARY_SPEED_MPS && displacement < STATIONARY_JITTER_M
+                fix.speedMps < abnormalConfig.stationarySpeedMps && displacement < abnormalConfig.stationaryJitterM
             // O.3: drop the sub-gate wander when either GPS history shows no movement OR the IMU says still.
             if ((displacement < gate || stationaryMicroJitter) && (!hasMovementHistory() || motionStill)) {
                 return null
@@ -225,7 +230,8 @@ class LocationProcessor(
         // gap-recovery speed tiers that relax the cap as the time gap grows (and a 10 km distance
         // gate beyond 6 h). Gap fixes that pass the tier are counted toward distance, not flagged.
         val abnormal = !suppressSpike && prev != null && isAbnormal(displacement, impliedSpeed, dtSec)
-        val isHardSpike = !suppressSpike && prev != null && dtSec < GAP_MIN_SEC && displacement > SPIKE_HARD_GATE_M
+        val isHardSpike =
+            !suppressSpike && prev != null && dtSec < abnormalConfig.gapMinSec && displacement > abnormalConfig.spikeHardGateM
         var counted = false
 
         if (prev != null) {
@@ -255,7 +261,7 @@ class LocationProcessor(
 
         // C.1c: record this processed fix's speed in the rolling movement-history window.
         recentSpeedHistory.addLast(fix.speedMps.toDouble())
-        if (recentSpeedHistory.size > SPEED_HISTORY_SIZE) recentSpeedHistory.removeFirst()
+        if (recentSpeedHistory.size > abnormalConfig.speedHistorySize) recentSpeedHistory.removeFirst()
 
         last = effFix
         totalPoints++
@@ -304,13 +310,13 @@ class LocationProcessor(
      */
     private fun minDisplacementForSpeed(speedMps: Double): Double =
         when {
-            speedMps < WALKING_MAX_MPS -> WALKING_JITTER_M
-            speedMps < CYCLING_MAX_MPS -> CYCLING_JITTER_M
-            else -> DRIVING_JITTER_M
+            speedMps < abnormalConfig.walkingMaxMps -> abnormalConfig.walkingJitterM
+            speedMps < abnormalConfig.cyclingMaxMps -> abnormalConfig.cyclingJitterM
+            else -> abnormalConfig.drivingJitterM
         }
 
     /** C.1c: true when the recent window shows sustained movement, so a small step isn't jitter. */
-    private fun hasMovementHistory(): Boolean = recentSpeedHistory.isNotEmpty() && recentSpeedHistory.average() >= MOVEMENT_HISTORY_MPS
+    private fun hasMovementHistory(): Boolean = recentSpeedHistory.isNotEmpty() && recentSpeedHistory.average() >= abnormalConfig.movementHistoryMps
 
     /**
      * C.1b/C.1d: classify a step as abnormal. For normal sampling (<30 s) a 5 km jump is an instant
@@ -324,41 +330,13 @@ class LocationProcessor(
         dtSec: Long,
     ): Boolean =
         when {
-            dtSec < GAP_MIN_SEC ->
-                displacement > SPIKE_HARD_GATE_M || impliedSpeed > maxPlausibleSpeedMps
-            dtSec <= GAP_5M_SEC -> impliedSpeed > GAP_TIER_5M_MPS
-            dtSec <= GAP_1H_SEC -> impliedSpeed > GAP_TIER_1H_MPS
-            dtSec <= GAP_6H_SEC -> impliedSpeed > GAP_TIER_6H_MPS
-            else -> displacement > GAP_MAX_DISTANCE_M
+            dtSec < abnormalConfig.gapMinSec ->
+                displacement > abnormalConfig.spikeHardGateM || impliedSpeed > maxPlausibleSpeedMps
+            dtSec <= abnormalConfig.gap5mSec -> impliedSpeed > abnormalConfig.gapTier5mMps
+            dtSec <= abnormalConfig.gap1hSec -> impliedSpeed > abnormalConfig.gapTier1hMps
+            dtSec <= abnormalConfig.gap6hSec -> impliedSpeed > abnormalConfig.gapTier6hMps
+            else -> displacement > abnormalConfig.gapMaxDistanceM
         }
-
-    companion object {
-        // C.1a: speed-band jitter gates.
-        private const val WALKING_MAX_MPS = 2.5 // < ~9 km/h
-        private const val CYCLING_MAX_MPS = 7.0 // < ~25 km/h
-        private const val WALKING_JITTER_M = 2.0
-        private const val CYCLING_JITTER_M = 3.0
-        private const val DRIVING_JITTER_M = 5.0
-        private const val STATIONARY_SPEED_MPS = 1.2
-        private const val STATIONARY_JITTER_M = 1.2
-
-        // C.1c: movement-history window.
-        private const val SPEED_HISTORY_SIZE = 5
-        private const val MOVEMENT_HISTORY_MPS = 1.5
-
-        // C.1b: instant-teleport hard gate.
-        private const val SPIKE_HARD_GATE_M = 5_000.0
-
-        // C.1d: gap-recovery tiers (seconds + relaxed speed caps, m/s).
-        private const val GAP_MIN_SEC = 30L
-        private const val GAP_5M_SEC = 300L
-        private const val GAP_1H_SEC = 3_600L
-        private const val GAP_6H_SEC = 21_600L
-        private const val GAP_TIER_5M_MPS = 150.0
-        private const val GAP_TIER_1H_MPS = 100.0
-        private const val GAP_TIER_6H_MPS = 60.0
-        private const val GAP_MAX_DISTANCE_M = 10_000.0
-    }
 }
 
 /** Great-circle distance in metres between two lat/lng points. */

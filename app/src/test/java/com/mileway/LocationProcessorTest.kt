@@ -1,5 +1,6 @@
 package com.mileway
 
+import com.mileway.feature.tracking.manager.AbnormalDetectionConfig
 import com.mileway.feature.tracking.service.location.GpsFix
 import com.mileway.feature.tracking.service.location.LocationProcessor
 import com.mileway.feature.tracking.service.location.TrackStats
@@ -270,5 +271,40 @@ class LocationProcessorTest {
         val smoothedLat = r!!.location.lat
         // Smoothed toward the prior anchor: strictly between the two raw latitudes.
         assertTrue(smoothedLat > 18.5000 && smoothedLat < 18.5010, "smoothed=$smoothedLat")
+    }
+
+    // ── Wave-2 AbnormalDetectionConfig: DEFAULT config reproduces pre-refactor behavior ────────
+
+    @Test
+    fun `AbnormalDetectionConfig DEFAULT reproduces the spike classification`() {
+        val proc = LocationProcessor(abnormalConfig = AbnormalDetectionConfig.DEFAULT)
+        proc.process(fix(18.5000, 73.8, 0), isPaused = false)
+        proc.process(fix(18.5010, 73.8, 10_000), isPaused = false) // ~111m, counted
+        val cleanedBefore = proc.cleanedDistanceM
+        // Teleport ~11km in 1s → implausible speed, same as the no-arg constructor default.
+        val spike = proc.process(fix(18.6000, 73.8, 11_000), isPaused = false)
+        assertTrue(spike != null && spike.isAbnormal)
+        assertEquals(cleanedBefore, proc.cleanedDistanceM, 0.001)
+        assertTrue(proc.abnormalDistanceM > 1000.0)
+    }
+
+    @Test
+    fun `AbnormalDetectionConfig DEFAULT reproduces gap-tier recovery classification`() {
+        val proc = LocationProcessor(abnormalConfig = AbnormalDetectionConfig.DEFAULT, enableKalman = false)
+        proc.process(fix(18.5000, 73.8, 0), isPaused = false)
+        // 400s gap (5m tier), ~9km jump → ~22.5 m/s implied speed, under the 150 m/s 5m-tier cap.
+        val gapFix = proc.process(fix(18.5800, 73.8, 400_000), isPaused = false)
+        assertTrue(gapFix != null && !gapFix.isAbnormal, "expected gap-recovered fix to NOT be abnormal")
+    }
+
+    @Test
+    fun `overridden spike gate changes classification for the same inputs`() {
+        // Same ~111m step as the DEFAULT-config test above, but the hard gate is lowered to 50m so
+        // even the small step now teleports past it — proving the override actually flows through.
+        val lowered = AbnormalDetectionConfig(spikeHardGateM = 50.0)
+        val proc = LocationProcessor(abnormalConfig = lowered, enableKalman = false)
+        proc.process(fix(18.5000, 73.8, 0), isPaused = false)
+        val step = proc.process(fix(18.5010, 73.8, 10_000), isPaused = false) // ~111m > 50m gate
+        assertTrue(step != null && step.isAbnormal, "expected the lowered gate to flag this step abnormal")
     }
 }
