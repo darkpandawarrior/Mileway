@@ -125,7 +125,7 @@ interface BiometricAuthenticator {
 }
 
 /** Runtime permissions the app requests. Backed by moko-permissions where possible. */
-enum class AppPermission { LOCATION, CAMERA, NOTIFICATIONS, STORAGE }
+enum class AppPermission { LOCATION, LOCATION_BACKGROUND, CAMERA, NOTIFICATIONS, ACTIVITY_RECOGNITION, STORAGE }
 
 sealed interface PermissionResult {
     data object Granted : PermissionResult

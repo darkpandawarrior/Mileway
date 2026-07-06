@@ -50,7 +50,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.mileway.core.data.model.display.TrackingSystemFlags
 import com.mileway.core.platform.AppPermission
+import com.mileway.core.platform.OemBatteryHints
+import com.mileway.core.platform.PermissionOnboardingFlow
 import com.mileway.core.platform.PermissionsProvider
+import com.mileway.core.platform.currentDeviceManufacturer
 import com.mileway.core.ui.components.topbar.TrackingStatus
 import com.mileway.core.ui.components.topbar.TrackingTopBar
 import com.mileway.core.ui.components.tracking.ActivitySegment
@@ -75,6 +78,7 @@ import com.mileway.feature.tracking.ui.sheets.JourneyConsentSheet
 import com.mileway.feature.tracking.ui.sheets.JourneyGuideSheet
 import com.mileway.feature.tracking.ui.sheets.JourneyGuideState
 import com.mileway.feature.tracking.ui.sheets.PauseReasonSheet
+import com.mileway.feature.tracking.ui.sheets.PermissionOnboardingSheet
 import com.mileway.feature.tracking.ui.sheets.ResumeTrackingSheet
 import com.mileway.feature.tracking.ui.sheets.VehicleOption
 import com.mileway.feature.tracking.ui.sheets.VehiclePickerSheet
@@ -121,10 +125,19 @@ fun TrackMilesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val checkInUiState by checkInViewModel.state.collectAsState()
     val permissionsProvider = koinInject<PermissionsProvider>()
+    val onboardingFlow = remember(permissionsProvider) { PermissionOnboardingFlow(permissionsProvider) }
+    val onboardingState by onboardingFlow.state.collectAsState()
+    val oemHint = remember { currentDeviceManufacturer()?.let(OemBatteryHints::hintFor) }
     val scope = rememberCoroutineScope()
     val isActive = uiState.phase == TrackMilesPhase.TRACKING || uiState.phase == TrackMilesPhase.PAUSED
     val isPaused = uiState.phase == TrackMilesPhase.PAUSED
     var statsExpanded by remember { mutableStateOf(true) }
+
+    // Once tracking is active, skip past any onboarding tier already granted (e.g. from a previous
+    // session) so the sheet only ever prompts for what's genuinely still outstanding.
+    LaunchedEffect(isActive) {
+        if (isActive) onboardingFlow.skipAlreadyGranted()
+    }
 
     // When tracking stops, hand off to the submission flow.
     LaunchedEffect(uiState.phase) {
@@ -158,8 +171,14 @@ fun TrackMilesScreen(
         // consent sheet appears, so a modal never stacks over the start/consent flow.
         viewModel.onAction(TrackMilesAction.DismissSheet)
         scope.launch {
-            val granted = permissionsProvider.isGranted(AppPermission.LOCATION)
-            if (!granted) permissionsProvider.request(AppPermission.LOCATION)
+            // Wave-3 tiered onboarding: resume re-check first (covers grants made in system settings
+            // since the flow was last shown), then walk the ladder only for the required tier inline —
+            // optional tiers (background location, notifications, activity recognition) are offered
+            // through the sheet below and never block tracking from starting.
+            onboardingFlow.recheck()
+            if (!onboardingFlow.state.value.requiredSatisfied) {
+                onboardingFlow.requestCurrent()
+            }
             viewModel.onAction(TrackMilesAction.RequestStartTracking)
         }
         Unit
@@ -407,6 +426,20 @@ fun TrackMilesScreen(
             }
 
         TrackSheet.NONE -> Unit
+    }
+
+    // Wave-3 tiered permission onboarding — optional tiers only, offered once tracking is underway so the
+    // required-location prompt above never gets blocked behind this. OEM hint is shown only alongside the
+    // background-location tier, since that's the one battery managers actually interfere with.
+    onboardingState.current?.let { tier ->
+        if (onboardingState.requiredSatisfied && isActive) {
+            PermissionOnboardingSheet(
+                tier = tier,
+                oemHint = if (tier.permission == AppPermission.LOCATION_BACKGROUND) oemHint else null,
+                onGrant = { scope.launch { onboardingFlow.requestCurrent() } },
+                onSkip = { onboardingFlow.skipCurrent() },
+            )
+        }
     }
 
     // ── Check-in sheets (unchanged) ─────────────────────────────────────────────

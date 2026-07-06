@@ -32,7 +32,13 @@ class IosPermissionsProvider : PermissionsProvider {
                 val status = CLLocationManager().authorizationStatus
                 status == kCLAuthorizationStatusAuthorizedWhenInUse || status == kCLAuthorizationStatusAuthorizedAlways
             }
+            // iOS has no separate background-location prompt (UX.3 tiering is Android-only for this
+            // tier) — "always" authorization already covers background, so treat it as the same check.
+            AppPermission.LOCATION_BACKGROUND -> CLLocationManager().authorizationStatus == kCLAuthorizationStatusAuthorizedAlways
             AppPermission.NOTIFICATIONS -> notificationsAuthorized()
+            // No user-facing prompt on iOS distinct from CoreMotion's own opaque authorization; treated
+            // as always-available here since Mileway's iOS activity detection does not gate on it yet.
+            AppPermission.ACTIVITY_RECOGNITION -> true
             AppPermission.STORAGE -> true
         }
 
@@ -59,6 +65,14 @@ class IosPermissionsProvider : PermissionsProvider {
                     CLLocationManager().requestWhenInUseAuthorization()
                     PermissionResult.Denied
                 }
+            AppPermission.LOCATION_BACKGROUND ->
+                if (isGranted(AppPermission.LOCATION_BACKGROUND)) {
+                    PermissionResult.Granted
+                } else {
+                    CLLocationManager().requestAlwaysAuthorization()
+                    PermissionResult.Denied
+                }
+            AppPermission.ACTIVITY_RECOGNITION -> PermissionResult.Granted
             AppPermission.STORAGE -> PermissionResult.Granted
         }
 
