@@ -33,6 +33,8 @@ import com.mileway.core.platform.Vector3
 import com.mileway.feature.tracking.TrackMilesActivity
 import com.mileway.feature.tracking.manager.AndroidDeviceRamSource
 import com.mileway.feature.tracking.manager.DeviceTierManager
+import com.mileway.feature.tracking.repository.CurrentTrackRepository
+import com.mileway.feature.tracking.repository.LocationRepository
 import com.mileway.feature.tracking.repository.SavedTrackRepository
 import com.mileway.feature.tracking.service.location.ActivityRecognizer
 import com.mileway.feature.tracking.service.location.DynamicIntervalCalculator
@@ -59,6 +61,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
@@ -79,6 +82,16 @@ class LocationTrackingService : Service() {
     private val sessionStore: CurrentTrackDataStore by inject()
     private val demoSettings: DemoSettingsRepository by inject()
     private val configManager: com.mileway.feature.tracking.manager.TrackingConfigManager by inject()
+    private val locationRepository: LocationRepository by inject()
+    private val currentTrackRepository: CurrentTrackRepository by inject()
+
+    // Wave-2: buffers point writes (10pt/30s) instead of one Room insert per fix.
+    private val locationBatcher: LocationBatcher by lazy {
+        LocationBatcher(locationRepository, now = System::currentTimeMillis)
+    }
+
+    // Wave-2: periodic (120s) in-memory-vs-DB drift check, piggybacked on the per-fix path.
+    private val driftReconciler: DriftReconciler by lazy { DriftReconciler(now = System::currentTimeMillis) }
 
     // P-C.3: consume the shutdown flag once per boot.
     private val shutdownFlagPolicy: ShutdownFlagPolicy by lazy {
@@ -432,7 +445,7 @@ class LocationTrackingService : Service() {
         val durationMs = System.currentTimeMillis() - startTime
 
         scope.launch(dbDispatcher) {
-            locationDao.insertLocation(row)
+            locationBatcher.add(row)
             savedTrackDao.updateTrackLiveData(token, stats.cleanedDistanceM, durationMs)
             if (!startCoordsWritten && proc.firstLat != null) {
                 startCoordsWritten = true
@@ -443,6 +456,16 @@ class LocationTrackingService : Service() {
                 }
             }
             persistSession(token, fix, stats, battery)
+            // Wave-2: periodic drift check — in-memory point count vs Room's authoritative count.
+            // A no-op (null) on most fixes; fires every 120s and self-corrects via DataStore.
+            driftReconciler.maybeReconcile(
+                inMemoryCount = stats.totalPoints.toLong(),
+                dbCount = locationDao.countLocationsByToken(token).toLong(),
+            )?.let { result ->
+                if (result.isDiverged) {
+                    currentTrackRepository.updateLocationCount(token, result.dbCount, result.dbCount)
+                }
+            }
         }
 
         if (result.isMock) logEvent(token, EventType.MOCK_LOCATION, "Mock Location detected", fix)
@@ -525,6 +548,12 @@ class LocationTrackingService : Service() {
         resumeAtMs = if (paused) 0L else System.currentTimeMillis()
         // P-A.3: reset Kalman on resume so stale pre-pause filter state doesn't distort the new segment.
         if (!paused) processor?.resetKalman()
+        // Data-loss guardrail: pause can precede process death (backgrounded, OS reclaim), so
+        // force the batcher's buffered points to Room now rather than waiting for the next
+        // full-batch/30s trigger.
+        if (paused) {
+            scope.launch(dbDispatcher) { locationBatcher.flush() }
+        }
         // P-A.4: background counter reconciliation on resume — corrects any drift while paused.
         if (!paused) {
             val resumeToken = token
@@ -562,6 +591,10 @@ class LocationTrackingService : Service() {
             val stats = proc.stats()
             val endTime = System.currentTimeMillis()
             scope.launch(dbDispatcher) {
+                // Data-loss guardrail: flush any buffered points before reading DB truth below —
+                // dbDispatcher is serial (limitedParallelism(1)), so this completes before the
+                // getLocationsByTokenOnce read that follows, in this same coroutine.
+                locationBatcher.flush()
                 // P-A.2: recompute authoritative cleanedDistance from persisted DB points
                 // (consecutive-Haversine excluding isAbnormal/isMock/isPaused). Fall back to
                 // in-memory stats when no points are in the DB yet (extremely short trip or error).
@@ -821,6 +854,12 @@ class LocationTrackingService : Service() {
         source?.stop()
         sensorMonitor.stop()
         releaseWakeLock()
+        // Data-loss guardrail: onDestroy can arrive without a preceding ACTION_STOP/PAUSE (task
+        // swipe → OS teardown, force-stop). Block briefly to flush the batcher before scope.cancel()
+        // tears down the dispatcher a coroutine-launched flush would otherwise race.
+        if (activeToken != null) {
+            runBlocking { locationBatcher.flush() }
+        }
         scope.cancel()
         super.onDestroy()
     }

@@ -32,6 +32,23 @@ class CurrentTrackRepository(
         unsynced: Long,
     ) = dataStore.updateLocationCount(token, total, unsynced)
 
+    /**
+     * Wave-2 batching: a single write combining distance + point-count, called once per
+     * [LocationBatcher] flush instead of per-fix — cuts DataStore write volume to match the
+     * batched Room writes.
+     */
+    suspend fun updateBatchedDistanceAndPoints(
+        token: String,
+        distanceMeters: Double,
+        speed: Double,
+        avgSpeed: Double,
+        totalPoints: Long,
+        unsyncedPoints: Long,
+    ) {
+        dataStore.updateDistance(token, distanceMeters, speed, avgSpeed)
+        dataStore.updateLocationCount(token, totalPoints, unsyncedPoints)
+    }
+
     suspend fun pauseSession(
         token: String,
         lat: Double,
