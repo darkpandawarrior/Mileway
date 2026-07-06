@@ -25,7 +25,8 @@ import com.mileway.core.common.deeplink.DeepLinkValidator
 import com.mileway.core.data.session.SessionRepository
 import com.mileway.core.data.session.SessionState
 import com.mileway.core.network.config.ConfigProvider
-import kotlinx.coroutines.launch
+import com.mileway.core.platform.AnalyticsEvent
+import com.mileway.core.ui.platform.LocalAnalyticsHelper
 import com.mileway.core.ui.platform.LocalManagerProvider
 import com.mileway.core.ui.platform.MaintenanceGate
 import com.mileway.core.ui.platform.UpdateGate
@@ -38,6 +39,7 @@ import com.mileway.ui.auth.LoginScreen
 import com.mileway.ui.auth.SetPinScreen
 import com.mileway.ui.auth.SplashScreen
 import com.mileway.ui.toAppRoute
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 /**
@@ -159,6 +161,13 @@ private fun AppEntry(
     // PF.4: seed the Activity-scoped platform managers (in-app update / review / share / …) so any
     // shared screen can read them via `LocalAppReviewManager.current` with no expect/actual at the call site.
     LocalManagerProvider {
+        // CF.2: one representative event showing the AnalyticsSink wiring end to end — fires once
+        // per stage transition into the app shell (LocalAnalyticsHelper resolves to a real Koin
+        // binding here, the shared no-op default otherwise, e.g. previews).
+        val analyticsHelper = LocalAnalyticsHelper.current
+        LaunchedEffect(stage) {
+            if (stage == AppStage.APP) analyticsHelper.log(AnalyticsEvent("app_session_start"))
+        }
         MilewayTheme(
             darkTheme = override ?: systemDark,
             milewayTheme = milewayTheme,

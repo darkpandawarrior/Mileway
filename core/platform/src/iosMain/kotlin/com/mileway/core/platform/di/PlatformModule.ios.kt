@@ -41,4 +41,7 @@ actual fun platformModule(): Module =
         single<com.mileway.core.platform.MotionSensorProvider> { com.mileway.core.platform.IosMotionSensorProvider() }
         // P-D.2: live presence surface (drives ActivityKit Live Activity + Dynamic Island).
         single<com.mileway.core.platform.TrackingPresenceController> { IosTrackingPresenceController() }
+        // CF.4: local crash reporter (Napier-backed, no real crash SDK, no network). AnalyticsHelper
+        // is already bound in iosAppModule (core/ui) — not duplicated here.
+        single<com.mileway.core.platform.CrashReporter> { com.mileway.core.platform.NapierCrashReporter() }
     }

@@ -25,4 +25,8 @@ class FirebaseAnalyticsHelper(context: Context) : AnalyticsHelper {
     ) {
         analytics.setUserProperty(name.take(AnalyticsEvent.MAX_NAME), value)
     }
+
+    override fun setEnabled(enabled: Boolean) {
+        analytics.setAnalyticsCollectionEnabled(enabled)
+    }
 }

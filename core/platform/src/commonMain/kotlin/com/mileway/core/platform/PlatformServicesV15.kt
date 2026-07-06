@@ -162,7 +162,7 @@ data class AnalyticsEvent(
     }
 }
 
-/** Analytics sink. gms: FirebaseAnalytics; noGms + iOS: Napier-logging no-op. */
+/** Analytics sink. gms: FirebaseAnalytics; noGms + iOS + desktop: Napier-logging local sink. */
 interface AnalyticsHelper {
     fun log(event: AnalyticsEvent)
 
@@ -170,6 +170,9 @@ interface AnalyticsHelper {
         name: String,
         value: String?,
     )
+
+    /** Kill switch: when disabled, [log]/[setUserProperty] drop silently. Defaults to enabled. */
+    fun setEnabled(enabled: Boolean)
 }
 
 // ─────────────────────────── Crash reporting ───────────────────────────

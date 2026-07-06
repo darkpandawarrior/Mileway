@@ -8,6 +8,7 @@ import com.mileway.core.platform.AppUpdateManagerFactory
 import com.mileway.core.platform.CrashReporter
 import com.mileway.core.platform.LocalReferralManager
 import com.mileway.core.platform.LoggingAnalyticsHelper
+import com.mileway.core.platform.NapierCrashReporter
 import com.mileway.core.platform.PlatformBindings
 import com.mileway.core.platform.ReferralManager
 import org.koin.core.module.Module
@@ -28,8 +29,8 @@ fun platformServicesKoinModule(): Module =
         single<ReferralManager> { get<LocalReferralManager>() }
         // CF.3: FOSS analytics = Napier logging (no proprietary backend).
         single<AnalyticsHelper> { LoggingAnalyticsHelper() }
-        // CF.4: no crash reporting on FOSS → shared no-op.
-        single<CrashReporter> { PlatformBindings().crashReporter }
+        // CF.4: FOSS crash reporting = local Napier breadcrumbs/exceptions (no proprietary backend).
+        single<CrashReporter> { NapierCrashReporter() }
         // P2.9: no Data Layer transport on F-Droid/FOSS → NoopWatchSyncBridge (no PhoneSnapshotPublisher
         // binding here either — there is nothing to push through on this flavor).
         single<WatchSyncBridge> { NoopWatchSyncBridge() }

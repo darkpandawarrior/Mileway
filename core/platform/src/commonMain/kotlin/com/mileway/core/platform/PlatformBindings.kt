@@ -130,6 +130,8 @@ private object NoOpAnalyticsHelper : AnalyticsHelper {
         name: String,
         value: String?,
     ) = Unit
+
+    override fun setEnabled(enabled: Boolean) = Unit
 }
 
 private object NoOpCrashReporter : CrashReporter {

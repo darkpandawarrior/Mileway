@@ -1,6 +1,8 @@
 package com.mileway.core.platform.di
 
+import com.mileway.core.platform.AnalyticsHelper
 import com.mileway.core.platform.AppShortcuts
+import com.mileway.core.platform.CrashReporter
 import com.mileway.core.platform.DesktopAppShortcuts
 import com.mileway.core.platform.DesktopHaptics
 import com.mileway.core.platform.DesktopLocationTracker
@@ -13,7 +15,9 @@ import com.mileway.core.platform.DesktopUrlOpener
 import com.mileway.core.platform.Haptics
 import com.mileway.core.platform.LocationNameResolver
 import com.mileway.core.platform.LocationTracker
+import com.mileway.core.platform.LoggingAnalyticsHelper
 import com.mileway.core.platform.MotionSensorProvider
+import com.mileway.core.platform.NapierCrashReporter
 import com.mileway.core.platform.NotificationScheduler
 import com.mileway.core.platform.OfflineLocationNameResolver
 import com.mileway.core.platform.ShareSheet
@@ -41,4 +45,7 @@ actual fun platformModule(): Module =
         single<Haptics> { DesktopHaptics() }
         single<MotionSensorProvider> { DesktopMotionSensorProvider() }
         single<TrackingPresenceController> { DesktopTrackingPresenceController() }
+        // CF.2/CF.4: local telemetry (Napier-backed, no real analytics/crash SDK, no network).
+        single<AnalyticsHelper> { LoggingAnalyticsHelper() }
+        single<CrashReporter> { NapierCrashReporter() }
     }
