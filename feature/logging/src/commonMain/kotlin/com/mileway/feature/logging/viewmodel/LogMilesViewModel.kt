@@ -10,6 +10,9 @@ import com.mileway.core.data.model.network.ExpenseSubmissionResponse
 import com.mileway.core.data.model.network.LogMilesService
 import com.mileway.core.data.model.network.LogMilesSubmitRequestV2
 import com.mileway.core.data.model.network.SubmissionStatus
+import com.mileway.core.data.model.validator.OdometerError
+import com.mileway.core.data.model.validator.OdometerValidation
+import com.mileway.core.data.model.validator.OdometerValidator
 import com.mileway.core.ui.mvi.BaseViewModel
 import com.mileway.feature.logging.repository.LogMilesDraftRepository
 import com.mileway.feature.logging.repository.LogMilesDraftRepository.Companion.toDraftEntity
@@ -95,7 +98,19 @@ data class LogMilesUiState(
         get() {
             val start = odometerStart ?: return null
             val end = odometerEnd ?: return null
-            return if (end.reading <= start.reading) "End odometer reading must be greater than start" else null
+            if (end.reading == start.reading) return "End odometer reading must be greater than start"
+            return when (
+                val result = OdometerValidator.validate(start.reading, end.reading, end.source)
+            ) {
+                is OdometerValidation.Valid -> null
+                is OdometerValidation.Invalid ->
+                    when (result.reason) {
+                        OdometerError.DECREMENT -> "End odometer reading must be greater than start"
+                        OdometerError.BELOW_BOUNDS -> "Odometer reading cannot be negative"
+                        OdometerError.ABOVE_BOUNDS -> "Odometer reading exceeds maximum (${OdometerValidator.MAX_ODOMETER})"
+                        OdometerError.IMPLAUSIBLE_JUMP -> "Odometer distance is implausibly large"
+                    }
+            }
         }
 
     /** True once both start and end readings are captured with no validation error. */
