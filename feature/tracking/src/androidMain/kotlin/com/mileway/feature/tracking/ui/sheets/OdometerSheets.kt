@@ -81,9 +81,9 @@ fun OdometerReadingConfirmSheet(
     var manualInput by remember { mutableStateOf(detectedReading.toString()) }
 
     val context = LocalContext.current
-    val analyzer = remember { OdometerOcrAnalyzer() }
+    val analyzer = remember { OdometerOcrAnalyzer(context) }
     LaunchedEffect(capturedUri) {
-        when (val result = analyzer.analyze(Uri.parse(capturedUri), context)) {
+        when (val result = analyzer.analyze(Uri.parse(capturedUri))) {
             is OcrResult.Success -> displayedReading = result.reading
             is OcrResult.Failure -> displayedReading = detectedReading
         }
