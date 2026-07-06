@@ -9,6 +9,9 @@ data class IntervalInputs(
     val isCharging: Boolean,
     val isPowerSaver: Boolean,
     val elapsedMs: Long,
+    // Wave-2 DeviceTierManager: RAM-tier interval multiplier. Default 1.0 (HIGH tier / no change)
+    // preserves every existing call site's behavior.
+    val tierMultiplier: Double = 1.0,
 )
 
 /**
@@ -77,6 +80,7 @@ object DynamicIntervalCalculator {
         ms *= batteryMultiplier(inputs.batteryPct, inputs.isCharging)
         if (inputs.isPowerSaver) ms *= 1.5
         ms *= durationMultiplier(inputs.elapsedMs)
+        ms *= inputs.tierMultiplier
         return ms.roundToLong().coerceIn(MIN_INTERVAL_MS, MAX_INTERVAL_MS)
     }
 }

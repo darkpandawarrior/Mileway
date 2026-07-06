@@ -31,6 +31,8 @@ import com.mileway.core.platform.MotionFusion
 import com.mileway.core.platform.MotionReading
 import com.mileway.core.platform.Vector3
 import com.mileway.feature.tracking.TrackMilesActivity
+import com.mileway.feature.tracking.manager.AndroidDeviceRamSource
+import com.mileway.feature.tracking.manager.DeviceTierManager
 import com.mileway.feature.tracking.repository.SavedTrackRepository
 import com.mileway.feature.tracking.service.location.ActivityRecognizer
 import com.mileway.feature.tracking.service.location.DynamicIntervalCalculator
@@ -120,6 +122,12 @@ class LocationTrackingService : Service() {
 
     @Volatile
     private var recognizedActivity: RecognizedActivity = RecognizedActivity.UNKNOWN
+
+    // Wave-2 DeviceTierManager: resolved once per process (RAM tier doesn't change at runtime),
+    // then reused as the interval multiplier for every fix.
+    private val tierIntervalMultiplier: Double by lazy {
+        DeviceTierManager.intervalMultiplier(DeviceTierManager.tierFor(AndroidDeviceRamSource(this).totalRamBytes()))
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -439,6 +447,7 @@ class LocationTrackingService : Service() {
                     isCharging = isCharging(),
                     isPowerSaver = isPowerSaver(),
                     elapsedMs = durationMs,
+                    tierMultiplier = tierIntervalMultiplier,
                 ),
             )
         source?.updateInterval(interval)
