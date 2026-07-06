@@ -91,4 +91,14 @@ object DistanceQualityAnalyzer {
         cleanedDistance: Double,
         totalDistance: Double,
     ): Double = if (totalDistance > 0) (cleanedDistance / totalDistance).coerceIn(0.0, 1.0) else 1.0
+
+    /** Raw per-category distance buckets already stored on [track] — no recomputation. */
+    fun getBucketBreakdown(track: SavedTrack): DistanceBucketBreakdown =
+        DistanceBucketBreakdown(
+            originalDistance = track.originalDistance,
+            cleanedDistance = track.cleanedDistance,
+            mockDistance = track.mockDistance,
+            abnormalDistance = track.abnormalDistance,
+            spikeDistance = track.spikeDistance,
+        )
 }

@@ -68,4 +68,10 @@ class SavedTrackRepository(private val dao: SavedTrackDao) {
     // P6.1: persists the odometer-not-working fallback flag at submission time, so the existing
     // Room column stops being dead.
     suspend fun markOdometerNotWorking(routeId: String): Int = dao.markOdometerNotWorking(routeId)
+
+    // Wave-2 SmartDistanceAnalysis: persists the user-approved final distance once reductions are applied.
+    suspend fun updateSmartDistanceFinal(
+        routeId: String,
+        value: Double,
+    ) = dao.updateSmartDistanceFinal(routeId, value)
 }

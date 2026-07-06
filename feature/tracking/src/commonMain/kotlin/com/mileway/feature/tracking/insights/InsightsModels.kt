@@ -145,3 +145,47 @@ data class RouteAnalysisResult(
     val category: String,
     val anomalies: List<String>,
 )
+
+// ---------------------------------------------------------------------------
+// SmartDistanceAnalyzer models.
+// ---------------------------------------------------------------------------
+
+/** Per-category distance buckets making up a track's raw/cleaned distance split. */
+data class DistanceBucketBreakdown(
+    val originalDistance: Double,
+    val cleanedDistance: Double,
+    val mockDistance: Double,
+    val abnormalDistance: Double,
+    val spikeDistance: Double,
+)
+
+/** One of the five reduction categories [SmartDistanceAnalyzer] evaluates. */
+enum class ReductionCategory { WALKING, STATIONARY_DRIFT, SPEED_OUTLIER, BATTERY_OPT, PAUSE_DRIFT }
+
+/** A single suggested (not yet applied) reduction for one category. */
+data class ReductionOption(
+    val category: ReductionCategory,
+    /** Suggested distance reduction, in the same unit as the input buckets/points. */
+    val suggestedReductionKm: Double,
+    /** 0.0–1.0 confidence in this suggestion. */
+    val confidence: Double,
+)
+
+/** Which side of the GPS-vs-odometer comparison is higher. */
+enum class DiscrepancyDirection { GPS_HIGHER, ODOMETER_HIGHER, EQUAL }
+
+/** One entry in the audit log: a category the user selected and the reduction applied. */
+data class AppliedReduction(
+    val category: ReductionCategory,
+    val reductionKm: Double,
+)
+
+/** Full output of [SmartDistanceAnalyzer.analyze]. */
+data class SmartDistanceAnalysis(
+    val options: List<ReductionOption>,
+    val discrepancyDirection: DiscrepancyDirection,
+    /** |GPS - odometer| / odometer, as a fraction (0.2 == 20%). Null when odometer is unknown/zero. */
+    val discrepancyRatio: Double?,
+    /** True when [discrepancyRatio] exceeds [SmartDistanceAnalyzer.AUTO_TRIGGER_DISCREPANCY_RATIO]. */
+    val autoTrigger: Boolean,
+)

@@ -94,6 +94,12 @@ interface SavedTrackDao {
         name: String,
     )
 
+    @Query("UPDATE saved_tracks SET smartDistanceFinal = :value WHERE routeId = :routeId")
+    suspend fun updateSmartDistanceFinal(
+        routeId: String,
+        value: Double,
+    )
+
     @Query("UPDATE saved_tracks SET distance = :distance, duration = :duration WHERE routeId = :routeId AND isCompleted = 0")
     suspend fun updateTrackLiveData(
         routeId: String,
