@@ -12,7 +12,6 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import com.mileway.core.data.dao.HardwareEventDao
 import com.mileway.core.data.dao.LocationDao
 import com.mileway.core.data.dao.SavedTrackDao
 import com.mileway.core.data.model.db.CurrentTrackData
@@ -34,6 +33,7 @@ import com.mileway.feature.tracking.TrackMilesActivity
 import com.mileway.feature.tracking.manager.AndroidDeviceRamSource
 import com.mileway.feature.tracking.manager.DeviceTierManager
 import com.mileway.feature.tracking.repository.CurrentTrackRepository
+import com.mileway.feature.tracking.repository.HardwareEventRepository
 import com.mileway.feature.tracking.repository.LocationRepository
 import com.mileway.feature.tracking.repository.SavedTrackRepository
 import com.mileway.feature.tracking.service.location.ActivityRecognizer
@@ -78,12 +78,12 @@ import org.koin.android.ext.android.inject
 class LocationTrackingService : Service() {
     private val locationDao: LocationDao by inject()
     private val savedTrackDao: SavedTrackDao by inject()
-    private val hardwareEventDao: HardwareEventDao by inject()
     private val sessionStore: CurrentTrackDataStore by inject()
     private val demoSettings: DemoSettingsRepository by inject()
     private val configManager: com.mileway.feature.tracking.manager.TrackingConfigManager by inject()
     private val locationRepository: LocationRepository by inject()
     private val currentTrackRepository: CurrentTrackRepository by inject()
+    private val hardwareEventRepository: HardwareEventRepository by inject()
 
     // Wave-2: buffers point writes (10pt/30s) instead of one Room insert per fix.
     private val locationBatcher: LocationBatcher by lazy {
@@ -92,6 +92,12 @@ class LocationTrackingService : Service() {
 
     // Wave-2: periodic (120s) in-memory-vs-DB drift check, piggybacked on the per-fix path.
     private val driftReconciler: DriftReconciler by lazy { DriftReconciler(now = System::currentTimeMillis) }
+
+    // Wave-2 SmartEventLogger (parity §2.8): throttles noisy per-fix hardware events
+    // (MOCK_LOCATION/ABNORMAL_LOCATION) before they hit Room; critical lifecycle events pass through.
+    private val smartEventLogger: SmartEventLogger by lazy {
+        SmartEventLogger(hardwareEventRepository, EventThrottler(now = System::currentTimeMillis))
+    }
 
     // P-C.3: consume the shutdown flag once per boot.
     private val shutdownFlagPolicy: ShutdownFlagPolicy by lazy {
@@ -704,7 +710,7 @@ class LocationTrackingService : Service() {
         text: String,
         fix: GpsFix? = null,
     ) {
-        hardwareEventDao.insert(
+        smartEventLogger.log(
             HardwareEvent(
                 token = token,
                 eventType = type,
