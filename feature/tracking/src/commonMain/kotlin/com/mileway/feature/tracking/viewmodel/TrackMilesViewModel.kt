@@ -3,6 +3,9 @@ package com.mileway.feature.tracking.viewmodel
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.viewModelScope
 import com.mileway.core.data.dao.MockAccountDao
+import com.mileway.core.data.model.db.EventAudience
+import com.mileway.core.data.model.db.EventType
+import com.mileway.core.data.model.db.HardwareEvent
 import com.mileway.core.data.model.db.SavedTrack
 import com.mileway.core.data.model.display.TrackingSystemFlags
 import com.mileway.core.data.model.network.ApprovedVehicle
@@ -22,6 +25,7 @@ import com.mileway.feature.tracking.checkin.CheckInValidator.CheckInLocation
 import com.mileway.feature.tracking.manager.TrackingConfigManager
 import com.mileway.feature.tracking.manager.TrackingController
 import com.mileway.feature.tracking.repository.CurrentTrackRepository
+import com.mileway.feature.tracking.repository.HardwareEventRepository
 import com.mileway.feature.tracking.repository.LocationRepository
 import com.mileway.feature.tracking.repository.SavedTrackRepository
 import com.mileway.feature.tracking.repository.VehiclePricingRepository
@@ -179,6 +183,9 @@ class TrackMilesViewModel(
     private val trackingController: TrackingController,
     private val currentTrackRepo: CurrentTrackRepository,
     private val locationRepo: LocationRepository,
+    // P4.x: persists the pause reason as a TRACKING_PAUSED hardware event (existing `metadata`
+    // field — no schema change). Defaulted so JVM tests can omit it.
+    private val hardwareEventRepo: HardwareEventRepository? = null,
     private val geoCheckInLocations: List<CheckInLocation> = emptyList(),
     // C.3: live feed from the foreground service. Defaulted so JVM tests can omit it; Koin injects the
     // singleton TrackingStatePublisher in production (it ignores the default).
@@ -621,8 +628,14 @@ class TrackMilesViewModel(
     }
 
     fun pauseTracking(reason: String? = null) {
-        currentState.currentRouteId?.let { trackingController.pause(it) }
+        val routeId = currentState.currentRouteId
+        routeId?.let { trackingController.pause(it) }
         setState { copy(phase = TrackMilesPhase.PAUSED, pauseReason = reason) }
+
+        if (routeId != null && hardwareEventRepo != null) {
+            val event = buildPauseHardwareEvent(routeId, reason, Clock.System.now().toEpochMilliseconds())
+            viewModelScope.launch { hardwareEventRepo.insert(event) }
+        }
     }
 
     fun resumeTracking() {
@@ -726,3 +739,21 @@ class TrackMilesViewModel(
         }
     }
 }
+
+/**
+ * Builds the [HardwareEvent] persisted when a trip is paused: the reason (quick pick or "Other"
+ * free-text) rides in the event's existing `metadata` field — no schema change needed.
+ */
+internal fun buildPauseHardwareEvent(
+    routeId: String,
+    reason: String?,
+    timeMillis: Long,
+): HardwareEvent =
+    HardwareEvent(
+        token = routeId,
+        eventType = EventType.TRACKING_PAUSED,
+        event = "Tracking paused",
+        time = timeMillis,
+        audience = EventAudience.USER,
+        metadata = if (!reason.isNullOrBlank()) "Reason: $reason" else null,
+    )
