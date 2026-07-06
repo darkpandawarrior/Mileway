@@ -1,11 +1,15 @@
 package com.mileway.feature.tracking.manager
 
+import kotlinx.serialization.Serializable
+
 /**
  * All abnormal-detection thresholds [LocationProcessor] uses, in one runtime-tweakable object.
  * [DEFAULT] holds the values that used to be hardcoded constants on `LocationProcessor.Companion`
  * — moving them here doesn't change behavior, it just gives debug settings today (and server
- * config later) a single object to override.
+ * config later) a single object to override. `@Serializable` (Wave 4): nested inside
+ * [TrackingConfig] for the local-JSON/server config source.
  */
+@Serializable
 data class AbnormalDetectionConfig(
     // C.1a: speed-band jitter gates.
     val walkingMaxMps: Double = 2.5,

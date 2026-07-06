@@ -14,6 +14,10 @@ class TrackingConfigManager(
     // Wave-2 AbnormalDetectionConfig: overrides source is optional so every existing call site
     // (DI, tests) keeps compiling — omit it and abnormalDetectionConfig just emits DEFAULT forever.
     abnormalDetectionOverrides: Flow<AbnormalDetectionOverrides> = flowOf(AbnormalDetectionOverrides()),
+    // Wave-4 TrackingConfig: local-JSON stand-in for a server plugin-config push. Same optional-
+    // source idiom as abnormalDetectionOverrides above — omit it and trackingConfig emits the
+    // parsed bundled default forever; swap in a real network Flow later without touching callers.
+    trackingConfigSource: Flow<TrackingConfig> = flowOf(TrackingConfigJsonSource.load()),
 ) {
     /**
      * Hot-reload config Flow: debug settings can push [AbnormalDetectionOverrides] today, a real
@@ -31,6 +35,13 @@ class TrackingConfigManager(
                 gapMaxDistanceM = o.gapMaxDistanceM ?: d.gapMaxDistanceM,
             )
         }
+
+    /**
+     * The broader server-driven plugin config (§2.3/§3 Wave 4) — served from local JSON today,
+     * a real network response later; source shape is unchanged either way. Defaults to
+     * [TrackingConfig.DEFAULT] whenever [trackingConfigSource] hasn't emitted yet.
+     */
+    val trackingConfig: Flow<TrackingConfig> = trackingConfigSource
 
     fun getTrackMilesConfig(): TrackMilesPluginConfig = configProvider.getTrackMilesConfig()
 
