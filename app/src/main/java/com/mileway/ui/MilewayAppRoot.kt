@@ -324,8 +324,15 @@ fun MilewayAppRoot(
                             onBack = { navController.popBackStack() },
                             onOpenHttpInspector = com.mileway.debug.WormaCeptorHelper.getLaunchIntent(ctx)
                                 ?.let { intent -> { ctx.startActivity(intent) } },
+                            onOpenNetworkLog = { navController.navigate(AppRoutes.NETWORK_LOG) },
                             onOpenShowcase = com.mileway.debug.ShowcaseLauncher.getLaunchIntent(ctx)
                                 ?.let { intent -> { ctx.startActivity(intent) } },
+                        )
+                    }
+                    // V21 §3 Wave 4: local network log screen, reached from the debug menu.
+                    composable(AppRoutes.NETWORK_LOG) {
+                        com.mileway.feature.tracking.debug.NetworkLogScreen(
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     // Global master-search destination, full-screen, outside bottom-nav graphs. A tapped

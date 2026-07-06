@@ -16,6 +16,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.konnection)
+            // V21 §3 Wave 4: NetworkLogPlugin is a createClientPlugin for whatever HttpClient the
+            // app installs it on (see core/network/netlog); no HTTP calls made from this module.
+            implementation(libs.ktor.client.core)
             implementation(project(":core:data"))
             // V15 PF.5: ConfigProvider exposes UpdateConfig (defined in core:platform).
             implementation(project(":core:platform"))

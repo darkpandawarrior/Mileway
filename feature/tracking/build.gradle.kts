@@ -28,6 +28,8 @@ kotlin {
             implementation(project(":core:maps"))
             // P-E.1: Coil3 is multiplatform; moved from androidMain so submission components can live in commonMain.
             implementation(libs.coil3.compose)
+            // V21 §3 Wave 4: NetworkLogViewModel's API tester takes an optional HttpClient.
+            implementation(libs.ktor.client.core)
         }
         androidMain.dependencies {
             // api() so dependents (feature:logging, :app) can resolve Material theme parent

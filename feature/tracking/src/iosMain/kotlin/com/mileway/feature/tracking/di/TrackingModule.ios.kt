@@ -1,6 +1,8 @@
 package com.mileway.feature.tracking.di
 
 import com.mileway.core.network.config.ConfigProvider
+import com.mileway.core.network.netlog.NetworkLogStore
+import com.mileway.feature.tracking.debug.NetworkLogViewModel
 import com.mileway.feature.tracking.insights.RouteAnalyzer
 import com.mileway.feature.tracking.manager.IosTrackingController
 import com.mileway.feature.tracking.manager.TrackingConfigManager
@@ -53,6 +55,9 @@ val trackingModule =
             )
         }
 
+        // V21 §3 Wave 4: debug network log ring buffer — mirrors the Android trackingModule binding.
+        single { NetworkLogStore() }
+
         // ── Repositories (all in commonMain) ──────────────────────────────────
         single { SavedTrackRepository(get()) }
         single { LocationRepository(get()) }
@@ -104,6 +109,8 @@ val trackingModule =
         viewModelOf(::CheckInHistoryViewModel)
         viewModelOf(::LiveTrackViewModel)
         viewModelOf(::CreateVoucherViewModel)
+        // No HttpClient wired yet (app is offline/:stub) — getOrNull() keeps the tester graceful.
+        viewModel { NetworkLogViewModel(store = get(), httpClient = getOrNull()) }
         viewModel { params ->
             TrackingSuccessViewModel(
                 args = params.get(),

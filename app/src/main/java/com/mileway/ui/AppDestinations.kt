@@ -42,6 +42,9 @@ object AppGraph {
  */
 object AppRoutes {
     const val DEBUG_MENU = "debug_menu"
+
+    /** V21 §3 Wave 4: local network log (list/detail/curl replay/API tester) from the debug menu. */
+    const val NETWORK_LOG = "network_log"
     const val AGENT_CHAT = "agent/chat"
     const val AGENT_HISTORY = "agent/history"
 

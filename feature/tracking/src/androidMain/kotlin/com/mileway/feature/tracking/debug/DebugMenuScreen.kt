@@ -89,6 +89,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun DebugMenuScreen(
     onBack: () -> Unit,
     onOpenHttpInspector: (() -> Unit)? = null,
+    onOpenNetworkLog: (() -> Unit)? = null,
     onOpenShowcase: (() -> Unit)? = null,
     viewModel: DebugMenuComposeViewModel = koinViewModel(),
     configProvider: ConfigProvider = koinInject(),
@@ -248,6 +249,14 @@ fun DebugMenuScreen(
             if (searchQuery.isEmpty() && onOpenHttpInspector != null) {
                 item {
                     NetworkInspectorCard(onOpen = onOpenHttpInspector)
+                }
+            }
+
+            // V21 §3 Wave 4: local network log (NetworkLogScreen) — request/response history +
+            // curl replay + API tester, backed by NetworkLogStore rather than an external intent.
+            if (searchQuery.isEmpty() && onOpenNetworkLog != null) {
+                item {
+                    NetworkLogCard(onOpen = onOpenNetworkLog)
                 }
             }
 
@@ -650,6 +659,53 @@ private fun NetworkInspectorCard(onOpen: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Open WormaCeptor")
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Network log card (NetworkLogScreen), only shown when callback is wired
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun NetworkLogCard(onOpen: () -> Unit) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.DataObject,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Network Log",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                text = "Recorded requests, curl replay, and a minimal API tester",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+            )
+            Button(
+                onClick = onOpen,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DataObject,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Open Network Log")
             }
         }
     }

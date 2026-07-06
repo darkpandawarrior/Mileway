@@ -1,9 +1,11 @@
 package com.mileway.feature.tracking.di
 
 import com.mileway.core.network.config.ConfigProvider
+import com.mileway.core.network.netlog.NetworkLogStore
 import com.mileway.core.platform.AndroidNotificationScheduler
 import com.mileway.core.platform.NotificationScheduler
 import com.mileway.feature.tracking.debug.DebugMenuComposeViewModel
+import com.mileway.feature.tracking.debug.NetworkLogViewModel
 import com.mileway.feature.tracking.insights.RouteAnalyzer
 import com.mileway.feature.tracking.manager.LocationTrackingController
 import com.mileway.feature.tracking.manager.TrackingConfigManager
@@ -46,6 +48,9 @@ val trackingModule =
                 abnormalDetectionOverrides = get<com.mileway.core.data.settings.AbnormalDetectionSettingsSource>().overrides,
             )
         }
+        // V21 §3 Wave 4: debug network log ring buffer, shared by NetworkLogPlugin (installed on
+        // whichever HttpClient the host wires) and the NetworkLogScreen debug UI.
+        single { NetworkLogStore() }
         single { SavedTrackRepository(get()) }
         single { LocationRepository(get()) }
         single { VehiclePricingRepository(get()) }
@@ -118,6 +123,8 @@ val trackingModule =
         viewModelOf(::TrackInsightsViewModel)
         viewModelOf(::ExportViewModel)
         viewModelOf(::DebugMenuComposeViewModel)
+        // No HttpClient wired yet (app is offline/:stub) — getOrNull() keeps the tester graceful.
+        viewModel { NetworkLogViewModel(store = get(), httpClient = getOrNull()) }
         viewModelOf(::CreateVoucherViewModel)
         // Takes the nav-supplied TrackingSuccessArgs as a runtime parameter; repos resolve from graph.
         viewModel { params ->
