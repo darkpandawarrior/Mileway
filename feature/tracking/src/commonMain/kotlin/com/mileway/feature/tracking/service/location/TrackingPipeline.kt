@@ -170,6 +170,10 @@ class LocationProcessor(
         // O.3: IMU says the device is physically still — strengthen jitter suppression (override the
         // GPS-speed "movement momentum" heuristic, since accelerometer stillness is authoritative).
         motionStill: Boolean = false,
+        // Wave-2 IMU polish: harsh accel/braking detected this fix — strengthen jitter suppression
+        // the same way motionStill does (a hard stop can look like "still" to the speed gate for a
+        // moment; treat it with the same authority). Default false preserves existing behavior.
+        harshAccel: Boolean = false,
     ): ProcessResult? {
         // P-A.1: hard coordinate gate — impossible values cannot be real GPS readings.
         if (fix.lat !in LocationTrackingConstants.COORD_LAT_MIN..LocationTrackingConstants.COORD_LAT_MAX ||
@@ -220,8 +224,10 @@ class LocationProcessor(
             val gate = minDisplacementForSpeed(fix.speedMps.toDouble())
             val stationaryMicroJitter =
                 fix.speedMps < abnormalConfig.stationarySpeedMps && displacement < abnormalConfig.stationaryJitterM
-            // O.3: drop the sub-gate wander when either GPS history shows no movement OR the IMU says still.
-            if ((displacement < gate || stationaryMicroJitter) && (!hasMovementHistory() || motionStill)) {
+            // O.3/Wave-2: drop the sub-gate wander when GPS history shows no movement, OR the IMU
+            // says still, OR this fix coincides with a harsh accel/brake event (a hard stop's own
+            // jitter shouldn't get counted as travelled distance either).
+            if ((displacement < gate || stationaryMicroJitter) && (!hasMovementHistory() || motionStill || harshAccel)) {
                 return null
             }
         }

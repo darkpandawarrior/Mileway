@@ -12,6 +12,9 @@ data class IntervalInputs(
     // Wave-2 DeviceTierManager: RAM-tier interval multiplier. Default 1.0 (HIGH tier / no change)
     // preserves every existing call site's behavior.
     val tierMultiplier: Double = 1.0,
+    // Wave-2 IMU polish: harsh accel/braking this fix — boosts GPS frequency (shorter interval) to
+    // capture the event at higher resolution. Default false ⇒ 1.0 ⇒ no behavior change.
+    val harshAccel: Boolean = false,
 )
 
 /**
@@ -64,6 +67,12 @@ object DynamicIntervalCalculator {
             else -> 1.0
         }
 
+    // Wave-2 IMU polish: shortens (boosts) the interval during a harsh accel/brake event so the
+    // GPS track has denser resolution right where the interesting driving behavior happened.
+    private const val HARSH_ACCEL_MULTIPLIER = 0.5
+
+    private fun accelMultiplier(harshAccel: Boolean): Double = if (harshAccel) HARSH_ACCEL_MULTIPLIER else 1.0
+
     private fun durationMultiplier(elapsedMs: Long): Double {
         val hours = elapsedMs / 3_600_000.0
         return when {
@@ -81,6 +90,7 @@ object DynamicIntervalCalculator {
         if (inputs.isPowerSaver) ms *= 1.5
         ms *= durationMultiplier(inputs.elapsedMs)
         ms *= inputs.tierMultiplier
+        ms *= accelMultiplier(inputs.harshAccel)
         return ms.roundToLong().coerceIn(MIN_INTERVAL_MS, MAX_INTERVAL_MS)
     }
 }

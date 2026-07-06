@@ -48,6 +48,7 @@ import com.mileway.feature.tracking.service.location.SimulatedLocationSource
 import com.mileway.feature.tracking.service.location.TrackStats
 import com.mileway.feature.tracking.service.location.TrackingQualityScorer
 import com.mileway.feature.tracking.service.location.TrackingSensorMonitor
+import com.mileway.feature.tracking.service.motion.ImuAnalyzer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -412,9 +413,19 @@ class LocationTrackingService : Service() {
             } else {
                 false
             } || recognizedActivity == RecognizedActivity.STILL // O.2: activity recognition also signals stillness
+        // Wave-2 IMU polish: harsh-accel/gyro-spin read off the raw snapshot, plus pausing gyro
+        // consumption while confirmed stationary (battery win — resumed the instant motion returns).
+        val imuAnalysis = ImuAnalyzer.analyze(sensors, motionStill)
+        sensorMonitor.setStationary(motionStill)
         val result =
-            proc.process(fix, isPaused, sensors, suppressSpike = inResumeGrace, motionStill = motionStill)
-                ?: return // jitter-suppressed
+            proc.process(
+                fix,
+                isPaused,
+                sensors,
+                suppressSpike = inResumeGrace,
+                motionStill = motionStill,
+                harshAccel = imuAnalysis.harshAccel,
+            ) ?: return // jitter-suppressed
         val battery = batteryPercent()
         val row = result.location.copy(token = token, batteryPercentage = battery)
         val stats = proc.stats()
@@ -448,6 +459,7 @@ class LocationTrackingService : Service() {
                     isPowerSaver = isPowerSaver(),
                     elapsedMs = durationMs,
                     tierMultiplier = tierIntervalMultiplier,
+                    harshAccel = imuAnalysis.harshAccel,
                 ),
             )
         source?.updateInterval(interval)
