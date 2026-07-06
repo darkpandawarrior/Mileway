@@ -351,6 +351,8 @@ private class FakeLocationDao : LocationDao {
 
     override fun getCheckInLocationsByToken(token: String): Flow<List<LocationData>> = flowOf(emptyList())
 
+    override fun getAllCheckInPoints(): Flow<List<LocationData>> = flowOf(emptyList())
+
     override suspend fun insertLocation(location: LocationData) {}
 
     override suspend fun insertLocations(locations: List<LocationData>) {}

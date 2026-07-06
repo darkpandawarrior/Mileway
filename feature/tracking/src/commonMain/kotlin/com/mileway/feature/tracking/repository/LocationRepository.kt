@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.Flow
 class LocationRepository(private val dao: LocationDao) {
     fun locationsForToken(token: String): Flow<List<LocationData>> = dao.getLocationsByToken(token)
 
+    /** All check-in points across every trip (CheckInHistoryScreen), newest first. */
+    fun allCheckInPoints(): Flow<List<LocationData>> = dao.getAllCheckInPoints()
+
     suspend fun insertBatch(locations: List<LocationData>) = dao.insertLocations(locations)
 
     suspend fun insert(location: LocationData) = dao.insertLocation(location)

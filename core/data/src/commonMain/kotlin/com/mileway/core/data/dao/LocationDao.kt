@@ -44,6 +44,10 @@ interface LocationDao {
     @Query("SELECT * FROM locations WHERE token = :token AND checkInType != 'NONE' ORDER BY date ASC")
     fun getCheckInLocationsByToken(token: String): Flow<List<LocationData>>
 
+    /** All check-in points across every trip (CheckInHistoryScreen), newest first. */
+    @Query("SELECT * FROM locations WHERE wasCheckInPoint = 1 ORDER BY date DESC")
+    fun getAllCheckInPoints(): Flow<List<LocationData>>
+
     @Insert
     suspend fun insertLocation(location: LocationData)
 

@@ -17,6 +17,7 @@ import com.mileway.feature.tracking.service.ReconciliationResultHolder
 import com.mileway.feature.tracking.service.SessionReconciliationPolicy
 import com.mileway.feature.tracking.service.TrackingServiceApi
 import com.mileway.feature.tracking.service.TrackingStatePublisher
+import com.mileway.feature.tracking.viewmodel.CheckInHistoryViewModel
 import com.mileway.feature.tracking.viewmodel.CreateVoucherViewModel
 import com.mileway.feature.tracking.viewmodel.LiveTrackViewModel
 import com.mileway.feature.tracking.viewmodel.MileageSubmissionViewModel
@@ -71,6 +72,7 @@ val trackingModule =
                 trackingController = get(),
                 currentTrackRepo = get(),
                 locationRepo = get(),
+                hardwareEventRepo = get(),
                 geoCheckInLocations = getOrNull() ?: emptyList(),
                 trackingServiceApi = get(),
                 locationNameResolver = getOrNull() ?: com.mileway.core.platform.OfflineLocationNameResolver(),
@@ -86,6 +88,7 @@ val trackingModule =
         viewModelOf(::MileageSubmissionViewModel)
         viewModelOf(::TrackDetailViewModel)
         viewModelOf(::RoutePointsViewModel)
+        viewModelOf(::CheckInHistoryViewModel)
         viewModelOf(::LiveTrackViewModel)
         viewModelOf(::CreateVoucherViewModel)
         viewModel { params ->

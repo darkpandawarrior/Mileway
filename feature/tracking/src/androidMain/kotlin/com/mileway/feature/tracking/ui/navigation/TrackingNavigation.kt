@@ -20,7 +20,6 @@ import com.mileway.core.data.settings.DemoSettings
 import com.mileway.core.data.settings.DemoSettingsRepository
 import com.mileway.core.data.settings.LAST_ODOMETER_NONE
 import com.mileway.core.ui.AppHost
-import com.mileway.feature.tracking.ui.screens.CheckInHistoryItem
 import com.mileway.feature.tracking.ui.screens.CheckInHistoryScreen
 import com.mileway.feature.tracking.ui.screens.CreateVoucherScreen
 import com.mileway.feature.tracking.ui.screens.GeoCheckInScreen
@@ -216,8 +215,10 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
     }
 
     composable(TrackingRoutes.CHECK_IN_HISTORY) {
+        val viewModel: com.mileway.feature.tracking.viewmodel.CheckInHistoryViewModel = koinViewModel()
+        val events by viewModel.items.collectAsStateWithLifecycle()
         CheckInHistoryScreen(
-            events = DemoCheckInHistory.items,
+            events = events,
             onBack = { navController.popBackStack() },
         )
     }
@@ -519,24 +520,4 @@ fun NavGraphBuilder.trackingGraph(navController: NavHostController) {
         val routeId = backStack.arguments?.getString("routeId") ?: return@composable
         TrackDataPreviewScreen(routeId = routeId, onBack = { navController.popBackStack() })
     }
-}
-
-private object DemoCheckInHistory {
-    private const val DAY_MS = 86_400_000L
-    private const val HOUR_MS = 3_600_000L
-    private const val BASE = 1_781_654_400_000L
-
-    val items =
-        listOf(
-            CheckInHistoryItem("CI-001", "Speedline Transport Co.", "Client visit – Q2 review", BASE, 18.5204, 73.8567, "Client visit", false),
-            CheckInHistoryItem("CI-002", "Metro Cargo Movers", "Pickup confirmation", BASE - 2 * HOUR_MS, 18.5480, 73.8718, "Pickup", false),
-            CheckInHistoryItem("CI-003", "CityLink Telecom Services", "SIM card bulk order", BASE - 5 * HOUR_MS, 18.5601, 73.8234, "Delivery", true),
-            CheckInHistoryItem("CI-004", "Eastern Freight Lines", null, BASE - DAY_MS, 18.5120, 73.9012, "Geo check-in", false),
-            CheckInHistoryItem("CI-005", "Southside Auto Works", "Vehicle service drop-off", BASE - DAY_MS - 3 * HOUR_MS, 18.4890, 73.8350, "Service", true),
-            CheckInHistoryItem("CI-006", "Westgate Fleet Services", "Fleet inspection", BASE - 2 * DAY_MS, 18.5913, 73.7389, "Inspection", false),
-            CheckInHistoryItem("CI-007", "Hadapsar Logistics Park", null, BASE - 3 * DAY_MS, 18.5089, 73.9260, "Geo check-in", false),
-            CheckInHistoryItem("CI-008", "Speedline Transport Co.", "Follow-up delivery", BASE - 4 * DAY_MS, 18.5204, 73.8567, "Delivery", true),
-            CheckInHistoryItem("CI-009", "Metro Cargo Movers", "Returns processing", BASE - 6 * DAY_MS, 18.5480, 73.8718, "Returns", false),
-            CheckInHistoryItem("CI-010", "CityLink Telecom Services", "Invoice collection", BASE - 8 * DAY_MS, 18.5601, 73.8234, "Invoice", true),
-        )
 }
