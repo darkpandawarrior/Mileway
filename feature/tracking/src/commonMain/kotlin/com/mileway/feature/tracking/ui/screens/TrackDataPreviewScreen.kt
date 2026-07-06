@@ -61,15 +61,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mileway.core.data.model.db.EventAudience
 import com.mileway.core.data.model.db.HardwareEvent
+import com.mileway.core.data.model.db.LocationData
 import com.mileway.core.data.model.db.SavedTrack
 import com.mileway.core.data.util.DateUtils
 import com.mileway.core.ui.components.CollapsibleSectionCard
 import com.mileway.core.ui.components.LoadingScreen
 import com.mileway.core.ui.components.SectionCard
+import com.mileway.core.ui.components.SparklineChart
 import com.mileway.core.ui.components.topbar.DepthAwareTopBar
 import com.mileway.core.ui.theme.DesignTokens
 import com.mileway.core.ui.theme.DesignTokens.NavigationDepth
 import com.mileway.core.ui.theme.MilewayColors
+import com.mileway.feature.tracking.insights.TelemetryChartData
 import com.mileway.feature.tracking.repository.HardwareEventRepository
 import com.mileway.feature.tracking.ui.util.HealthLevel
 import com.mileway.feature.tracking.ui.util.computeHealthLevel
@@ -151,7 +154,13 @@ fun TrackDataPreviewScreen(
 
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
                 when (page) {
-                    0 -> OverviewTab(track = track, displayTrack = displayTrack, locationCount = uiState.locations.size)
+                    0 ->
+                        OverviewTab(
+                            track = track,
+                            displayTrack = displayTrack,
+                            locationCount = uiState.locations.size,
+                            locations = uiState.locations,
+                        )
                     1 -> QualityTab(track = track)
                     2 ->
                         EventsTab(
@@ -181,6 +190,7 @@ private fun OverviewTab(
     track: SavedTrack,
     displayTrack: com.mileway.core.data.model.display.TrackDisplayData,
     locationCount: Int,
+    locations: List<LocationData> = emptyList(),
 ) {
     val expectedPoints = if (track.duration > 0) (track.duration / track.minimumTrackerTime).toInt().coerceAtLeast(1) else 1
     val actualPoints = locationCount.takeIf { it > 0 } ?: track.totalLocationPoints.toInt()
@@ -247,7 +257,46 @@ private fun OverviewTab(
             }
         }
 
+        // Wave 3 live-map polish: telemetry graphs derived from the raw LocationData points.
+        TelemetryGraphsCard(locations = locations)
+
         Spacer(Modifier.height(DesignTokens.Spacing.l))
+    }
+}
+
+/** Small speed/altitude/accel sparklines from the track's raw fixes. Hidden when there's no data. */
+@Composable
+private fun TelemetryGraphsCard(locations: List<LocationData>) {
+    val series = remember(locations) { TelemetryChartData.derive(locations) }
+    if (series.speedKmh.isEmpty && series.altitudeM.isEmpty && series.accelMagnitude.isEmpty) return
+
+    SectionCard(title = "Telemetry") {
+        Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.m)) {
+            TelemetrySeriesRow("Speed (km/h)", series.speedKmh, MilewayColors.info)
+            TelemetrySeriesRow("Altitude (m)", series.altitudeM, MilewayColors.success)
+            TelemetrySeriesRow("Accel magnitude", series.accelMagnitude, MilewayColors.warning)
+        }
+    }
+}
+
+@Composable
+private fun TelemetrySeriesRow(
+    label: String,
+    series: TelemetryChartData.Series,
+    color: Color,
+) {
+    if (series.isEmpty) return
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "${series.min.toInt()} – ${series.max.toInt()}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.height(DesignTokens.Spacing.xs))
+        SparklineChart(values = series.values, color = color)
     }
 }
 

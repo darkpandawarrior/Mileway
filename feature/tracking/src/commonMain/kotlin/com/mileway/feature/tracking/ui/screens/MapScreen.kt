@@ -133,6 +133,7 @@ import com.mileway.core.ui.theme.LocalMapProvider
 import com.mileway.core.ui.theme.MapProvider
 import com.mileway.core.ui.theme.MilewayColors
 import com.mileway.core.ui.theme.dataStyle
+import com.mileway.feature.tracking.map.LiveMapOverlayData
 import com.mileway.feature.tracking.map.MapRouteBuilder
 import com.mileway.feature.tracking.viewmodel.LiveTrackAction
 import com.mileway.feature.tracking.viewmodel.LiveTrackViewModel
@@ -543,6 +544,25 @@ fun EnhancedLiveTrackingUI(
             offlineTiles = showOfflineTiles,
             modifier = Modifier.fillMaxSize(),
         )
+
+        // Address chip + heading indicator (top-end): current-fix reverse-geocode (fully offline,
+        // via OfflineLocationNameResolver) plus a small rotated arrow from the live bearing.
+        AnimatedVisibility(
+            visible = !controlsExpanded,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier =
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 56.dp, end = 16.dp)
+                    .zIndex(17f),
+        ) {
+            LiveMapAddressChip(
+                latitude = currentLocation.lat,
+                longitude = currentLocation.lng,
+                bearing = currentBearing,
+            )
+        }
 
         // Live indicator badge (top-center)
         AnimatedVisibility(
@@ -2449,6 +2469,64 @@ fun detectDeviceOrientation(location: LocationData): DeviceOrientation {
         tiltMagnitude < 2.0f -> DeviceOrientation.HANDHELD
         else -> DeviceOrientation.UNKNOWN
     }
+}
+
+// ---------------------------------------------------------------------------
+// Address chip + heading indicator (Wave 3 live-map polish, fully offline)
+// ---------------------------------------------------------------------------
+
+/**
+ * Small pill showing the current fix's offline-resolved place name (via
+ * [OfflineLocationNameResolver], no network) plus a heading arrow rotated from [bearing]. Renders
+ * nothing when the resolver has no gazetteer match near [latitude]/[longitude].
+ */
+@Composable
+private fun LiveMapAddressChip(
+    latitude: Double,
+    longitude: Double,
+    bearing: Float,
+    modifier: Modifier = Modifier,
+) {
+    val resolver = remember { com.mileway.core.platform.OfflineLocationNameResolver() }
+    val place = remember(latitude, longitude) { resolver.resolveSync(latitude, longitude) }
+    val chipText = remember(place) { LiveMapOverlayData.addressChipText(place) } ?: return
+
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HeadingArrow(bearing = bearing)
+            Text(
+                text = chipText,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = 160.dp),
+            )
+        }
+    }
+}
+
+/** Small arrow icon rotated to [bearing] degrees clockwise from north (device heading). */
+@Composable
+private fun HeadingArrow(
+    bearing: Float,
+    modifier: Modifier = Modifier,
+) {
+    val rotation = remember(bearing) { LiveMapOverlayData.headingRotationDegrees(bearing) }
+    Icon(
+        imageVector = Icons.Default.MyLocation,
+        contentDescription = "Heading ${rotation.toInt()}°",
+        tint = MaterialTheme.colorScheme.primary,
+        modifier = modifier.size(16.dp).rotate(rotation),
+    )
 }
 
 fun calculateDataQualityScore(locations: List<LocationData>): Int {
