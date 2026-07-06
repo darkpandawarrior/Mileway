@@ -69,7 +69,9 @@ import com.mileway.core.ui.components.LoadingScreen
 import com.mileway.core.ui.theme.DesignTokens
 import com.mileway.core.ui.theme.MilewayColors
 import com.mileway.core.ui.theme.dataStyle
+import com.mileway.feature.tracking.model.toLinkedContext
 import com.mileway.feature.tracking.ui.components.CreateVoucherButton
+import com.mileway.feature.tracking.ui.components.LinkedContextCard
 import com.mileway.feature.tracking.ui.components.NoJourneysThisWeekState
 import com.mileway.feature.tracking.ui.components.NoSubmissionsState
 import com.mileway.feature.tracking.ui.components.SavedTracksChipRow
@@ -440,6 +442,12 @@ private fun JourneyCard(
                     toLat = track.endLatitude,
                     toLng = track.endLongitude,
                 )
+
+                val linkedContext = track.toLinkedContext()
+                if (linkedContext != null) {
+                    Spacer(Modifier.height(DesignTokens.Spacing.m))
+                    LinkedContextCard(context = linkedContext, onClick = onClick)
+                }
 
                 Spacer(Modifier.height(DesignTokens.Spacing.m))
 

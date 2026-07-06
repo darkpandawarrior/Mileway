@@ -26,6 +26,12 @@ data class TrackDisplayData(
     // P3.3: non-null once this trip has been selected into a submitted voucher — the
     // already-claimed guard excludes these from a subsequent Create Voucher selection list.
     val claimedByVoucherNumber: String? = null,
+    // Wave 3 linked-context card: carried through unmapped so the hub can render it without a
+    // second SavedTrack lookup. See feature:tracking's LinkedContext for the source fields.
+    val tripId: String? = null,
+    val tripV2Id: String? = null,
+    val itineraryId: String? = null,
+    val pettyId: Long = -1L,
 ) {
     fun getDurationMs(): Long =
         when {
@@ -71,4 +77,8 @@ fun SavedTrack.toDisplayData() =
         isSubmitted = serverUploaded,
         locationCount = totalLocationPoints.toInt(),
         claimedByVoucherNumber = claimedByVoucherNumber,
+        tripId = tripId,
+        tripV2Id = tripV2Id,
+        itineraryId = itineraryId,
+        pettyId = pettyId,
     )
