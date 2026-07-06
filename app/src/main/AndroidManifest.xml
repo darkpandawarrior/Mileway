@@ -90,6 +90,29 @@
         <!-- Phase 10: LoggingActivity registered here -->
         <!-- Phase 5: MediaActivity registered here -->
 
+        <!-- DL.5: tracking control-op deep links / App Intents — mileway://track/{start,stop,pause,discard}.
+             Separate from LauncherActivity so a partner/Shortcuts caller gets a result back
+             (setResult) without the full app shell ever appearing (except the confirmation sheet
+             for Stop/Discard). `checkin` deliberately excluded — it's a nav route/guided flow, not
+             a headless op, and already resolves through LauncherActivity's existing filter below.
+             noHistory: this Activity never belongs on the back stack. -->
+        <activity
+            android:name=".DeepLinkActionActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@style/Theme.Mileway.EdgeToEdge">
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="mileway" android:host="track" android:pathPattern="/start" />
+                <data android:scheme="mileway" android:host="track" android:pathPattern="/stop" />
+                <data android:scheme="mileway" android:host="track" android:pathPattern="/pause" />
+                <data android:scheme="mileway" android:host="track" android:pathPattern="/discard" />
+            </intent-filter>
+        </activity>
+
         <!-- P7.3: Quick Settings tile — start/stop tracking without opening the app UI. -->
         <service
             android:name=".qs.TrackingTileService"

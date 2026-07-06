@@ -97,6 +97,32 @@ class WatchFacadeTest {
             assertTrue(controller.stoppedTokens.isEmpty())
         }
 
+    @Test
+    fun `pauseTracking proxies to the controller using the active track's routeId`() =
+        runTest {
+            val active = activeTrack(routeId = "active-route")
+            val dao = FakeWatchDao(listOf(active))
+            val controller = RecordingTrackingController()
+            val facade = WatchFacade(InMemorySnapshotPublisher(), SavedTrackRepository(dao), controller)
+
+            facade.pauseTracking()
+
+            assertEquals(listOf("active-route"), controller.pausedTokens)
+        }
+
+    @Test
+    fun `discardTracking proxies to the controller's stop using the active track's routeId`() =
+        runTest {
+            val active = activeTrack(routeId = "active-route")
+            val dao = FakeWatchDao(listOf(active))
+            val controller = RecordingTrackingController()
+            val facade = WatchFacade(InMemorySnapshotPublisher(), SavedTrackRepository(dao), controller)
+
+            facade.discardTracking()
+
+            assertEquals(listOf("active-route"), controller.stoppedTokens)
+        }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private fun completedTrack(
@@ -133,13 +159,16 @@ class WatchFacadeTest {
 
 private class RecordingTrackingController : TrackingController {
     val startedTokens = mutableListOf<String>()
+    val pausedTokens = mutableListOf<String>()
     val stoppedTokens = mutableListOf<String>()
 
     override fun start(token: String) {
         startedTokens += token
     }
 
-    override fun pause(token: String) {}
+    override fun pause(token: String) {
+        pausedTokens += token
+    }
 
     override fun resume(token: String) {}
 

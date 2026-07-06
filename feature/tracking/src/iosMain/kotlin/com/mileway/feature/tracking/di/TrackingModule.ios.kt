@@ -27,6 +27,7 @@ import com.mileway.feature.tracking.viewmodel.SavedTracksViewModel
 import com.mileway.feature.tracking.viewmodel.TrackDetailViewModel
 import com.mileway.feature.tracking.viewmodel.TrackMilesViewModel
 import com.mileway.feature.tracking.viewmodel.TrackingSuccessViewModel
+import com.mileway.feature.tracking.watch.WatchFacade
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -65,6 +66,10 @@ val trackingModule =
 
         // ── Shared utilities ──────────────────────────────────────────────────
         single { RouteAnalyzer() }
+
+        // DL.5: same watch-domain facade Android's trackingModule binds — the iOS URL-scheme deep-link
+        // entry point (DeepLinkActionBridge) dispatches Start/Stop/Pause/Discard through it.
+        single { WatchFacade(snapshotPublisher = get(), trackRepository = get(), trackingController = get()) }
 
         // P-C.4: reconciliation bridge — scene-active hook writes; ViewModel observes.
         single { ReconciliationResultHolder() }

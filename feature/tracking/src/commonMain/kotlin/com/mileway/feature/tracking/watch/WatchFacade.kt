@@ -70,6 +70,25 @@ class WatchFacade(
     suspend fun stopTracking() {
         trackRepository.getActiveTrack()?.let { trackingController.stop(it.routeId) }
     }
+
+    /**
+     * DL.5: pauses the currently active session, resolved from [SavedTrackRepository]'s active
+     * track — the deep-link/App-Intent surface's Pause op proxies here rather than duplicating
+     * the token lookup.
+     */
+    suspend fun pauseTracking() {
+        trackRepository.getActiveTrack()?.let { trackingController.pause(it.routeId) }
+    }
+
+    /**
+     * DL.5: stops and discards the currently active session. `TrackingController` has no separate
+     * discard op (matching `TrackMilesViewModel.discardTracking()`, which also just calls
+     * [TrackingController.stop] and drops the in-memory state) — the "discard" semantics are that
+     * the caller never finalizes/submits the trip, unlike a normal stop.
+     */
+    suspend fun discardTracking() {
+        trackRepository.getActiveTrack()?.let { trackingController.stop(it.routeId) }
+    }
 }
 
 private fun TrackDisplayData.toTripSummary() =
