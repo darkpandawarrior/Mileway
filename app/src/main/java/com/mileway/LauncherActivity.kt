@@ -2,6 +2,7 @@ package com.mileway
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -59,8 +60,18 @@ class LauncherActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applySecurityFlags()
         enableEdgeToEdge()
         setContent { AppEntry(initialRoute = intent.deepLinkRoute()) }
+    }
+
+    /**
+     * Blocks screenshots/screen-recording of sensitive expense data (FLAG_SECURE) and rejects
+     * touches while another app's overlay is drawn on top of us (tapjacking guard).
+     */
+    private fun applySecurityFlags() {
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        window.decorView.filterTouchesWhenObscured = true
     }
 
     override fun onNewIntent(intent: Intent) {
