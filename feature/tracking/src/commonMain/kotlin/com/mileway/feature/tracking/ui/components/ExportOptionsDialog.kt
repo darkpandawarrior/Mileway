@@ -83,6 +83,13 @@ enum class ExportFormat(
         mimeType = "application/geo+json",
         description = "Geographic JSON format, widely supported by mapping libraries",
     ),
+    EXCEL(
+        displayName = "Excel (Spreadsheet)",
+        // ponytail: SpreadsheetML XML, saved with the .xls extension Excel expects for it.
+        fileExtension = "xls",
+        mimeType = "application/vnd.ms-excel",
+        description = "Excel spreadsheet with summary and per-point sheets, opens in Excel/Sheets/Numbers",
+    ),
 }
 
 /**

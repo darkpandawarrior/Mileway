@@ -31,6 +31,7 @@ object TrackExportManager {
             ExportFormat.KML -> KmlExporter.export(track, locations, events)
             ExportFormat.GEOJSON -> GeoJsonExporter.export(track, locations, events)
             ExportFormat.JSON -> JsonExporter.export(track, locations, events)
+            ExportFormat.EXCEL -> ExcelExporter.export(track, locations, events)
         }
 
     /**

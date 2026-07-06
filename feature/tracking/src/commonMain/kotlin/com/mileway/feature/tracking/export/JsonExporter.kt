@@ -9,14 +9,23 @@ import com.mileway.core.data.model.db.SavedTrack
  *
  * Produces a structured object:
  * {
+ *   "schemaVersion": 2,
+ *   "account": { "accountId": ..., "tenant": ... },
  *   "track": { ...metadata... },
  *   "points": [ { ...LocationData fields... } ],
  *   "events": [ { ...HardwareEvent fields... } ]
  * }
  *
  * Intentionally hand-built (no org.json dependency needed in pure-JVM tests).
+ *
+ * schemaVersion is an additive, backward-safe field: v1 exports (no field) are read by
+ * [com.mileway.feature.tracking.repository.ImportRepository] as version 1; v2 adds the
+ * `account` envelope so import can reject another account's data.
  */
 object JsonExporter {
+    /** Current export envelope version. Bump when the shape changes incompatibly. */
+    const val SCHEMA_VERSION: Int = 2
+
     fun export(
         track: SavedTrack,
         locations: List<LocationData>,
@@ -24,6 +33,12 @@ object JsonExporter {
     ): String =
         buildString {
             appendLine("{")
+            appendLine("""  "schemaVersion": $SCHEMA_VERSION,""")
+            appendLine("""  "account": {""")
+            appendLine("""    "accountId": ${track.startedByAccountId?.let { js(it) } ?: "null"},""")
+            appendLine("""    "tenant": ${js(track.startedByTenant)},""")
+            appendLine("""    "employeeCode": ${js(track.startedByEmployeeCode)}""")
+            appendLine("  },")
             appendLine("""  "track": {""")
             appendLine("""    "routeId": ${js(track.routeId)},""")
             appendLine("""    "name": ${js(track.name)},""")
