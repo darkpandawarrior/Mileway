@@ -264,7 +264,12 @@ class ScreenshotGalleryTest {
             // returns a null-backed Flow that crashes that collector (memory: screenshot Koin
             // needs deterministic fakes, same reason FakeVoucherDao exists below).
             single<LogMilesDraftDao> { FakeLogMilesDraftDao() }
-            single<LogMilesFrequentRouteDao> { mockk(relaxed = true) }
+            // Wave 3: LogMilesViewModel.init now also collectLatest's observeAllRoutes(); same
+            // relaxed-mockk-null-Flow trap as LogMilesDraftDao above.
+            single<LogMilesFrequentRouteDao> { FakeLogMilesFrequentRouteDao() }
+            single<com.mileway.core.data.outbox.SubmitOutbox<com.mileway.core.data.model.network.LogMilesSubmitRequestV2>> {
+                mockk(relaxed = true)
+            }
             single<TripAttachmentDao> { mockk(relaxed = true) }
             single<DraftExpenseDao> { mockk(relaxed = true) }
             single<VoucherDao> { voucherDao }

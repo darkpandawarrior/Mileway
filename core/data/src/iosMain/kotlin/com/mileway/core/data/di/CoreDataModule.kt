@@ -4,6 +4,7 @@ import com.mileway.core.data.database.MilewayDatabase
 import com.mileway.core.data.database.buildMilewayDatabase
 import com.mileway.core.data.model.display.InMemorySnapshotPublisher
 import com.mileway.core.data.model.display.SnapshotPublisher
+import com.mileway.core.data.model.network.LogMilesSubmitRequestV2
 import com.mileway.core.data.outbox.RoomSubmitOutbox
 import com.mileway.core.data.outbox.SubmitOutbox
 import com.mileway.core.data.outbox.TripDraft
@@ -66,7 +67,9 @@ val coreDataModule =
         single { MockAccountSessionCoordinator(get(), get(), get()) }
         single<AgentSessionStore> { AgentSessionStoreImpl() }
         single { Json { ignoreUnknownKeys = true } }
-        single<SubmitOutbox<TripDraft>> { RoomSubmitOutbox(get(), get()) }
+        single<SubmitOutbox<TripDraft>> { RoomSubmitOutbox(get(), get(), TripDraft.serializer()) }
+        // Wave 3: Log Miles submit goes through the durable outbox too (LogMilesSubmitUseCase).
+        single<SubmitOutbox<LogMilesSubmitRequestV2>> { RoomSubmitOutbox(get(), get(), LogMilesSubmitRequestV2.serializer()) }
         // L.1: in-process snapshot channel for glanceable surfaces (publish + observe).
         single { InMemorySnapshotPublisher() }
         single<SnapshotPublisher> { get<InMemorySnapshotPublisher>() }

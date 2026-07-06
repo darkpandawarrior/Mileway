@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -53,6 +56,7 @@ import com.mileway.core.ui.components.pickers.WheelTimePickerDialog
 import com.mileway.core.ui.components.topbar.DepthAwareTopBar
 import com.mileway.core.ui.theme.DesignTokens
 import com.mileway.core.ui.theme.DesignTokens.NavigationDepth
+import com.mileway.feature.logging.repository.LogMilesFrequentRoute
 import com.mileway.feature.logging.ui.components.MapPreviewCard
 import com.mileway.feature.logging.ui.components.StepHeaderCard
 import com.mileway.feature.logging.ui.components.TapFieldRow
@@ -177,6 +181,15 @@ fun LogMilesScreen(
                     title = "Step 1 of 2",
                     subtitle = "Add travelled locations and basics",
                 )
+
+                // Wave 3: one-tap retrace — pre-fill the itinerary from a cached frequent route
+                // instead of re-adding every stop by hand. Only offered before any stop is picked.
+                if (uiState.stops.isEmpty() && uiState.frequentRoutes.isNotEmpty()) {
+                    FrequentRoutesRow(
+                        routes = uiState.frequentRoutes,
+                        onRetrace = { viewModel.onAction(LogMilesAction.RetraceRoute(it)) },
+                    )
+                }
 
                 if (uiState.stops.size >= 2) {
                     StaticPolylineThumbnail(
@@ -401,6 +414,37 @@ fun LogMilesScreen(
             },
             onDismiss = { odometerSheetPurpose = null },
         )
+    }
+}
+
+/**
+ * Wave 3 one-tap retrace: a horizontal row of cached [com.mileway.feature.logging.repository
+ * .LogMilesFrequentRoute] chips, most-used first. Tapping one dispatches [LogMilesAction
+ * .RetraceRoute] to pre-fill the itinerary instead of re-adding every stop by hand.
+ */
+@Composable
+private fun FrequentRoutesRow(
+    routes: List<LogMilesFrequentRoute>,
+    onRetrace: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
+        Text(
+            "Frequent routes",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(DesignTokens.Spacing.s)) {
+            items(routes, key = { it.routeKey }) { route ->
+                AssistChip(
+                    onClick = { onRetrace(route.routeKey) },
+                    label = {
+                        val from = route.stops.firstOrNull()?.entry?.name.orEmpty()
+                        val to = route.stops.lastOrNull()?.entry?.name.orEmpty()
+                        Text("$from → $to")
+                    },
+                )
+            }
+        }
     }
 }
 

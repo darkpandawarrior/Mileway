@@ -16,6 +16,8 @@ import com.mileway.core.data.model.validator.OdometerValidator
 import com.mileway.core.ui.mvi.BaseViewModel
 import com.mileway.feature.logging.repository.LogMilesDraftRepository
 import com.mileway.feature.logging.repository.LogMilesDraftRepository.Companion.toDraftEntity
+import com.mileway.feature.logging.repository.LogMilesFrequentRoute
+import com.mileway.feature.logging.repository.LogMilesFrequentRouteRepository
 import com.mileway.feature.logging.repository.LogMilesServiceRepository
 import com.mileway.feature.logging.ui.model.LocationEntry
 import com.mileway.feature.logging.ui.model.LocationStop
@@ -67,6 +69,8 @@ data class LogMilesUiState(
     val journeyTimeMinutes: Int? = null,
     val saveAsDraft: Boolean = false,
     val recentLocations: List<LocationEntry> = emptyList(),
+    /** Wave 3: most-used routes, for one-tap retrace (see [LogMilesAction.RetraceRoute]). */
+    val frequentRoutes: List<LogMilesFrequentRoute> = emptyList(),
     /**
      * Step 1: odometer capture (P5.3). Gates [canProceedToStep2] on odometer capture, sourced from
      * [com.mileway.core.data.settings.DemoSettingsRepository] — a local per-tenant-persona flag,
@@ -207,6 +211,9 @@ sealed interface LogMilesAction {
 
     data object ClearRecentLocations : LogMilesAction
 
+    /** Wave 3: pre-fills the form's stops from a cached [LogMilesFrequentRoute] (one-tap retrace). */
+    data class RetraceRoute(val routeKey: String) : LogMilesAction
+
     data class OverrideDistance(val km: Double) : LogMilesAction
 
     /** Reflects the persisted `DemoSettingsRepository` flag into state (P5.3); read by the screen. */
@@ -262,6 +269,7 @@ class LogMilesViewModel(
     private val serviceRepo: LogMilesServiceRepository,
     private val draftRepo: LogMilesDraftRepository,
     private val submitUseCase: LogMilesSubmitUseCase,
+    private val frequentRouteRepo: LogMilesFrequentRouteRepository,
 ) : BaseViewModel<LogMilesUiState, LogMilesEffect, LogMilesAction>(LogMilesUiState()) {
     /** Backwards-compatible alias; screens read [state]. */
     val uiState = state
@@ -279,6 +287,16 @@ class LogMilesViewModel(
         loadVehicles()
         loadServices()
         observeDrafts()
+        observeFrequentRoutes()
+    }
+
+    /** Keeps [LogMilesUiState.frequentRoutes] in sync with the Room-backed cache (Wave 3). */
+    private fun observeFrequentRoutes() {
+        viewModelScope.launch {
+            frequentRouteRepo.topRoutes().collectLatest { routes ->
+                setState { copy(frequentRoutes = routes) }
+            }
+        }
     }
 
     /** Keeps [LogMilesUiState.drafts] in sync with the Room-backed [draftRepo] (P5.1). */
@@ -331,6 +349,7 @@ class LogMilesViewModel(
             is LogMilesAction.MoveStopUp -> reorder(action.index, action.index - 1)
             is LogMilesAction.MoveStopDown -> reorder(action.index, action.index + 1)
             LogMilesAction.ClearRecentLocations -> setState { copy(recentLocations = emptyList()) }
+            is LogMilesAction.RetraceRoute -> retraceRoute(action.routeKey)
             is LogMilesAction.OverrideDistance -> {
                 setState { copy(distanceKm = action.km, isDistanceOverridden = true) }
                 recomputePricing()
@@ -422,6 +441,17 @@ class LogMilesViewModel(
             list.add(to, moved)
             copy(stops = list)
         }
+        recomputeDistance()
+    }
+
+    /**
+     * Wave 3 one-tap retrace: replaces the current itinerary with a cached [LogMilesFrequentRoute]'s
+     * stops (re-keyed with fresh [stopIdCounter] ids, since the cached copy carries none of its own).
+     * No-op if the route isn't in the currently loaded cache.
+     */
+    private fun retraceRoute(routeKey: String) {
+        val route = currentState.frequentRoutes.firstOrNull { it.routeKey == routeKey } ?: return
+        setState { copy(stops = route.stops.map { LocationStop(id = stopIdCounter++, entry = it.entry) }) }
         recomputeDistance()
     }
 
@@ -528,6 +558,11 @@ class LogMilesViewModel(
                 setState {
                     copy(isSubmitting = false, submissionResult = resp, showViolationDialog = resp.needsViolationDialog())
                 }
+                frequentRouteRepo.recordSubmission(
+                    stops = s.stops,
+                    distanceKm = s.distanceKm,
+                    nowMillis = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+                )
             }.onFailure { e ->
                 setState { copy(isSubmitting = false) }
                 emitEffect(LogMilesEffect.ShowError(UiText.Static(e.message ?: "Submission failed")))

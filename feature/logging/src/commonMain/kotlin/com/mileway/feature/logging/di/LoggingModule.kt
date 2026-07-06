@@ -4,6 +4,7 @@ import com.mileway.core.data.search.SearchProvider
 import com.mileway.feature.logging.repository.CardsTxnHistoryRepository
 import com.mileway.feature.logging.repository.ExpenseRepository
 import com.mileway.feature.logging.repository.LogMilesDraftRepository
+import com.mileway.feature.logging.repository.LogMilesFrequentRouteRepository
 import com.mileway.feature.logging.repository.LogMilesServiceRepository
 import com.mileway.feature.logging.repository.SettlementHistoryRepository
 import com.mileway.feature.logging.repository.VoucherHistoryRepository
@@ -20,13 +21,14 @@ val loggingModule =
     module {
         single { LogMilesServiceRepository(get()) }
         single { LogMilesDraftRepository(get()) }
+        single { LogMilesFrequentRouteRepository(get()) }
         single { ExpenseRepository(get()) }
         // SP.1/SP.2/SP.3: voucher + settlement + cards-txn history (offline fakes + MVI VMs).
         single { VoucherHistoryRepository(get()) }
         single { SettlementHistoryRepository() }
         single { CardsTxnHistoryRepository() }
-        factory { LogMilesSubmitUseCase(get()) }
-        viewModel { LogMilesViewModel(get(), get(), get(), get()) }
+        factory { LogMilesSubmitUseCase(get(), get()) }
+        viewModel { LogMilesViewModel(get(), get(), get(), get(), get()) }
         viewModel { ExpenseViewModel(get()) }
         viewModel { VoucherHistoryViewModel(get(), get()) }
         viewModel { SettlementHistoryViewModel(get()) }

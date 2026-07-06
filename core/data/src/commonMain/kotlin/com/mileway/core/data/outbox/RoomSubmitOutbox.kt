@@ -4,20 +4,24 @@ import com.mileway.core.data.dao.SubmitDraftDao
 import com.mileway.core.data.model.db.SubmitDraftEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
-class RoomSubmitOutbox(
+// Generic over the payload type: the underlying SubmitDraftEntity stores an opaque payloadJson, so one
+// Room-backed outbox serves any @Serializable payload (TripDraft, LogMilesSubmitRequestV2, …) — distinct
+// formKeys keep different payload types from colliding in the shared table.
+class RoomSubmitOutbox<T : Any>(
     private val dao: SubmitDraftDao,
     private val json: Json,
-) : SubmitOutbox<TripDraft> {
-    override fun drafts(formKey: String): Flow<List<DraftEntry<TripDraft>>> =
+    private val serializer: KSerializer<T>,
+) : SubmitOutbox<T> {
+    override fun drafts(formKey: String): Flow<List<DraftEntry<T>>> =
         dao.observeByFormKey(formKey).map { rows ->
             rows.map { row ->
                 DraftEntry(
                     formKey = row.formKey,
                     uniqueKey = row.uniqueKey,
-                    payload = json.decodeFromString(row.payloadJson),
+                    payload = json.decodeFromString(serializer, row.payloadJson),
                     status = DraftStatus.valueOf(row.status),
                     errorMessage = row.errorMessage,
                     createdAt = row.createdAt,
@@ -29,14 +33,14 @@ class RoomSubmitOutbox(
     override suspend fun enqueue(
         formKey: String,
         uniqueKey: String,
-        payload: TripDraft,
+        payload: T,
     ) {
         val now = epochMillis()
         dao.upsert(
             SubmitDraftEntity(
                 formKey = formKey,
                 uniqueKey = uniqueKey,
-                payloadJson = json.encodeToString(payload),
+                payloadJson = json.encodeToString(serializer, payload),
                 status = DraftStatus.PENDING.name,
                 errorMessage = null,
                 createdAt = now,
