@@ -1,12 +1,14 @@
 package com.mileway.feature.approvals.viewmodel
 
 import com.mileway.core.common.UiText
+import com.mileway.core.data.ledger.ApprovalTransitions
 import com.mileway.core.ui.mvi.BaseViewModel
 import com.mileway.core.ui.mvi.ScreenState
 import com.mileway.feature.approvals.model.ApprovalItem
 import com.mileway.feature.approvals.model.ApprovalStatus
 import com.mileway.feature.approvals.model.ClarificationMessage
 import com.mileway.feature.approvals.repository.ApprovalsRepository
+import com.mileway.core.data.ledger.ApprovalStatus as FsmStatus
 
 enum class ApprovalTabFilter { ALL, PENDING, APPROVED, REJECTED }
 
@@ -52,8 +54,20 @@ data class ApprovalsUiState(
     val activeTab: ApprovalTabFilter = ApprovalTabFilter.ALL,
 )
 
+/** Maps the UI-local [ApprovalStatus] onto the pure FSM's [FsmStatus] for [ApprovalTransitions] checks. */
+private fun ApprovalStatus.toFsmStatus(): FsmStatus =
+    when (this) {
+        ApprovalStatus.PENDING -> FsmStatus.PENDING
+        ApprovalStatus.APPROVED -> FsmStatus.APPROVED
+        ApprovalStatus.REJECTED -> FsmStatus.REJECTED
+    }
+
 class ApprovalsViewModel :
     BaseViewModel<ApprovalsUiState, ApprovalsEffect, ApprovalsAction>(ApprovalsUiState()) {
+    // ponytail: in-flight id guard debounces a double-tapped approve/reject/pay; cleared once the
+    // resolve completes (synchronous today — this local mock data has no suspend/network hop).
+    private val inFlightIds = mutableSetOf<String>()
+
     override fun onAction(action: ApprovalsAction) {
         when (action) {
             ApprovalsAction.Refresh ->
@@ -96,11 +110,18 @@ class ApprovalsViewModel :
         toast: String,
     ) {
         val detail = currentDetail() ?: return
+        val id = detail.item.id
+        // Debounce: ignore a second tap for the same approval while the first is still applying.
+        if (id in inFlightIds) return
+        val from = (detail.localStatus ?: detail.item.status).toFsmStatus()
+        if (!ApprovalTransitions.isAllowed(from, status.toFsmStatus())) return
+
+        inFlightIds += id
         val updatedList =
             if (status == ApprovalStatus.APPROVED) {
-                ApprovalsRepository.approve(detail.item.id)
+                ApprovalsRepository.approve(id)
             } else {
-                ApprovalsRepository.reject(detail.item.id)
+                ApprovalsRepository.reject(id)
             }
         setState {
             copy(
@@ -109,6 +130,7 @@ class ApprovalsViewModel :
             )
         }
         emitEffect(ApprovalsEffect.ShowToast(UiText.Static(toast)))
+        inFlightIds -= id
     }
 
     private fun sendClarification() {
