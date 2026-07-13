@@ -61,7 +61,7 @@ ktor = "3.5.1"
 jbNavigationCompose = "2.10.0-alpha02"
 navigation3 = "1.2.0-alpha05"
 storytale = "0.0.5-alpha01+dev24"
-navgraph = "0.1.2"
+navgraph = "0.2.1"
 # Phase 12, Code quality
 detekt = "2.0.0-alpha.5"
 kover = "0.9.8"
