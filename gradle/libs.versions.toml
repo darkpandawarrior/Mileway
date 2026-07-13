@@ -14,7 +14,7 @@ wear-ongoing = "1.1.0"
 # protolayout core (P2.6's tile rewrite target).
 wear-compose = "1.7.0-alpha05"
 wear-protolayout = "1.4.1"
-ksp = "2.3.9"
+ksp = "2.3.10"
 room = "2.8.4"
 sqlite-bundled = "2.7.0"
 koin = "4.2.2"
