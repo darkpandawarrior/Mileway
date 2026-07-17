@@ -2304,6 +2304,39 @@
     <!-- PLAN_V24 P2.2: what's-new sheet -->
     <string name="whats_new_title">Mileway में नया क्या है</string>
     <string name="whats_new_got_it">समझ गया</string>
+    <!-- PLAN_V36 P2: footer link from the digest sheet to the full What's New list -->
+    <string name="whats_new_see_all">See all updates</string>
+
+    <!-- PLAN_V36 P3: full What's New list screen -->
+    <string name="whatsnew_list_title">What's New</string>
+    <string name="whatsnew_list_subtitle_count">%1$d updates</string>
+    <string name="whatsnew_list_subtitle_empty">No updates yet</string>
+    <string name="whatsnew_empty_title">You're all caught up</string>
+    <string name="whatsnew_empty_subtitle">Check back later for new features and improvements.</string>
+    <string name="whatsnew_new_badge">NEW</string>
+    <string name="whatsnew_released_on">Released %1$s</string>
+
+    <!-- PLAN_V36 P4: detail screen (hero carousel + full parity content) -->
+    <string name="whatsnew_detail_title">Feature details</string>
+    <string name="whatsnew_detail_step">Step %1$d of %2$d</string>
+    <string name="whatsnew_detail_not_found_title">Update not found</string>
+    <string name="whatsnew_detail_not_found_subtitle">This update could not be located.</string>
+    <string name="whatsnew_detail_learn_more">Learn more</string>
+    <string name="whatsnew_detail_contact_title">Need help?</string>
+    <string name="whatsnew_detail_contact_body">Got a question about this feature? We're happy to help.</string>
+    <string name="whatsnew_detail_contact_button">Get in touch</string>
+    <string name="whatsnew_detail_contact_email">or email %1$s</string>
+    <string name="whatsnew_cd_share">Share</string>
+    <string name="whatsnew_cd_previous_media">Previous</string>
+    <string name="whatsnew_cd_next_media">Next</string>
+    <string name="whatsnew_cd_thumbnail">Screenshot %1$d</string>
+
+    <!-- PLAN_V36 P6: modernity layer a11y (spec §6.4) -->
+    <string name="whatsnew_cd_new_badge">Unread update</string>
+    <string name="whatsnew_cd_media_screenshot">%1$s screenshot</string>
+    <string name="whatsnew_cd_media_step">%1$s screenshot, step %2$d of %3$d</string>
+    <string name="whatsnew_two_pane_placeholder_title">Select an update</string>
+    <string name="whatsnew_two_pane_placeholder_subtitle">Choose an item from the list to see its details.</string>
 
     <!-- PLAN_V24 P3.1: phone change -->
     <string name="plugin_profile_phone_change_title">फ़ोन नंबर बदलें</string>

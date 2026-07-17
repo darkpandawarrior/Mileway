@@ -60,9 +60,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mileway.core.data.whatsnew.WhatsNewVersionProvider
 import com.mileway.core.ui.components.CompactWhatsNewButton
 import com.mileway.core.ui.components.RateAppSheet
-import com.mileway.core.ui.components.WhatsNewVersion
 import com.mileway.core.ui.components.dialog.ColorWheelDialog
 import com.mileway.core.ui.components.sheet.ActionConfirmationBottomSheet
 import com.mileway.core.ui.components.sheet.ActionConfirmationToneType
@@ -163,6 +163,8 @@ fun SettingsScreen(
     onOpenDebugMenu: () -> Unit = {},
     onOpenPlugins: () -> Unit = {},
     onOpenAccountDeletion: () -> Unit = {},
+    // PLAN_V36 P3: opens the full What's New list (hoisted — see [profileGraph]'s note).
+    onOpenWhatsNew: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
     localeController: LocaleController = koinInject(),
 ) {
@@ -193,6 +195,9 @@ fun SettingsScreen(
     val session by sessionRepository.sessionState.collectAsStateWithLifecycle(
         initialValue = com.mileway.core.data.session.SessionState(),
     )
+    // PLAN_V36 P2: the badge comparand now comes from :feature:whatsnew's repository via this
+    // core:data contract — Settings never depends on the feature module directly.
+    val whatsNewVersionProvider = koinInject<WhatsNewVersionProvider>()
     val whatsNewScope = rememberCoroutineScope()
     val permSnackbarState = remember { SnackbarHostState() }
     val permScope = rememberCoroutineScope()
@@ -554,15 +559,18 @@ fun SettingsScreen(
                 supportingContent = { Text(stringResource(Res.string.profile_settings_rate_desc)) },
                 modifier = Modifier.clickable { showRateSheet = true },
             )
-            // PLAN_V24 P12.4: compact "What's new" indicator. ponytail: tapping acknowledges the
-            // changelog (stops the pulse app-wide) — the full sheet lives on Home, which owns the
-            // WhatsNewViewModel; Settings only surfaces + dismisses the release badge.
+            // PLAN_V24 P12.4 / PLAN_V36 P3: compact "What's new" indicator — tapping acknowledges
+            // the changelog (stops the pulse app-wide) AND opens the full list (the digest sheet
+            // lives on Home; this is the second entry point spec §7 calls for).
             ListItem(
                 headlineContent = {
                     CompactWhatsNewButton(
-                        hasUnseen = session.whatsNewLastSeenVersion < WhatsNewVersion.CURRENT,
+                        hasUnseen = session.whatsNewLastSeenVersion < whatsNewVersionProvider.currentVersion,
                         onClick = {
-                            whatsNewScope.launch { sessionRepository.markWhatsNewSeen(WhatsNewVersion.CURRENT) }
+                            whatsNewScope.launch {
+                                sessionRepository.markWhatsNewSeen(whatsNewVersionProvider.currentVersion)
+                            }
+                            onOpenWhatsNew()
                         },
                     )
                 },
