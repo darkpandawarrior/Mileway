@@ -12,6 +12,7 @@ import coil3.gif.GifDecoder
 import coil3.svg.SvgDecoder
 import com.mileway.core.data.di.coreDataModule
 import com.mileway.core.ui.di.coreUiModule
+import com.mileway.feature.advances.di.advancesModule
 import com.mileway.feature.agent.di.agentModule
 import com.mileway.feature.approvals.di.approvalsModule
 import com.mileway.feature.payables.di.payablesModule
@@ -59,7 +60,7 @@ import org.koin.dsl.module
 import dev.tmapps.konnection.Konnection
 
 val appModule = module {
-    single { DatabaseSeeder(get(), get()) }
+    single { DatabaseSeeder(get(), get(), get()) }
 
     // V15 RV.4 / PLAN_V24 P12.3: engagement-gated in-app review tracker. Counters are now
     // DataStore-backed (survive cold start) and the gate uses the plan's 7-day account-age threshold.
@@ -167,6 +168,7 @@ class MilewayApplication : Application(), SingletonImageLoader.Factory, AppFunct
                 coreDataModule,
                 coreUiModule,
                 stubModule,
+                advancesModule,
                 trackingModule,
                 kmpWorkerModule(workerFactory = MilewayWorkerFactory()),
                 loggingModule,
@@ -193,6 +195,7 @@ class MilewayApplication : Application(), SingletonImageLoader.Factory, AppFunct
         )
         appScope.launch {
             get<DatabaseSeeder>().seedIfEmpty()
+            get<DatabaseSeeder>().seedVehiclesIfEmpty()
             scheduleWeeklyMaintenance()
             seedAppShortcuts()
         }
