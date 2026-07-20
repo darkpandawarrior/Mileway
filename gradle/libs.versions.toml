@@ -52,7 +52,7 @@ paging = "3.5.0"
 glance = "1.3.0-alpha02"
 konnection = "1.4.5"
 biometric = "1.4.0-alpha07"
-roborazzi = "1.68.0"
+roborazzi = "1.70.0"
 datetimeWheelPicker = "1.3.3"
 # V12 KMP storage + security
 napier = "2.7.1"
